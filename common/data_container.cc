@@ -7,7 +7,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "common/data_container.hh"
+#include "common/spatial_data.hh"
 #include "common/vectors.hh"
+#include "common/matrix.hh"
+#include "common/turb_prop.hh"
 #include "common/mpi_config.hh"
 #include <iomanip>
 #include <iostream>
@@ -127,8 +130,7 @@ void DataContainer::Reset(void)
 \param[in] data Parameter to insert
 \date 07/27/2022
 */
-template <typename T>
-void DataContainer::Insert(T data)
+template <typename T> void DataContainer::Insert(T data)
 {
    uint8_t size = sizeof(data);
 
@@ -150,8 +152,7 @@ void DataContainer::Insert(T data)
 \param[in] data Parameter to insert
 \date 03/22/2023
 */
-template <>
-void DataContainer::Insert(std::string data)
+template <> void DataContainer::Insert(std::string data)
 {
    uint8_t size = data.size();
 
@@ -174,8 +175,7 @@ void DataContainer::Insert(std::string data)
 \param[in] data Parameter to insert
 \date 07/27/2022
 */
-template <typename T>
-void DataContainer::Insert(std::vector<T> data)
+template <typename T> void DataContainer::Insert(std::vector<T> data)
 {
    uint8_t size = data.size() * sizeof(T);
 
@@ -197,8 +197,7 @@ void DataContainer::Insert(std::vector<T> data)
 \param[out] data_ptr Pointer to the parameter to be read
 \date 07/27/2022
 */
-template <typename T>
-void DataContainer::Read(T* data_ptr)
+template <typename T> void DataContainer::Read(T* data_ptr)
 {
    std::memcpy(data_ptr, _param + 1, *_param);
    _param += *_param + 1;
@@ -209,8 +208,7 @@ void DataContainer::Read(T* data_ptr)
 \param[out] data_ptr Pointer to the parameter to be read
 \date 03/22/2023
 */
-template <>
-void DataContainer::Read(std::string* data_ptr)
+template <> void DataContainer::Read(std::string* data_ptr)
 {
    data_ptr->assign((char*)(_param + 1), *_param);
    _param += *_param + 1;
@@ -222,8 +220,7 @@ void DataContainer::Read(std::string* data_ptr)
 \param[out] data_ptr Pointer to the parameter to be read
 \date 07/27/2022
 */
-template <typename T>
-void DataContainer::Read(std::vector<T>* data_ptr)
+template <typename T> void DataContainer::Read(std::vector<T>* data_ptr)
 {
    data_ptr->resize(*_param / sizeof(T));
    std::memcpy(data_ptr->data(), _param + 1, *_param);
@@ -250,11 +247,27 @@ void DataContainer::Print(void)
    };
 };
 
+template void DataContainer::Insert <bool>(bool data);
+template void DataContainer::Insert <char>(char data);
+template void DataContainer::Insert <int>(int data);
+template void DataContainer::Insert <int>(std::vector<int> data);
 template void DataContainer::Insert <double>(double data);
+template void DataContainer::Insert <double>(std::vector<double> data);
+template void DataContainer::Insert <MultiIndex>(MultiIndex data);
 template void DataContainer::Insert <GeoVector>(GeoVector data);
+template void DataContainer::Insert <GeoMatrix>(GeoMatrix data);
+template void DataContainer::Insert <TurbProp>(TurbProp data);
 template void DataContainer::Insert <std::shared_ptr<MPI_Config>*>(std::shared_ptr<MPI_Config>* data);
+template void DataContainer::Read <char>(char* data_ptr);
+template void DataContainer::Read <bool>(bool* data_ptr);
+template void DataContainer::Read <int>(int* data_ptr);
+template void DataContainer::Read <int>(std::vector<int>* data_ptr);
 template void DataContainer::Read <double>(double* data_ptr);
+template void DataContainer::Read <double>(std::vector<double>* data_ptr);
+template void DataContainer::Read <MultiIndex>(MultiIndex* data_ptr);
 template void DataContainer::Read <GeoVector>(GeoVector* data_ptr);
+template void DataContainer::Read <GeoMatrix>(GeoMatrix* data_ptr);
+template void DataContainer::Read <TurbProp>(TurbProp* data_ptr);
 template void DataContainer::Read <std::shared_ptr<MPI_Config>*>(std::shared_ptr<MPI_Config>** data_ptr);
 
 };

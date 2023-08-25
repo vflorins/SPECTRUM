@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SPATIAL_DATA_HH
 #define SPECTRUM_SPATIAL_DATA_HH
 
-// This includes (algorithm, cmath, cstring, fstream, vector), definitions, multi_index
+#include <cstdint>
 #include "vectors.hh"
 #include "matrix.hh"
 
@@ -86,6 +86,12 @@ struct SpatialData {
 
 //! Magnetic field magnitude
    double Bmag;
+
+//! Minimum magnetic field magnitude along a trajectory
+   double Bmag_min;
+
+//! Maximum magnetic field magnitude along a trajectory
+   double Bmag_max;
 
 //! Magnetic field unit vector
    GeoVector bhat;
