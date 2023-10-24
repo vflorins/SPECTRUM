@@ -145,6 +145,9 @@ struct GeoMatrix {
 
 //! Return a vector product of a matrix and a vector
    friend GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r);
+
+//! Inner product between two matrices together
+   friend double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -432,19 +435,21 @@ inline GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r)
 
 /*!
 \author Vladimir Florinski
-\date 11/02/2021
+\author Juan G Alonso Guzman
+\date 10/20/2023
 \param[in] matr_l left operand \f$\mathbf{M}_1\f$
 \param[in] vect_r right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{M}_1\mathbf{v}_2\f$
 */
 inline GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r)
 {
-   return GeoVector(matr_l.row[0] * vect_r[0] + matr_l.row[1] * vect_r[1] + matr_l.row[2] * vect_r[2]);
+   return GeoVector(matr_l.row[0] * vect_r, matr_l.row[1] * vect_r, matr_l.row[2] * vect_r);
 };
 
 /*!
 \author Vladimir Florinski
-\date 11/02/2021
+\author Juan G Alonso Guzman
+\date 10/20/2023
 \param[in] vect_l left operand \f$\mathbf{v}_1\f$
 \param[in] matr_r right operand \f$\mathbf{M}_2\f$
 \return \f$\mathbf{v}^T_1\mathbf{M}_2\f$
@@ -452,9 +457,9 @@ inline GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r)
 inline GeoVector operator *(const GeoVector& vect_l, const GeoMatrix& matr_r)
 {
    GeoVector vect_tmp;
-   vect_tmp[0] = vect_l[0] * matr_r.row[0][0] + vect_l[0] * matr_r.row[1][0] + vect_l[0] * matr_r.row[2][0];
-   vect_tmp[1] = vect_l[0] * matr_r.row[0][1] + vect_l[1] * matr_r.row[1][1] + vect_l[0] * matr_r.row[2][1];
-   vect_tmp[2] = vect_l[0] * matr_r.row[0][2] + vect_l[2] * matr_r.row[1][2] + vect_l[0] * matr_r.row[2][2];
+   vect_tmp[0] = vect_l[0] * matr_r.row[0][0] + vect_l[1] * matr_r.row[1][0] + vect_l[2] * matr_r.row[2][0];
+   vect_tmp[1] = vect_l[0] * matr_r.row[0][1] + vect_l[1] * matr_r.row[1][1] + vect_l[2] * matr_r.row[2][1];
+   vect_tmp[2] = vect_l[0] * matr_r.row[0][2] + vect_l[1] * matr_r.row[1][2] + vect_l[2] * matr_r.row[2][2];
    return vect_tmp;
 };
 

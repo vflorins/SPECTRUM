@@ -18,6 +18,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 //! TODO Master/Boss/Worker policy - set by configure
 // #define ALLOW_BOSS_WORKER
 // #define ALLOW_MASTER_BOSS
+#define NUMBER_OF_BOSSES 1
 
 namespace Spectrum {
 

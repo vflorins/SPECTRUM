@@ -131,6 +131,9 @@ struct SpatialData {
 
 //! Curl of Evec
    GeoVector curlE(void);
+
+//! Gradient of Bmag
+   GeoVector gradBmag(void);
 };
 
 /*!
@@ -238,6 +241,17 @@ inline GeoVector SpatialData::curlE(void)
    vec_tmp[1] = gradEvec[0][2] - gradEvec[2][0];
    vec_tmp[2] = gradEvec[1][0] - gradEvec[0][1];
    return vec_tmp;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/06/2023
+\return Gradient of Bmag
+\note The formula comes from grad(Bmag) = grad(sqrt(Bvec * Bvec)) = 2.0 / (2.0 * Bmag) * Bvec * gradBvec = [bhat] * [gradBvec]
+*/
+inline GeoVector SpatialData::gradBmag(void)
+{
+   return bhat * gradBvec;
 };
 
 };

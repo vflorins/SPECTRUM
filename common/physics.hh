@@ -51,6 +51,9 @@ namespace Spectrum {
 //! Magnetic field: derived, should be uG/mG
 #define unit_magnetic_fluid (unit_velocity_fluid * sqrt(unit_density_fluid))
 
+//! Electric field: derived, should be the same as magnetic field because of cgs-Gaussian unit system
+#define unit_electric_fluid unit_magnetic_fluid
+
 //! Pressure: derived, should be ~10^-10
 #define unit_pressure_fluid (unit_magnetic_fluid * unit_magnetic_fluid)
 
@@ -97,6 +100,9 @@ const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
 
 //! Ratio of chagre/mass has a conversion factor required to calculate particle's cyclotron frequency and radius.
 #define charge_mass_particle ((unit_charge_particle * unit_magnetic_fluid / unit_mass_particle / unit_velocity_fluid) / unit_frequency_fluid)
+
+//! Rigidity: derived, 1 V = 1 eV / 1 e
+#define unit_rigidity_particle (unit_energy_particle / unit_charge_particle);
 
 //! The largest nmumber of species (distinct particle mass and charge).
 #define MAX_PARTICLE_SPECIES 3

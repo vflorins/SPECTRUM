@@ -26,7 +26,7 @@ const std::string inf_color = "\033[33m";
 const std::string std_color = "\033[0m";
 
 //! Maximum width of a line in a text file
-const int line_width = 255;
+const int line_width = 1000;
 
 /*!
 \brief Print an error message in color
@@ -63,21 +63,24 @@ inline void PrintMessage(const char* filename, int line, const std::string& mess
 };
 
 /*!
-\brief Returns the number of lines in a file stream
+\brief Returns the number of lines in a file
 \author Vladimir Florinski
-\date 07/24/2023
-\param[in] inpfile Input stream
+\date 08/29/2023
+\param[in] ifname Input file name
 \return Number of lines in the file
 */
-inline unsigned int CountLines(std::ifstream& inpfile)
+inline unsigned int CountLines(std::string& ifname)
 {
    unsigned int count = 0;
    char line[line_width + 1];
+   std::ifstream inpfile;
 
+   inpfile.open(ifname.c_str());
    while(inpfile.peek() != EOF) {
       inpfile.getline(line, line_width);
       count++;
    };
+   inpfile.close();
    return count;
 };
 

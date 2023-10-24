@@ -14,6 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifdef RK_INTEGRATOR_TYPE
 
 #include <string>
+#include <cstdint>
 
 namespace Spectrum {
 
@@ -28,7 +29,10 @@ const double rk_tol_rel = 1.0E-9;
 
 //! Safety factor: the step size cannot change by more than this factor during one iteration
 const double rk_safety = 2.0;
- 
+
+//! When computing the new time step, use this factor (should be very close to 1) - this fine adjustment can affect performance
+const double rk_adjust = 0.995;
+
 template <uint8_t rk_stages> struct ButcherTable {
 
 //! Readable name

@@ -204,6 +204,18 @@ template <typename T> SPECTRUM_DEVICE_FUNC inline T Quad(T x)
    return x * x * x * x;
 };
 
+/*!
+\brief Computes the fifth power
+\author Vladimir Florinski
+\date 09/08/2023
+\param[in] x The argument
+\return \f$x^5\f$
+*/
+template <typename T> SPECTRUM_DEVICE_FUNC inline T Penta(T x)
+{
+   return x * x * x * x * x;
+};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Some non-inlined functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
