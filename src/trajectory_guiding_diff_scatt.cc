@@ -113,6 +113,8 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 // Stochastic RK slopes
 #if STOCHASTIC_METHOD_PERP == 0
    EulerPerpDiffSlopes();
+#elif STOCHASTIC_METHOD_PERP == 1
+   MilsteinPerpDiffSlopes();
 #elif STOCHASTIC_METHOD_PERP == 2
    if(RK2PerpDiffSlopes()) return true;
 #endif

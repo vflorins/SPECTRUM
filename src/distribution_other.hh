@@ -194,11 +194,14 @@ public:
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DistributionSpectrumLISM class declaration
+// DistributionSpectrumKineticEnergyPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DistributionSpectrumLISM class
-const std::string dist_name_spectrum_lism = "DistributionSpectrumLISM";
+//! Flag to define power law spectrum as differential density 0, differential intensity 1, or distribution function 2
+#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 0
+
+//! Readable name of the DistributionSpectrumKineticEnergyPowerLaw class
+const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpectrumKineticEnergyPowerLaw";
 
 /*!
 \brief Differential intensity as a specified function of kinetic energy J(T)
@@ -207,7 +210,7 @@ const std::string dist_name_spectrum_lism = "DistributionSpectrumLISM";
 Type: 1D momentum
 Parameters: (DistributionTemplated), double J0, double T0, double pow_law, double val_cold
 */
-class DistributionSpectrumLISM : public DistributionTemplated<double> {
+class DistributionSpectrumKineticEnergyPowerLaw : public DistributionTemplated<double> {
 
 protected:
 
@@ -230,24 +233,24 @@ protected:
    void EvaluateValue(void) override;
 
 //! Weight from a "hot" boundary
-   void SpectrumLISMHot(void);
+   void SpectrumKineticEnergyPowerLawHot(void);
 
 //! Weight from a "cold" boundary
-   void SpectrumLISMCold(void);
+   void SpectrumKineticEnergyPowerLawCold(void);
 
 public:
 
 //! Default constructor
-   DistributionSpectrumLISM(void);
+   DistributionSpectrumKineticEnergyPowerLaw(void);
 
 //! Copy constructor
-   DistributionSpectrumLISM(const DistributionSpectrumLISM& other);
+   DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other);
 
 //! Destructor
-   ~DistributionSpectrumLISM() override = default;
+   ~DistributionSpectrumKineticEnergyPowerLaw() override = default;
 
 //! Clone function
-   CloneFunctionDistribution(DistributionSpectrumLISM);
+   CloneFunctionDistribution(DistributionSpectrumKineticEnergyPowerLaw);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

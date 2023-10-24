@@ -37,27 +37,4 @@ BackgroundBATL::BackgroundBATL(const BackgroundBATL& other)
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 07/27/2023
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void BackgroundBATL::SetupBackground(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
-
-   std::shared_ptr<MPI_Config>* mpi_config_ptr;
-   container.Read(&mpi_config_ptr);
-
-   if((*mpi_config_ptr)->is_worker) {
-      server_front = std::make_unique<ServerBATLFront>();
-      server_front->ConnectMPIConfig(*mpi_config_ptr);
-      server_front->ServerStart();
-   };
-};
-
 };

@@ -153,7 +153,12 @@ void BackgroundBase::NumericalDerivatives(void)
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
       for(xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
    };
-      
+
+// The calculation in DirectionalDerivative() gives gradV[i][j] = dV_j / ds^i. It needs to be transposed to match the standard mathematical notation for the Jacobian.
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.gradUvec.Transpose();
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.gradBvec.Transpose();
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.gradEvec.Transpose();
+
 // Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.
    _spdata._mask >>= mask_offset;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
@@ -265,6 +270,7 @@ double BackgroundBase::GetSafeIncr(const GeoVector& dir)
 */
 void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, SpatialData& spdata)
 {
+// Check that state setup is complete
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();

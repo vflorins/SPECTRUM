@@ -14,7 +14,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Which stochastic method to use for diffusion, 0 = Euler, 1 = Milstein, 2 = RK2
-#define STOCHASTIC_METHOD_DIFF 0
+#define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
+
+//! Flag to use gradient and curvature drifts in drift velocity calculation
+#define TRAJ_PARKER_USE_B_DRIFTS
 
 //! Readable name of the TrajectoryParker class
 const std::string traj_name_parker = "TrajectoryParker";
@@ -26,10 +29,13 @@ const unsigned int defsize_parker = 100000;
 const double cfl_adv_tp = 0.5;
 
 //! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-const double drift_safety_tp = 0.1;
+const double drift_safety_tp = 0.01;
 
 //! CFL condition for diffusion
 const double cfl_dif_tp = 0.5;
+
+//! CFL condition for acceleration
+const double cfl_acc_tp = 0.5;
 
 //! How many time steps to allow before recording a mirror event
 const int mirror_thresh_parker = 10;
@@ -42,9 +48,6 @@ Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 class TrajectoryParker : public TrajectoryBase {
 
-//! Gradient of |B| (transient)
-   GeoVector gradBmag;
-
 //! Drift elocity (transient)
    GeoVector drift_vel;
 
@@ -52,10 +55,10 @@ class TrajectoryParker : public TrajectoryBase {
    GeoVector fa_basis[3];
 
 //! Perpendicular diffusion coefficient (transient)
-   double Dperp;
+   double Kperp;
 
 //! Parallel diffusion coefficient (transient)
-   double Dpara;
+   double Kpara;
 
 //! Gradient of diffusion tensor (transient)
    GeoVector divK;

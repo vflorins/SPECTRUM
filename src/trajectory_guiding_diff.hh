@@ -25,7 +25,7 @@ const std::string traj_name_guidingdiff = "TrajectoryGuidingDiff";
 const unsigned int defsize_guidingdiff = 10000;
 
 //! CFL condition for perpendicular diffusion
-const double cfl_dif_gd = 0.5;
+const double cfl_dif_gd = 0.1;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingDiff class declaration
@@ -63,6 +63,9 @@ protected:
 
 //! Computes perpendicular diffusion slopes using Euler method
    void EulerPerpDiffSlopes(void);
+
+//! Computes perpendicular diffusion slopes using Milstein method
+   void MilsteinPerpDiffSlopes(void);
 
 //! Computes perpendicular diffusion slopes using RK2 method
    bool RK2PerpDiffSlopes(void);

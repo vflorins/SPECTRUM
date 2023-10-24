@@ -33,7 +33,7 @@ namespace Spectrum {
 #define TIME_FLOW 0
 
 //! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
-#define TRAJ_ADV_SAFETY_LEVEL 2
+#define TRAJ_ADV_SAFETY_LEVEL 1
 
 #if TRAJ_ADV_SAFETY_LEVEL == 2
 //! Largest length for single trajectory
@@ -290,13 +290,13 @@ protected:
    void UpdateAllBoundaries(void);
 
 //! Load the last trajectory point
-   void Load(void);
+   virtual void Load(void);
 
 //! Add the current postion and momentum to the end of the trajectory (typically at the end of a time step)
    void Store(void);
 
 //! Load the local trajectory point
-   void LoadLocal(void);
+   virtual void LoadLocal(void);
 
 //! Save the current postion and momentum in local variables (during advance step)
    void StoreLocal(void);
@@ -431,7 +431,7 @@ public:
    int Crossings(unsigned int output, unsigned int bnd) const;
 
 //! Print various quantities along the trajectory
-   void PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, unsigned int stride = 1) const;
+   void PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, unsigned int stride = 1, double dt_out = 0.0) const;
 
 //! Print a trajectory as CSV
    void PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride = 1) const;

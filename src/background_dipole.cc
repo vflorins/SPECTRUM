@@ -39,7 +39,7 @@ BackgroundDipole::BackgroundDipole(const BackgroundDipole& other)
 
 /*!
 \author Vladimir Florinski
-\date 03/25/2022
+\date 08/22/2023
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -52,7 +52,7 @@ void BackgroundDipole::SetupBackground(bool construct)
    if(!construct) BackgroundBase::SetupBackground(false);
    container.Read(&r_ref);
    container.Read(&dmax_fraction);
-   M = B0 * Cube(r_ref) / 2.0;
+   M = B0 * Cube(r_ref);
 };
 
 /*!
@@ -107,7 +107,7 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
-   NumericalDerivatives(); 
+   NumericalDerivatives();
 #endif
 };
 

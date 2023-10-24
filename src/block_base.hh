@@ -9,6 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BLOCK_BASE_HH
 #define SPECTRUM_BLOCK_BASE_HH
 
+#include "config.h" // needed so that SERVER_TYPE is defined in order to typedef BlockType
 #include "common/vectors.hh"
 
 namespace Spectrum {
@@ -142,6 +143,18 @@ public:
 
 //! Return the address of "face_max" (for MPI)
    GeoVector* GetFaceMaxAddress(void);
+
+//! Return the vector to one of the corner
+   GeoVector GetFaceMinPhys(void) const;
+
+//! Return the vector to the opposite corner
+   GeoVector GetFaceMaxPhys(void) const;
+
+//! Return the address of "face_min" (for MPI)
+   GeoVector* GetFaceMinPhysAddress(void);
+
+//! Return the address of "face_max" (for MPI)
+   GeoVector* GetFaceMaxPhysAddress(void);
 
 //! Obtain the extents of the block from external library
    virtual void LoadDimensions(double unit_length_block);
@@ -305,6 +318,46 @@ inline GeoVector* BlockBase::GetFaceMinAddress(void)
 inline GeoVector* BlockBase::GetFaceMaxAddress(void)
 {
    return &face_max;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/04/2023
+\return Coordinates of the physical "inner" corner of the block
+*/
+inline GeoVector BlockBase::GetFaceMinPhys(void) const
+{
+   return face_min_phys;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/04/2023
+\return Coordinates of the physical "outer" corner of the block
+*/
+inline GeoVector BlockBase::GetFaceMaxPhys(void) const
+{
+   return face_max_phys;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/04/2023
+\return The address of "face_min_phys"
+*/
+inline GeoVector* BlockBase::GetFaceMinPhysAddress(void)
+{
+   return &face_min_phys;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/04/2023
+\return The address of "face_max_phys"
+*/
+inline GeoVector* BlockBase::GetFaceMaxPhysAddress(void)
+{
+   return &face_max_phys;
 };
 
 /*!

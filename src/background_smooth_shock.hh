@@ -1,49 +1,52 @@
 /*!
-\file background_shock.hh
-\brief Declares a simple shock field background
+\file background_smooth_shock.hh
+\brief Declares a smooth shock field background
 \author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_BACKGROUND_SHOCK_HH
-#define SPECTRUM_BACKGROUND_SHOCK_HH
+#ifndef SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
+#define SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
 
-#include "background_base.hh"
+#include "background_shock.hh"
 
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// BackgroundShock class declaration
+// BackgroundSmoothShock class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BackgroundShock class
-const std::string bg_name_shock = "BackgroundShock";
+//! Flag to control smoothness of shock
+#define SMOOTH_SHOCK_ORDER 1
+
+//! Method for computing derivatives (0: analytical, 1: Numerical)
+#define SMOOTHSHOCK_DERIVATIVE_METHOD 1
+
+//! Readable name of the BackgroundSmoothShock class
+const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 /*!
-\brief Constant EM field, mainly for testing
+\brief Constant EM field with a smooth transition region
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase), r0_shock, n_shock, v_shock, u1, B1
+Parameters: (BackgroundShock), width_shock
 */
-class BackgroundShock : public BackgroundBase {
+class BackgroundSmoothShock : public BackgroundShock {
 
 protected:
 
-//! Shock starting position (persistent)
-   GeoVector r0_shock;
+//! Width of shock transition region (persistent)
+   double width_shock;
 
-//! Shock normal (persistent)
-   GeoVector n_shock;
+//! Relative distance to shock
+   double ds_shock;
 
-//! Shock velocity (persistent)
-   double v_shock;
+//! Shock transition region function
+   double shock_transition(double x);
 
-//! Downstream flow vector (persistent), "u0" is upstream flow vector
-   GeoVector u1;
-
-//! Downstream magnetic field (persistent), "B0" is upstream magnetic field
-   GeoVector B1;
+//! Derivative of shock transition region function
+   double shock_transition_derivative(double x);
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
@@ -57,19 +60,16 @@ protected:
 public:
 
 //! Default constructor
-   BackgroundShock(void);
-
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundShock(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundSmoothShock(void);
 
 //! Copy constructor
-   BackgroundShock(const BackgroundShock& other);
+   BackgroundSmoothShock(const BackgroundSmoothShock& other);
 
 //! Destructor
-   ~BackgroundShock() override = default;
+   ~BackgroundSmoothShock() override = default;
 
 //! Clone function
-   CloneFunctionBackground(BackgroundShock);
+   CloneFunctionBackground(BackgroundSmoothShock);
 };
 
 };

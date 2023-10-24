@@ -75,11 +75,23 @@ void SimulationWorker::SetTasks(int n_traj_in, int batch_size_in)
 /*!
 \author Vladimir Florinski
 \date 09/30/2022
-\return True is this process is the master
+\return True if this process is the master
 */
 bool SimulationWorker::IsMaster(void)
 {
    return mpi_config->is_master;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+\param[out] work_comm_size_out work_comm_size
+\return work_comm_rank 
+*/
+int SimulationWorker::GetWorkCommRankSize(int& work_comm_size_out)
+{
+   work_comm_size_out = mpi_config->work_comm_size;
+   return mpi_config->work_comm_rank;
 };
 
 /*!
@@ -262,9 +274,9 @@ void SimulationWorker::WorkerFinish(void)
 // TODO possibly pad the number with zeros
    if(print_last_trajectory) {
       std::string traj_name = "trajectory_rank" + std::to_string(mpi_config->work_comm_rank) + ".lines";
-      trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x08);
-      // trajectory->PrintCSV(traj_name, false);
-      // trajectory->InterpretStatus();
+      // trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
+      trajectory->PrintCSV(traj_name, true, 1);
+      trajectory->InterpretStatus();
    };
 
 #ifdef NEED_SERVER
@@ -431,6 +443,12 @@ void SimulationBoss::BossFinish(void)
 // Stop the server backend
 #ifdef NEED_SERVER
    server_back->ServerFinish();
+
+// Print status message that boss left simulation
+#ifdef GEO_DEBUG
+   std::cerr << "Boss with rank " << mpi_config->boss_comm_rank << " exited simulation." << std::endl;
+#endif
+
 #else
 // Report partial cumulatives if boss is worker
    if(mpi_config->is_worker) WorkerFinish();

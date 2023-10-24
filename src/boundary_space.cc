@@ -80,7 +80,6 @@ void BoundaryPlane::EvaluateBoundary(void)
 //         |
 
    _delta = (_pos - origin) * norm;
-   // _normal = (_delta_old > 0.0 ? norm : -norm);
    _normal = norm;
 };
 
@@ -272,7 +271,6 @@ void BoundarySphere::EvaluateBoundary(void)
 //        ~- . _V_ . -~
 
    _delta = (_pos - origin).Norm() - radius;
-   // _normal = (_delta_old > 0.0 ? UnitVec(_pos - origin) : UnitVec(origin - _pos));
    _normal = UnitVec(_pos - origin);
 };
 
@@ -461,7 +459,14 @@ void BoundaryCylinder::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(origin.Data());
+   container.Read(fa_basis[2].Data());
    container.Read(&radius);
+
+// Find cylinder reference frame where z || symmetry axis
+   fa_basis[2].Normalize();
+   fa_basis[0] = GetSecondUnitVec(fa_basis[2]);
+   fa_basis[1] = fa_basis[2] ^ fa_basis[0];
 };
 
 /*!
@@ -482,11 +487,13 @@ void BoundaryCylinder::EvaluateBoundary(void)
 //    `-.       |       .-'
 //        ~- . _V_ . -~
 
-   _delta = sqrt(Sqr(_pos[0]) + Sqr(_pos[1])) - radius;
-   _normal = _pos;
+   GeoVector pos_rel = _pos - origin;
+   pos_rel.ChangeToBasis(fa_basis);
+   _delta = sqrt(Sqr(pos_rel[0]) + Sqr(pos_rel[1])) - radius;
+   _normal = pos_rel;
    _normal[2] = 0.0;
-   // _normal = (_delta_old > 0.0 ? UnitVec(_normal) : -UnitVec(_normal));
    _normal = UnitVec(_normal);
+   _normal.ChangeFromBasis(fa_basis);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

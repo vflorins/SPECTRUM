@@ -121,144 +121,6 @@ public:
 
 #endif
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionParaConstant class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionParaConstant class
-const std::string diff_name_para_constant = "DiffusionParaConstant";
-
-/*!
-\brief Parallel diffusion uniform in space
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-
-Parameters: (DiffusionBase), double D0
-*/
-class DiffusionParaConstant : public DiffusionBase {
-
-protected:
-
-//! Diffusion coefficient (persistent)
-   double D0;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionParaConstant(void);
-
-//! Copy constructor
-   DiffusionParaConstant(const DiffusionParaConstant& other);
-
-//! Destructor
-   ~DiffusionParaConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionParaConstant);
-
-//! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionPerpConstant class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionPerpConstant class
-const std::string diff_name_perp_constant = "DiffusionPerpConstant";
-
-/*!
-\brief Perpendicular diffusion uniform in space
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-
-Parameters: (DiffusionBase), double D0
-*/
-class DiffusionPerpConstant : public DiffusionBase {
-
-protected:
-
-//! Diffusion coefficient (persistent)
-   double D0;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionPerpConstant(void);
-
-//! Copy constructor
-   DiffusionPerpConstant(const DiffusionPerpConstant& other);
-
-//! Destructor
-   ~DiffusionPerpConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionPerpConstant);
-
-//! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionFullConstant class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionFullConstant class
-const std::string diff_name_full_constant = "DiffusionFullConstant";
-
-/*!
-\brief Full (perpendicular + parallel) diffusion uniform in space
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-
-Parameters: (DiffusionBase), double D0
-*/
-class DiffusionFullConstant : public DiffusionBase {
-
-protected:
-
-//! Perpendicular diffusion coefficient (persistent)
-   double Dperp;
-
-//! Parallel diffusion coefficient (persistent)
-   double Dpara;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionFullConstant(void);
-
-//! Copy constructor
-   DiffusionFullConstant(const DiffusionFullConstant& other);
-
-//! Destructor
-   ~DiffusionFullConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionFullConstant);
-
-//! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
-};
-
 #if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -381,6 +243,266 @@ public:
 };
 
 #endif
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionParaConstant class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionParaConstant class
+const std::string diff_name_para_constant = "DiffusionParaConstant";
+
+/*!
+\brief Parallel diffusion uniform in space
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), double D0
+*/
+class DiffusionParaConstant : public DiffusionBase {
+
+protected:
+
+//! Diffusion coefficient (persistent)
+   double D0;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionParaConstant(void);
+
+//! Copy constructor
+   DiffusionParaConstant(const DiffusionParaConstant& other);
+
+//! Destructor
+   ~DiffusionParaConstant() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionParaConstant);
+
+//! Compute derivative of diffusion coefficient in position or time
+   double GetDirectionalDerivative(int xyz) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionPerpConstant class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionPerpConstant class
+const std::string diff_name_perp_constant = "DiffusionPerpConstant";
+
+/*!
+\brief Perpendicular diffusion uniform in space
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), double D0
+*/
+class DiffusionPerpConstant : public DiffusionBase {
+
+protected:
+
+//! Diffusion coefficient (persistent)
+   double D0;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionPerpConstant(void);
+
+//! Copy constructor
+   DiffusionPerpConstant(const DiffusionPerpConstant& other);
+
+//! Destructor
+   ~DiffusionPerpConstant() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionPerpConstant);
+
+//! Compute derivative of diffusion coefficient in position or time
+   double GetDirectionalDerivative(int xyz) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionFullConstant class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionFullConstant class
+const std::string diff_name_full_constant = "DiffusionFullConstant";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion uniform in space
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), double Dperp, double Dpara
+*/
+class DiffusionFullConstant : public DiffusionBase {
+
+protected:
+
+//! Perpendicular diffusion coefficient (persistent)
+   double Dperp;
+
+//! Parallel diffusion coefficient (persistent)
+   double Dpara;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionFullConstant(void);
+
+//! Copy constructor
+   DiffusionFullConstant(const DiffusionFullConstant& other);
+
+//! Destructor
+   ~DiffusionFullConstant() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionFullConstant);
+
+//! Compute derivative of diffusion coefficient in position or time
+   double GetDirectionalDerivative(int xyz) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionRigidityMagneticFieldPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionRigidityMagneticFieldPowerLaw class
+const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidityMagneticFieldPowerLaw";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), kap0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
+*/
+class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase {
+
+protected:
+
+//! Diffusion coefficient normalization factor (persistent)
+   double kap0;
+
+//! Rigidity normalization factor (persistent)
+   double R0;
+
+//! Magnetic field normalization factor (persistent)
+   double B0;
+
+//! Power law slope for rigidity (persistent)
+   double pow_law_R;
+
+//! Power law slope for magnetic field (persistent)
+   double pow_law_B;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionRigidityMagneticFieldPowerLaw(void);
+
+//! Copy constructor
+   DiffusionRigidityMagneticFieldPowerLaw(const DiffusionRigidityMagneticFieldPowerLaw& other);
+
+//! Destructor
+   ~DiffusionRigidityMagneticFieldPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionRigidityMagneticFieldPowerLaw);
+
+// TODO: Implement directional derivative (only spatial dependence is in Bmag)
+//! Compute derivative of diffusion coefficient in position or time
+   // double GetDirectionalDerivative(int xyz) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionKineticEnergyRadialDistancePowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
+const std::string diff_name_kinetic_energy_radial_distance_power_law = "DiffusionKineticEnergyRadialDistancePowerLaw";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, kinetic energy and radial distance power law
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
+*/
+class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
+
+protected:
+
+//! Diffusion coefficient normalization factor (persistent)
+   double kap0;
+
+//! Kinetic Energy normalization factor (persistent)
+   double T0;
+
+//! Radial distance normalization factor (persistent)
+   double r0;
+
+//! Power law slope for kinetic energy (persistent)
+   double pow_law_T;
+
+//! Power law slope for radial distance (persistent)
+   double pow_law_r;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionKineticEnergyRadialDistancePowerLaw(void);
+
+//! Copy constructor
+   DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other);
+
+//! Destructor
+   ~DiffusionKineticEnergyRadialDistancePowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
+
+// TODO: Implement directional derivative (only spatial dependence is in radial distance)
+//! Compute derivative of diffusion coefficient in position or time
+   // double GetDirectionalDerivative(int xyz) override;
+};
 
 };
 

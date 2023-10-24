@@ -255,8 +255,8 @@ void DistributionPitchUniform::EvaluateValue(void)
 \date 06/18/2021
 */
 
-DistributionSpectrumLISM::DistributionSpectrumLISM(void)
-                        : DistributionTemplated<double>(dist_name_spectrum_lism, 0, DISTRO_MOMENTUM)
+DistributionSpectrumKineticEnergyPowerLaw::DistributionSpectrumKineticEnergyPowerLaw(void)
+                                         : DistributionTemplated<double>(dist_name_spectrum_kinetic_energy_power_law, 0, DISTRO_MOMENTUM)
 {
 };
 
@@ -267,8 +267,8 @@ DistributionSpectrumLISM::DistributionSpectrumLISM(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-DistributionSpectrumLISM::DistributionSpectrumLISM(const DistributionSpectrumLISM& other)
-                        : DistributionTemplated<double>(other)
+DistributionSpectrumKineticEnergyPowerLaw::DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other)
+                                         : DistributionTemplated<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
@@ -278,7 +278,7 @@ DistributionSpectrumLISM::DistributionSpectrumLISM(const DistributionSpectrumLIS
 \author Vladimir Florinski
 \date 05/05/2022
 */
-void DistributionSpectrumLISM::SetupDistribution(bool construct)
+void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) DistributionTemplated<double>::SetupDistribution(false);
@@ -290,8 +290,8 @@ void DistributionSpectrumLISM::SetupDistribution(bool construct)
    this->container.Read(&val_cold);
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {SpectrumLISMHot();});
-   this->ActionTable.push_back([this]() {SpectrumLISMCold();});
+   this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
+   this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawCold();});
 
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
@@ -300,7 +300,7 @@ void DistributionSpectrumLISM::SetupDistribution(bool construct)
 \author Vladimir Florinski
 \date 05/05/2022
 */
-void DistributionSpectrumLISM::EvaluateValue(void)
+void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 {
    this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
 };
@@ -309,20 +309,30 @@ void DistributionSpectrumLISM::EvaluateValue(void)
 \author Vladimir Florinski
 \date 05/17/2022
 */
-void DistributionSpectrumLISM::SpectrumLISMHot(void)
+void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
    double kin_energy = EnrKin(this->_mom2.Norm(), this->specie);
+   double velocity = Vel(this->_mom2.Norm());
 
-// The distribution is the intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
+#if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
+// The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
+   this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / this->_mom2.Norm2();
+#elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
+// The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
    this->_weight = J0 * pow(kin_energy / T0, pow_law) / this->_mom2.Norm2();
+#elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 2
+// The power law is the distribution function f(p), no weighting necessary
+   this->_weight = J0 * pow(kin_energy / T0, pow_law);
+#else
+   std::cerr << "DistributionSpectrumKineticEnergyPowerLaw Error: TYPE not recognized." << std::endl;
+#endif
 };
-
 
 /*!
 \author Vladimir Florinski
 \date 05/17/2022
 */
-void DistributionSpectrumLISM::SpectrumLISMCold(void)
+void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawCold(void)
 {
    this->_weight = val_cold;
 };

@@ -14,7 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Number of variables per zone
-//const int n_variables_batl = 8;
 const int n_variables_batl = 3;
 
 //! Size of the block in each dimnension (including ghost cells)
@@ -128,6 +127,11 @@ public:
 //! Return the refinement level of a neighbor - three index version
    virtual int GetNeighborLevel(int i, int j, int k) const override;
 };
+
+//! Block type
+#if SERVER_TYPE == SERVER_BATL
+typedef BlockBATL BlockType;
+#endif
 
 };
 

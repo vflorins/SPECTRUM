@@ -230,7 +230,7 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
    };
 
 // Generate SILO output 
-   silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_HDF5);
+   silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
    if(!silofile) return;
    DBPutQuadmesh(silofile, mesh2d_name.c_str(), NULL, coords, dims_n.ijk, 2, DB_DOUBLE, DB_COLLINEAR, NULL);
 
