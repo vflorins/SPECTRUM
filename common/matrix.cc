@@ -226,6 +226,20 @@ GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r)
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 10/06/2023
+\param[in] matr_l left operand \f$\mathbf{M}_1\f$
+\param[in] matr_r right operand \f$\mathbf{M}_2\f$
+\return \f$\mathbf{M}_1 : \mathbf{M}_2\f$
+*/
+double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
+{
+   double ip = 0.0;
+   for(auto i = 0; i < 3; i++) ip += matr_l[i] * matr_r[i];
+   return ip;
+};
+
+/*!
 \author Vladimir Florinski
 \date 09/09/2022
 \param[in] vect_l First vector \f$\mathbf{v}_1\f$
