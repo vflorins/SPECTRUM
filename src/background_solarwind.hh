@@ -13,7 +13,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: Numerical)
+//! Method for computing derivatives (0: analytical, 1: Numerical)
 #define SOLARWIND_DERIVATIVE_METHOD 1
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

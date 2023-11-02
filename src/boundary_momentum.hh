@@ -68,7 +68,7 @@ public:
 const std::string bnd_name_mirror = "BoundaryMirror";
 
 /*!
-\brief Mirroring event counter. Defined only for a guiding center model because the Lorentz model needs the direction of B.
+\brief Mirroring event counter.
 \author Vladimir Florinski
 
 Parameters: (BoundaryBase)

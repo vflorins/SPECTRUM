@@ -14,7 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Number of variables per zone
-//const int n_variables_cartesian = 8;
 const int n_variables_cartesian = 3;
 
 //! Largest possible number of neighbors
@@ -85,6 +84,11 @@ public:
 #endif
 
 };
+
+//! Block type
+#if SERVER_TYPE == SERVER_CARTESIAN
+typedef BlockCartesian BlockType;
+#endif
 
 };
 

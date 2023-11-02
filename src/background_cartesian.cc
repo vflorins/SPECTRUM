@@ -77,7 +77,7 @@ void BackgroundCartesian::SetupBackground(bool construct)
 void BackgroundCartesian::EvaluateBackground(void)
 {
    server_front->GetVariables(_t, _pos, _spdata);
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   // if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
 };
 
 /*!
@@ -92,7 +92,7 @@ void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
       NumericalDerivatives();
    }
    else {
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = ((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec));
+      // if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
 };
 

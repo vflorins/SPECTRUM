@@ -42,7 +42,7 @@ const double dthetamax = 2.0 * M_PI / 180.0;
 #endif
 
 //! CFL condition for pitch angle scattering
-const double cfl_pa_gs = 0.5;
+const double cfl_pa_gs = 0.1;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingScatt class declaration

@@ -11,6 +11,9 @@
 
 namespace Spectrum {
 
+//! Flag to always request stencil directly from BATL for 1st order interpolation (0 = no, 1 = yes)
+#define REQUEST_STENCIL_FROM_BATL 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,10 +77,7 @@ protected:
    void MakeSharedBlock(BlockPtrType &block_new) override;
 
 //! Obtain an interpolation stencil from the server
-   void RequestStencil(void) override;
-
-//! Obtain all variables at the specified location from the server
-   void RequestVariables(double* vars) override;
+   int RequestStencil(const GeoVector& pos);
 
 public:
 
@@ -114,14 +114,14 @@ public:
 //! Backend tasks during the main loop
    int ServerFunctions(void) override;
 
+//! Get block data from reader
+   void GetBlockData(const double* pos, double* vars, int* found) override;
+
 //! Serve block function
    void GetBlock(const double* pos, int* node) override;
 
 //! Handle "needstencil" requests
    void HandleNeedStencilRequests(void);
-
-//! Handle "needvars" requests
-   void HandleNeedVarsRequests(void);
 };
 
 //! Server types

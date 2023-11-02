@@ -50,7 +50,7 @@ void BackgroundSphericalObstacle::SetupBackground(bool construct)
    if(!construct) BackgroundBase::SetupBackground(false);
    container.Read(&r_obstacle);
    container.Read(&dmax_fraction);
-   M = B0 * Cube(r_obstacle) / 2.0;
+   M = B0 * Cube(r_obstacle);
 };
 
 /*!

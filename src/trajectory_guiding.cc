@@ -50,10 +50,6 @@ void TrajectoryGuiding::SetStart(void)
    _spdata._mask = BACKGROUND_ALL | BACKGROUND_gradB | BACKGROUND_dBdt;
    spdata0._mask = BACKGROUND_ALL | BACKGROUND_gradB | BACKGROUND_dBdt;
 
-// Eliminate the gyrophase. This allows the use of genertic, fully 3D initial momentum conditions.
-//   traj_mom[0][0] = sqrt(Sqr(traj_mom[0][0]) + Sqr(traj_mom[0][1]));
-//   traj_mom[0][1] = 0.0;
-
 // Magnetic moment is conserved (in the absence of scattering)
    mag_mom = MagneticMoment(traj_mom[0][0], _spdata.Bmag, specie);
 };
@@ -70,7 +66,7 @@ try {
    double rL, rR;
 
 // Compute derived quantities from vector gradient of Bvec
-   gradBmag = _spdata.gradBvec * _spdata.bhat;
+   gradBmag = _spdata.gradBmag();
    curlbhat = (_spdata.curlB() - (gradBmag ^ _spdata.bhat)) / _spdata.Bmag;
    dBmagdt =  _spdata.dBvecdt * _spdata.bhat;
    dbhatdt = (_spdata.dBvecdt - (dBmagdt * _spdata.bhat)) / _spdata.Bmag;

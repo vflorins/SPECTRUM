@@ -160,7 +160,7 @@ void BlockBase::ConfigureProperties(void)
 
 // FIXME   
    if((zone_length[0] <= 0.0) ||(zone_length[1] <= 0.0) || (zone_length[2] <= 0.0)) {
-      std::cerr << "Zone size error\n";
+      std::cerr << "ConfigureProperties Error: Zone length for node " << node << " is negative.\n";
       std::cerr << face_max << "  " << face_min << "\n";
    };
 

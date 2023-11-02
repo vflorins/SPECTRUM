@@ -123,7 +123,7 @@ void InitialSpaceLine::SetupInitial(bool construct)
    container.Read(endpos.Data());
    container.Read(&n_intervals);
 
-   if(n_intervals < 0) randompos = true;
+   if(n_intervals <= 0) randompos = true;
    else {
       randompos = false;
       increment = (endpos - startpos) / (double)n_intervals;
@@ -139,6 +139,79 @@ void InitialSpaceLine::EvaluateInitial(void)
 {
    if(randompos) _pos = startpos + (endpos - startpos) * rng->GetUniform();
    else _pos += increment;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialSpaceCircle methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+*/
+InitialSpaceCircle::InitialSpaceCircle(void)
+                  : InitialBase(init_name_space_circle, 0, INITIAL_SPACE | INITIAL_CURVE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+InitialSpaceCircle::InitialSpaceCircle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                  : InitialBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
+*/
+InitialSpaceCircle::InitialSpaceCircle(const InitialSpaceCircle& other)
+                  : InitialBase(other)
+{
+   RAISE_BITS(_status, INITIAL_SPACE);
+   RAISE_BITS(_status, INITIAL_CURVE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void InitialSpaceCircle::SetupInitial(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) InitialBase::SetupInitial(false);
+
+   GeoVector normal;
+   double radius;
+   container.Read(origin.Data());
+   container.Read(normal.Data());
+   container.Read(&radius);
+   radius_x = radius * GetSecondUnitVec(normal.Normalize());
+   radius_y = normal ^ radius_x;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/11/2023
+*/
+void InitialSpaceCircle::EvaluateInitial(void)
+{
+   double phi;
+
+   phi = twopi * rng->GetUniform();
+   _pos = origin + radius_x * cos(phi) + radius_y * sin(phi);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -431,11 +504,14 @@ void InitialSpaceTable::SetupInitial(bool construct)
    std::string initpos_file_name, coord_type;
    std::ifstream initpos_file;
    int i, size, coord;
+   double scale;
    GeoVector entry;
 
 // The parent version must be called explicitly if not constructing
    if(!construct) InitialBase::SetupInitial(false);
    container.Read(&initpos_file_name);
+   container.Read(&scale);
+   container.Read(&random);
 
 // Input initial positions from file
    initpos_file.open(initpos_file_name.c_str());
@@ -460,7 +536,11 @@ void InitialSpaceTable::SetupInitial(bool construct)
       initpos_file >> entry[0];
       initpos_file >> entry[1];
       initpos_file >> entry[2];
-      if(coord) entry.RTP_XYZ();
+      if(coord) {
+         entry.RTP_XYZ();
+         entry[0] *= scale;
+      }
+      else entry = scale * entry;
       initpos[i] = entry;
    };
    initpos_file.close();
@@ -475,10 +555,18 @@ void InitialSpaceTable::SetupInitial(bool construct)
 */
 void InitialSpaceTable::EvaluateInitial(void)
 {
+   if(random) {
+// Generate random integer between 0 and initpos.size() - 1
+      table_counter = rng->GetUniform() * initpos.size();
+// Pull position in randomly selected place on the table
+      _pos = initpos[table_counter];
+   }
+   else {
 // Pull next position on the table
-   _pos = initpos[table_counter++];
+      _pos = initpos[table_counter++];
 // If all positions have been sampled, reset the counter
-   if(table_counter == initpos.size()) table_counter = 0;
+      if(table_counter == initpos.size()) table_counter = 0;
+   };
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

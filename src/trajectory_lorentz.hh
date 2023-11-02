@@ -20,10 +20,10 @@ const std::string traj_name_lorentz = "TrajectoryLorentz";
 const unsigned int defsize_lorentz = 100000;
 
 //! CFL condition for advection
-const double cfl_adv_tl = 0.5;
+const double cfl_adv_tl = 0.05;
 
 //! Number of time steps per one orbit
-const unsigned int steps_per_orbit = 100;
+const unsigned int steps_per_orbit = 200;
 
 //! How many time steps to allow before recording a mirror event
 const unsigned int mirror_thresh_lorentz = 300;

@@ -35,7 +35,7 @@ TrajectoryGuidingDiff::TrajectoryGuidingDiff(void)
 \param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
 TrajectoryGuidingDiff::TrajectoryGuidingDiff(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                      : TrajectoryGuiding(name_in, specie_in, status_in, presize_in)
+                     : TrajectoryGuiding(name_in, specie_in, status_in, presize_in)
 {
 };
 
@@ -81,8 +81,8 @@ try {
    gradDperp[2] = diffusion->GetDirectionalDerivative(2);
 
 // Find components of Vperp in field aligned frame 
-   Vperp[0] = fa_basis[0] * gradDperp;
-   Vperp[1] = fa_basis[1] * gradDperp;
+   Vperp[0] = gradDperp * fa_basis[0];
+   Vperp[1] = gradDperp * fa_basis[1];
    Vperp[2] = 0.0;
 
 // Convert "Vperp" to global coordinates
@@ -124,8 +124,60 @@ void TrajectoryGuidingDiff::EulerPerpDiffSlopes(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
+\date 10/05/2023
+*/
+void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
+{
+   double dWx, dWy, Vxy, random, Dperp_new;
+   double dbdx, dbdy, dx, dy, slope_Dperp;
+   GeoVector mom_conv = ConvertMomentum(), pos_new, xhat, yhat;
+   SpatialData spdata_new;
+
+// Generate stochastic factors
+   dWx = sqrt(dt) * rng->GetNormal();
+   dWy = sqrt(dt) * rng->GetNormal();
+
+// Recompute Dperp at the beginning of the step
+   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _spdata);
+   slope_Dperp = sqrt(2.0 * Dperp);
+
+// Compute random displacement
+   dr_perp[0] = slope_Dperp * dWx;
+   dr_perp[1] = slope_Dperp * dWy;
+   dr_perp[2] = 0.0;
+
+// Calculate derivatives of sqrt(2.0 * Dperp) = b_11 = b_22. Note that b_12 = b_21 = 0.
+   xhat = gv_nx;
+   xhat.ChangeFromBasis(fa_basis);
+   dx = background->GetSafeIncr(xhat);
+   pos_new = _pos + dx * xhat;
+   CommonFields(_t, pos_new, spdata_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   dbdx = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dx;
+
+   yhat = gv_ny;
+   yhat.ChangeFromBasis(fa_basis);
+   dy = background->GetSafeIncr(yhat);
+   pos_new = _pos + dy * yhat;
+   CommonFields(_t, pos_new, spdata_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   dbdy = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dy;
+
+// Add extra Miltein terms to Euler step
+   random = rng->GetUniform();
+   Vxy = (random < 0.5 ? dt : -dt);
+
+   dr_perp[0] += 0.5 * slope_Dperp * (dbdx * (Sqr(dWx) - dt) + dbdy * (dWx * dWy - Vxy));
+   dr_perp[1] += 0.5 * slope_Dperp * (dbdy * (Sqr(dWy) - dt) + dbdx * (dWx * dWy + Vxy));
+
+// Convert to global coordinates
+   dr_perp.ChangeFromBasis(fa_basis);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
 \date 05/16/2022
-FIXME: This technique doesn't give the same results as the Euler method and needs to be debugged
 */
 bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
 {
@@ -296,6 +348,8 @@ bool TrajectoryGuidingDiff::Advance(void)
 // Stochastic RK slopes
 #if STOCHASTIC_METHOD_PERP == 0
    EulerPerpDiffSlopes();
+#elif STOCHASTIC_METHOD_PERP == 1
+   MilsteinPerpDiffSlopes();
 #elif STOCHASTIC_METHOD_PERP == 2
    if(RK2PerpDiffSlopes()) return true;
 #else

@@ -31,11 +31,6 @@ Parameters: (BackgroundBase)
 */
 class BackgroundBATL : public BackgroundCartesian {
 
-protected:
-
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
-
 public:
 
 //! Default constructor

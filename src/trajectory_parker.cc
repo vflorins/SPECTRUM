@@ -82,25 +82,25 @@ void TrajectoryParker::FieldAlignedFrame(void)
 */
 void TrajectoryParker::DiffusionCoeff(void)
 try {
-   GeoVector gradDperp, gradDpara;
+   GeoVector gradKperp, gradKpara;
    FieldAlignedFrame();
 
-// Compute Dperp and grad(Dperp)
-   Dperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
-   gradDperp[0] = diffusion->GetDirectionalDerivative(0);
-   gradDperp[1] = diffusion->GetDirectionalDerivative(1);
-   gradDperp[2] = diffusion->GetDirectionalDerivative(2);
+// Compute Kperp and grad(Kperp)
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
+   gradKperp[0] = diffusion->GetDirectionalDerivative(0);
+   gradKperp[1] = diffusion->GetDirectionalDerivative(1);
+   gradKperp[2] = diffusion->GetDirectionalDerivative(2);
 
-// Compute Dpara and grad(Dpara)
-   Dpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
-   gradDpara[0] = diffusion->GetDirectionalDerivative(0);
-   gradDpara[1] = diffusion->GetDirectionalDerivative(1);
-   gradDpara[2] = diffusion->GetDirectionalDerivative(2);
+// Compute Kpara and grad(Kpara)
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
+   gradKpara[0] = diffusion->GetDirectionalDerivative(0);
+   gradKpara[1] = diffusion->GetDirectionalDerivative(1);
+   gradKpara[2] = diffusion->GetDirectionalDerivative(2);
 
 // Find components of divK in field aligned frame 
-   divK[0] = fa_basis[0] * gradDperp;
-   divK[1] = fa_basis[1] * gradDperp;
-   divK[2] = fa_basis[2] * gradDpara;
+   divK[0] = gradKperp * fa_basis[0];
+   divK[1] = gradKperp * fa_basis[1];
+   divK[2] = gradKpara * fa_basis[2];
 
 // Convert "divK" to global coordinates
    divK.ChangeFromBasis(fa_basis);
@@ -125,18 +125,20 @@ void TrajectoryParker::EulerDiffSlopes(void)
    dWy = sqrt(dt) * rng->GetNormal();
    dWz = sqrt(dt) * rng->GetNormal();
 
-// Recompute Dperp and Dpara at the beginning of the step
-   Dperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
-   Dpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
+// Recompute Kperp and Kpara at the beginning of the step
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
 
 // Compute random displacement
-   dr_perp[0] = sqrt(2.0 * Dperp) * dWx;
-   dr_perp[1] = sqrt(2.0 * Dperp) * dWy;
-   dr_perp[2] = sqrt(2.0 * Dpara) * dWz;
+   dr_perp[0] = sqrt(2.0 * Kperp) * dWx;
+   dr_perp[1] = sqrt(2.0 * Kperp) * dWy;
+   dr_perp[2] = sqrt(2.0 * Kpara) * dWz;
 
 // Convert to global coordinates
    dr_perp.ChangeFromBasis(fa_basis);
 };
+
+//TODO: Implement Milstein and RK2 schemes
 
 /*!
 \author Juan G Alonso Guzman
@@ -145,14 +147,16 @@ void TrajectoryParker::EulerDiffSlopes(void)
 */
 void TrajectoryParker::DriftCoeff(void)
 {
-   // Compute grad(|B|) from grad(Bvec)
-   gradBmag = _spdata.gradBvec * _spdata.bhat;
-   // Compute curl(bhat/|B|) (times |B|^2)
-   drift_vel = (_spdata.curlB() - 2.0 * (gradBmag ^ _spdata.bhat));
-   // Scale by pvc/3q|B|^3 (1/|B|^2 from previous calculation)
-   drift_vel *= _mom[0] * _vel[0] * c_code / (3.0 * charge[specie] * Cube(_spdata.Bmag));
-   // Add bulk flow velocity
+#ifdef TRAJ_PARKER_USE_B_DRIFTS
+// Compute B*curl(bhat/|B|)
+   drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag() ^ _spdata.bhat)) / _spdata.Bmag;
+// Scale by pvc/3qB = r_L*v/3
+   drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
+// Add bulk flow velocity
    drift_vel += _spdata.Uvec;
+#else
+   drift_vel = _spdata.Uvec;
+#endif
 };
 
 /*!
@@ -161,10 +165,10 @@ void TrajectoryParker::DriftCoeff(void)
 */
 void TrajectoryParker::PhysicalStep(void)
 {
-// In a background with U = 0 and B = 0, then drift_vel = 0. For this reason a small fraction of the total speed is added to the characteristic speed.
-   dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel.Norm() + drift_safety_tp * _vel[0]);
-   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_spdata.dmax) / sqrt(Sqr(Dperp)+Sqr(Dpara)));
-   dt_physical = fmin(dt_physical, cfl_dif_tp * _spdata.dmax / divK.Norm());
+   dt_physical = cfl_adv_tp * _spdata.dmax / fmax(drift_vel.Norm(), divK.Norm());
+   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_spdata.dmax) / fmax(Kperp, Kpara));
+// TODO: implement dt_physical constraint based on maximum momentum change per step
+   // dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dpmax / (_mom[0] * _spdata.divU()));
 };
 
 /*!
@@ -179,9 +183,9 @@ void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_
    DiffusionCoeff();
    slope_pos_istage = drift_vel;
 #if TIME_FLOW == 0
-   slope_pos_istage -= divK;
-#else
    slope_pos_istage += divK;
+#else
+   slope_pos_istage -= divK;
 #endif
    slope_mom_istage[0] = -_mom[0] * _spdata.divU() / 3.0;
    slope_mom_istage[1] = 0.0;
@@ -215,7 +219,7 @@ bool TrajectoryParker::Advance(void)
 
 // Stochastic RK slopes
 // TODO: Add other (higher order) options for the stochastic step (e.g. Milstein or RK2)
-#if STOCHASTIC_METHOD_DIFF == 0
+#if TRAJ_PARKER_STOCHASTIC_METHOD_DIFF == 0
    EulerDiffSlopes();
 #else
    dr_perp = gv_zeros;
@@ -240,9 +244,7 @@ bool TrajectoryParker::Advance(void)
    HandleBoundaries();
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed
-   if(BITS_LOWERED(_status, TRAJ_FINISH)) {
-      CommonFields();
-   };
+   if(BITS_LOWERED(_status, TRAJ_FINISH)) CommonFields();
 
 // Add the new point to the trajectory.
    Store();

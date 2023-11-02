@@ -82,7 +82,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 
 // Compute the velocity and Parker magnetic field
    _spdata.Uvec = (ur0 / r) * posprime;
-   _spdata.Bvec = (Br0 / r3) * (posprime + w0 * (r - 1.0) / ur0 * (posprime[1] * gv_nx - posprime[0] * gv_ny));
+   _spdata.Bvec = (Br0 / r3) * (posprime + (w0 * (r - 1.0) * r_ref / ur0) * (posprime[1] * gv_nx - posprime[0] * gv_ny));
 
 // Convert back to global frame and compute the electric field.
    _spdata.Uvec.ChangeFromBasis(eprime);
@@ -101,19 +101,21 @@ void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+//TODO: complete
+   };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
 //TODO: complete
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-//TODO: complete
+      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
-   NumericalDerivatives(); 
+   NumericalDerivatives();
 #endif
 };
 

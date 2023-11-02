@@ -89,6 +89,9 @@ protected:
 //! Counts of different stencil outcomes
    int stencil_outcomes[2];
 
+//! Count of total blocks requested
+   int num_blocks_requested;
+
 //! Load interpolation stencil using interior zones
    void InteriorInterpolationStencil(const MultiIndex zone_lo, const MultiIndex zone_hi, const GeoVector offset_lo, const GeoVector offset_hi, const GeoVector delta);
 
@@ -101,11 +104,17 @@ protected:
 //! Find block order in the cache or get a block from the server if not in the cache
    int RequestBlock(void) override;
 
-//! Obtain an interpolation stencil from the server
-   void RequestStencil(void) override;
+//! Get variables directly from data reader
+   void GetVariablesFromReader(SpatialData& spdata);
 
-//! Obtain all variables at the specified location from the server
-   void RequestVariables(double* vars) override;
+//! Get variables using 0th order interpolation
+   void GetVariablesInterp0(const GeoVector& pos, BlockPtrType block, SpatialData& spdata);
+
+//! Get variables using 1st order interpolation
+   void GetVariablesInterp1(const GeoVector& pos, SpatialData& spdata);
+
+//! Get gradients using 1st order interpolation
+   void GetGradientsInterp1(SpatialData& spdata);
 
 public:
 
@@ -129,6 +138,9 @@ public:
 
 //! Print how many times internal/external interpolators were used
    void PrintStencilOutcomes(void);
+
+//! Print how many blocks were requested
+   void PrintNumBlocksRequested(void);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -163,7 +175,13 @@ public:
 //! Backend tasks during the main loop
    int ServerFunctions(void) override;
 
-//! Serve block function
+//! Get block data from reader
+   virtual void GetBlockData(const double* pos, double* vars, int* found);
+
+//! Handle "needvars" requests
+   void HandleNeedVarsRequests(void);
+
+//! Get block from reader
    virtual void GetBlock(const double* pos, int* node);
 
 //! Handle "needblock" requests

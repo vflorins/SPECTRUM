@@ -23,7 +23,7 @@ const std::string traj_name_guiding = "TrajectoryGuiding";
 const unsigned int defsize_guiding = 10000;
 
 //! CFL condition for advection
-const double cfl_adv_tg = 0.5;
+const double cfl_adv_tg = 0.1;
 
 //! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
 const double drift_safety_tg = 0.1;

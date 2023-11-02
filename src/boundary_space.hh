@@ -325,12 +325,17 @@ public:
 \brief Cylindrical boundary base class
 \author Juan G Alonso Guzman
 
-Parameters: (BoundaryBase), double radius
-TODO: Implement this class so that the axis of the cylinder can be oriented in any direction, not just along z.
+Parameters: (BoundaryBase), GeoVector origin, GeoVector fa_basis[2], double radius
 */
 class BoundaryCylinder : public BoundaryBase {
 
 protected:
+
+//! Point on cylinder axis (persisitent)
+   GeoVector origin;
+
+//! Cylinder coordinate reference frame with z || fa_basis[2] (persitent)
+   GeoVector fa_basis[3];
 
 //! Radius of the cylinder (persistent)
    double radius;

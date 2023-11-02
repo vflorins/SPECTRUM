@@ -26,6 +26,9 @@ struct ReaderCartesian {
 //! Number of blocks per dimension
    MultiIndex Nblocks;
 
+//! Number of zones per dimension
+   MultiIndex domain_size;
+
 //! Minimum domain coordinates
    GeoVector domain_min;
 
@@ -44,8 +47,11 @@ struct ReaderCartesian {
 //! Length of zone in Cartesian units
    GeoVector zone_length;
 
-//! Array with ALL Cartesian variables
-   double* variables = nullptr;
+//! Array with ALL Cartesian variables organized by block
+   double* variables_by_block = nullptr;
+
+//! Array with ALL Cartesian variables organized by dimension
+   double* variables_by_dimen = nullptr;
 
 };
 
@@ -64,6 +70,9 @@ void ReadCartesianClean(void);
 
 //! Get domain coordinate limits
 void ReadCartesianGetDomain(double* domain_min_out, double* domain_max_out);
+
+//! Get variables from position
+void ReadCartesianGetBlockData(const double* pos, double* vars, int* found);
 
 //! Get node ID from position
 void ReadCartesianGetNode(const double* pos, int* node_id);

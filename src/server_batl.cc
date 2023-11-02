@@ -6,6 +6,7 @@
 
 #include "server_batl.hh"
 #include "block_batl.hh"
+#include "common/print_warn.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -40,23 +41,27 @@ void ServerBATLFront::MakeSharedBlock(BlockPtrType &block_new)
 };
 
 /*!
+\author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 09/18/2020
 */
-void ServerBATLFront::RequestStencil(void)
+int ServerBATLFront::RequestStencil(const GeoVector& pos)
 {
+   int iz;
+
+   _inquiry.type = 1;
+   _inquiry.pos = pos;
    MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needstencil, mpi_config->node_comm);
    MPI_Recv(&stencil, 1, MPIStencilType, 0, tag_sendstencil, mpi_config->node_comm, MPI_STATUS_IGNORE);
-};
 
-/*!
-\author Vladimir Florinski
-\date 09/18/2020
-*/
-void ServerBATLFront::RequestVariables(double* vars)
-{
-   MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needvars, mpi_config->node_comm);
-   MPI_Recv(vars, n_variables, MPI_DOUBLE, 0, tag_sendvars, mpi_config->node_comm, MPI_STATUS_IGNORE);
+// The "blocks" field of the returned stencil currently contains nodes. We need to convert them to blocks, requesting the blocks from the server, if necessary.
+   _inquiry.type = 0;
+   for(iz = 0; iz < stencil.n_elements; iz++) {
+      _inquiry.node = stencil.blocks[iz];
+      stencil.blocks[iz] = RequestBlock();
+   };
+
+   return 4;
 };
 
 /*!
@@ -310,6 +315,8 @@ int ServerBATLFront::BuildInterpolationPlane(const GeoVector& pos, int plane, in
 */
 int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
 {
+#if REQUEST_STENCIL_FROM_BATL == 0
+
    int pri_idx, sec_idx, xyz, iz;
    MultiIndex zone_lo, zone_hi;
    GeoVector offset_lo, offset_hi, delta;
@@ -333,31 +340,6 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    double offset_pri, offset_sec, del;
    quadrant = block_pri->GetQuadrant(pos);
    block_size = block_pri->GetBlockSize();
-
-
-
-
-
-// TODO: Do we need this? If yes, can we move it to a separate function so it doesn't break up the code?
-/*
-      _inquiry.type = 1;
-      _inquiry.pos = pos;
-      RequestStencil();
-
-// The "blocks" field of the returned stencil currently contains nodes. We need to convert them to blocks, requesting the blocks from the server, if necessary.
-      _inquiry.type = 0;
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         _inquiry.node = stencil.blocks[iz];
-         stencil.blocks[iz] = RequestBlock();
-      };
-
-      return 4;
-*/
-
-
-
-
-
 
 // Build three neighbor node indices for up to 3 possible secondary blocks. These are face neighbors, never edge or vertex neighbors. Also, find if the stencil extends beyond the primary block.
    for(xyz = 0; xyz < 3; xyz++) {
@@ -419,20 +401,7 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    };
 
 // The plane interpolator has failed (level change in all three planes). We must request a stencil using the external interpolator.
-   if(outcome == -1) {
-      _inquiry.type = 1;
-      _inquiry.pos = pos;
-      RequestStencil();
-
-// The "blocks" field of the returned stencil currently contains nodes. We need to convert them to blocks, requesting the blocks from the server, if necessary.
-      _inquiry.type = 0;
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         _inquiry.node = stencil.blocks[iz];
-         stencil.blocks[iz] = RequestBlock();
-      };
-
-      return 4;
-   };
+   if(outcome == -1) return RequestStencil();
 
    idx0 = plane;
    idx1 = (plane + 1) % 3;
@@ -491,6 +460,13 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    return 0;
 
 #endif
+
+#else
+
+// Load stencil directly from BATL
+   return RequestStencil(pos);
+
+#endif
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -537,22 +513,41 @@ void ServerBATLBack::CleanReader(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 \return Number of clients that completed their tasks during this cycle
+
+\note "needvars" requests are only handled when INTERP_ORDER = -1. "needstencil" requests are only handled when using 1st order interpolation and either there are no ghost cells or stencils are always requested from BATL (for debugging purposes)
 */
 int ServerBATLBack::ServerFunctions()
 {
-// Handle "needblock" requests
-   HandleNeedBlockRequests();
-// Handle "needstencil" requests
-   HandleNeedStencilRequests();
+#if INTERP_ORDER == -1
 // Handle "needvars" requests
    HandleNeedVarsRequests();
+#elif INTERP_ORDER == 1 && (NUM_GHOST_CELLS == 0 || REQUEST_STENCIL_FROM_BATL == 1)
+// Handle "needstencil" requests
+   HandleNeedStencilRequests();
+#endif
+// Handle "needblock" requests
+   HandleNeedBlockRequests();
 // Handle "stopserve" requests
    return HandleStopServeRequests();
 };
 
 /*!
 \author Juan G Alonso Guzman
+\date 08/03/2023
+\param[in] pos    position array in reader coordinates
+\param[out] vars  1D array containing all variables at pos
+\param[out] found flag indicating whether variables where found or not for given position
+*/
+void ServerBATLBack::GetBlockData(const double* pos, double* vars, int* found)
+{
+   wrapamr_get_data_serial(pos, vars, found);
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 07/28/2023
+\param[in] pos    position array in reader coordinates
+\param[out] node  ID tag of block containing pos within its physical boundaries
 */
 void ServerBATLBack::GetBlock(const double* pos, int* node)
 {
@@ -583,35 +578,6 @@ void ServerBATLBack::HandleNeedStencilRequests(void)
 
 // Post the receive for the next stencil request from this worker.
       MPI_Irecv(&buf_needstencil[cpu], 1, MPIInquiryType, cpu, tag_needstencil, mpi_config->node_comm, &req_needstencil[cpu]);
-   };
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/27/2023
-*/
-void ServerBATLBack::HandleNeedVarsRequests(void)
-{
-   GeoVector pos_batl;
-   double vars[n_variables];
-   int found, cpu, cpu_idx, count_needvars = 0;
-
-// Service the "needvars" requests
-   MPI_Testsome(mpi_config->node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
-
-   for(cpu_idx = 0; cpu_idx < count_needvars; cpu_idx++) {
-      cpu = index_needvars[cpu_idx];
-
-// Obtain the variables requested
-      pos_batl = buf_needvars[cpu].pos / unit_length_server * unit_length_fluid;
-      wrapamr_get_data_serial(pos_batl.Data(), vars, &found);
-      if(!found) std::cerr << "Position not found\n";
-
-// Send the variables to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, tag_sendvars, mpi_config->node_comm);
-
-// Post the receive for the next variables request from this worker.
-      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, mpi_config->node_comm, &req_needvars[cpu]);
    };
 };
 

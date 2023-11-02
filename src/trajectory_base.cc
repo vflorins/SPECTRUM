@@ -168,8 +168,8 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-//   if(dt + delta_next >= 0.0) dt = -delta_next + miniscule * _spdata.dmax / c_code;
-   if(dt + delta_next >= 0.0) dt = -delta_next + small * dt;
+//FIXME Note that if "dt" is very small the correction may be under the machine precision (subtractive cancellation)
+   if(dt + delta_next >= 0.0) dt = -delta_next + little * dt;
 };
 
 /*!
@@ -211,7 +211,7 @@ try {
    if(BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED) && BITS_RAISED(_status, TRAJ_FINISH)) {
 
 #ifdef GEO_DEBUG
-//      PrintMessage(__FILE__, __LINE__, "Advance: The trajectory will terminate inside the RK loop");
+     PrintMessage(__FILE__, __LINE__, "Advance: The trajectory will terminate inside the RK loop", true);
 #endif
 
       Store();
@@ -252,6 +252,11 @@ catch(ExCoordinates& exception) {
 catch(ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
+}
+
+catch(ExServerError& exception) {
+   RAISE_BITS(_status, TRAJ_DISCARD);
+   throw;
 };
 
 /*!
@@ -280,6 +285,11 @@ catch(ExCoordinates& exception) {
 catch(ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
+}
+
+catch(ExServerError& exception) {
+   RAISE_BITS(_status, TRAJ_DISCARD);
+   throw;
 };
 
 /*!
@@ -290,7 +300,6 @@ catch(ExFieldError& exception) {
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-
 bool TrajectoryBase::RKSlopes(void)
 {
    unsigned int istage, islope;
@@ -300,8 +309,13 @@ bool TrajectoryBase::RKSlopes(void)
 // Advance to the current stage.
       _t += RK_Table.a[istage] * dt;
       for(islope = 0; islope < istage; islope++) {
+#if TIME_FLOW == 0
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
+#else
+         _pos -= dt * RK_Table.b[istage][islope] * slope_pos[islope];
+         _mom -= dt * RK_Table.b[istage][islope] * slope_mom[islope];
+#endif
       };
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the full RK step cannot be completed. In that case the function should return immediately and the last recorded position and momentum will be saved as if the step has completed. A check for momentum boundary is not needed; if one was crossed it will be recorded at the end of the step.
@@ -332,7 +346,6 @@ bool TrajectoryBase::RKSlopes(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-
 bool TrajectoryBase::RKStep(void)
 {
    unsigned int islope;
@@ -360,7 +373,7 @@ bool TrajectoryBase::RKStep(void)
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
    if(RK_Table.adaptive) {
       error = sqrt((_pos - pos_lo).Norm2() / Sqr(rk_tol_abs + rk_tol_rel * (_pos.Norm() + pos_lo.Norm())));
-      dt_adaptive = dt * pow(error, -1.0 / RK_Table.order);
+      dt_adaptive = dt * rk_adjust * pow(error, -1.0 / RK_Table.order);
       dt_adaptive = fmin(dt * rk_safety, dt_adaptive);
       dt_adaptive = fmax(dt / rk_safety, dt_adaptive);
 
@@ -1004,12 +1017,15 @@ int TrajectoryBase::Crossings(unsigned int output, unsigned int bnd) const
 \param[in] traj_name  File name
 \param[in] phys_units Use physical units for output
 \param[in] output     Which coordinates to print
-\param[in] stride     Distance between points in the output (optional)
+\param[in] stride     Distance between points in the output (optional). If stride = 0, output based on dt_out.
+\param[in] dt_out     Time increment at which to output quantities when stride = 0
 */
-void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, unsigned int stride) const
+void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, 
+                                     unsigned int stride, double dt_out) const
 {
-   unsigned int pt;
-   double mom_mag, vm_ratio;
+   unsigned int pt, iter_out = 0, max_out = 1000000;
+   double mom_mag, vm_ratio, t_out = 0.0, engkin_t;
+   GeoVector pos_t, vel_t;
    std::ofstream trajfile;
 
 #ifdef RECORD_TRAJECTORY
@@ -1017,19 +1033,41 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
 
 // Generate multiple column output
    trajfile << std::setprecision(12);
-   for(pt = 0; pt < traj_t.size(); pt += stride) {
-      mom_mag = traj_mom[pt].Norm();
-      vm_ratio = Vel(mom_mag, specie) / mom_mag;
 
-      if(output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
-      if(output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
-      if(output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
-      if(output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
-      if(output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
-      if(output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
-      if(output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
-      if(output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
-      trajfile << std::endl;
+   if(stride) {
+      for(pt = 0; pt < traj_t.size(); pt += stride) {
+         mom_mag = traj_mom[pt].Norm();
+         vm_ratio = Vel(mom_mag, specie) / mom_mag;
+
+         if(output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
+         if(output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
+         trajfile << std::endl;
+      };
+   }
+   else {
+      while(t_out < traj_t.back() && iter_out < max_out) {
+         pos_t = GetPosition(t_out);
+         vel_t = GetVelocity(t_out);
+         engkin_t = GetEnergy(t_out);
+
+         if(output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
+         if(output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
+         if(output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
+         if(output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
+         trajfile << std::endl;
+
+         t_out += dt_out;
+      };
    };
 
    trajfile.close();

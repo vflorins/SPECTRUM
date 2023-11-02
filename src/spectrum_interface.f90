@@ -173,7 +173,9 @@ end subroutine spectrum_get_block_data
 
 subroutine spectrum_get_interpolation_stencil(pos, n_zones, stencil_nodes, stencil_zones, stencil_weights) bind(C)
 
-   use BATL_grid, ONLY: interpolate_grid_amr
+! FIXME: Interpolate_grid_amr does not work properly and neither does interpolate_grid_amr_gc.
+!        Data obtained from requesting stencil and interpolating does not match data from BATL.
+   use BATL_grid, ONLY: interpolate_grid_amr, interpolate_grid
    use BATL_tree, ONLY: iNode_B
    use BATL_size, ONLY: nDim, MaxDim
    
@@ -193,7 +195,8 @@ subroutine spectrum_get_interpolation_stencil(pos, n_zones, stencil_nodes, stenc
    real(c_double) :: Weight_I(2**nDim)
 
    Xyz_D(1 : nDim) = pos(1 : nDim)
-   call interpolate_grid_amr(Xyz_D, nCell, iCell_II, Weight_I)
+   ! call interpolate_grid_amr(Xyz_D, nCell, iCell_II, Weight_I)
+   call interpolate_grid(Xyz_D, nCell, iCell_II, Weight_I)
 
    idx = 1
    do iCell = 1, nCell

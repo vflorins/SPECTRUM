@@ -102,6 +102,9 @@ public:
 //! Tells whether our process is the master
    bool IsMaster(void);
 
+//! Returns worker communicator rank and size
+   int GetWorkCommRankSize(int& work_comm_size_out);
+
 //! Get name (type) of trajectory
    std::string GetTrajectoryName(void) const;
 

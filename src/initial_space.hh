@@ -102,6 +102,53 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialSpaceCircle class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the InitialSpaceCircle class
+const std::string init_name_space_circle = "InitialSpaceCircle";
+
+/*!
+\brief Uniformly distributed starting points on a circle
+\author Juan G Alonso Guzman
+
+Parameters: (InitialBase), GeoVector center, GeoVector normal, double radius
+*/
+class InitialSpaceCircle : public InitialBase {
+
+protected:
+
+//! Center of circle (persistent)
+   GeoVector origin;
+
+//! Radius vector of circle in the local x direction (persistent)
+   GeoVector radius_x;
+
+//! Radius vector of circle in the local y direction (persistent)
+   GeoVector radius_y;
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   InitialSpaceCircle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
+//! Set up the initial condition generator based on "params"
+   void SetupInitial(bool construct) override;
+
+//! Compute the internal position or momentum
+   void EvaluateInitial(void) override;
+
+public:
+
+//! Default constructor
+   InitialSpaceCircle(void);
+
+//! Copy constructor
+   InitialSpaceCircle(const InitialSpaceCircle& other);
+
+//! Clone function
+   CloneFunctionInitial(InitialSpaceCircle);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialSpaceCube class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -284,11 +331,14 @@ const std::string init_name_space_table = "InitialSpaceTable";
 \brief Starting points from a table
 \author Juan G Alonso Guzman
 
-Parameters: (InitialBase), std::string
+Parameters: (InitialBase), std::string initpos_file_name, double scale, bool random
 */
 class InitialSpaceTable : public InitialBase {
 
 protected:
+
+//! Flag to iterate through initial positions randomly (true) or in sequence (false)
+   bool random;
 
 //! Array with initial positions
    std::vector <GeoVector> initpos;

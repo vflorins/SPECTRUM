@@ -148,6 +148,180 @@ void DiffusionQLTConstant::EvaluateDiffusion(void)
 
 #endif
 
+#if TRAJ_TYPE != TRAJ_PARKER
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionWNLTConstant methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Vladimir Florinski
+\date 05/06/2022
+*/
+DiffusionWNLTConstant::DiffusionWNLTConstant(void)
+                     : DiffusionQLTConstant(diff_name_wnlt_constant, 0, STATE_NONE)
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/27/2022
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+DiffusionWNLTConstant::DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                     : DiffusionQLTConstant(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/09/2022
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionWNLTConstant::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
+                     : DiffusionQLTConstant(other)
+{
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/09/2022
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionWNLTConstant::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionQLTConstant::SetupDiffusion(false);
+   container.Read(&A2T);
+   container.Read(&A2L);
+   ps_plus = ps_index + 1.0;
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/09/2022
+*/
+void DiffusionWNLTConstant::EvaluateDiffusion(void)
+{
+   if(comp_eval == 1) return;
+   double CT, CL, xi1, xi2, F21, DT1, DT2;
+
+// Kappa[0] is required for Kappa[2]
+   CT = 0.5 * ps_minus / ps_plus * Sqr(mu / k_min) * A2T;
+   CL = 0.125 * Sqr(vmag * st2 / Omega) * A2L;
+   Kappa[0] = vmag * sqrt(CT + CL);
+
+   if(comp_eval == 0) return;
+
+// Hypergeometric function may crash if the last argument is close to 1
+   DiffusionQLTConstant::EvaluateDiffusion();
+
+#ifdef USE_QLT_SCATT_WITH_WNLT_DIFF
+   return;
+#endif
+
+   if(A2T > tiny) {
+      xi1 = vmag * k_min * sqrt(st2) / sqrttwo / fabs(Omega);
+      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
+      DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
+      xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
+      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi2)));
+      DT2 = 1.0 / (1.0 + Sqr(xi2)) * F21;
+      Kappa[2] += (ps_minus / ps_plus) * Omega * st2 * A2T * DT1 * DT2 / sqrt(Sqr(DT1) + Sqr(DT2));
+   };
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionWNLTRampVLISM methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Vladimir Florinski
+\date 05/06/2022
+*/
+DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(void)
+                      : DiffusionWNLTConstant(diff_name_wnlt_ramp_vlism, 0, STATE_NONE)
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/09/2022
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& other)
+                      : DiffusionWNLTConstant(other)
+{
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/09/2022
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionWNLTConstant::SetupDiffusion(false);
+   container.Read(&l_max_HP);
+   container.Read(&z_nose);
+   container.Read(&z_sheath);
+   k_min_ref = k_min;
+   A2A_ref = A2A;
+   A2T_ref = A2T;
+   A2L_ref = A2L;
+   dl_max = l_max - l_max_HP;
+   dz = z_sheath - z_nose;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/09/2022
+*/
+void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
+{
+   if(comp_eval == 1) return;
+   double z0, r0, k_ratio;
+
+// Find distance to nose for Rankine half body which the particle is presently on
+   r0 = _pos.Norm();
+   z0 = sqrt(0.5 * r0 * (r0 + _pos[2]));
+// Constant k_min beyond z_sheath
+   if(z0 > z_sheath) {
+      k_min = k_min_ref;
+      A2A = A2A_ref;
+      A2T = A2T_ref;
+      A2L = A2L_ref;
+   }
+// Linearly interpolate l_max between z_nose and z_sheath
+   else {
+      k_min = twopi / (l_max_HP + dl_max * (z0 - z_nose) / dz);
+      k_ratio = pow(k_min_ref / k_min, ps_minus);
+      A2A = A2A_ref * k_ratio;
+      A2T = A2T_ref * k_ratio;
+      A2L = A2L_ref * k_ratio;
+   };
+
+// Evaluate WLNT diffusion
+   DiffusionWNLTConstant::EvaluateDiffusion();
+};
+
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionParaConstant methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -354,178 +528,119 @@ double DiffusionFullConstant::GetDirectionalDerivative(int xyz)
    return 0.0;
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionWNLTConstant methods
+// DiffusionRigidityMagneticFieldPowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\author Vladimir Florinski
-\date 05/06/2022
+\author Juan G Alonso Guzman
+\date 08/17/2023
 */
-DiffusionWNLTConstant::DiffusionWNLTConstant(void)
-                     : DiffusionQLTConstant(diff_name_wnlt_constant, 0, STATE_NONE)
+DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(void)
+                                      : DiffusionBase(diff_name_rigidity_magnetic_field_power_law, 0, DIFF_NOBACKGROUND)
 {
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/27/2022
-\param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
-\param[in] status_in Initial status
-*/
-DiffusionWNLTConstant::DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                     : DiffusionQLTConstant(name_in, specie_in, status_in)
-{
-};
-
-/*!
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
 \date 05/09/2022
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionWNLTConstant::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
-                     : DiffusionQLTConstant(other)
+DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(const DiffusionRigidityMagneticFieldPowerLaw& other)
+                                      : DiffusionBase(other)
 {
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/09/2022
+\author Juan G Alonso Guzman
+\date 08/17/2023
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionWNLTConstant::SetupDiffusion(bool construct)
+void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionQLTConstant::SetupDiffusion(false);
-   container.Read(&A2T);
-   container.Read(&A2L);
-   ps_plus = ps_index + 1.0;
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kap0);
+   container.Read(&R0);
+   container.Read(&B0);
+   container.Read(&pow_law_R);
+   container.Read(&pow_law_B);
+   container.Read(&kap_rat);
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/09/2022
+\author Juan G Alonso Guzman
+\date 08/17/2023
 */
-void DiffusionWNLTConstant::EvaluateDiffusion(void)
+void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 {
-   if(comp_eval == 1) return;
-   double CT, CL, xi1, xi2, F21, DT1, DT2;
-
-// Kappa[0] is required for Kappa[2]
-   CT = 0.5 * ps_minus / ps_plus * Sqr(mu / k_min) * A2T;
-   CL = 0.125 * Sqr(vmag * st2 / Omega) * A2L;
-   Kappa[0] = vmag * sqrt(CT + CL);
-
-   if(comp_eval == 0) return;
-
-// Hypergeometric function may crash if the last argument is close to 1
-   DiffusionQLTConstant::EvaluateDiffusion();
-
-#ifdef USE_QLT_SCATT_WITH_WNLT_DIFF
-   return;
-#endif
-
-   if(A2T > tiny) {
-      xi1 = vmag * k_min * sqrt(st2) / sqrttwo / fabs(Omega);
-      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
-      DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
-      xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
-      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi2)));
-      DT2 = 1.0 / (1.0 + Sqr(xi2)) * F21;
-      Kappa[2] += (ps_minus / ps_plus) * Omega * st2 * A2T * DT1 * DT2 / sqrt(Sqr(DT1) + Sqr(DT2));
-   };
+   if((comp_eval == 2)) return;
+// The 300.0 the "magic" factor for rigidity calculations.
+   Kappa[1] = kap0 * pow(300.0 * Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B) * (vmag / c_code) / 3.0;
+   Kappa[0] = kap_rat * Kappa[1];
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionWNLTRampVLISM methods
+// DiffusionRigidityPowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\author Vladimir Florinski
-\date 05/06/2022
+\author Juan G Alonso Guzman
+\date 08/18/2023
 */
-DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(void)
-                      : DiffusionWNLTConstant(diff_name_wnlt_ramp_vlism, 0, STATE_NONE)
+DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(void)
+                                            : DiffusionBase(diff_name_kinetic_energy_radial_distance_power_law, 0, DIFF_NOBACKGROUND)
 {
 };
 
 /*!
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
 \date 05/09/2022
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& other)
-                      : DiffusionWNLTConstant(other)
+DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
+                                            : DiffusionBase(other)
 {
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 05/09/2022
+\date 08/18/2023
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
+void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionWNLTConstant::SetupDiffusion(false);
-   container.Read(&l_max_HP);
-   container.Read(&z_nose);
-   container.Read(&z_sheath);
-   k_min_ref = k_min;
-   A2A_ref = A2A;
-   A2T_ref = A2T;
-   A2L_ref = A2L;
-   dl_max = l_max - l_max_HP;
-   dz = z_sheath - z_nose;
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kap0);
+   container.Read(&T0);
+   container.Read(&r0);
+   container.Read(&pow_law_T);
+   container.Read(&pow_law_r);
+   container.Read(&kap_rat);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 05/09/2022
+\date 08/18/2023
 */
-void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
+void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 {
-   if(comp_eval == 1) return;
-   double z0, r0, k_ratio;
-
-// Find distance to nose for Rankine half body which the particle is presently on
-   r0 = _pos.Norm();
-   z0 = sqrt(0.5 * r0 * (r0 + _pos[2]));
-// Constant k_min beyond z_sheath
-   if(z0 > z_sheath) {
-      k_min = k_min_ref;
-      A2A = A2A_ref;
-      A2T = A2T_ref;
-      A2L = A2L_ref;
-   }
-// Linearly interpolate l_max between z_nose and z_sheath
-   else {
-      k_min = twopi / (l_max_HP + dl_max * (z0 - z_nose) / dz);
-      k_ratio = pow(k_min_ref / k_min, ps_minus);
-      A2A = A2A_ref * k_ratio;
-      A2T = A2T_ref * k_ratio;
-      A2L = A2L_ref * k_ratio;
-   };
-
-// Evaluate WLNT diffusion
-   DiffusionWNLTConstant::EvaluateDiffusion();
+   if((comp_eval == 2)) return;
+   Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
+   Kappa[0] = kap_rat * Kappa[1];
 };
-
-#endif
 
 };
