@@ -252,7 +252,9 @@ void BoundaryBox::SetupBoundary(bool construct)
    container.Read(normals[0].Data());
    container.Read(normals[1].Data());
    container.Read(normals[2].Data());
+// The vectors in the array "normals" are initially given by user as any three edges defining the box, which means their magnitudes are relevant for computing the corner opposite to the one given as an input.
    corners[1] = corners[0] + normals[0] + normals[1] + normals[2];
+// After computing the corner opposite to the one given as an input, the edge vectors are normalized to serve as the normal vectors of the sides to which they are each perpendicular.
    normals[0].Normalize();
    normals[1].Normalize();
    normals[2].Normalize();

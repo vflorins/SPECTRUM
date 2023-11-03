@@ -167,16 +167,16 @@ public:
 \brief Box boundary base class
 \author Juan G Alonso Guzman
 
-Parameters: (BoundaryBase), GeoVector corners[0], GeoVector[3] sides
+Parameters: (BoundaryBase), GeoVector corners[0], GeoVector[3] normals
 */
 class BoundaryBox : public BoundaryBase {
 
 protected:
 
-//! Corner (persistent)
+//! Opposite corners bounding the box (persistent)
    GeoVector corners[2];
 
-//! Normal vectors to three non-parallel sides (i.e. three sides with a common vertex)
+//! Normal vectors to three non-parallel sides (i.e. three sides with a common vertex) (persistent)
    GeoVector normals[3];
 
 //! Default constructor (protected, class not designed to be instantiated)
