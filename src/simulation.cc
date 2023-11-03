@@ -255,7 +255,7 @@ void SimulationWorker::WorkerStart(void)
    longest_sim_time = 0.0;
    elapsed_time = 0.0;
 
-// Signal the master that this CPU is available to do work and receive confirmation that more data is needed. Sending data to master does not serve a purpose, but it must be called after the nodes advertise their availability.
+// Signal the master (with an empty message) that this CPU is available and receive confirmation to do more work.
    if(is_parallel) {
       MPI_Send(NULL, 0, MPI_INT, 0, tag_cpuavail, mpi_config->work_comm);
       SendDataToMaster();
@@ -267,7 +267,6 @@ void SimulationWorker::WorkerStart(void)
 \author Juan G Alonso Guzman
 \date 05/25/2021
 */
-
 void SimulationWorker::WorkerFinish(void)
 {
 // Print last trajectory
@@ -309,7 +308,8 @@ void SimulationWorker::WorkerDuties(void)
          if(longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
          traj_count++;
       }
-// TODO Should we treat all exceptions the same?
+
+// TODO Should we treat every exception the same?
       catch(std::exception& exception) {
          std::cerr << "Trajectory discarded by worker with rank " << mpi_config->work_comm_rank
                    << ": " << exception.what() << std::endl;

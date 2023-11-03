@@ -12,6 +12,7 @@
 #include "common/physics.hh"
 #include "common/spatial_data.hh"
 #include "cache_lru.hh"
+#include "server_exceptions.hh"
 #include <memory>
 
 namespace Spectrum {
@@ -94,32 +95,6 @@ struct Inquiry {
 
 //! Position if requesting by position
    GeoVector pos;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Exceptions
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief Exception if server functions failed
-\author Juan G Alonso Guzman
-*/
-class ExServerError : public std::exception {
-
-public:
-
-//! Return explanatory string
-   const char* what(void) const noexcept override;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 23/08/2023
-\return Text describing the error
-*/
-inline const char* ExServerError::what(void) const noexcept
-{
-   return "Server error";
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

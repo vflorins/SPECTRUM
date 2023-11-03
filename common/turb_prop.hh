@@ -12,18 +12,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-/*!
-\brief Simple structure storing turbulence properties
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-*/
 //! Number of turbulence types
 const int n_turb_types = 4;
 
 //! Turbulence types that can be generated
 enum turb_type {turb_alfven, turb_transverse, turb_longitudinal, turb_isotropic};
 
-//! Packaged input parameter structure per wave type
+/*!
+\brief Simple structure storing turbulence properties
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+*/
 struct TurbProp {
 
 //! Smallest wavenumber
