@@ -160,6 +160,82 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryBox class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief Box boundary base class
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryBase), GeoVector corners[0], GeoVector[3] sides
+*/
+class BoundaryBox : public BoundaryBase {
+
+protected:
+
+//! Corner (persistent)
+   GeoVector corners[2];
+
+//! Normal vectors to three non-parallel sides (i.e. three sides with a common vertex)
+   GeoVector normals[3];
+
+//! Default constructor (protected, class not designed to be instantiated)
+   BoundaryBox(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
+//! Copy constructor (protected, class not designed to be instantiated)
+   BoundaryBox(const BoundaryBox& other);
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+//! Compute the distance to the boundary
+   void EvaluateBoundary(void) override;
+
+public:
+
+//! Destructor
+   ~BoundaryBox() override = default;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryBoxReflect class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryBoxReflect class
+const std::string bnd_name_box_reflect = "BoundaryBoxReflect";
+
+/*!
+\brief Reflecting box boundary
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryBox)
+*/
+class BoundaryBoxReflect : public BoundaryBox {
+
+protected:
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+public:
+
+//! Default constructor
+   BoundaryBoxReflect(void);
+
+//! Copy constructor
+   BoundaryBoxReflect(const BoundaryBoxReflect& other);
+
+//! Destructor
+   ~BoundaryBoxReflect() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryBoxReflect);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundarySphere class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
