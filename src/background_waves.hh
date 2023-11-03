@@ -11,36 +11,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "background_base.hh"
 #include "common/matrix.hh"
+#include "common/turb_prop.hh"
 
 namespace Spectrum {
-
-//! Number of turbulence types
-const int n_turb_types = 4;
-
-//! Turbulence types that can be generated
-enum turb_type {turb_alfven, turb_transverse, turb_longitudinal, turb_isotropic};
-
-//! Packaged input parameter structure per wave type
-struct TurbProp {
-
-//! Smallest wavenumber
-   double kmin;
-
-//! Largest wavenumber
-   double kmax;
-
-//! Characteristic length
-   double l0;
-
-//! Number of modes
-   double n_waves;
-
-//! Variance
-   double variance;
-
-//! Power law slope
-   double slope;
-};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundWaves class declaration
