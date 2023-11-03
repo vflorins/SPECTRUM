@@ -201,6 +201,137 @@ void BoundaryPlanePass::SetupBoundary(bool construct)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryBox methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+*/
+BoundaryBox::BoundaryBox(void)
+           : BoundaryBase("", 0, BOUNDARY_SPACE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+BoundaryBox::BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+           : BoundaryBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+\param[in] other Object to initialize from
+*/
+BoundaryBox::BoundaryBox(const BoundaryBox& other)
+           : BoundaryBase(other)
+{
+   RAISE_BITS(_status, BOUNDARY_SPACE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryBox::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(corners[0].Data());
+   container.Read(normals[0].Data());
+   container.Read(normals[1].Data());
+   container.Read(normals[2].Data());
+// The vectors in the array "normals" are initially given by user as any three edges defining the box, which means their magnitudes are relevant for computing the corner opposite to the one given as an input.
+   corners[1] = corners[0] + normals[0] + normals[1] + normals[2];
+// After computing the corner opposite to the one given as an input, the edge vectors are normalized to serve as the normal vectors of the sides to which they are each perpendicular.
+   normals[0].Normalize();
+   normals[1].Normalize();
+   normals[2].Normalize();
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+*/
+void BoundaryBox::EvaluateBoundary(void)
+{
+//                          delta>0
+//   +---------------------+
+//   |             delta<0 | 
+//   ^                     |
+//   |                     |
+// sides[1]                |
+//   |                     |
+//   *-- sides[0] -----> --+
+// corner[0]
+
+   double delta_tmp;
+   _delta = -large;
+   for(int s = 0; s < 3; s++) {
+      delta_tmp = -(_pos - corners[0]) * normals[s];
+      if(delta_tmp > _delta) {
+         _delta = delta_tmp;
+         _normal = -normals[s];
+      };
+      delta_tmp = (_pos - corners[1]) * normals[s];
+      if(delta_tmp > _delta) {
+         _delta = delta_tmp;
+         _normal = normals[s];
+      };
+   };
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryBoxReflect methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+*/
+BoundaryBoxReflect::BoundaryBoxReflect(void)
+                  : BoundaryBox(bnd_name_box_reflect, 0, BOUNDARY_SPACE | BOUNDARY_REFLECT)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+\param[in] other Object to initialize from
+*/
+BoundaryBoxReflect::BoundaryBoxReflect(const BoundaryBoxReflect& other)
+                  : BoundaryBox(other)
+{
+   RAISE_BITS(_status, BOUNDARY_REFLECT);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/02/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryBoxReflect::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryBox::SetupBoundary(false);
+   if(max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundarySphere methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
