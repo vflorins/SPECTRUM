@@ -262,7 +262,4 @@ void BackgroundWaves::EvaluateDmax(void)
    LOWER_BITS(_status, STATE_INVALID);
 };
 
-template void DataContainer::Insert <TurbProp>(TurbProp data);
-template void DataContainer::Read <TurbProp>(TurbProp* data_ptr);
-
 };
