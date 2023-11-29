@@ -102,8 +102,12 @@ struct SpatialData {
 //! "Safe" time increment for computing time derivatives
    double _dt;
 
+//! Density
+   double n_dens;
+
 //! Region
-   double region;
+// TODO: provide for more regions (perhaps use an std::vector?)
+   GeoVector region;
 
 //! Spatial maximum distance per time step, grid dependent
    double dmax;

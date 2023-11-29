@@ -211,7 +211,7 @@ template <typename T> SPECTRUM_DEVICE_FUNC inline T Quad(T x)
 \param[in] x The argument
 \return \f$x^5\f$
 */
-template <typename T> SPECTRUM_DEVICE_FUNC inline T Penta(T x)
+template <typename T> SPECTRUM_DEVICE_FUNC inline T Quint(T x)
 {
    return x * x * x * x * x;
 };
@@ -240,6 +240,9 @@ template <typename T> SPECTRUM_DEVICE_FUNC T IntPow(T x, int n);
 
 //! Minmod operation
 template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y);
+
+//! Minmod operation with three arguments
+template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y, T z);
 
 //! Find a matching element in an array
 template <typename T> SPECTRUM_DEVICE_FUNC int InList(int size, const T* array, T val);

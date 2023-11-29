@@ -264,7 +264,6 @@ MPI_Config::~MPI_Config()
    if(node_comm != MPI_COMM_NULL) MPI_Comm_free(&node_comm);
    MPI_Comm_free(&glob_comm);
 
-//std::cerr << "Finalize called on rank " << glob_comm_rank << std::endl;
    MPI_Finalize();
 };
 
