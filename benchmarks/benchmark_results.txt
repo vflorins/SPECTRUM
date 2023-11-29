@@ -1,0 +1,14 @@
+Benchmark results Wed Nov 29 12:53:43 PM CST 2023
+------------------------------------------------------------
+
+TURBULENCE VIA SUPERPOSITION OF WAVES
+=========================================================
+Trajectory type: TrajectoryFieldline
+Number of modes:
+	 Alfven/Slab  = 0
+	 Transverse   = 50
+	 Longitudinal = 0
+	 Isotropic    = 0
+=========================================================
+Trajectory outputed to output_data/main_test_turb_waves_TrajectoryFieldline.lines
+
