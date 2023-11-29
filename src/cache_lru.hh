@@ -22,7 +22,6 @@ const int max_cache_size = 100;
 
 typedef std::shared_ptr<BlockBase> BlockPtrType;
 typedef std::unordered_map<int, BlockPtrType> BlockMapType;
-typedef BlockMapType::const_iterator BlockMapIterType;
 typedef std::list<int> QueueType;
 typedef QueueType::const_iterator QueueIterType;
 typedef std::unordered_map<int, QueueIterType> HelperMapType;
@@ -35,13 +34,13 @@ class BlockCache {
 
 protected:
 
-//! Shared pointers to blocks
+//! Shared pointers to blocks stored as an unordered map (hash access)
    BlockMapType blocks;
    
 //! List of block IDs sorted by access time
    QueueType queue;
 
-//! Helper map to locate the element in the queue by ID
+//! Helper map to locate the element in the queue by ID (hash access)
    HelperMapType helper;
 
 //! Renew a block
@@ -98,7 +97,7 @@ inline int BlockCache::size(void) const
 */
 inline void BlockCache::Renew(int bidx)
 {
-// Remove and reinsert the block index in one operation
+// Remove the block index from the middle of "queue" and reinsert it at the beginning. The "blocks" object is not affected at all. The iterators stored in "helper" are unchanged, but now point to the updated entries in "queue".
    queue.splice(queue.begin(), queue, helper[bidx]);
 };
 

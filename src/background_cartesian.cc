@@ -61,12 +61,14 @@ void BackgroundCartesian::SetupBackground(bool construct)
 
    std::shared_ptr<MPI_Config>* mpi_config_ptr;
    container.Read(&mpi_config_ptr);
-
+   
+#ifdef NEED_SERVER
    if((*mpi_config_ptr)->is_worker) {
-      server_front = std::make_unique<ServerCartesianFront>();
+      server_front = std::make_unique<ServerFrontType>();
       server_front->ConnectMPIConfig(*mpi_config_ptr);
       server_front->ServerStart();
    };
+#endif
 };
 
 /*!
@@ -76,8 +78,9 @@ void BackgroundCartesian::SetupBackground(bool construct)
 */
 void BackgroundCartesian::EvaluateBackground(void)
 {
+#ifdef NEED_SERVER
    server_front->GetVariables(_t, _pos, _spdata);
-   // if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+#endif
 };
 
 /*!
@@ -87,13 +90,10 @@ void BackgroundCartesian::EvaluateBackground(void)
 */
 void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
 {
+#ifdef NEED_SERVER
    server_front->GetGradients(_spdata);
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) {
-      NumericalDerivatives();
-   }
-   else {
-      // if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
-   };
+#endif
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) NumericalDerivatives();
 };
 
 /*!
@@ -103,7 +103,7 @@ void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
 */
 void BackgroundCartesian::EvaluateDmax(void)
 {
-// FIXME "dmax" is actually evaluated in "EvaluateBackground", which is always called after "EvaluateDmax" by the trajectory
+// "_dmax" is actually evaluated in "EvaluateBackground", which is always called after "EvaluateDmax" by the trajectory. It is an empty override here for efficiency, since the base version executes "_dmax = dmax0" every time.
 };
 
 /*!

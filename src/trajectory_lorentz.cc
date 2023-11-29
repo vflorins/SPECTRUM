@@ -33,9 +33,9 @@ void TrajectoryLorentz::SetStart(void)
 // Call the base version of this function.
    TrajectoryBase::SetStart();
 
-// FIXME Lorentz requires E and B fields only
-   _spdata._mask = BACKGROUND_ALL;
-   spdata0._mask = BACKGROUND_ALL;
+// Lorentz requires E and B fields only
+   _spdata._mask = BACKGROUND_E | BACKGROUND_B;
+   spdata0._mask = BACKGROUND_E | BACKGROUND_B;
 
 // "p_para" is used to compare p*B to check for mirroring. The check is for <0, so an initial zero will return a false.
    p_para = 0.0;

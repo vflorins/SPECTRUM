@@ -25,7 +25,7 @@ const std::string traj_name_guidingdiff = "TrajectoryGuidingDiff";
 const unsigned int defsize_guidingdiff = 10000;
 
 //! CFL condition for perpendicular diffusion
-const double cfl_dif_gd = 0.1;
+const double cfl_dif_gd = 0.5;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingDiff class declaration

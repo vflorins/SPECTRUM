@@ -129,13 +129,16 @@ public:
 //! Add diffusion object (passthrough to trajectory)
    void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
 
-//! Print the reduced distribution
+//! Restore distribution (stub)
+   virtual void RestoreDistro(int distro);
+
+//! Print the reduced distribution (stub)
    virtual void PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const;
 
-//! Print the reduced distribution in 2D
+//! Print the reduced distribution in 2D (stub)
    virtual void PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const;
 
-//! Print the distribution records
+//! Print the distribution records (stub)
    virtual void PrintRecords(int distro, const std::string& file_name, bool phys_units) const;
 
 //! Main simulation loop
@@ -227,6 +230,9 @@ protected:
 //! Base file name for partial distros
    std::string distro_file_name = "distribution_";
 
+//! Flag to signal whether to restore distros or not
+   std::vector <bool> restore_distros;
+
 //! Local distribution object
 // TODO make this a unique pointer
    std::vector<std::shared_ptr<DistributionBase>> partial_distros;
@@ -277,6 +283,9 @@ public:
 
 //! Main simulation loop
    void MainLoop(void) override;
+
+//! Restore distribution
+   void RestoreDistro(int distro) override;
 
 //! Print the reduced distribution
    void PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const override;

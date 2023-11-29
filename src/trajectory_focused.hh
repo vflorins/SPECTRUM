@@ -26,10 +26,10 @@ const std::string traj_name_focused = "TrajectoryFocused";
 const unsigned int defsize_focused = 10000;
 
 //! CFL condition for advection
-const double cfl_adv_tf = 0.1;
+const double cfl_adv_tf = 0.5;
 
 //! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-const double drift_safety_tf = 0.1;
+const double drift_safety_tf = 0.5;
 
 //! How many time steps to allow before recording a mirror event
 const int mirror_thresh_focused = 10;

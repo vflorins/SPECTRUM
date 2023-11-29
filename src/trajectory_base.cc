@@ -157,6 +157,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    unsigned int bnd;
    double delta, delta_next = -large * _spdata.dmax / c_code;
 
+// TODO: can we delete this statement? bactive_t is reset at trajectory start and in HandleBoundaries()
    bactive_t = -1;
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
@@ -168,8 +169,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-//FIXME Note that if "dt" is very small the correction may be under the machine precision (subtractive cancellation)
-   if(dt + delta_next >= 0.0) dt = -delta_next + little * dt;
+   if(dt + delta_next >= 0.0) dt = -(1.0 + little) * delta_next;
 };
 
 /*!

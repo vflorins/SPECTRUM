@@ -10,7 +10,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define _BACKGROUND_BATL_HH
 
 #include "background_cartesian.hh"
-#include "server_batl.hh"
 
 namespace Spectrum {
 

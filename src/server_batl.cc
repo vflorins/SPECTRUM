@@ -321,12 +321,8 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    MultiIndex zone_lo, zone_hi;
    GeoVector offset_lo, offset_hi, delta;
 
-// Find the block that owns the interpolation point
-   _inquiry.type = 1;
-   _inquiry.pos = pos;
-   pri_idx = RequestBlock();
-   BlockPtrType block_pri = cache_line[pri_idx];
-   
+// Get primary block data
+   pri_idx = block_pri->GetNode();
    block_pri->GetZoneOffset(pos, zone_lo, offset_lo);
    delta = block_pri->GetZoneLength();
 
@@ -401,7 +397,7 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    };
 
 // The plane interpolator has failed (level change in all three planes). We must request a stencil using the external interpolator.
-   if(outcome == -1) return RequestStencil();
+   if(outcome == -1) return RequestStencil(pos);
 
    idx0 = plane;
    idx1 = (plane + 1) % 3;

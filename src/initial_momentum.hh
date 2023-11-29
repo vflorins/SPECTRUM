@@ -27,7 +27,7 @@ namespace Spectrum {
 const std::string init_name_momentum_fixed = "InitialMomentumFixed";
 
 //! Flag to inidicate coordinates for initial momentum: 0 = Cartesian, 1 = spherical
-#define INITIAL_MOM_FIXED_COORD 0
+#define INITIAL_MOM_FIXED_COORD 1
 
 /*!
 \brief Fixed initial momentum vector (relative to a preferred direction)

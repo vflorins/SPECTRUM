@@ -14,18 +14,18 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Number of variables per zone
-const int n_variables_batl = 3;
+const int n_variables_batl = 10;
 
-//! Size of the block in each dimnension (including ghost cells)
-const MultiIndex block_size_batl(4, 4, 4);
+//! Size of the block in each dimnension
+const MultiIndex block_size_batl(8, 8, 8);
 
-//! Number of neighbors per dimension
+//! Number of neighbors per dimension (depends only on the refinement ratio)
 const int max_neighbors_per_dim_batl = 4;
 
-//! Largest possible number of neighbors
+//! Largest possible number of neighbors (depends only on the refinement ratio)
 const int max_neighbors_batl = 64;
 
-//! Largest possible number of neighbor levels
+//! Largest possible number of neighbor levels (depends only on the refinement ratio)
 const int max_neighbor_levels_batl = 27;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
