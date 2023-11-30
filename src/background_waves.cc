@@ -7,6 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_waves.hh"
+#include <iostream>
 
 namespace Spectrum {
 
@@ -101,7 +102,6 @@ void BackgroundWaves::SetupBackground(bool construct)
 // The randomness of phase implies this can be fixed
 //            alpha = 0.5 * M_PI * (rng->GetUniform() > 0.5 ? 1.0 : -1.0);
             alpha = 0.5 * M_PI;
-
             break;
 
 // Perpendicular propagation, phi is random in the B-plane, alpha is 0 in the K-plane
@@ -124,16 +124,15 @@ void BackgroundWaves::SetupBackground(bool construct)
             break;         
          };
 
-// No need to normalize PSD because later we calculate the weights as fractions of the total. The factort of "k" comes from logarithmic spacing of wavenumbers (regardless of geometry).
-//         psd = pow(k[t_type][wave], 1.0 - properties.slope);
+// No need to normalize PSD because later we calculate the weights as fractions of the total. The factor of "k" comes from logarithmic spacing of wavenumbers (regardless of geometry).
+//         psd = pow(kn, 1.0 - properties.slope);
          psd = pow(kn, dim + 1) / (1.0 + pow(kn * properties.l0, properties.slope + dim));
          psd_tot += psd;
 
 // Precompute the sine and cosine of the polarization angle
          cosa[t_type].push_back(cos(alpha));
          sina[t_type].push_back(sin(alpha));
-
-         sint = sqrt(fmax(1.0 - Sqr(cost), tiny));
+         sint = sqrt(1.0 - Sqr(cost));
          cosp = cos(phi);
          sinp = sin(phi);
 

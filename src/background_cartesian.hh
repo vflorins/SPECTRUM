@@ -10,7 +10,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define _BACKGROUND_CARTESIAN_HH
 
 #include "background_base.hh"
-#include "server_cartesian.hh"
 
 namespace Spectrum {
 
@@ -33,7 +32,7 @@ class BackgroundCartesian : public BackgroundBase {
 protected:
 
 //! Pointer to a server object
-   std::unique_ptr<ServerCartesianFront> server_front = nullptr;
+   std::unique_ptr<ServerFrontType> server_front = nullptr;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
@@ -44,7 +43,7 @@ protected:
 //! Compute the internal derivatives of the fields
    void EvaluateBackgroundDerivatives(void) override;
 
-//! FIXME temporary - delete this function
+//! Compute dmax (actually empty)
    void EvaluateDmax(void) override;
 
 public:

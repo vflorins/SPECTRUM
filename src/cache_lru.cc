@@ -66,26 +66,26 @@ void BlockCache::Empty(void)
 
 /*!
 \author Vladimir Florinski
-\date 01/26/2023
+\date 11/21/2023
 \param[in] pos Position to test
 \return Block index or -1 if no cached block owns the position
 */
 int BlockCache::PosOwner(const GeoVector& pos)
 {
    int bidx;
-   BlockMapIterType iter = blocks.cbegin();
 
-// A slow method (requires testing of all blocks in the worst case)
-   while(iter != blocks.cend()) {
-      if(iter->second->PositionInside(pos)) {
-         bidx = iter->first;
-         break;
-      };
+// Probe all blocks starting from the most recent
+   QueueIterType iter = queue.cbegin();
+   while(iter != queue.cend()) {
+      bidx = *iter;
+      if(blocks[bidx]->PositionInside(pos)) break;
       iter++;
-   };
-   if(iter == blocks.cend()) bidx = -1;
-   else Renew(bidx);
-   
+   };         
+
+// If the interator is past the end, then the position is not in the cache. If the iterator is at the beginning, the newest block owns the position, so no renewal is needed.
+   if(iter == queue.cend()) bidx = -1;
+   else if(iter != queue.cbegin()) Renew(bidx);
+
    return bidx;
 };
 

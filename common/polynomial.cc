@@ -22,8 +22,7 @@ double CoordPower3D(const GeoVector& v, uint32_t pl)
    uint32_t i;
    double res = 1.0;
 
-// To compute the exponent, all bits except those relevant to the desired
-// vector component are set to zero by applying the mask.
+// To compute the exponent, all bits except those relevant to the desired vector component are set to zero by applying the mask.
    for(i = 0; i < (pl & xbitfield) >> 16; i++) res *= v[0];
    for(i = 0; i < (pl & ybitfield) >> 8 ; i++) res *= v[1];
    for(i = 0; i < (pl & zbitfield)      ; i++) res *= v[2];

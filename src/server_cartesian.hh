@@ -92,23 +92,40 @@ protected:
 //! Count of total blocks requested
    int num_blocks_requested;
 
-//! Load interpolation stencil using interior zones
-   void InteriorInterpolationStencil(const MultiIndex zone_lo, const MultiIndex zone_hi, const GeoVector offset_lo, const GeoVector offset_hi, const GeoVector delta);
+//! Primary block pointer
+   BlockPtrType block_pri;
 
-//! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos) override;
+//! Secondary block pointer
+   BlockPtrType block_sec;
+
+//! Stencil block pointer
+   BlockPtrType block_stn;
 
 //! Make shared block
    virtual void MakeSharedBlock(BlockPtrType &block_new);
 
+//! Load interpolation stencil using interior zones
+   void InteriorInterpolationStencil(const MultiIndex zone_lo, const MultiIndex zone_hi, const GeoVector offset_lo, const GeoVector offset_hi, const GeoVector delta);
+
+#ifdef NEED_SERVER
+//! Generate an interpolation stencil in 3D
+   int BuildInterpolationStencil(const GeoVector& pos) override;
+
 //! Find block order in the cache or get a block from the server if not in the cache
    int RequestBlock(void) override;
+#else
+//! Generate an interpolation stencil in 3D
+   virtual int BuildInterpolationStencil(const GeoVector& pos);
+
+//! Find block order in the cache or get a block from the server if not in the cache
+   int RequestBlock(void);
+#endif
 
 //! Get variables directly from data reader
    void GetVariablesFromReader(SpatialData& spdata);
 
 //! Get variables using 0th order interpolation
-   void GetVariablesInterp0(const GeoVector& pos, BlockPtrType block, SpatialData& spdata);
+   void GetVariablesInterp0(const GeoVector& pos, SpatialData& spdata);
 
 //! Get variables using 1st order interpolation
    void GetVariablesInterp1(const GeoVector& pos, SpatialData& spdata);
@@ -130,11 +147,19 @@ public:
 //! Front end clean up tasks after the main loop
    void ServerFinish(void) override;
 
+#ifdef NEED_SERVER
 //! Obtain the variables
    void GetVariables(double t, const GeoVector& pos, SpatialData& spdata) override;
 
 //! Obtain the gradients
    void GetGradients(SpatialData& spdata) override;
+#else
+//! Obtain the variables
+   void GetVariables(double t, const GeoVector& pos, SpatialData& spdata);
+
+//! Obtain the gradients
+   void GetGradients(SpatialData& spdata);
+#endif
 
 //! Print how many times internal/external interpolators were used
    void PrintStencilOutcomes(void);

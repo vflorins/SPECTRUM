@@ -12,7 +12,6 @@
 #include "common/physics.hh"
 #include "common/spatial_data.hh"
 #include "cache_lru.hh"
-#include "server_exceptions.hh"
 #include <memory>
 
 namespace Spectrum {
@@ -23,42 +22,47 @@ namespace Spectrum {
 //! Number of ghost cells per side
 #define NUM_GHOST_CELLS 0
 
-//! Index of the density variable
-//#define VAR_INDEX_RHO 0
+//! Index of the mass density variable
+// #define VAR_INDEX_RHO 0
+
+//! Index of the number density variable
+// #define VAR_INDEX_DEN 0
 
 //! Index of the momentum variable
 //#define VAR_INDEX_MOM 1
 
 //! Index of the bulk flow variable
-// #define VAR_INDEX_FLO 0
+#define VAR_INDEX_FLO 0
 
 //! Index of the magnetic field variable
-#define VAR_INDEX_MAG 0
+#define VAR_INDEX_MAG 3
 
 //! Index of the electric field variable
-// #define VAR_INDEX_ELE 6
+#define VAR_INDEX_ELE 6
 
-//! Index of the regions variable
-//#define VAR_INDEX_REG 8
+//! Index and number of the regions variable
+// #define VAR_INDEX_REG 7
+// #define NUM_INDEX_REG 3
 
 //! Unit of length
 const double unit_length_server = unit_length_fluid;
-// const double unit_length_server = GSL_CONST_CGSM_ASTRONOMICAL_UNIT;
+// const double unit_length_server = 1.4959787e+13;
 
 //! Unit of number density
-//const double unit_number_density_server = 1.0;
-const double unit_number_density_server = 0.1;
+const double unit_number_density_server = 1.0;
+// const double unit_number_density_server = 0.1;
 
 //! Unit of velocity
 const double unit_velocity_server = unit_velocity_fluid;
-// const double unit_velocity_server = 3.0E6;
+// const double unit_velocity_server = 1.0E4;
 
 //! Unit of magnetic field
 const double unit_magnetic_server = unit_magnetic_fluid;
-//const double unit_magnetic_server = 1.0E-6;
+// const double unit_magnetic_server = 1.0E-5;
 
 //! Unit of electric field
 const double unit_electric_server = unit_electric_fluid;
+// const double unit_electric_server = unit_velocity_server * unit_magnetic_server / unit_velocity_fluid;
 
 //! MPI tag for "need block" message (W->B)
 const int tag_needblock = 1001;
@@ -95,6 +99,32 @@ struct Inquiry {
 
 //! Position if requesting by position
    GeoVector pos;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Exceptions
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief Exception if server functions failed
+\author Juan G Alonso Guzman
+*/
+class ExServerError : public std::exception {
+
+public:
+
+//! Return explanatory string
+   const char* what(void) const noexcept override;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 23/08/2023
+\return Text describing the error
+*/
+inline const char* ExServerError::what(void) const noexcept
+{
+   return "Server error";
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -200,11 +230,13 @@ protected:
 //! Default constructor
    ServerBaseFront(void) = default;
 
-//! Find block order in the cache or get a block from the server if not in the cache
-   virtual int RequestBlock(void) = 0;
-
+#ifdef NEED_SERVER
 //! Generate an interpolation stencil in 3D
    virtual int BuildInterpolationStencil(const GeoVector& pos) = 0;
+
+//! Find block order in the cache or get a block from the server if not in the cache
+   virtual int RequestBlock(void) = 0;
+#endif
 
 public:
 
@@ -226,11 +258,14 @@ public:
 //! Empty the cache
    void InvalidateCache(void);
 
+#ifdef NEED_SERVER
 //! Obtain the variables
    virtual void GetVariables(double t, const GeoVector& pos, SpatialData& spdata) = 0;
 
 //! Obtain the gradients
    virtual void GetGradients(SpatialData& spdata) = 0;
+#endif
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -269,7 +304,7 @@ protected:
    BlockBase* block_served = nullptr;
 
 //! Default constructor
-//   ServerBaseBack(void) = default;
+   ServerBaseBack(void) = default;
 
 //! Constructor with arguments
    ServerBaseBack(const std::string& file_name_pattern_in);
@@ -288,6 +323,14 @@ public:
 //! Backend tasks during the main loop
    int ServerFunctions(void) override;
 };
+
+// FIXME: perhaps there is a better way to treat this case
+//! Server types
+#if SERVER_TYPE == SERVER_SELF
+typedef ServerBase ServerType;
+typedef ServerBaseFront ServerFrontType;
+typedef ServerBaseBack ServerBackType;
+#endif
 
 };
 

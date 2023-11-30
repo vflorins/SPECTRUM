@@ -308,8 +308,6 @@ void SimulationWorker::WorkerDuties(void)
          if(longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
          traj_count++;
       }
-
-// TODO Should we treat every exception the same?
       catch(std::exception& exception) {
          std::cerr << "Trajectory discarded by worker with rank " << mpi_config->work_comm_rank
                    << ": " << exception.what() << std::endl;
@@ -342,6 +340,15 @@ void SimulationWorker::MainLoop(void)
    WorkerStart();
    while(current_batch_size) WorkerDuties();
    WorkerFinish();
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/03/2022
+\param[in] distro which distribution to restore
+*/
+void SimulationWorker::RestoreDistro(int distro)
+{
 };
 
 /*!
@@ -554,6 +561,9 @@ void SimulationMaster::AddDistribution(const DistributionBase& distribution_in, 
    partial_distros.back()->SetSpecie(specie);
    partial_distros.back()->SetupObject(container_in);
    SimulationWorker::AddDistribution(distribution_in, container_in);
+
+// Preset all restore_distro flags to false
+   restore_distros.push_back(false);
 };
 
 /*!
@@ -701,6 +711,9 @@ void SimulationMaster::MasterStart(void)
    for(int distro = 0; distro < local_distros.size(); distro++) {
       local_distros[distro]->ResetDistribution();
       partial_distros[distro]->ResetDistribution();
+
+// Restore distros if requested by user
+      if(restore_distros[distro]) local_distros[distro]->Restore(distro_file_name + std::to_string(distro) + ".out");
    };
    shortest_sim_time = 1.0E300;
    longest_sim_time = 0.0;
@@ -773,8 +786,8 @@ void SimulationMaster::MasterFinish(void)
    };
 
 // Print shortest and longest simulated time
-   std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time << std::endl;
-   std::cerr << "Longest simulated trajectory time = " << longest_sim_time << std::endl;
+   std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time * unit_time_fluid << " s" << std::endl;
+   std::cerr << "Longest simulated trajectory time = " << longest_sim_time * unit_time_fluid << " s" << std::endl;
    if(is_parallel) {
       std::cerr << "Time per trajectory integration:" << std::endl;
       for(cpu = 1; cpu < mpi_config->work_comm_size; cpu++) {
@@ -810,6 +823,16 @@ void SimulationMaster::MainLoop(void)
    };
 
    MasterFinish();
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 11/03/2022
+\param[in] distro which distribution to restore
+*/
+void SimulationMaster::RestoreDistro(int distro)
+{
+   restore_distros[distro] = true;
 };
 
 /*!

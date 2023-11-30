@@ -67,17 +67,17 @@ class ServerBATLFront : virtual public ServerBATL, virtual public ServerCartesia
 
 protected:
 
-//! Generate an interpolation stencil for one plane
-   int BuildInterpolationPlane(const GeoVector& pos, int plane, int half);
-
-//! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos) override;
-
 //! Make shared block
    void MakeSharedBlock(BlockPtrType &block_new) override;
 
 //! Obtain an interpolation stencil from the server
    int RequestStencil(const GeoVector& pos);
+
+//! Generate an interpolation stencil for one plane
+   int BuildInterpolationPlane(const GeoVector& pos, int plane, int half);
+
+//! Generate an interpolation stencil in 3D
+   int BuildInterpolationStencil(const GeoVector& pos) override;
 
 public:
 

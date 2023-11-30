@@ -88,6 +88,7 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
    long pos;
 
    GeoVector* field_ptr;
+   double* scl_ptr;
    double* scl_field;
 
 // Parse the user input
@@ -103,7 +104,18 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Region") is_vector = false;
+   else if(var_name == "Region 1") {
+      scl_ptr = &_spdata.region[0];
+      is_vector = false;
+   }
+   else if(var_name == "Region 2") {
+      scl_ptr = &_spdata.region[1];
+      is_vector = false;
+   }
+   else if(var_name == "Region 3") {
+      scl_ptr = &_spdata.region[2];
+      is_vector = false;
+   }
    else return;
 
 // Memory for zone var
@@ -122,7 +134,7 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
             _pos[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
             EvaluateBackground();
             if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
-            else scl_field[idx] = _spdata.region;
+            else scl_field[idx] = *scl_ptr;
             idx++;
          };
       };
@@ -253,6 +265,7 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
    bool is_vector;
 
    GeoVector* field_ptr;
+   double* scl_ptr;
    GeoVector incr, y_dir, local_coord;
    double* scl_field;
 
@@ -269,7 +282,18 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Region") is_vector = false;
+   else if(var_name == "Region 1") {
+      scl_ptr = &_spdata.region[0];
+      is_vector = false;
+   }
+   else if(var_name == "Region 2") {
+      scl_ptr = &_spdata.region[1];
+      is_vector = false;
+   }
+   else if(var_name == "Region 3") {
+      scl_ptr = &_spdata.region[2];
+      is_vector = false;
+   }
    else return;
 
 // Memory for zone var
@@ -288,7 +312,7 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
          for(xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
          EvaluateBackground();
          if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
-         else scl_field[idx] = _spdata.region;
+         else scl_field[idx] = *scl_ptr;
          idx++;
       };
 

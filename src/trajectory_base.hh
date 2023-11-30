@@ -15,7 +15,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "diffusion_base.hh"
 #include "boundary_base.hh"
 #include "initial_base.hh"
-#include "server_exceptions.hh"
 #include "common/rk_config.hh"
 
 #ifndef TRAJ_TYPE

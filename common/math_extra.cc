@@ -116,31 +116,6 @@ template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y)
 
 /*!
 \author Vladimir Florinski
-\date 11/16/2023
-\param[in] x First argument
-\param[in] y Second argument
-\param[in] z Third argument
-\return The result of a 3-argument minmod operation
-*/
-template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y, T z)
-{
-   T absx, absy, absz;
-   absx = std::abs(x);
-   absy = std::abs(y);
-   absz = std::abs(z);
-   if(x * y <= 0.0) return 0.0;
-   if(absx > absy) {
-      if(absy > absz) return z;
-      else return y;
-   }
-   else {
-      if(absx > absz) return z;
-      else return x;
-   };
-};
-
-/*!
-\author Vladimir Florinski
 \date 07/22/2019
 \param[in] size  Size of array
 \param[in] array Array of numbers
@@ -269,15 +244,11 @@ template <typename T> SPECTRUM_DEVICE_FUNC T MakePeriodic(T x, T period)
    else return x - n * period;
 };
 
-template SPECTRUM_DEVICE_FUNC double IntPow <double>(double x, int n);
+template SPECTRUM_DEVICE_FUNC double IntPow(double x, int n);
 template SPECTRUM_DEVICE_FUNC int InList <int>(int size, const int* array, int val);
 template SPECTRUM_DEVICE_FUNC int LocateInArray <double>(int l1, int l2, const double* array, double val, bool limit);
 template SPECTRUM_DEVICE_FUNC bool QuadraticSolve <double>(double a, double b, double c, double& x1, double& x2);
 template SPECTRUM_DEVICE_FUNC bool CubicSolve <double>(double a, double b, double c, double d, double& x1, double& x2, double& x3);
 template SPECTRUM_DEVICE_FUNC double MakePeriodic <double>(double x, double period);
-template SPECTRUM_DEVICE_FUNC double** Create2D <double>(int n, int m);
-template SPECTRUM_DEVICE_FUNC void Delete2D <double>(double** array);
-template SPECTRUM_DEVICE_FUNC double MinMod <double>(double x, double y);
-template SPECTRUM_DEVICE_FUNC double MinMod <double>(double x, double y, double z);
 
 };

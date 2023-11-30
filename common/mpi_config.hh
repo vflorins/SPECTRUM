@@ -16,9 +16,14 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <mpi.h>
 
 //! TODO Master/Boss/Worker policy - set by configure
-// #define ALLOW_BOSS_WORKER
 // #define ALLOW_MASTER_BOSS
 #define NUMBER_OF_BOSSES 1
+
+#if SERVER_TYPE == SERVER_SELF
+#define ALLOW_BOSS_WORKER
+#else
+#define NEED_SERVER
+#endif
 
 namespace Spectrum {
 

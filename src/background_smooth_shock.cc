@@ -19,7 +19,7 @@ namespace Spectrum {
 \date 10/20/2023
 */
 BackgroundSmoothShock::BackgroundSmoothShock(void)
-                     : BackgroundShock(bg_name_smooth_shock, 0, MODEL_DYNAMIC)
+                     : BackgroundShock(bg_name_smooth_shock, 0, STATE_NONE)
 {
 };
 
@@ -33,7 +33,7 @@ A copy constructor should first first call the Params' version to copy the data 
 BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
                      : BackgroundShock(other)
 {
-   RAISE_BITS(_status, MODEL_DYNAMIC);
+   RAISE_BITS(_status, STATE_NONE);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
