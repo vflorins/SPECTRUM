@@ -1,6 +1,10 @@
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
-#include "src/background_uniform.hh"
+#if SERVER_TYPE == SERVER_SELF
+#include "src/background_solarwind.hh"
+#elif SERVER_TYPE == SERVER_CARTESIAN
+#include "src/background_cartesian.hh"
+#endif
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -40,18 +44,40 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   container.Insert(gv_zeros);
+   double umag = 4.0e7 / unit_velocity_fluid;
+   GeoVector u0(umag, 0.0, 0.0);
+   container.Insert(u0);
 
 // Magnetic field
-   double Bmag = 1.0 / unit_magnetic_fluid;
-   GeoVector B0(0.0, 0.0, Bmag);
+   double RS = 6.957e10 / unit_length_fluid;
+   double r_ref = 3.0 * RS;
+   double BmagE = 5.0e-5 / unit_magnetic_fluid;
+   double Bmag_ref = BmagE * Sqr((GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid) / r_ref);
+   GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
 
 // Effective "mesh" resolution
-   double dmax = 0.1;
+   double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-   simulation->AddBackground(BackgroundUniform(), container);
+#if SERVER_TYPE == SERVER_SELF
+// solar rotation vector
+   double w0 = twopi / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   GeoVector Omega(0.0, 0.0, w0);
+   container.Insert(Omega);
+
+// Reference equatorial distance
+   container.Insert(r_ref);
+
+// dmax fraction for distances closer to the Sun
+   double dmax_fraction = 1000.0; // set very high so that dmax0 is always chosen
+   container.Insert(dmax_fraction);
+
+   simulation->AddBackground(BackgroundSolarWind(), container);
+#elif SERVER_TYPE == SERVER_CARTESIAN
+   std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
+   simulation->AddBackground(BackgroundCartesian(), container, fname_pattern);
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -59,7 +85,8 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-   container.Insert(gv_zeros);
+   GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
+   container.Insert(init_pos);
 
    simulation->AddInitial(InitialSpaceFixed(), container);
 
@@ -69,14 +96,88 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-// Initial momentum
-   double momentum = Mom(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
-   container.Insert(momentum);
+// Lower bound for momentum
+   double momentum1 = Mom(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   container.Insert(momentum1);
 
-   double theta = DegToRad(90.0);
-   container.Insert(theta);
+// Upper bound for momentum
+   double momentum2 = Mom(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   container.Insert(momentum2);
 
-   simulation->AddInitial(InitialMomentumRing(), container);
+// Log bias
+   bool log_bias = true;
+   container.Insert(log_bias);
+
+   simulation->AddInitial(InitialMomentumThickShell(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Inner boundary
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Max crossings
+   int max_crossings_Sun = 1;
+   container.Insert(max_crossings_Sun);
+
+// Action
+   std::vector<int> actions_Sun;
+   actions_Sun.push_back(1);
+   container.Insert(actions_Sun);
+
+// Origin
+   container.Insert(gv_zeros);
+
+// Radius
+   double inner_boundary = 0.05 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   container.Insert(inner_boundary);
+
+   simulation->AddBoundary(BoundarySphereAbsorb(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Outer boundary
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Max crossings
+   int max_crossings_outer = 1;
+   container.Insert(max_crossings_outer);
+
+// Action
+   std::vector<int> actions_outer;
+   actions_outer.push_back(0);
+   container.Insert(actions_outer);
+
+// Origin
+   container.Insert(gv_zeros);
+
+// Radius
+   double outer_boundary = 80.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   container.Insert(outer_boundary);
+
+   simulation->AddBoundary(BoundarySphereAbsorb(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time limit
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Not needed because this class sets the value to -1
+   int max_crossings_time = 1;
+   container.Insert(max_crossings_time);
+
+// Action
+   std::vector<int> actions_time;
+   actions_time.push_back(-1);
+   container.Insert(actions_time);
+   
+// Max duration of the trajectory
+   double maxtime = 60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
+   container.Insert(maxtime);
+
+   simulation->AddBoundary(BoundaryTimeExpire(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Diffusion model
@@ -84,130 +185,89 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-// Scattering frequency
-   double D0 = Sqr(LarmorRadius(momentum,Bmag,specie)) * CyclotronFrequency(Vel(momentum),Bmag,specie);
-   container.Insert(D0);
+// Diffusion coefficient normalization factor
+   double kap0 = 1.5e22 / unit_diffusion_fluid;
+   container.Insert(kap0);
+
+// Rigidity normalization factor
+   double T0 = SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+   container.Insert(T0);
+
+// Magnetic field normalization factor
+   double r0 = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   container.Insert(r0);
+
+// Power law slope for rigidity
+   double pow_law_T = 1.0;
+   container.Insert(pow_law_T);
+
+// Power law slope for magnetic field
+   double pow_law_r = 2.0;
+   container.Insert(pow_law_r);
+
+// Ratio of kappa_perp to kappa_para
+   double kap_rat = 1.00;
+   container.Insert(kap_rat);
 
 // Pass ownership of "diffusion" to simulation
-   simulation->AddDiffusion(DiffusionPerpConstant(), container);
+   simulation->AddDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Time boundary condition 1 (recurrent)
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   container.Clear();
-
-   int max_crossings_time = -1;
-   container.Insert(max_crossings_time);
-
-// Action
-   std::vector<int> actions_time;
-   actions_time.push_back(0);
-   actions_time.push_back(0);
-   container.Insert(actions_time);
-   
-// Spacing between dumps
-   double timemark = 0.1 * D0 / Sqr(Vel(momentum));
-   container.Insert(timemark);
-
-   simulation->AddBoundary(BoundaryTimeRecurrent(), container);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Time boundary condition 2 (cutoff)
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   container.Clear();
-
-// Not needed because this class sets the value to -1
-   max_crossings_time = 1;
-   container.Insert(max_crossings_time);
-
-// Action
-   actions_time.clear();
-   actions_time.push_back(-1);
-   actions_time.push_back(-1);
-   container.Insert(actions_time);
-   
-// Duration of the trajectory
-   double maxtime = 1001.0 * timemark;
-   container.Insert(maxtime);
-
-   simulation->AddBoundary(BoundaryTimeExpire(), container);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Distribution 1
+// Distribution
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Parameters for distribution
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins1(maxtime / timemark - 1, 0, 0);
-   container.Insert(n_bins1);
+   MultiIndex n_bins(100, 0, 0);
+   container.Insert(n_bins);
    
 // Smallest value
-   GeoVector minval1(0.5 * timemark, 0.0, 0.0);
-   container.Insert(minval1);
+   GeoVector minval(EnrKin(momentum1), 0.0, 0.0);
+   container.Insert(minval);
 
 // Largest value
-   GeoVector maxval1((n_bins1[0] + 0.5) * timemark, 0.0, 0.0);
-   container.Insert(maxval1);
+   GeoVector maxval(EnrKin(momentum2), 0.0, 0.0);
+   container.Insert(maxval);
 
 // Linear or logarithmic bins
-   MultiIndex log_bins1(0, 0, 0);
-   container.Insert(log_bins1);
+   MultiIndex log_bins(1, 0, 0);
+   container.Insert(log_bins);
 
 // Add outlying events to the end bins
-   MultiIndex bin_outside1(0, 0, 0);
-   container.Insert(bin_outside1);
+   MultiIndex bin_outside(0, 0, 0);
+   container.Insert(bin_outside);
 
 // Physical units of the distro variable
-   GeoVector unit_distro1 = unit_length_fluid * gv_ones;
-   container.Insert(unit_distro1);
+   double unit_distro = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * fourpi * unit_energy_particle);
+   container.Insert(unit_distro);
 
 // Physical units of the bin variable
-   GeoVector unit_val1 = {unit_time_fluid, 1.0, 1.0};
-   container.Insert(unit_val1);
+   GeoVector unit_val = {unit_energy_particle, 1.0, 1.0};
+   container.Insert(unit_val);
 
 // Don't keep records
-   bool keep_records1 = false;
-   container.Insert(keep_records1);
+   bool keep_records = false;
+   container.Insert(keep_records);
 
-   simulation->AddDistribution(DistributionPositionCumulativeOrder1(), container);
+//! Normalization for the "hot" boundary
+   double J0 = 1.0 / unit_distro;
+   container.Insert(J0);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Distribution 2
-//----------------------------------------------------------------------------------------------------------------------------------------------------
+//! Characteristic energy
+   T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+   container.Insert(T0);
 
-// Parameters for distribution
-   container.Clear();
+//! Spectral power law
+   pow_law_T = -1.8;
+   container.Insert(pow_law_T);
 
-// Number of bins
-   container.Insert(n_bins1);
-   
-// Smallest value
-   container.Insert(minval1);
+//! Constant value for the "cold" condition
+   double val_cold = 0.0;
+   container.Insert(val_cold);
 
-// Largest value
-   container.Insert(maxval1);
-
-// Linear or logarithmic bins
-   container.Insert(log_bins1);
-
-// Add outlying events to the end bins
-   container.Insert(bin_outside1);
-
-// Physical units of the distro variable
-   GeoMatrix unit_distro2 = Sqr(unit_length_fluid) * gm_ones;
-   container.Insert(unit_distro2);
-
-// Physical units of the bin variable
-   container.Insert(unit_val1);
-
-// Don't keep records
-   container.Insert(keep_records1);
-
-   simulation->AddDistribution(DistributionPositionCumulativeOrder2(), container);
+   simulation->AddDistribution(DistributionSpectrumKineticEnergyPowerLaw(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation
@@ -220,19 +280,17 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "output_data/main_test_perp_diff_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "output_data/test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
-   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "cumulative_distro1.dat", true);
-   simulation->PrintDistro1D(1, 0, simulation_files_prefix + "cumulative_distro2.dat", true);
+   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "spectrum.dat", true);
 
    if(simulation->IsMaster()) {
       std::cout << std::endl;
-      std::cout << "PERPENDICULAR DIFFUSION" << std::endl;
+      std::cout << "MODULATION CARTESIAN PARKER SPIRAL" << std::endl;
       std::cout << "=========================================================" << std::endl;
       std::cout << "Trajectory type: " << simulation->GetTrajectoryName() << std::endl;
-      std::cout << "D0 = " << D0 * Sqr(unit_length_fluid) / unit_time_fluid << std::endl;
       std::cout << "=========================================================" << std::endl;
       std::cout << "Distribution files outputed to " << simulation_files_prefix << std::endl;
       std::cout << std::endl;
