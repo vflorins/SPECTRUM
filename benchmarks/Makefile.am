@@ -3,7 +3,7 @@
 #AM_CXXFLAGS = $(MPI_CFLAGS) -DGEO_DEBUG
 AM_CXXFLAGS = $(MPI_CFLAGS)
 AM_LDFLAGS = $(MPI_LIBS)
-AM_FCFLAGS = -J/home/jguzman/BATL/share/include
+AM_FCFLAGS = -J/home/user/BATL/share/include
 
 bin_PROGRAMS = main_test_dipole_periods main_test_pa_distro_isotrop \
                main_test_pa_scatt main_test_perp_diff main_test_full_diff \
