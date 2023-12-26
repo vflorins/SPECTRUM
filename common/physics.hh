@@ -107,6 +107,13 @@ const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
 //! The largest nmumber of species (distinct particle mass and charge).
 #define MAX_PARTICLE_SPECIES 3
 
+//! Specie index
+enum Specie {
+   proton = 0,
+   alpha_particle = 1,
+   electron = 2
+};
+
 //! Particle masses
 #ifdef __CUDA_ARCH__
 __device__ const double mass[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
