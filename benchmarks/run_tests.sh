@@ -144,8 +144,8 @@ report_if_failed $? "INITIAL CONDITION RECORDS TEST"
 # MODULATION WITH CARTESIAN PARKER SPIRAL
 if $modulation_cartesian_parker_spiral
 then
-	configure PARKER 25 CARTESIAN
-	# configure PARKER 25 SELF
+	# configure PARKER 25 CARTESIAN
+	configure PARKER 25 SELF
 	make_and_run main_test_modulation_cartesian_parker $n_cpus $long_sim $long_batch_size
 	report_if_failed $? "MODULATION CARTESIAN PARKER SPIRAL"
 	make_and_run main_postprocess_modulation_cartesian_parker 1
