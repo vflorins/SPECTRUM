@@ -3,12 +3,13 @@
 #AM_CXXFLAGS = $(MPI_CFLAGS) -DGEO_DEBUG
 AM_CXXFLAGS = $(MPI_CFLAGS)
 AM_LDFLAGS = $(MPI_LIBS)
-AM_FCFLAGS = -J/home/user/BATL/share/include
+AM_FCFLAGS = -J/home/jguzman/BATL/share/include
 
 bin_PROGRAMS = main_test_dipole_periods main_test_pa_distro_isotrop \
                main_test_pa_scatt main_test_perp_diff main_test_full_diff \
                main_test_turb_waves main_test_parker_spiral main_test_init_cond_records \
-               main_test_modulation_cartesian_parker main_postprocess_modulation_cartesian_parker
+               main_test_modulation_cartesian_parker main_postprocess_modulation_cartesian_parker \
+               main_generate_cartesian_solarwind_background
 
 SPBL_COMMON_DIR = ../common
 SPBL_SOURCE_DIR = ../src
@@ -588,3 +589,27 @@ main_postprocess_modulation_cartesian_parker_SOURCES = main_postprocess_modulati
    $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_postprocess_modulation_cartesian_parker_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+
+main_generate_cartesian_solarwind_background_SOURCES = main_generate_cartesian_solarwind_background.cc \
+   $(SPBL_SOURCE_DIR)/background_solarwind.cc \
+   $(SPBL_SOURCE_DIR)/background_solarwind.hh \
+   $(SPBL_SOURCE_DIR)/background_base.cc \
+   $(SPBL_SOURCE_DIR)/background_base.hh \
+   $(SPBL_SOURCE_DIR)/background_base_visual.cc \
+   $(SPBL_COMMON_DIR)/matrix.cc \
+   $(SPBL_COMMON_DIR)/matrix.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/multi_index.cc \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
+   $(SPBL_COMMON_DIR)/definitions.cc \
+   $(SPBL_COMMON_DIR)/definitions.hh
+
+main_generate_cartesian_solarwind_background_LDADD = $(MPI_LIBS) $(GSL_LIBS)
