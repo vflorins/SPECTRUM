@@ -98,7 +98,7 @@ const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
 //! Mass: derived, based on the assumption that the particles use the fluid unit for velocity
 #define unit_mass_particle (unit_energy_particle / unit_velocity_fluid / unit_velocity_fluid)
 
-//! Ratio of chagre/mass has a conversion factor required to calculate particle's cyclotron frequency and radius.
+//! Ratio of charge/mass has a conversion factor required to calculate particle's cyclotron frequency and radius.
 #define charge_mass_particle ((unit_charge_particle * unit_magnetic_fluid / unit_mass_particle / unit_velocity_fluid) / unit_frequency_fluid)
 
 //! Rigidity: derived, 1 V = 1 eV / 1 e
@@ -305,7 +305,7 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor(double vel)
 */
 SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = 0)
 {
-   return sqrt(1.0 + Sqr(mom / mass[isp] * c_code));
+   return sqrt(1.0 + Sqr(mom / (mass[isp] * c_code)));
 };
 
 /*!
