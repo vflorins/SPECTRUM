@@ -35,6 +35,7 @@ void PrintUnits(void)
    std::cout << "Unit of mass: " << unit_mass_particle << " g\n";
    std::cout << "Unit of charge: " << unit_charge_particle << " CGSq\n";
    std::cout << "Unit of energy: " << unit_energy_particle << " erg\n";
+   std::cout << "Unit of momentum: " << unit_momentum_particle << " g cm s^-1\n";
    std::cout << "Charge to mass factor: " << charge_mass_particle << "\n";
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cout << "Speed of light in code units: " << c_code << "\n";

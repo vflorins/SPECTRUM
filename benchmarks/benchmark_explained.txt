@@ -59,3 +59,4 @@ This file contains benchmark tests for SPECTRUM.
    - Trajectory type: parker
    - Field type: cartesian
    - Expected result: An initial spectrum given by a power law in differential density should be modulated through a uniformly discretized parker spiral (via a cartesian background). The auxiliary file 'main_postprocess_modulation_cartesian_parker.cc' post-processed the data to differential intensity and outputs it to 'test_modulation_cartesian_TrajectoryParker_spectrum_pp.dat' along with an approximate theoretical solution given by Fisk & Axford (1969). The solutions should match well with perhaps a small discrepancy at low energies but very good agreement at high energies.
+   - Notes: Make sure that "DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE" is (#)defined as 0 in src/distribution_other.hh and all server units match spectrum fluid units. 
