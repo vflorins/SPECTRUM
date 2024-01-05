@@ -102,8 +102,11 @@ struct SpatialData {
 //! "Safe" time increment for computing time derivatives
    double _dt;
 
-//! Density
+//! Number density
    double n_dens;
+
+//! Thermal pressure
+   double p_ther;
 
 //! Region
 // TODO: provide for more regions (perhaps use an std::vector?)
@@ -143,7 +146,7 @@ struct SpatialData {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 02/10/2023
+\date 01/04/2024
 \param[in] other Structure to copy from
 \return Reference to the object
 */
@@ -171,6 +174,8 @@ inline SpatialData& SpatialData::operator =(const SpatialData& other)
    if(BITS_RAISED(_mask, BACKGROUND_dALLdt)) _dt = other._dt;
 
    region = other.region;
+   n_dens = other.n_dens;
+   p_ther = other.p_ther;
    dmax = other.dmax;
    return *this;
 };
