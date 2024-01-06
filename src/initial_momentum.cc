@@ -2,6 +2,7 @@
 \file initial_momentum.cc
 \brief Implements several classes to specify momentum initial conditions
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -398,6 +399,54 @@ void InitialMomentumThickShell::EvaluateInitial(void)
    _mom = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
 
 #endif
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialMomentumTable methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/27/2023
+*/
+InitialMomentumTable::InitialMomentumTable(void)
+                    : InitialTable(init_name_momentum_table, 0, INITIAL_MOMENTUM | INITIAL_POINT)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/27/2023
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
+*/
+InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
+                    : InitialTable(other)
+{
+   RAISE_BITS(_status, INITIAL_MOMENTUM);
+   RAISE_BITS(_status, INITIAL_POINT);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/27/2023
+*/
+void InitialMomentumTable::EvaluateInitial(void)
+{
+   if(random) {
+// Generate random integer between 0 and initvec.size() - 1
+      table_counter = rng->GetUniform() * initvec.size();
+// Pull position in randomly selected place on the table
+      _mom = initvec[table_counter];
+   }
+   else {
+// Pull next momentum on the table
+      _mom = initvec[table_counter++];
+// If all momenta have been sampled, reset the counter
+      if(table_counter == initvec.size()) table_counter = 0;
+   };
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

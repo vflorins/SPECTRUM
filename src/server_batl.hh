@@ -2,6 +2,9 @@
 \file server_batl.hh
 \brief Defines a class of a data server from BATL
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
 #ifndef SPECTRUM_SERVER_BATL_HH
@@ -21,6 +24,7 @@ extern "C" {
 void wrapamr_clean();
 void wrapamr_read_header(const char*, int, int);
 void wrapamr_read_file(const char*, int, int, int);
+void wrapamr_read_file_partial(const char*, int, int, int, int, int*);
 void wrapamr_get_ndim(int*);
 void wrapamr_get_nvar(int*);
 void wrapamr_get_domain(double*, double*);

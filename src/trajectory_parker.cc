@@ -182,7 +182,7 @@ void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_
    DriftCoeff();
    DiffusionCoeff();
    slope_pos_istage = drift_vel;
-#if TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == 0
    slope_pos_istage += divK;
 #else
    slope_pos_istage -= divK;

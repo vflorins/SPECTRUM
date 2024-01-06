@@ -2,6 +2,7 @@
 \file trajectory_base.cc
 \brief Implements a base class to calculate a trajectory
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -62,7 +63,7 @@ void TrajectoryBase::PreSize(int init_cap)
 
 /*!
 \author Vladimir Florinski
-\date 01/28/2022
+\date 04/01/2024
 */
 void TrajectoryBase::ResetAllBoundaries(void)
 {
@@ -70,29 +71,29 @@ void TrajectoryBase::ResetAllBoundaries(void)
 
    for(bnd = 0; bnd < bcond_t.size(); bnd++) {
       bcond_t[bnd]->SetScale(_spdata.dmax / c_code);
-      bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat);
+      bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
    for(bnd = 0; bnd < bcond_s.size(); bnd++) {
       bcond_s[bnd]->SetScale(_spdata.dmax);
-      bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat);
+      bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
    for(bnd = 0; bnd < bcond_m.size(); bnd++) {
       bcond_m[bnd]->SetScale(_mom.Norm());
-      bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat);
+      bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
 };
 
 /*!
 \author Vladimir Florinski
-\date 03/24/2022
+\date 04/01/2024
 */
 void TrajectoryBase::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
-   for(bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat);
-   for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat);
-   for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat);
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
 };
 
 /*!
@@ -174,7 +175,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
 
 /*!
 \author Vladimir Florinski
-\date 03/25/2022
+\date 04/01/2024
 \return True if a spatial boundary was crossed, or False otherwise
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
@@ -187,7 +188,7 @@ try {
 // Only check whether at least one absorbing boundary was crossed.
    bactive_s = -1;
    while((bactive_s == -1) && (bnd < bcond_s.size())) {
-      bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat);
+      bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
       bnd_status = bcond_s[bnd]->GetStatus();
 
 // Terminal boundary crossed, so the trajectory cannot continue
@@ -232,7 +233,7 @@ catch(ExBoundaryError& exception) {
 
 /*!
 \author Vladimir Florinski
-\date 03/07/2022
+\date 01/04/2024
 */
 void TrajectoryBase::CommonFields(void)
 try {
@@ -262,7 +263,7 @@ catch(ExServerError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 05/20/2022
+\date 01/04/2024
 \param[in]  t_in   Time at which to compute fields
 \param[in]  pos_in Position at which to compute fields
 \param[out] spdata Spatial data at t_in and pos_in for output
@@ -309,7 +310,7 @@ bool TrajectoryBase::RKSlopes(void)
 // Advance to the current stage.
       _t += RK_Table.a[istage] * dt;
       for(islope = 0; islope < istage; islope++) {
-#if TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == 0
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
 #else
@@ -357,7 +358,7 @@ bool TrajectoryBase::RKStep(void)
    if(RK_Table.adaptive) pos_lo = _pos;
    for(islope = 0; islope < RK_Table.stages; islope++) {
 
-#if TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == 0
       _pos += dt * RK_Table.v[islope] * slope_pos[islope];
       _mom += dt * RK_Table.v[islope] * slope_mom[islope];
       if(RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
@@ -390,7 +391,7 @@ bool TrajectoryBase::RKStep(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 04/29/2022
+\date 04/01/2024
 */
 void TrajectoryBase::HandleBoundaries(void)
 {
@@ -451,7 +452,7 @@ void TrajectoryBase::HandleBoundaries(void)
 #endif
 
 // Recompute the boundary since the position and momentum have changed.
-            bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat);
+            bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
 // Manually decrement crossings_left, because recomputing the boundary changes _delta again so that _delta * _old_delta > 0.0
             bcond_s[bnd]->DecrCrossingsLeft();
 // FIXME: This _should_ in principle count as mirroring, but doing so requires an evaluation of the mirroring boundary (TODO). Manually increment n_mirr for now.
@@ -1036,6 +1037,7 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
 
    if(stride) {
       for(pt = 0; pt < traj_t.size(); pt += stride) {
+//FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_mom[0]) >> pitch angle cosine (_mom[1]).
          mom_mag = traj_mom[pt].Norm();
          vm_ratio = Vel(mom_mag, specie) / mom_mag;
 

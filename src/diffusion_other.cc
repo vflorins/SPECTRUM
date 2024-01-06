@@ -2,6 +2,7 @@
 \file diffusion_other.cc
 \brief Implements several classes to compute difusion coefficients
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -557,7 +558,7 @@ DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(c
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/17/2023
+\date 01/04/2024
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -566,7 +567,7 @@ void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kap0);
+   container.Read(&lam0);
    container.Read(&R0);
    container.Read(&B0);
    container.Read(&pow_law_R);
@@ -576,18 +577,18 @@ void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/17/2023
+\date 01/04/2024
 */
 void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 {
    if((comp_eval == 2)) return;
 // The 300.0 the "magic" factor for rigidity calculations.
-   Kappa[1] = kap0 * pow(300.0 * Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B) * (vmag / c_code) / 3.0;
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(300.0 * Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionRigidityPowerLaw methods
+// DiffusionKineticEnergyRadialDistancePowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -640,6 +641,81 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 {
    if((comp_eval == 2)) return;
    Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionStraussEtAl2013 methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/06/2023
+*/
+DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(void)
+                        : DiffusionBase(diff_name_strauss_et_al_2013, 0, DIFF_NOBACKGROUND)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/06/2023
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other)
+                        : DiffusionBase(other)
+{
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/06/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&lam_in);
+   container.Read(&lam_out);
+   container.Read(&R0);
+   container.Read(&B0_in);
+   container.Read(&pow_law_R_low);
+   container.Read(&pow_law_R_high);
+   container.Read(&pow_law_B);
+   container.Read(&kap_rat_low);
+   container.Read(&kap_rat_high);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/06/2023
+*/
+void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
+{
+   if((comp_eval == 2)) return;
+
+// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
+   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[0] + 0.5), 1.0));
+   LISM_ind = (_spdata.region[0] > 0.0 ? 0.0 : 1.0);
+   double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
+// The 300.0 the "magic" factor for rigidity calculations.
+   double rig = 300.0 * Rigidity(_mom[0], specie);
+   double pow_law_R = (rig < R0 ? pow_law_R_low : pow_law_R_high);
+   double B0 = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0_in;
+   Kappa[1] = (lam_para * vmag / 3.0) * pow(rig / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
+
+// Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
+   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[1] + 0.5), 1.0));
+   if(LISM_ind < 0.99) Bmix_ind = (_spdata.region[1] < 0.0 ? 0.0 : 1.0);
+   else Bmix_ind = 0.0;
+   double kap_rat = Bmix_ind * kap_rat_high + (1.0 - Bmix_ind) * kap_rat_low;
    Kappa[0] = kap_rat * Kappa[1];
 };
 

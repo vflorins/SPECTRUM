@@ -2,6 +2,7 @@
 \file diffusion_other.hh
 \brief Declares several classes to compute difusion coefficients
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -74,7 +75,7 @@ const std::string diff_name_qlt_constant = "DiffusionQLTConstant";
 \brief Scattering in pitch angle according to quasi-linear theory for slab turbulence, uniform in space
 \author Vladimir Florinski
 
-Parameters: (DiffusionBase), double A2A, double k_min, double ps_index
+Parameters: (DiffusionBase), double A2A, double l_max, double ps_index
 */
 class DiffusionQLTConstant : public DiffusionBase {
 
@@ -394,14 +395,14 @@ const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidi
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 
-Parameters: (DiffusionBase), kap0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
+Parameters: (DiffusionBase), lam0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
 */
 class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase {
 
 protected:
 
-//! Diffusion coefficient normalization factor (persistent)
-   double kap0;
+//! Parallel mean free path (persistent)
+   double lam0;
 
 //! Rigidity normalization factor (persistent)
    double R0;
@@ -502,6 +503,78 @@ public:
 // TODO: Implement directional derivative (only spatial dependence is in radial distance)
 //! Compute derivative of diffusion coefficient in position or time
    // double GetDirectionalDerivative(int xyz) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionStraussEtAl2013 class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionStraussEtAl2013 class
+const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Strauss et al 2013, with change in perpendicular diffusion according to a magnetic mixing indicator variable
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), lam_in, lam_out, double R0, double B0, double pow_law_R_low, double pow_law_R_high, double pow_law_B, double kap_rat_low, double kap_rat_high
+*/
+class DiffusionStraussEtAl2013 : public DiffusionBase {
+
+protected:
+
+//! Parallel inner heliosphere mean free path (persistent)
+   double lam_in;
+
+//! Parallel outer heliosphere mean free path (persistent)
+   double lam_out;
+
+//! Rigidity normalization factor (persistent)
+   double R0;
+
+//! Magnetic field normalization factor for inner heliosphere (persistent)
+   double B0_in;
+
+//! Power law slope for low rigidity (persistent)
+   double pow_law_R_low;
+
+//! Power law slope for high rigidity (persistent)
+   double pow_law_R_high;
+
+//! Power law slope for magnetic field (persistent)
+   double pow_law_B;
+
+//! Low ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat_low;
+
+//! High ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat_high;
+
+//! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
+   double LISM_ind;
+
+//! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
+   double Bmix_ind;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionStraussEtAl2013(void);
+
+//! Copy constructor
+   DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other);
+
+//! Destructor
+   ~DiffusionStraussEtAl2013() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionStraussEtAl2013);
 };
 
 };

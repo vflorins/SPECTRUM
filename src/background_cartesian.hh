@@ -43,9 +43,6 @@ protected:
 //! Compute the internal derivatives of the fields
    void EvaluateBackgroundDerivatives(void) override;
 
-//! Compute dmax (actually empty)
-   void EvaluateDmax(void) override;
-
 public:
 
 //! Default constructor

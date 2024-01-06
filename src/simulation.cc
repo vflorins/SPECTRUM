@@ -3,7 +3,6 @@
 \brief Implements application level classes to perform a complete simulation from start to finish
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\author Keyvan Ghanbari
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -65,10 +64,11 @@ void SimulationWorker::DistroFileName(const std::string& file_name)
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 06/08/2022
-\param[in] n_traj_in     Unused
-\param[in] batch_size_in Unused
+\param[in] n_traj_in              Unused
+\param[in] batch_size_in          Unused
+\param[in] max_traj_per_worker_in Unused
 */
-void SimulationWorker::SetTasks(int n_traj_in, int batch_size_in)
+void SimulationWorker::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
 {
 };
 
@@ -274,7 +274,7 @@ void SimulationWorker::WorkerFinish(void)
    if(print_last_trajectory) {
       std::string traj_name = "trajectory_rank" + std::to_string(mpi_config->work_comm_rank) + ".lines";
       // trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
-      trajectory->PrintCSV(traj_name, true, 1);
+      trajectory->PrintCSV(traj_name, false, 1);
       trajectory->InterpretStatus();
    };
 
@@ -531,19 +531,20 @@ void SimulationMaster::DistroFileName(const std::string& file_name)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/08/2022
-\param[in] n_traj_in     Total trajectories to simulate
-\param[in] batch_size_in Size (trajectory count) of one batch
+\date 01/04/2024
+\param[in] n_traj_in              Total trajectories to simulate
+\param[in] batch_size_in          Size (trajectory count) of one batch
+\param[in] max_traj_per_worker_in Maximum trajectories per worker, 0 (default) means no maximum
 */
-void SimulationMaster::SetTasks(int n_traj_in, int batch_size_in)
+void SimulationMaster::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
 {
    if(n_traj_in < 0) n_traj_in = 0;
-   if(batch_size_in < 1) batch_size_in = 1;
-   if(batch_size_in > n_traj_in) batch_size_in = n_traj_in;
+   if(batch_size_in < 1 || batch_size_in > n_traj_in) batch_size_in = fmin(1, n_traj_in);
+   if(max_traj_per_worker_in * mpi_config->n_workers < n_traj_in) max_traj_per_worker_in = 0;
 
    n_trajectories_total = n_trajectories = n_traj_in;
    current_batch_size = batch_size_in;
-   default_batch_size = batch_size_in;
+   max_traj_per_worker = max_traj_per_worker_in;
    percentage_work_done = 0;
 };
 
@@ -731,11 +732,11 @@ void SimulationMaster::MasterStart(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/28/2021
+\date 01/04/2024
 */
 void SimulationMaster::MasterDuties(void)
 {
-   int cpu, cpu_ind;
+   int cpu, cpu_ind, next_batch_size;
 
 // Service the CPU available requests from all workers
    MPI_Testsome(mpi_config->work_comm_size, req_cpuavail->mpi_req, &req_cpuavail->count, req_cpuavail->cpu_rank, MPI_STATUSES_IGNORE);
@@ -744,18 +745,17 @@ void SimulationMaster::MasterDuties(void)
 
 // Get data from worker and tell the worker if more data is needed (i.e. assign a batch)
       RecvDataFromWorker(cpu);
-      MPI_Send(&current_batch_size, 1, MPI_INT, cpu, tag_needmore_MW, mpi_config->work_comm);
-      if(current_batch_size) trajectories_assigned[cpu] += current_batch_size;
-      worker_processing[cpu] = current_batch_size;
+      if(max_traj_per_worker) next_batch_size = (trajectories_assigned[cpu] < max_traj_per_worker ? current_batch_size : 0);
+      else next_batch_size = current_batch_size;
+      MPI_Send(&next_batch_size, 1, MPI_INT, cpu, tag_needmore_MW, mpi_config->work_comm);
+      trajectories_assigned[cpu] += next_batch_size;
+      worker_processing[cpu] = next_batch_size;
 
-// There are still unassigned batches - decrement the counter. We know that this CPU will start a batch, so post an availability request for when it is finished.
-      if(n_trajectories) {
-         MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, mpi_config->work_comm, req_cpuavail->mpi_req + cpu);
-      }
-
+// If this CPU will start a batch, post an availability request for when it is finished.
+      if(next_batch_size) MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, mpi_config->work_comm, req_cpuavail->mpi_req + cpu);
 // There are no unassigned batches - this worker will quit since we just sent it a zero "needmore" signal.
       else active_workers--;
-
+// If there are still unassigned batches - decrement the counter.
       DecrementTrajectoryCount();
    };
 };
@@ -812,9 +812,11 @@ void SimulationMaster::MainLoop(void)
 {
    MasterStart();
 
+// This is a parallel run in which the master does not do any simulation work, but assigns batches to worker processes.
    if(is_parallel) {
       while(active_workers) MasterDuties();
    }
+// This is a serial run in which the master process does the work. "active_workers" is checked because it could be 0 from an error in the "mpi_config" setup by the user.
    else if(active_workers) {
       while(current_batch_size) {
          WorkerDuties();

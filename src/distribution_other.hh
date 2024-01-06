@@ -2,6 +2,7 @@
 \file distribution_other.hh
 \brief Declares several event distribution classes
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -114,7 +115,7 @@ const std::string dist_name_position_uniform = "DistributionPositionUniform";
 \author Juan G Alonso Guzman
 
 Type: 3D position
-Parameters: (DistributionUniform), int val_coord, int val_time
+Parameters: (DistributionUniform), int val_time, int val_coord
 */
 class DistributionPositionUniform : public DistributionUniform<double> {
 
@@ -193,6 +194,78 @@ public:
 
 #endif
 
+#if TRAJ_TYPE == TRAJ_LORENTZ
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionAnisotropyLISM class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionAnisotropyLISM class
+const std::string dist_name_anisotropy_LISM = "DistributionAnisotropyLISM";
+
+/*!
+\brief Prescribed functions of spatial position and momentum to characterize LISM anisotropy of GCRs (See Zhang et al. 2014)
+\author Juan G Alonso Guzman
+
+Type: 3D momentum
+Parameters: (DistributionUniform), GeoVector[3] rot_matrix, GeoVector U_LISM, double mom_pow_law
+*/
+class DistributionAnisotropyLISM : public DistributionTemplated<double> {
+
+protected:
+
+//! Rotation matrix for binning coordinate system (persistent)
+   GeoVector rot_matrix[3];
+
+//! Relative velocity of LISM (persistent)
+   GeoVector U_LISM;
+
+//! Relative momentum in the LISM frame (transient)
+   GeoVector mom_rel;
+
+//! Slope of momentum power law (persistent)
+   double mom_pow_law;
+
+//! Gradient of density perpendicular to LISM magnetic field (persistent)
+   GeoVector grad_perp_dens;
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Determine the value to be binned from a phase space position and other arguments
+   void EvaluateValue(void) override;
+
+//! Evaluate Compton-Getting factor
+   void ComptonGettingFactor(void);
+
+//! Momentum power law anisotropy
+   void MomPowerLawAnisotropy(void);
+
+//! First Legendre polynomial of pitch angle cosine anisotropy (dipole)
+   void FirstLegendreAnisotropy(void);
+
+//! Second Legendre polynomial of pitch angle cosine anisotropy (quadrupole)
+   void SecondLegendreAnisotropy(void);
+
+//! b x gradient anisotropy (guiding center dotted with perpendicular density gradient)
+   void bCrossGradientAnisotropy(void);
+
+public:
+
+//! Default constructor
+   DistributionAnisotropyLISM(void);
+
+//! Copy constructor
+   DistributionAnisotropyLISM(const DistributionAnisotropyLISM& other);
+
+//! Destructor
+   ~DistributionAnisotropyLISM() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionAnisotropyLISM);
+};
+
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionSpectrumKineticEnergyPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -226,6 +299,9 @@ protected:
 //! Constant value for the "cold" condition (persistent)
    double val_cold;
 
+//! Kinetic energy at binning (transient)
+   double kin_energy;
+
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
 
@@ -233,7 +309,7 @@ protected:
    void EvaluateValue(void) override;
 
 //! Weight from a "hot" boundary
-   void SpectrumKineticEnergyPowerLawHot(void);
+   virtual void SpectrumKineticEnergyPowerLawHot(void);
 
 //! Weight from a "cold" boundary
    void SpectrumKineticEnergyPowerLawCold(void);
@@ -243,6 +319,9 @@ public:
 //! Default constructor
    DistributionSpectrumKineticEnergyPowerLaw(void);
 
+//! Constructor with arguments (to speed up construction of derived classes)
+   DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
 //! Copy constructor
    DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other);
 
@@ -251,6 +330,51 @@ public:
 
 //! Clone function
    CloneFunctionDistribution(DistributionSpectrumKineticEnergyPowerLaw);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionSpectrumKineticEnergyBentPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionSpectrumKineticEnergyBentPowerLaw class
+const std::string dist_name_spectrum_kinetic_energy_bent_power_law = "DistributionSpectrumKineticEnergyBentPowerLaw";
+
+/*!
+\brief Differential intensity as a specified function of kinetic energy J(T)
+\author Juan G Alonso Guzman
+
+Type: 1D momentum
+Parameters: (DistributionSpectrumKineticEnergyPowerLaw), double T_b, double pow_law_b
+*/
+class DistributionSpectrumKineticEnergyBentPowerLaw : public DistributionSpectrumKineticEnergyPowerLaw {
+
+protected:
+
+//! Bendover energy (persistent)
+   double T_b;
+
+//! Original power law minus power law after bend (persistent)
+   double pow_law_comb;
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Weight from a "hot" boundary
+   void SpectrumKineticEnergyPowerLawHot(void) override;
+
+public:
+
+//! Default constructor
+   DistributionSpectrumKineticEnergyBentPowerLaw(void);
+
+//! Copy constructor
+   DistributionSpectrumKineticEnergyBentPowerLaw(const DistributionSpectrumKineticEnergyBentPowerLaw& other);
+
+//! Destructor
+   ~DistributionSpectrumKineticEnergyBentPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionSpectrumKineticEnergyBentPowerLaw);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

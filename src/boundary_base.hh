@@ -2,6 +2,7 @@
 \file boundary_base.hh
 \brief Declares a base class to capture boundary crossing events
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -113,6 +114,9 @@ protected:
 //! Magnetic field direction (transient)
    GeoVector bhat;
 
+//! Region vector (transient)
+   GeoVector region;
+
 //! Default constructor (protected, class not designed to be instantiated)
    BoundaryBase(void);
 
@@ -158,10 +162,10 @@ public:
    void DecrCrossingsLeft(void);
 
 //! Reset the crossings count and set the initial delta. The function should be called once, before starting a new trajectory.
-   void ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in);
+   void ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in);
 
 //! Set the state and evaluate the boundary. Call this near the end of each time step, before the BC handler.
-   void ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in);
+   void ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in);
 
 // Update the state of the boundary with the current PSCs. Should be used at the very end of each time step.
    void RecordBoundary(void);

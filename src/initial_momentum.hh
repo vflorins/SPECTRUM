@@ -2,6 +2,7 @@
 \file initial_momentum.hh
 \brief Declares several classes to specify momentum initial conditions
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -27,13 +28,13 @@ namespace Spectrum {
 const std::string init_name_momentum_fixed = "InitialMomentumFixed";
 
 //! Flag to inidicate coordinates for initial momentum: 0 = Cartesian, 1 = spherical
-#define INITIAL_MOM_FIXED_COORD 1
+#define INITIAL_MOM_FIXED_COORD 0
 
 /*!
 \brief Fixed initial momentum vector (relative to a preferred direction)
 \author Vladimir Florinski
 
-Parameters: (InitialBase), double p0, double theta0, double phi0
+Parameters: (InitialBase), GeoVector initmom, or double p0, double theta0, double phi0
 */
 class InitialMomentumFixed : public InitialBase {
 
@@ -260,6 +261,38 @@ public:
 
 //! Clone function
    CloneFunctionInitial(InitialMomentumThickShell);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialMomentumTable class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the InitialMomentumTable class
+const std::string init_name_momentum_table = "InitialMomentumTable";
+
+/*!
+\brief Starting points from a table
+\author Juan G Alonso Guzman
+
+Parameters: (InitialTable)
+*/
+class InitialMomentumTable : public InitialTable {
+
+protected:
+
+//! Compute the internal position or momentum
+   void EvaluateInitial(void) override;
+
+public:
+
+//! Default constructor
+   InitialMomentumTable(void);
+
+//! Copy constructor
+   InitialMomentumTable(const InitialMomentumTable& other);
+
+//! Clone function
+   CloneFunctionInitial(InitialMomentumTable);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

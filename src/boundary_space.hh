@@ -2,6 +2,7 @@
 \file boundary_space.hh
 \brief Declares several classes representing spatial boundaries
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -470,6 +471,82 @@ public:
 
 //! Clone function
    CloneFunctionBoundary(BoundaryCylinderAbsorb);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRegion class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief Region boundary base class
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryBase), int region_ind, double region_val
+*/
+class BoundaryRegion : public BoundaryBase {
+
+protected:
+
+//! Region index (persistent)
+   int region_ind;
+
+//! Region threshold value (persistent)
+   double region_val;
+
+//! Default constructor (protected, class not designed to be instantiated)
+   BoundaryRegion(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
+//! Copy constructor (protected, class not designed to be instantiated)
+   BoundaryRegion(const BoundaryRegion& other);
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+//! Compute the distance to the boundary
+   void EvaluateBoundary(void) override;
+
+public:
+
+//! Destructor
+   ~BoundaryRegion() override = default;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRegionAbsorb class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryRegionAbsorb class
+const std::string bnd_name_region_absorb = "BoundaryRegionAbsorb";
+
+/*!
+\brief Absorbing Region boundary
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryRegion)
+*/
+class BoundaryRegionAbsorb : public BoundaryRegion {
+
+protected:
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+public:
+
+//! Default constructor
+   BoundaryRegionAbsorb(void);
+
+//! Copy constructor
+   BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other);
+
+//! Destructor
+   ~BoundaryRegionAbsorb() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryRegionAbsorb);
 };
 
 };

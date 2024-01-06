@@ -49,7 +49,7 @@ BackgroundCartesian::BackgroundCartesian(const BackgroundCartesian& other)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/19/2023
+\date 01/04/2024
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -74,7 +74,7 @@ void BackgroundCartesian::SetupBackground(bool construct)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/19/2023
+\date 01/04/2024
 */
 void BackgroundCartesian::EvaluateBackground(void)
 {
@@ -86,7 +86,7 @@ void BackgroundCartesian::EvaluateBackground(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/19/2023
+\date 01/04/2024
 */
 void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
 {
@@ -99,20 +99,13 @@ void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/19/2023
-*/
-void BackgroundCartesian::EvaluateDmax(void)
-{
-// "_dmax" is actually evaluated in "EvaluateBackground", which is always called after "EvaluateDmax" by the trajectory. It is an empty override here for efficiency, since the base version executes "_dmax = dmax0" every time.
-};
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 07/19/2023
+\date 01/04/2024
 */
 void BackgroundCartesian::StopServerFront(void)
 {
+#ifdef GEO_DEBUG
+   server_front->PrintStencilOutcomes();
+#endif
    server_front->ServerFinish();
 };
 
