@@ -2,6 +2,7 @@
 \file boundary_base.cc
 \brief Implements a base class to capture boundary crossing events
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -94,14 +95,14 @@ void BoundaryBase::EvaluateBoundary(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 04/15/2022
+\date 01/04/2024
 \param[in] t_in    Time
 \param[in] pos_in  Position
 \param[in] mom_in  Momentum
 \param[in] bhat_in Magnetic field direction
 \note This is a common routine that the derived classes should not change.
 */
-void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in)
+void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -111,6 +112,7 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
 // Set internal coordinates and evaluate boundary
    SetState(t_in, pos_in, mom_in);
    bhat = bhat_in;
+   region = region_in;
    EvaluateBoundary();
    if(BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
 
@@ -121,13 +123,14 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
 
 /*!
 \author Vladimir Florinski
-\date 04/15/2022
+\author Juan G Alonso Guzman
+\date 01/04/2024
 \param[in] t_in   Time
 \param[in] pos_in Position
 \param[in] mom_in Momentum
 \note This is a common routine that the derived classes should not change.
 */
-void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in)
+void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -143,6 +146,7 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
 // Determine the state of the boundary for the given position and set the initial "_delta_old"
    SetState(t_in, pos_in, mom_in);
    bhat = bhat_in;
+   region = region_in;
    EvaluateBoundary();
    if(BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
    _delta_old = _delta;

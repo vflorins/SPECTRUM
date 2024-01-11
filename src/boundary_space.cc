@@ -2,6 +2,7 @@
 \file boundary_space.cc
 \brief Implements several classes representing spatial boundaries
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -665,6 +666,121 @@ void BoundaryCylinderAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryCylinder::SetupBoundary(false);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRegion methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+*/
+BoundaryRegion::BoundaryRegion(void)
+              : BoundaryBase("", 0, BOUNDARY_SPACE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+BoundaryRegion::BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+              : BoundaryBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+\param[in] other Object to initialize from
+*/
+BoundaryRegion::BoundaryRegion(const BoundaryRegion& other)
+              : BoundaryBase(other)
+{
+   RAISE_BITS(_status, BOUNDARY_SPACE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryRegion::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(&region_ind);
+   container.Read(&region_val);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+*/
+void BoundaryRegion::EvaluateBoundary(void)
+{
+//        
+//    _ .. -- ~~~~ -- . _
+//   |                    \
+//    \                    \
+//     \                    \
+//      )        delta<0     ) delta>0
+//     /                    /
+//    /                    /
+//   |                    / 
+//    ` ~ - . ____ . - ~ *
+//
+
+   _delta = region[region_ind] - region_val;
+//"_normal" is impossible to predict for an arbitrary geometry. This means that reflections across this type of boundary are unreliable.
+   _normal = gv_zeros;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRegionAbsorb methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+*/
+BoundaryRegionAbsorb::BoundaryRegionAbsorb(void)
+                    : BoundaryRegion(bnd_name_region_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
+{
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+\param[in] other Object to initialize from
+*/
+BoundaryRegionAbsorb::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
+                    : BoundaryRegion(other)
+{
+   max_crossings = 1;
+   RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 12/07/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryRegionAbsorb::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryRegion::SetupBoundary(false);
 };
 
 };

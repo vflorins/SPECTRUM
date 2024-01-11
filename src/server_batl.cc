@@ -2,6 +2,9 @@
 \file server_batl.cc
 \brief Implements a class of a data server from BATL
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
 #include "server_batl.hh"
@@ -309,7 +312,7 @@ int ServerBATLFront::BuildInterpolationPlane(const GeoVector& pos, int plane, in
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/27/2023
+\date 12/01/2023
 \param[in] pos Interpolation point position
 \return Status: 0 if local interpolation was used, 1, 2, and 3 if plane interpolation was used, 4 if external interpolation was used
 */
@@ -329,7 +332,7 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    offset_hi = 1.0 - offset_lo;
    zone_hi = zone_lo + 1;
 
-#if NUM_GHOST_CELLS == 0
+#if SERVER_NUM_GHOST_CELLS == 0
 
    int nbr_level, plane, idx0, idx1, idx2, outcome, ipl, oop_zone_pri, oop_zone_sec;
    MultiIndex block_size, quadrant, planes, node_idx[3], level_idx;
@@ -448,11 +451,10 @@ int ServerBATLFront::BuildInterpolationStencil(const GeoVector& pos)
    stencil.n_elements = 8;
    return (nbr_level == 0 ? 1 : (nbr_level == -1 ? 2 : 3));
 
-#elif NUM_GHOST_CELLS > 0
+#elif SERVER_NUM_GHOST_CELLS > 0
 
 // Interpolation is always internal
    InteriorInterpolationStencil(zone_lo, zone_hi, offset_lo, offset_hi, delta);
-   for(iz = 0; iz < 8; iz++) stencil.blocks[iz] = pri_idx;
    return 0;
 
 #endif
@@ -482,7 +484,7 @@ ServerBATLBack::ServerBATLBack(const std::string& file_name_pattern_in)
 
 /*!
 \author Juan G Alonso Guzman
-\date 07/28/2023
+\date 12/01/2023
 */
 void ServerBATLBack::ReadData(const std::string data_file)
 {
@@ -491,7 +493,9 @@ void ServerBATLBack::ReadData(const std::string data_file)
    spectrum_init_mpi(fcomm);
 
    wrapamr_read_header(data_file.c_str(), line_width, 1);
-   wrapamr_read_file(data_file.c_str(), line_width, 0, 0);
+   int vars_inds_fortran[n_variables];
+   for (int i = 0; i < n_variables; i++) vars_inds_fortran[i] = i+1;
+   wrapamr_read_file_partial(data_file.c_str(), line_width, 0, 0, n_variables, vars_inds_fortran);
    wrapamr_get_domain(domain_min.Data(), domain_max.Data());
 };
 
@@ -510,14 +514,14 @@ void ServerBATLBack::CleanReader(void)
 \date 07/27/2023
 \return Number of clients that completed their tasks during this cycle
 
-\note "needvars" requests are only handled when INTERP_ORDER = -1. "needstencil" requests are only handled when using 1st order interpolation and either there are no ghost cells or stencils are always requested from BATL (for debugging purposes)
+\note "needvars" requests are only handled when SERVER_INTERP_ORDER = -1. "needstencil" requests are only handled when using 1st order interpolation and either there are no ghost cells or stencils are always requested from BATL (for debugging purposes)
 */
-int ServerBATLBack::ServerFunctions()
+int ServerBATLBack::ServerFunctions(void)
 {
-#if INTERP_ORDER == -1
+#if SERVER_INTERP_ORDER == -1
 // Handle "needvars" requests
    HandleNeedVarsRequests();
-#elif INTERP_ORDER == 1 && (NUM_GHOST_CELLS == 0 || REQUEST_STENCIL_FROM_BATL == 1)
+#elif SERVER_INTERP_ORDER == 1 && (SERVER_NUM_GHOST_CELLS == 0 || REQUEST_STENCIL_FROM_BATL == 1)
 // Handle "needstencil" requests
    HandleNeedStencilRequests();
 #endif

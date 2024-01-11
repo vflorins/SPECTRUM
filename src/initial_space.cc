@@ -2,13 +2,12 @@
 \file initial_space.cc
 \brief Implements several classes to specify spatial initial conditions
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
 #include "initial_space.hh"
-#include <iostream> // std::cout
-#include <fstream> // std::ifsteam
 
 namespace Spectrum {
 
@@ -473,7 +472,7 @@ void InitialSpaceRankineHalfBody::EvaluateInitial(void)
 \date 04/09/2023
 */
 InitialSpaceTable::InitialSpaceTable(void)
-                 : InitialBase(init_name_space_table, 0, INITIAL_SPACE | INITIAL_POINT)
+                 : InitialTable(init_name_space_table, 0, INITIAL_SPACE | INITIAL_POINT)
 {
 };
 
@@ -485,7 +484,7 @@ InitialSpaceTable::InitialSpaceTable(void)
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
 InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
-                 : InitialBase(other)
+                 : InitialTable(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_POINT);
@@ -494,78 +493,21 @@ InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/09/2023
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void InitialSpaceTable::SetupInitial(bool construct)
-{
-   std::string initpos_file_name, coord_type;
-   std::ifstream initpos_file;
-   int i, size, coord;
-   double scale;
-   GeoVector entry;
-
-// The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&initpos_file_name);
-   container.Read(&scale);
-   container.Read(&random);
-
-// Input initial positions from file
-   initpos_file.open(initpos_file_name.c_str());
-
-   initpos_file >> coord_type;
-   if(coord_type == "RTP") {
-      std::cerr << "Reading initial positions file in spherical coordinates." << std::endl;
-      coord = 1;
-   }
-   else if(coord_type == "XYZ") {
-      std::cerr << "Reading initial positions file in cartesian coordinates." << std::endl;
-      coord = 0;
-   }
-   else {
-      std::cerr << "Reading initial positions file in unrecognized coordinate type. "
-                << "Defaulting to cartesian coordinates." << std::endl;
-      coord = 0;
-   };
-   initpos_file >> size;
-   initpos.resize(size);
-   for(i = 0; i < size; i++) {
-      initpos_file >> entry[0];
-      initpos_file >> entry[1];
-      initpos_file >> entry[2];
-      if(coord) {
-         entry.RTP_XYZ();
-         entry[0] *= scale;
-      }
-      else entry = scale * entry;
-      initpos[i] = entry;
-   };
-   initpos_file.close();
-
-// Initialize table counter
-   table_counter = 0;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 04/09/2023
+\date 12/27/2023
 */
 void InitialSpaceTable::EvaluateInitial(void)
 {
    if(random) {
-// Generate random integer between 0 and initpos.size() - 1
-      table_counter = rng->GetUniform() * initpos.size();
+// Generate random integer between 0 and initvec.size() - 1
+      table_counter = rng->GetUniform() * initvec.size();
 // Pull position in randomly selected place on the table
-      _pos = initpos[table_counter];
+      _pos = initvec[table_counter];
    }
    else {
 // Pull next position on the table
-      _pos = initpos[table_counter++];
+      _pos = initvec[table_counter++];
 // If all positions have been sampled, reset the counter
-      if(table_counter == initpos.size()) table_counter = 0;
+      if(table_counter == initvec.size()) table_counter = 0;
    };
 };
 

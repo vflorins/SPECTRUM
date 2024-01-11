@@ -7,6 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_smooth_shock.hh"
+#include <iostream>
 
 namespace Spectrum {
 
@@ -39,27 +40,27 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 01/04/2024
 \param [in] x Relative transition region location
 \return Relative value of shocked quantity
 */
-double shock_transition(double x)
+double BackgroundSmoothShock::ShockTransition(double x)
 {
-#if SMOOTH_SHOCK_ORDER == 0: // continous but not differentiable
+#if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return x;
-#elif SMOOTH_SHOCK_ORDER == 1: // differentiable
+#elif SMOOTH_SHOCK_ORDER == 1 // differentiable
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return Sqr(x) * (3.0 - 2.0 * x);
-#elif SMOOTH_SHOCK_ORDER == 2: // twice differentiable
+#elif SMOOTH_SHOCK_ORDER == 2 // twice differentiable
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return Cube(x) * (10.0 - 15.0 * x + 6.0 * Sqr(x));
-#elif SMOOTH_SHOCK_ORDER == 3: // thrice differentiable
+#elif SMOOTH_SHOCK_ORDER == 3 // thrice differentiable
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return Sqr(Sqr(x)) * (35.0 - 84.0 * x + 70.0 * Sqr(x) - 20.0 * Cube(x));
 #else // discontinuous
    if(x < 0.5) return 0.0;
@@ -69,27 +70,27 @@ double shock_transition(double x)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 01/04/2024
 \param [in] x Relative transition region location 
 \return Derivative of relative value of shocked quantity
 */
-double shock_transition_derivative(double x)
+double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 {
-#if SMOOTH_SHOCK_ORDER == 0:
+#if SMOOTH_SHOCK_ORDER == 0
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return 1.0;
-#elif SMOOTH_SHOCK_ORDER == 1:
+#elif SMOOTH_SHOCK_ORDER == 1
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return 6.0 * x * (1.0 - x);
-#elif SMOOTH_SHOCK_ORDER == 2:
+#elif SMOOTH_SHOCK_ORDER == 2
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return 30.0 * Sqr(x) * (1.0 - 2.0 * x + Sqr(x));
-#elif SMOOTH_SHOCK_ORDER == 3:
+#elif SMOOTH_SHOCK_ORDER == 3
    if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 0.0;
+   else if(x > 1.0) return 1.0;
    else return 140.0 * Cube(x) * (1.0 - 3.0 * x + 3.0 * Sqr(x) - 1.0 * Cube(x));
 #else
    return 0.0;
@@ -114,15 +115,15 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 01/04/2024
 */
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
    double a1, a2;
-   ds_shock = 0.5 + (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock
+   ds_shock = 0.5 + (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock;
 
-   a1 = shock_transition(ds_shock);
-   a2 = 1.0 - a1; 
+   a1 = ShockTransition(ds_shock);
+   a2 = 1.0 - a1;
 
    if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
@@ -158,7 +159,7 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
       _spdata.dEdt = -((_spdata.dUdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBdt)) / c_code;
    };
 #else
-   NumericalDerivatives()
+   NumericalDerivatives();
 #endif
 };
 

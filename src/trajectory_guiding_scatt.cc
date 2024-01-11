@@ -2,7 +2,7 @@
 \file trajectory_guiding_scatt.cc
 \brief Defines a class for trajectory based on guiding center equations with pitch angle (elastic) scattering
 \author Vladimir Florinski
-\author Juan G Alonso
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -91,6 +91,7 @@ void TrajectoryGuidingScatt::EulerPitchAngleScatt(bool second)
 
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
    do {
+// Vmu is always added because the contribution from this term is outside of the DriftCoeff() function and the "drift_vel" GeoVector
       mu_new = mom_conv[1] + Vmu * dt_local + sqrt(2.0 * Dmumu * dt_local) * rng->GetNormal();
 
 #ifdef GEO_DEBUG
@@ -131,6 +132,7 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
    do {
       dW = sqrt(dt_local) * rng->GetNormal();
+// Vmu is always added because the contribution from this term is outside of the DriftCoeff() function and the "drift_vel" GeoVector
       mu_new = mu + Vmu * dt_local + b * dW + 0.5 * b * b1 * (Sqr(dW) - dt_local);
 
 #ifdef GEO_DEBUG

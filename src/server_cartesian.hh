@@ -2,6 +2,8 @@
 \file server_cartesian.hh
 \brief Defines a class of a data server for a uniform Cartesian grid
 \author Juan G Alonso Guzman
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
 #ifndef SPECTRUM_SERVER_CARTESIAN_HH
@@ -87,7 +89,7 @@ protected:
    int stencil_status = 0;
 
 //! Counts of different stencil outcomes
-   int stencil_outcomes[2];
+   int stencil_outcomes[3];
 
 //! Count of total blocks requested
    int num_blocks_requested;

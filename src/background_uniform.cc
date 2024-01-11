@@ -40,7 +40,8 @@ BackgroundUniform::BackgroundUniform(const BackgroundUniform& other)
 
 /*!
 \author Vladimir Florinski
-\date 09/26/2021
+\author Juan G Alonso Guzman
+\date 01/04/2024
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -49,18 +50,21 @@ void BackgroundUniform::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
+
+// Precompute motional electric field for efficiency
+   E0 = -(u0 ^ B0) / c_code;
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/14/2022
+\date 01/04/2024
 */
 void BackgroundUniform::EvaluateBackground(void)
 {
    if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(u0 ^ B0) / c_code;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
    _spdata.region = 1.0;
    LOWER_BITS(_status, STATE_INVALID);
 };

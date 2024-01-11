@@ -2,6 +2,7 @@
 \file matrix.hh
 \brief Declares and defines a 3x3 matrix class
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -115,6 +116,9 @@ struct GeoMatrix {
    GeoVector Eigensystem(GeoMatrix& evec) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Negative of a matrix
+   friend GeoMatrix operator -(const GeoMatrix& matr);
 
 //! Add two matrices together
    friend GeoMatrix operator +(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
@@ -352,6 +356,21 @@ inline double GeoMatrix::Det(void) const
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Friend methods of GeoMatrix
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/12/2023
+\param[in] matr Matrix to multiply by -1 \f$\mathbf{M}\f$
+\return \f$-\mathbf{M}\f$
+*/
+inline GeoMatrix operator -(const GeoMatrix& matr)
+{
+   GeoMatrix matr_tmp;
+   matr_tmp.row[0] = -matr.row[0];
+   matr_tmp.row[1] = -matr.row[1];
+   matr_tmp.row[2] = -matr.row[2];
+   return matr_tmp;
+};
 
 /*!
 \author Vladimir Florinski

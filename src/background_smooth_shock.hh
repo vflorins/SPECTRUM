@@ -43,10 +43,10 @@ protected:
    double ds_shock;
 
 //! Shock transition region function
-   double shock_transition(double x);
+   double ShockTransition(double x);
 
 //! Derivative of shock transition region function
-   double shock_transition_derivative(double x);
+   double ShockTransitionDerivative(double x);
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;

@@ -35,7 +35,7 @@ struct TurbProp {
    double l0;
 
 //! Number of modes
-   double n_waves;
+   int n_waves;
 
 //! Variance
    double variance;

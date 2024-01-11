@@ -3,7 +3,6 @@
 \brief Declares application level classes to perform a complete simulation from start to finish
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\author Keyvan Ghanbari
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -97,7 +96,7 @@ public:
    virtual void DistroFileName(const std::string& file_name);
 
 //! Set the particle count and the size of one batch
-   virtual void SetTasks(int n_traj_in, int batch_size_in);
+   virtual void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0);
 
 //! Tells whether our process is the master
    bool IsMaster(void);
@@ -209,14 +208,14 @@ protected:
 //! Number of remaining trajectories
    int n_trajectories;
 
-//! Default batch size
-   int default_batch_size;
-
 //! Ratio between completed and total trajectory counts * 100
    int percentage_work_done;
 
 //! Number of active workers in node (workers that have not finished all their tasks)
    int active_workers;
+
+//! Maximum number of trajectories per worker. 0 (default) means no maximum.
+   int max_traj_per_worker;
 
 //! Number of trajectories already processed and assigned to each worker (for accounting/debugging purposes)
    std::vector <int> trajectories_assigned;
@@ -273,7 +272,7 @@ public:
    void DistroFileName(const std::string& file_name) override;
 
 //! Set the particle count and the size of one batch
-   void SetTasks(int n_traj_in, int batch_size_in) override;
+   void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0) override;
 
 //! Add a distribution object
    void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) override;

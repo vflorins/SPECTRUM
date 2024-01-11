@@ -2,6 +2,7 @@
 \file trajectory_base.hh
 \brief Declares a base class for trajectory tracing
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -27,13 +28,13 @@ namespace Spectrum {
 #define RECORD_TRAJECTORY
 
 //! Record |B| extrema flag
-#define RECORD_BMAG_EXTREMA
+// #define RECORD_BMAG_EXTREMA
 
 //! Direction of time flow: 0 is forward, 1 is backward
-#define TIME_FLOW 0
+#define TRAJ_TIME_FLOW 0
 
 //! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
-#define TRAJ_ADV_SAFETY_LEVEL 1
+#define TRAJ_ADV_SAFETY_LEVEL 2
 
 #if TRAJ_ADV_SAFETY_LEVEL == 2
 //! Largest length for single trajectory

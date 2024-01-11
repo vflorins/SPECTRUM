@@ -2,6 +2,7 @@
 \file background_base_visual.cc
 \brief Implements visualization methods of the base background class
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -74,7 +75,8 @@ void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 
 /*!
 \author Vladimir Florinski
-\date 10/23/2020
+\author Juan G Alonso Guzman
+\date 01/04/2024
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 */
@@ -104,16 +106,26 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Region 1") {
+   else if(var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
       is_vector = false;
    }
-   else if(var_name == "Region 2") {
+   else if(var_name == "Region2") {
       scl_ptr = &_spdata.region[1];
       is_vector = false;
    }
-   else if(var_name == "Region 3") {
+   else if(var_name == "Region3") {
       scl_ptr = &_spdata.region[2];
+      is_vector = false;
+   }
+   else if(var_name == "n_dens") {
+      scl_ptr = &_spdata.n_dens;
+      var_unit = unit_number_density_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "p_ther") {
+      scl_ptr = &_spdata.p_ther;
+      var_unit = unit_pressure_fluid;
       is_vector = false;
    }
    else return;
@@ -252,7 +264,8 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 
 /*!
 \author Vladimir Florinski
-\date 11/02/2020
+\author Juan G Alonso Guzman
+\date 01/04/2024
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 */
@@ -282,16 +295,26 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Region 1") {
+   else if(var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
       is_vector = false;
    }
-   else if(var_name == "Region 2") {
+   else if(var_name == "Region2") {
       scl_ptr = &_spdata.region[1];
       is_vector = false;
    }
-   else if(var_name == "Region 3") {
+   else if(var_name == "Region3") {
       scl_ptr = &_spdata.region[2];
+      is_vector = false;
+   }
+   else if(var_name == "n_dens") {
+      scl_ptr = &_spdata.n_dens;
+      var_unit = unit_number_density_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "p_ther") {
+      scl_ptr = &_spdata.p_ther;
+      var_unit = unit_pressure_fluid;
       is_vector = false;
    }
    else return;

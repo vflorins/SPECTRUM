@@ -2,6 +2,7 @@
 \file initial_space.hh
 \brief Declares several classes to specify spatial initial conditions
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -331,23 +332,11 @@ const std::string init_name_space_table = "InitialSpaceTable";
 \brief Starting points from a table
 \author Juan G Alonso Guzman
 
-Parameters: (InitialBase), std::string initpos_file_name, double scale, bool random
+Parameters: (InitialTable)
 */
-class InitialSpaceTable : public InitialBase {
+class InitialSpaceTable : public InitialTable {
 
 protected:
-
-//! Flag to iterate through initial positions randomly (true) or in sequence (false)
-   bool random;
-
-//! Array with initial positions
-   std::vector <GeoVector> initpos;
-
-//! Table entry counter
-   int table_counter;
-
-//! Set up the initial condition generator based on "params"
-   void SetupInitial(bool construct) override;
 
 //! Compute the internal position or momentum
    void EvaluateInitial(void) override;
