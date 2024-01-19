@@ -93,15 +93,15 @@ AS_IF([test "x$with_trajectory" == "x"],
 AC_MSG_NOTICE([Using "$with_trajectory" as the trajectory model])
 
 # Define trajectory time flow direction types
-AC_DEFINE([TRAJ_TIME_FLOW_FORWARD], [0], [Forward time simulation])
-AC_DEFINE([TRAJ_TIME_FLOW_BACKWARD], [1], [Backward time simulation])
+AC_DEFINE([TRAJ_TIME_FLOW_FORWARD], [0], [Forward-in-time simulation])
+AC_DEFINE([TRAJ_TIME_FLOW_BACKWARD], [1], [Backward-in-time simulation])
 
 # Set up trajectory time flow direction
 AC_ARG_WITH([time_flow], [AS_HELP_STRING([--with-time_flow=TIME_FLOW], [use TIME_FLOW=FORWARD|BACKWARD])], [], [])
 AS_IF([test "x$with_time_flow" == "x"],
       [AC_MSG_ERROR([A value of TIME_FLOW is required])],
       [test $with_time_flow == "FORWARD" || test $with_time_flow == "BACKWARD"],
-      [AC_DEFINE([TRAJ_TIME_FLOW], [TRAJ_TIME_FLOW_$with_time_flow], [Choice of trajectory time flow direction])],
+      [AC_DEFINE_UNQUOTED([TRAJ_TIME_FLOW], [TRAJ_TIME_FLOW_$with_time_flow], [Choice of trajectory time flow direction])],
       [AC_MSG_ERROR([Invalid TIME_FLOW value])])
 AC_MSG_NOTICE([Using "$with_time_flow" as the trajectory time flow direction])
 
