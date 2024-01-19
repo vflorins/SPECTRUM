@@ -19,12 +19,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! TODO Interpolation method - set by configure
-#define SERVER_INTERP_ORDER 1
-
-//! Number of ghost cells per side
-#define SERVER_NUM_GHOST_CELLS 0
-
 //! Index of the mass density variable
 // #define SERVER_VAR_INDEX_RHO 0
 

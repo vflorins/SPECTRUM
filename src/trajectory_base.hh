@@ -30,9 +30,6 @@ namespace Spectrum {
 //! Record |B| extrema flag
 // #define RECORD_BMAG_EXTREMA
 
-//! Direction of time flow: 0 is forward, 1 is backward
-#define TRAJ_TIME_FLOW 0
-
 //! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
 #define TRAJ_ADV_SAFETY_LEVEL 2
 

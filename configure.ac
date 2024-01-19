@@ -3,8 +3,7 @@
 # Building from zero:
 # autoreconf
 # automake --add-missing
-# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-trajectory=GUIDING --with-rkmethod=0 --with-server=CARTESIAN
-# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-trajectory=LORENTZ --with-rkmethod=29 --with-server=SELF
+# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=SERIAL --with-trajectory=FIELDLINE --with-rkmethod=0 --with-server=SELF --with-server_interp_order=-1 --with-server_num_gcs=0
 
 # Init commands
 AC_PREREQ([2.69])
@@ -55,12 +54,26 @@ AS_IF([test "x$MODULE_NAME" != "x"],
 MODULE_NAME="gsl"
 PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
 
-# Check for SILO
-AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_ERROR([SILO library was not found])])
+# Check for SILO (not required)
+AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found. Attempting to compile background_base_visual.cc will fail.])])
 
-# Check for SLURM
-AC_SEARCH_LIBS([slurm_get_rem_time], [slurm], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_ERROR([SLURM library was not found])])
+# Check for SLURM (not required)
+AC_SEARCH_LIBS([slurm_get_rem_time], [slurm], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])
 
+# Define simulation execution types
+AC_DEFINE([EXEC_SERIAL], [0], [Serial execution])
+AC_DEFINE([EXEC_PARALLEL], [1], [Parallel execution])
+
+# Set up simulation execution type
+AC_ARG_WITH([execution], [AS_HELP_STRING([--with-execution=EXECUTION], [use EXECUTION=SERIAL|PARALLEL])], [], [])
+AS_IF([test "x$with_execution" == "x"],
+      [AC_MSG_ERROR([A value of EXECUTION is required])],
+      [test $with_execution == "SERIAL" || test $with_execution == "PARALLEL"],
+      [AC_DEFINE_UNQUOTED([EXEC_TYPE], [EXEC_$with_execution], [Choice of simulation execution type])],
+      [AC_MSG_ERROR([Invalid EXECUTION value])])
+AC_MSG_NOTICE([Using "$with_execution" as the simulation execution type])
+
+# Define trajectory types
 AC_DEFINE([TRAJ_FIELDLINE], [199], [Field line tracer (-,-,-)])
 AC_DEFINE([TRAJ_LORENTZ], [200], [Newton-Lorentz model (px,py,pz)])
 AC_DEFINE([TRAJ_GUIDING], [201], [Guiding center model (p_para,-,p_perp)])
@@ -79,6 +92,19 @@ AS_IF([test "x$with_trajectory" == "x"],
       [AC_MSG_ERROR([Invalid TRAJECTORY value])])
 AC_MSG_NOTICE([Using "$with_trajectory" as the trajectory model])
 
+# Define trajectory time flow direction types
+AC_DEFINE([TRAJ_TIME_FLOW_FORWARD], [0], [Forward time simulation])
+AC_DEFINE([TRAJ_TIME_FLOW_BACKWARD], [1], [Backward time simulation])
+
+# Set up trajectory time flow direction
+AC_ARG_WITH([time_flow], [AS_HELP_STRING([--with-time_flow=TIME_FLOW], [use TIME_FLOW=FORWARD|BACKWARD])], [], [])
+AS_IF([test "x$with_time_flow" == "x"],
+      [AC_MSG_ERROR([A value of TIME_FLOW is required])],
+      [test $with_time_flow == "FORWARD" || test $with_time_flow == "BACKWARD"],
+      [AC_DEFINE([TRAJ_TIME_FLOW], [TRAJ_TIME_FLOW_$with_time_flow], [Choice of trajectory time flow direction])],
+      [AC_MSG_ERROR([Invalid TIME_FLOW value])])
+AC_MSG_NOTICE([Using "$with_time_flow" as the trajectory time flow direction])
+
 # Set up the RK integrator
 AC_ARG_WITH([rkmethod], [AS_HELP_STRING([--with-rkmethod=RKMETHOD], [use RKMETHOD=0..29])], [], [])
 AS_IF([test "x$with_rkmethod" == "x"],
@@ -86,8 +112,9 @@ AS_IF([test "x$with_rkmethod" == "x"],
       [test $with_rkmethod -ge 0 && test $with_rkmethod -le 29],
       [AC_DEFINE_UNQUOTED([RK_INTEGRATOR_TYPE], [$with_rkmethod], [Choice of the Runge-Kutta method])],
       [AC_MSG_ERROR([RKMETHOD must be between 0 and 29])])
-AC_MSG_NOTICE([Using "$with_rkmethod" as the Runge-Kutta merhod])
+AC_MSG_NOTICE([Using "$with_rkmethod" as the Runge-Kutta method])
 
+# Define server types
 AC_DEFINE([SERVER_SELF], [299], [No server])
 AC_DEFINE([SERVER_CARTESIAN], [300], [Cartesian server with uniform grid])
 AC_DEFINE([SERVER_BATL], [301], [Cartesian server with AMR (part of BATS-R-US)])
@@ -99,7 +126,27 @@ AS_IF([test "x$with_server" == "x"],
       [test $with_server == "SELF" || test $with_server == "CARTESIAN" || test $with_server == "BATL"],
       [AC_DEFINE_UNQUOTED([SERVER_TYPE], [SERVER_$with_server], [Choice of the background server])],
       [AC_MSG_ERROR([Invalid SERVER value])])
-AC_MSG_NOTICE([Using "$with_server" as the background server])
+AS_IF([test $with_server != "SELF" && test $with_execution == "SERIAL"],
+      [AC_MSG_ERROR([SERIAL execution can only used with a SELF server type])],
+      [AC_MSG_NOTICE([Using "$with_server" as the background server])])
+
+# Set up server interpolation order
+AC_ARG_WITH([server_interp_order], [AS_HELP_STRING([--with-server_interp_order=SERVER_INTERP_ORDER], [use SERVER_INTERP_ORDER=-1|0|1])], [], [])
+AS_IF([test "x$with_server_interp_order" == "x" && test $with_server != "SELF"],
+      [AC_MSG_ERROR([A value of SERVER_INTERP_ORDER is required for all server types other than SELF])],
+      [test "x$with_server_interp_order" == "x" || test $with_server_interp_order == "-1" || test $with_server_interp_order == "0" || test $with_server_interp_order == "1"],
+      [AC_DEFINE_UNQUOTED([SERVER_INTERP_ORDER], [$with_server_interp_order], [Choice of background server interpolation order])],
+      [AC_MSG_ERROR([Invalid SERVER_INTERP_ORDER value])])
+AC_MSG_NOTICE([Using "$with_server_interp_order" as the background server interpolation order])
+
+# Set up server number of ghost cells per side of blocks
+AC_ARG_WITH([server_num_gcs], [AS_HELP_STRING([--with-server_num_gcs=SERVER_NUM_GHOST_CELLS], [use SERVER_NUM_GHOST_CELLS=0|1])], [], [])
+AS_IF([test "x$with_server_num_gcs" == "x" && test $with_server != "SELF"],
+      [AC_MSG_ERROR([A value of SERVER_NUM_GHOST_CELLS is required for all server types other than SELF])],
+      [test "x$with_server_num_gcs" == "x" || test $with_server_num_gcs == "0" || test $with_server_num_gcs == "1"],
+      [AC_DEFINE_UNQUOTED([SERVER_NUM_GHOST_CELLS], [$with_server_num_gcs], [Choice of background server number of ghost cells per side of block])],
+      [AC_MSG_ERROR([Invalid SERVER_NUM_GHOST_CELLS value])])
+AC_MSG_NOTICE([Using "$with_server_num_gcs" as the background server number of ghost cells per side of block])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
