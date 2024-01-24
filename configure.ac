@@ -55,7 +55,7 @@ MODULE_NAME="gsl"
 PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
 
 # Check for SILO (not required)
-AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found. Attempting to compile background_base_visual.cc will fail.])])
+AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found.])])
 
 # Check for SLURM (not required)
 AC_SEARCH_LIBS([slurm_get_rem_time], [slurm], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])
