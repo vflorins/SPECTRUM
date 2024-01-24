@@ -10,7 +10,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_WORKLOAD_MANAGER_HH
 #define SPECTRUM_WORKLOAD_MANAGER_HH
 
+#ifdef USE_SLURM
 #include <slurm/slurm.h>
+#endif
 #include <cstdlib>
 
 namespace Spectrum {
@@ -83,7 +85,13 @@ inline void Workload_Manager_Handler::DetectManager(void)
 */
 inline long int Workload_Manager_Handler::GetRemAllocTime(void)
 {
-   if(workload_manager == SLURM_WM) return slurm_get_rem_time(jobid);
+   if(workload_manager == SLURM_WM) {
+#ifdef USE_SLURM
+      return slurm_get_rem_time(jobid);
+#else
+      return -1;
+#endif
+   }
    else return -1;
 };
 
