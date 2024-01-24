@@ -66,12 +66,14 @@ inline void Workload_Manager_Handler::DetectManager(void)
    char* jobid_str = NULL;
 
 // Try SLURM
+#ifdef USE_SLURM
    jobid_str = getenv("SLURM_JOB_ID");
    if(jobid_str) {
       workload_manager = SLURM_WM;
       jobid = atoi(jobid_str);
       return;
    };
+#endif
 //TODO: Try other workload managers, like OpenPBS 
 
 // If none of the above job ID checks are successful, no workload manager is detected
