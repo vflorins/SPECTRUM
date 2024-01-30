@@ -3,7 +3,7 @@
 # Building from zero:
 # autoreconf
 # automake --add-missing
-# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=SERIAL --with-trajectory=FIELDLINE --with-rkmethod=0 --with-server=SELF --with-server_interp_order=-1 --with-server_num_gcs=0
+# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=SERIAL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=SELF --with-server_interp_order=-1 --with-server_num_gcs=0
 
 # Init commands
 AC_PREREQ([2.69])
