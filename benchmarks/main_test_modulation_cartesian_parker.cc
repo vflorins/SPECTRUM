@@ -1,10 +1,6 @@
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
-#if SERVER_TYPE == SERVER_SELF
-#include "src/background_solarwind.hh"
-#elif SERVER_TYPE == SERVER_CARTESIAN
 #include "src/background_cartesian.hh"
-#endif
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -60,24 +56,8 @@ int main(int argc, char** argv)
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-#if SERVER_TYPE == SERVER_SELF
-// solar rotation vector
-   double w0 = twopi / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
-   GeoVector Omega(0.0, 0.0, w0);
-   container.Insert(Omega);
-
-// Reference equatorial distance
-   container.Insert(r_ref);
-
-// dmax fraction for distances closer to the Sun
-   double dmax_fraction = 1000.0; // set very high so that dmax0 is always chosen
-   container.Insert(dmax_fraction);
-
-   simulation->AddBackground(BackgroundSolarWind(), container);
-#elif SERVER_TYPE == SERVER_CARTESIAN
    std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
    simulation->AddBackground(BackgroundCartesian(), container, fname_pattern);
-#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
