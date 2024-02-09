@@ -28,12 +28,12 @@ function configure {
 	if test "$5" = "SELF"
 	then
 		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$1 \
-												--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
-												--with-server=$5
+			--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
+			--with-server=$5
 	else
 		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$1 \
-												--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
-												--with-server=$5 --with-server_interp_order=$6 --with-server_num_gcs=$7
+			--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
+			--with-server=$5 --with-server_interp_order=$6 --with-server_num_gcs=$7
 	fi
 	cd -
 }
