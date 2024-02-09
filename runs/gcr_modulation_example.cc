@@ -270,11 +270,11 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "test_artif_and_natur_modulation_parker_analytic_";
+   std::string simulation_files_prefix = "gcr_modulation_example_distro_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
-   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "spectrum.dat", true);
+   simulation->PrintDistro1D(0, 0, "modulated_gcr_spectrum.dat", true);
    
    return 0;
 };
