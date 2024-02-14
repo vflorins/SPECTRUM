@@ -207,7 +207,6 @@ int main(int argc, char** argv)
 // Distribution 1 (spectrum)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Parameters for distribution
    container.Clear();
 
 // Number of bins
