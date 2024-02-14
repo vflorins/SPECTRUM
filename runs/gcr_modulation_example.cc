@@ -241,19 +241,19 @@ int main(int argc, char** argv)
    bool keep_records1 = false;
    container.Insert(keep_records1);
 
-//! Normalization for the "hot" boundary
+// Normalization for the "hot" boundary
    double J0 = 1.0 / unit_distro1;
    container.Insert(J0);
 
-//! Characteristic energy
+// Characteristic energy
    double T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
    container.Insert(T0);
 
-//! Spectral power law
+// Spectral power law
    double pow_law_T = -1.8;
    container.Insert(pow_law_T);
 
-//! Constant value for the "cold" condition
+// Constant value for the "cold" condition
    double val_cold1 = 0.0;
    container.Insert(val_cold1);
 
