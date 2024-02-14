@@ -76,6 +76,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
+// Initial position
    GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
    container.Insert(init_pos);
 
