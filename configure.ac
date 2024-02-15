@@ -7,6 +7,7 @@
 
 # Init commands
 AC_PREREQ([2.69])
+PKG_PROG_PKG_CONFIG([1.4.2])
 AC_INIT([spectrum_batl], [1.0])
 AM_INIT_AUTOMAKE([-Wall foreign subdir-objects no-exeext])
 
@@ -58,7 +59,7 @@ PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
 AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found. Attempting to compile background_base_visual.cc will fail.])])
 
 # Check for SLURM (not required)
-AC_SEARCH_LIBS([slurm_get_rem_time], [slurm], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])
+AC_SEARCH_LIBS([slurm_get_rem_time], [slurm slurmfull], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])
 
 # Define simulation execution types
 AC_DEFINE([EXEC_SERIAL], [0], [Serial execution])
