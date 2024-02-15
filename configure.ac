@@ -22,26 +22,25 @@ CXXFLAGS="$CXXFLAGS -std=c++17"
 FCFLAGS="$FCFLAGS"
 LDFLAGS="$LDFLAGS -L/usr/local/slurm/lib/slurm"
 
-# Check for MPI
+# Check for MPI paths
 AC_ARG_WITH([mpi], [AS_HELP_STRING([--with-mpi=MPI], [use MPI=mpich|openmpi])], [], [])
 PKG_CONFIG_PATH="/usr/lib64/pkgconfig"
+path=$(which mpirun)
+AS_IF([test $? == 0],
+      [path=${path/"bin/mpirun"/"lib/pkgconfig"}
+       AS_IF([test -d $path],
+             [PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$path],
+             [AC_MSG_ERROR([Path to MPI pkgconfig was not found])])],
+      [AC_MSG_ERROR([Path to mpirun was not found])])
+
+# Check MPI library specified by user
 MODULE_NAME=""
 AS_IF([test "x$with_mpi" == "x"],
       [AC_MSG_ERROR([This package cannot be built without MPI])],
       [test $with_mpi == "mpich"],
-      [path="/usr/lib64/mpich/lib/pkgconfig"
-       AS_IF([test -d $path],
-             [PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$path],
-             [])
-       MODULE_NAME="mpich"],
+      [MODULE_NAME="mpich"],
       [test $with_mpi == "openmpi"],
-      [for path in "/usr/lib64/openmpi/lib/pkgconfig" "/opt/openmpi/lib/pkgconfig/";
-       do
-             AS_IF([test -d $path],
-                   [PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$path]
-                   [])
-       done
-       MODULE_NAME="ompi"
+      [MODULE_NAME="ompi"
        CXXFLAGS="$CXXFLAGS -DOMPI_SKIP_MPICXX"],
       [AC_MSG_ERROR([MPI must be either mpich or openmpi])])
 
