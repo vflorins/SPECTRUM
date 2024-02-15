@@ -7,7 +7,6 @@
 
 # Init commands
 AC_PREREQ([2.69])
-PKG_PROG_PKG_CONFIG([1.4.2])
 AC_INIT([spectrum_batl], [1.0])
 AM_INIT_AUTOMAKE([-Wall foreign subdir-objects no-exeext])
 
