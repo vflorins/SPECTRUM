@@ -20,6 +20,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_FC
 CXXFLAGS="$CXXFLAGS -std=c++17"
+FCFLAGS="$FCFLAGS"
+LDFLAGS="$LDFLAGS -L/usr/local/slurm/lib/slurm"
 
 # Check for MPI
 AC_ARG_WITH([mpi], [AS_HELP_STRING([--with-mpi=MPI], [use MPI=mpich|openmpi])], [], [])
