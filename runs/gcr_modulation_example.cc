@@ -1,6 +1,6 @@
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
-#include "src/background_cartesian.hh"
+#include "src/background_solarwind.hh"
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -56,8 +56,19 @@ int main(int argc, char** argv)
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-   std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
-   simulation->AddBackground(BackgroundCartesian(), container, fname_pattern);
+// solar rotation vector
+   double w0 = twopi / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   GeoVector Omega(0.0, 0.0, w0);
+   container.Insert(Omega);
+
+// Reference equatorial distance
+   container.Insert(r_ref);
+
+// dmax fraction for distances closer to the Sun
+   double dmax_fraction = 0.1;
+   container.Insert(dmax_fraction);
+
+   simulation->AddBackground(BackgroundSolarWind(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -65,6 +76,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
+// Initial position
    GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
    container.Insert(init_pos);
 
@@ -102,7 +114,7 @@ int main(int argc, char** argv)
 
 // Action
    std::vector<int> actions_Sun;
-   actions_Sun.push_back(1);
+   actions_Sun.push_back(-1);
    container.Insert(actions_Sun);
 
 // Origin
@@ -165,87 +177,85 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-// Diffusion coefficient normalization factor
-   double kap0 = 1.5e22 / unit_diffusion_fluid;
-   container.Insert(kap0);
+// Parallel mean free path
+   double lam0 = 0.1 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   container.Insert(lam0);
 
 // Rigidity normalization factor
-   double T0 = SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
-   container.Insert(T0);
+   double R0 = 1.0e9 / unit_rigidity_particle;
+   container.Insert(R0);
 
 // Magnetic field normalization factor
-   double r0 = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
-   container.Insert(r0);
+   container.Insert(BmagE);
 
 // Power law slope for rigidity
-   double pow_law_T = 1.0;
-   container.Insert(pow_law_T);
+   double pow_law_R = 0.5;
+   container.Insert(pow_law_R);
 
 // Power law slope for magnetic field
-   double pow_law_r = 2.0;
-   container.Insert(pow_law_r);
+   double pow_law_B = -1.0;
+   container.Insert(pow_law_B);
 
 // Ratio of kappa_perp to kappa_para
-   double kap_rat = 1.00;
+   double kap_rat = 0.05;
    container.Insert(kap_rat);
 
 // Pass ownership of "diffusion" to simulation
-   simulation->AddDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw(), container);
+   simulation->AddDiffusion(DiffusionRigidityMagneticFieldPowerLaw(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Distribution
+// Distribution 1 (spectrum)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Parameters for distribution
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins(100, 0, 0);
-   container.Insert(n_bins);
+   MultiIndex n_bins1(100, 0, 0);
+   container.Insert(n_bins1);
    
 // Smallest value
-   GeoVector minval(EnrKin(momentum1), 0.0, 0.0);
-   container.Insert(minval);
+   GeoVector minval1(EnrKin(momentum1), 0.0, 0.0);
+   container.Insert(minval1);
 
 // Largest value
-   GeoVector maxval(EnrKin(momentum2), 0.0, 0.0);
-   container.Insert(maxval);
+   GeoVector maxval1(EnrKin(momentum2), 0.0, 0.0);
+   container.Insert(maxval1);
 
 // Linear or logarithmic bins
-   MultiIndex log_bins(1, 0, 0);
-   container.Insert(log_bins);
+   MultiIndex log_bins1(1, 0, 0);
+   container.Insert(log_bins1);
 
 // Add outlying events to the end bins
-   MultiIndex bin_outside(0, 0, 0);
-   container.Insert(bin_outside);
+   MultiIndex bin_outside1(0, 0, 0);
+   container.Insert(bin_outside1);
 
 // Physical units of the distro variable
-   double unit_distro = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * fourpi * unit_energy_particle);
-   container.Insert(unit_distro);
+   double unit_distro1 = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * fourpi * unit_energy_particle);
+   container.Insert(unit_distro1);
 
 // Physical units of the bin variable
-   GeoVector unit_val = {unit_energy_particle, 1.0, 1.0};
-   container.Insert(unit_val);
+   GeoVector unit_val1 = {unit_energy_particle, 1.0, 1.0};
+   container.Insert(unit_val1);
 
 // Don't keep records
-   bool keep_records = false;
-   container.Insert(keep_records);
+   bool keep_records1 = false;
+   container.Insert(keep_records1);
 
-//! Normalization for the "hot" boundary
-   double J0 = 1.0 / unit_distro;
+// Normalization for the "hot" boundary
+   double J0 = 1.0 / unit_distro1;
    container.Insert(J0);
 
-//! Characteristic energy
-   T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+// Characteristic energy
+   double T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
    container.Insert(T0);
 
-//! Spectral power law
-   pow_law_T = -1.8;
+// Spectral power law
+   double pow_law_T = -1.8;
    container.Insert(pow_law_T);
 
-//! Constant value for the "cold" condition
-   double val_cold = 0.0;
-   container.Insert(val_cold);
+// Constant value for the "cold" condition
+   double val_cold1 = 0.0;
+   container.Insert(val_cold1);
 
    simulation->AddDistribution(DistributionSpectrumKineticEnergyPowerLaw(), container);
 
@@ -260,21 +270,11 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "output_data/test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "gcr_modulation_example_distro_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
-   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "spectrum.dat", true);
-
-   if(simulation->IsMaster()) {
-      std::cout << std::endl;
-      std::cout << "MODULATION CARTESIAN PARKER SPIRAL" << std::endl;
-      std::cout << "=========================================================" << std::endl;
-      std::cout << "Trajectory type: " << simulation->GetTrajectoryName() << std::endl;
-      std::cout << "=========================================================" << std::endl;
-      std::cout << "Distribution files outputed to " << simulation_files_prefix << std::endl;
-      std::cout << std::endl;
-   };
+   simulation->PrintDistro1D(0, 0, "modulated_gcr_spectrum.dat", true);
    
    return 0;
 };

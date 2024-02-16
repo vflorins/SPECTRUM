@@ -11,6 +11,7 @@ long_batch_size=1000
 short_batch_size=100
 
 # Flags to select which tests to run
+dipole_visual_test=false
 dipole_drifts_test=false
 pa_distro_iso_test=false
 pa_scatt_test=false
@@ -19,12 +20,21 @@ full_diff_test=false
 turb_waves_test=false
 parker_sprial_test=false
 init_cond_record_test=false
-modulation_cartesian_parker_spiral=true
+modulation_cartesian_parker_spiral=false
 
 # Function to go up one directory and configure code
 function configure {
 	cd ..
-	./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-trajectory=$1 --with-rkmethod=$2 --with-server=$3
+	if test "$5" = "SELF"
+	then
+		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$1 \
+			--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
+			--with-server=$5
+	else
+		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$1 \
+			--with-trajectory=$2 --with-time_flow=$3 --with-rkmethod=$4 \
+			--with-server=$5 --with-server_interp_order=$6 --with-server_num_gcs=$7
+	fi
 	cd -
 }
 
@@ -61,12 +71,18 @@ echo -n "Benchmark results " > $results_file
 date >> $results_file
 echo "------------------------------------------------------------" >> $results_file
 
+# DIPOLE FIELD VISUALIZATION
+if $dipole_visual_test
+then	
+	configure SERIAL LORENTZ FORWARD 0 SELF
+	make_and_run main_test_dipole_visualization 1
+fi
+report_if_failed $? "DIPOLE FIELD VISUALIZATION"
+
 # DIPOLE FIELD DRIFT PERIODS
 if $dipole_drifts_test
 then	
-	configure GUIDING 29 SELF
-	# configure FOCUSED 29 SELF
-	# configure LORENTZ 29 SELF
+	configure SERIAL GUIDING FORWARD 29 SELF
 	make_and_run main_test_dipole_periods 1
 fi
 report_if_failed $? "DIPOLE FIELD DRIFT PERIODS"
@@ -74,10 +90,7 @@ report_if_failed $? "DIPOLE FIELD DRIFT PERIODS"
 # PITCH ANGLE DISTRIBUTION ISOTROPIZATION
 if $pa_distro_iso_test
 then
-	configure GUIDING_SCATT 29 SELF
-	# configure GUIDING_DIFF_SCATT 29 SELF
-	# configure FOCUSED_SCATT 29 SELF
-	# configure FOCUSED_DIFF_SCATT 29 SELF
+	configure PARALLEL GUIDING_SCATT FORWARD 29 SELF
 	make_and_run main_test_pa_distro_isotrop $n_cpus $long_sim $long_batch_size
 fi
 report_if_failed $? "PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
@@ -85,10 +98,7 @@ report_if_failed $? "PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
 # PITCH ANGLE SCATTERING
 if $pa_scatt_test
 then
-	configure GUIDING_SCATT 29 SELF
-	# configure GUIDING_DIFF_SCATT 29 SELF
-	# configure FOCUSED_SCATT 29 SELF
-	# configure FOCUSED_DIFF_SCATT 29 SELF
+	configure PARALLEL GUIDING_SCATT FORWARD 29 SELF
 	make_and_run main_test_pa_scatt $n_cpus $short_sim $short_batch_size
 fi
 report_if_failed $? "PITCH ANGLE SCATTERING"
@@ -96,10 +106,7 @@ report_if_failed $? "PITCH ANGLE SCATTERING"
 # PERPENDICULAR DIFFUSION
 if $perp_diff_test
 then
-	configure GUIDING_DIFF 29 SELF
-	# configure GUIDING_DIFF_SCATT 29 SELF
-	# configure FOCUSED_DIFF 29 SELF
-	# configure FOCUSED_DIFF_SCATT 29 SELF
+	configure PARALLEL GUIDING_DIFF FORWARD 29 SELF
 	make_and_run main_test_perp_diff $n_cpus $long_sim $long_batch_size
 fi
 report_if_failed $? "PERPENDICULAR DIFFUSION"
@@ -107,7 +114,7 @@ report_if_failed $? "PERPENDICULAR DIFFUSION"
 # FULL (PERP+PARA) DIFFUSION
 if $full_diff_test
 then	
-	configure PARKER 29 SELF
+	configure PARALLEL PARKER FORWARD 29 SELF
 	make_and_run main_test_full_diff $n_cpus $long_sim $long_batch_size
 fi
 report_if_failed $? "FULL (PERP+PARA) DIFFUSION"
@@ -115,7 +122,7 @@ report_if_failed $? "FULL (PERP+PARA) DIFFUSION"
 # TURBULENCE VIA SUPERPOSITION OF WAVES
 if $turb_waves_test
 then
-	configure FIELDLINE 29 SELF
+	configure SERIAL FIELDLINE FORWARD 29 SELF
 	make_and_run main_test_turb_waves 1
 fi
 report_if_failed $? "TURBULENCE VIA SUPERPOSITION OF WAVES"
@@ -123,10 +130,7 @@ report_if_failed $? "TURBULENCE VIA SUPERPOSITION OF WAVES"
 # PARKER SPIRAL SOLAR WIND
 if $parker_sprial_test
 then
-	configure FIELDLINE 29 SELF
-	# configure LORENTZ 29 SELF
-	# configure FOCUSED 29 SELF
-	# configure GUIDING 29 SELF
+	configure SERIAL FIELDLINE FORWARD 29 SELF
 	make_and_run main_test_parker_spiral 1
 fi
 report_if_failed $? "PARKER SPIRAL SOLAR WIND"
@@ -134,9 +138,7 @@ report_if_failed $? "PARKER SPIRAL SOLAR WIND"
 # INITIAL CONDITION RECORDS TEST
 if $init_cond_record_test
 then	
-	# configure GUIDING 29 SELF
-	configure FOCUSED 29 SELF
-	# configure LORENTZ 29 SELF
+	configure PARALLEL FOCUSED FORWARD 29 SELF
 	make_and_run main_test_init_cond_records $n_cpus $short_sim $short_batch_size
 fi
 report_if_failed $? "INITIAL CONDITION RECORDS TEST"
@@ -144,8 +146,7 @@ report_if_failed $? "INITIAL CONDITION RECORDS TEST"
 # MODULATION WITH CARTESIAN PARKER SPIRAL
 if $modulation_cartesian_parker_spiral
 then
-	configure PARKER 25 CARTESIAN
-	# configure PARKER 25 SELF
+	configure PARALLEL PARKER BACKWARD 25 CARTESIAN 1 0
 	make_and_run main_generate_cartesian_solarwind_background 1
 	report_if_failed $? "CARTESIAN PARKER SPIRAL BACKGROUND GENERATION"
 	make_and_run main_test_modulation_cartesian_parker $n_cpus $long_sim $long_batch_size
