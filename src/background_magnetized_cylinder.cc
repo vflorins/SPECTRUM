@@ -1,5 +1,5 @@
 /*!
-\file background_magcylinder.cc
+\file background_magnetized_cylinder.cc
 \brief Implements a background of an infinite cylinder magnetized perpendicular to its axis
 \author Vladimir Florinski
 
