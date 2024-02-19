@@ -506,11 +506,11 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionStraussEtAl2013 class declaration
+// DiffusionBallEtAl2005 class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionStraussEtAl2013 class
-const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
+//! Readable name of the DiffusionBallEtAl2005 class
+const std::string diff_name_ball_et_al_2005 = "DiffusionBallEtAl2005";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Strauss et al 2013, with change in perpendicular diffusion according to a magnetic mixing indicator variable
@@ -519,7 +519,7 @@ const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
 
 Parameters: (DiffusionBase), lam_in, lam_out, double R0, double B0, double pow_law_R_low, double pow_law_R_high, double pow_law_B, double kap_rat_low, double kap_rat_high
 */
-class DiffusionStraussEtAl2013 : public DiffusionBase {
+class DiffusionBallEtAl2005 : public DiffusionBase {
 
 protected:
 
@@ -565,17 +565,20 @@ protected:
 public:
 
 //! Default constructor
-   DiffusionStraussEtAl2013(void);
+   DiffusionBallEtAl2005(void);
 
 //! Copy constructor
-   DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other);
+   DiffusionBallEtAl2005(const DiffusionBallEtAl2005& other);
 
 //! Destructor
-   ~DiffusionStraussEtAl2013() override = default;
+   ~DiffusionBallEtAl2005() override = default;
 
 //! Clone function
-   CloneFunctionDiffusion(DiffusionStraussEtAl2013);
+   CloneFunctionDiffusion(DiffusionBallEtAl2005);
 };
+
+typedef DiffusionBallEtAl2005 DiffusionLuoEtAl2011;
+typedef DiffusionBallEtAl2005 DiffusionStraussEtAl2013;
 
 };
 
