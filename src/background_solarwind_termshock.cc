@@ -54,6 +54,7 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
    container.Read(&s_TS);
 
    s_TS_inv = 1.0 / s_TS;
+   dmax_TS = dmax_fraction * w_TS;
 };
 
 /*!
@@ -107,6 +108,21 @@ void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 #else
    NumericalDerivatives();
 #endif
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/23/2024
+*/
+void BackgroundSolarWindTermShock::EvaluateDmax(void)
+{
+   BackgroundSolarWind::EvaluateDmax();
+   double r = posprime.Norm();
+   if(r_TS - dmax0 < r && r < r_TS + w_TS + dmax0) {
+      if(r < r_TS) _spdata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0 / dmax0);
+      else if(r > r_TS + w_TS) _spdata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0 / dmax0);
+      else _spdata.dmax = dmax_TS;
+   };
 };
 
 };

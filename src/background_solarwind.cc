@@ -26,6 +26,15 @@ BackgroundSolarWind::BackgroundSolarWind(void)
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 02/22/2024
+*/
+BackgroundSolarWind::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                   : BackgroundBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
 \author Vladimir Florinski
 \date 01/26/2022
 \param[in] other Object to initialize from
@@ -72,7 +81,6 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 void BackgroundSolarWind::EvaluateBackground(void)
 {
 // Convert position into flow aligned coordinates and scale to "r_ref"
-   GeoVector posprime = _pos - r0;
    posprime.ChangeToBasis(eprime);
    posprime /= r_ref;
 
@@ -126,7 +134,8 @@ void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 */
 void BackgroundSolarWind::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
+   posprime = _pos - r0;
+   _spdata.dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

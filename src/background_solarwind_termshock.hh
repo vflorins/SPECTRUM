@@ -43,6 +43,9 @@ protected:
 //! Inverse of s_TS (persistent)
    double s_TS_inv;
 
+//! Maximum displacement in the shock region (persistent)
+   double dmax_TS;
+
 // TODO implement magnetic axis tilt
 
 //! Set up the field evaluator based on "params"
@@ -53,6 +56,9 @@ protected:
 
 //! Compute the internal u, B, and E derivatives
    void EvaluateBackgroundDerivatives(void) override;
+
+//! Compute the maximum distance per time step
+   void EvaluateDmax(void) override;
 
 public:
 
