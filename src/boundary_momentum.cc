@@ -54,11 +54,16 @@ void BoundaryMomentum::SetupBoundary(bool construct)
 
 /*!
 \author Vladimir Florinski
-\date 03/25/2022
+\author Juan G Alonso Guzman
+\date 02/23/2024
 */
 void BoundaryMomentum::EvaluateBoundary(void)
 {
+#if (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    _delta = _mom.Norm() - momentum;
+#elif (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+   _delta = _mom[0] - momentum;
+#endif
 };
 
 #if TRAJ_TYPE != TRAJ_PARKER

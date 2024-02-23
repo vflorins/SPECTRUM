@@ -25,7 +25,7 @@ namespace Spectrum {
 const std::string bnd_name_momentum = "BoundaryMomentum";
 
 /*!
-\brief Energy boundary
+\brief Energy boundary (e.g. injection)
 \author Vladimir Florinski
 
 Parameters: (BoundaryBase), double momentum
