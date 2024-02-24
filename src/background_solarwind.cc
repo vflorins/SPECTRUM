@@ -81,6 +81,7 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 void BackgroundSolarWind::EvaluateBackground(void)
 {
 // Convert position into flow aligned coordinates and scale to "r_ref"
+   posprime = _pos - r0;
    posprime.ChangeToBasis(eprime);
    posprime /= r_ref;
 
@@ -134,8 +135,7 @@ void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 */
 void BackgroundSolarWind::EvaluateDmax(void)
 {
-   posprime = _pos - r0;
-   _spdata.dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
+   _spdata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 
