@@ -207,7 +207,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DistributionMomentumUniform::DistributionMomentumUniform(const DistributionMomentumUniform& other)
                            : DistributionUniform<double>(other)
 {
-   RAISE_BITS(this->_status, DISTRO_SPACE);
+   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
