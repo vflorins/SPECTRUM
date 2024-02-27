@@ -235,7 +235,7 @@ If val_coord == 1, then the momentum vector is converted to locally spherical co
 */
 void DistributionMomentumUniform::EvaluateValue(void)
 {
-   double momentum, bhat;
+   GeoVector momentum, bhat;
    if(val_time == 0) {
       momentum = this->_mom;
       bhat = this->_spdata.bhat;
