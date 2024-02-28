@@ -134,7 +134,7 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/13/2022
+\date 02/28/2024
 */
 void BackgroundBase::NumericalDerivatives(void)
 {
