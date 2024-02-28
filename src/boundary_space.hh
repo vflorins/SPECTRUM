@@ -364,8 +364,11 @@ protected:
 //! Origin (persistent)
    GeoVector origin;
 
-//! Radius of the sphere (persistent)
-   double radius;
+//! Symmetry axis (persistent)
+   GeoVector axis;
+
+//! Distance to the nose (persistent)
+   double z_nose;
 
 //! Default constructor (protected, class not designed to be instantiated)
    BoundaryRankine(void);
