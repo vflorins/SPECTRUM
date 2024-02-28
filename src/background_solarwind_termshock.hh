@@ -46,8 +46,6 @@ protected:
 //! Maximum displacement in the shock region (persistent)
    double dmax_TS;
 
-// TODO implement magnetic axis tilt
-
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
