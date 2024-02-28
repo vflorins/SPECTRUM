@@ -90,7 +90,7 @@ public:
    CloneFunctionBoundary(BoundaryMomentumInject);
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror class declaration

@@ -231,7 +231,7 @@ void DistributionMomentumUniform::SetupDistribution(bool construct)
 \date 02/27/2024
 
 If val_coord == 0, then "native coordinates" are used, meaning that the momentum vector is left in whatever coordinates are used for trajectory integration.
-If val_coord == 1, then the momentum vector is converted to locally spherical coordinates with B || z. In this case, only the momentum magnitude and pitch angle are recorded, so the distribution becomes 2D.
+If val_coord == 1, then the momentum vector is converted to locally spherical coordinates with B || z. In this case, only the momentum magnitude and pitch angle (if available) are recorded, so the distribution effectively becomes 2D.
 */
 void DistributionMomentumUniform::EvaluateValue(void)
 {
@@ -250,17 +250,23 @@ void DistributionMomentumUniform::EvaluateValue(void)
 #if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
 // Focused and Parker trajectories are already in locally spherical coordinates
    this->_value = momentum;
+#elif TRAJ_TYPE == TRAJ_FIELDLINE
+   this->_value[0] = momentum[2];
+   this->_value[1] = 0.0;
+   this->_value[2] = 0.0;
 #elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    this->_value[0] = momentum.Norm();
    this->_value[1] = momentum[2] / this->_value[0];
+   this->_value[2] = 0.0;
 #elif TRAJ_TYPE == TRAJ_LORENTZ
    this->_value[0] = momentum.Norm();
    this->_value[1] = momentum * bhat / this->_value[0];
+   this->_value[2] = 0.0;
 #endif
    };
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM methods

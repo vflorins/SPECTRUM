@@ -169,7 +169,7 @@ protected:
 //! Which coordinates to use for value: 0 initial, 1 final (persistent)
    int val_time;
 
-//! Which coordinate representation to use for value: 0 "native", 1 locally spherical with B || z (persistent)
+//! Which coordinate representation to use for value: 0 "native coordinates", 1 locally spherical with B || z (persistent)
    int val_coord;
 
 //! Set up the distribution accumulator based on "params"
@@ -194,6 +194,7 @@ public:
 };
 
 #if TRAJ_TYPE == TRAJ_LORENTZ
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------

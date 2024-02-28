@@ -115,7 +115,7 @@ void BoundaryMomentumInject::SetupBoundary(bool construct)
    if(!construct) BoundaryMomentum::SetupBoundary(false);
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror methods
