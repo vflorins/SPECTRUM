@@ -84,7 +84,7 @@ void BoundaryMomentum::EvaluateBoundary(void)
 \date 02/28/2024
 */
 BoundaryMomentumInject::BoundaryMomentumInject(void)
-                      : BoundaryMomentum(bnd_name_plane_inject, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
+                      : BoundaryMomentum(bnd_name_momentum_inject, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
 };
