@@ -463,7 +463,13 @@ void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct
 */
 void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 {
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+   this->_value[0] = EnrKin(this->_mom[0], this->specie);
+#elif TRAJ_TYPE == TRAJ_FIELDLINE
+   this->_value[0] = EnrKin(this->_mom[2], this->specie);
+#elif (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
+#endif
 };
 
 /*!
@@ -473,15 +479,23 @@ void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 */
 void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
-   kin_energy = EnrKin(this->_mom2.Norm(), this->specie);
+   double mom2mag;
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+   mom2mag = this->_mom2[0];
+#elif TRAJ_TYPE == TRAJ_FIELDLINE
+   mom2mag = this->_mom2[2];
+#elif (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
+   mom2mag = this->_mom2.Norm();
+#endif
+   kin_energy = EnrKin(mom2mag, this->specie);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel(this->_mom2.Norm());
+   double velocity = Vel(mom2mag, this->specie)
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
-   this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / this->_mom2.Norm2();
+   this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
 // The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
-   this->_weight = J0 * pow(kin_energy / T0, pow_law) / this->_mom2.Norm2();
+   this->_weight = J0 * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 2
 // The power law is the distribution function f(p), no weighting necessary
    this->_weight = J0 * pow(kin_energy / T0, pow_law);
