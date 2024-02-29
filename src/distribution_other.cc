@@ -490,7 +490,7 @@ void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot
    kin_energy = EnrKin(mom2mag, this->specie);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel(mom2mag, this->specie)
+   double velocity = Vel(mom2mag, this->specie);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
    this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
