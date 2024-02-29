@@ -20,7 +20,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #if EXEC_TYPE == EXEC_SERIAL
 #define ALLOW_MASTER_BOSS
 #endif
-#define NUMBER_OF_BOSSES 1
+//! Number of bosses per physical node
+#define N_BOSSES_PER_NODE 1
 
 #if SERVER_TYPE == SERVER_SELF
 #define ALLOW_BOSS_WORKER
@@ -94,6 +95,12 @@ struct MPI_Config {
 
 //! Number of nodes
    int n_nodes;
+
+//! Number of sockets per node
+   int n_sockets_per_node;
+
+//! Number of bosses per socket
+   int n_bosses_per_socket;
 
 //! This process's node
    int my_node;

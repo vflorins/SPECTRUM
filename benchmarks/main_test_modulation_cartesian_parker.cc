@@ -40,17 +40,10 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   double umag = 4.0e7 / unit_velocity_fluid;
-   GeoVector u0(umag, 0.0, 0.0);
-   container.Insert(u0);
+   container.Insert(gv_zeros);
 
 // Magnetic field
-   double RS = 6.957e10 / unit_length_fluid;
-   double r_ref = 3.0 * RS;
-   double BmagE = 5.0e-5 / unit_magnetic_fluid;
-   double Bmag_ref = BmagE * Sqr((GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid) / r_ref);
-   GeoVector B0(Bmag_ref, 0.0, 0.0);
-   container.Insert(B0);
+   container.Insert(gv_zeros);
 
 // Effective "mesh" resolution
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;

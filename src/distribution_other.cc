@@ -184,73 +184,89 @@ void DistributionPositionUniform::EvaluateValue(void)
    if(val_coord == 1) this->_value.XYZ_RTP();
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DistributionPitchUniform methods
+// DistributionMomentumUniform methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\author Vladimir Florinski
-\date 06/18/2021
+\author Juan G Alonso Guzman
+\date 02/27/2024
 */
-DistributionPitchUniform::DistributionPitchUniform(void)
-                        : DistributionUniform<double>(dist_name_pitch_uniform, 0, DISTRO_MOMENTUM)
+DistributionMomentumUniform::DistributionMomentumUniform(void)
+                           : DistributionUniform<double>(dist_name_momentum_uniform, 0, DISTRO_MOMENTUM)
 {
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/05/2022
+\author Juan G Alonso Guzman
+\date 02/27/2024
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-DistributionPitchUniform::DistributionPitchUniform(const DistributionPitchUniform& other)
-                        : DistributionUniform<double>(other)
+DistributionMomentumUniform::DistributionMomentumUniform(const DistributionMomentumUniform& other)
+                           : DistributionUniform<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/05/2022
+\author Juan G Alonso Guzman
+\date 02/27/2024
 \param[in] construct Whether called from a copy constructor or separately
 */
-void DistributionPitchUniform::SetupDistribution(bool construct)
+void DistributionMomentumUniform::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) DistributionUniform<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
    this->container.Read(&val_time);
-
-   this->unit_val[0] = 1.0;
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   this->container.Read(&val_coord);
 };
 
 /*!
-\author Vladimir Florinski
-\date 05/05/2022
+\author Juan G Alonso Guzman
+\date 02/27/2024
+
+If val_coord == 0, then "native coordinates" are used, meaning that the momentum vector is left in whatever coordinates are used for trajectory integration.
+If val_coord == 1, then the momentum vector is converted to locally spherical coordinates with B || z. In this case, only the momentum magnitude and pitch angle (if available) are recorded, so the distribution effectively becomes 2D.
 */
-void DistributionPitchUniform::EvaluateValue(void)
+void DistributionMomentumUniform::EvaluateValue(void)
 {
-#if TRAJ_TYPE == TRAJ_FOCUSED
-   if(val_time == 0) this->_value[0] = this->_mom[1];
-   else this->_value[0] = this->_mom2[1];
+   GeoVector momentum, bhat;
+   if(val_time == 0) {
+      momentum = this->_mom;
+      bhat = this->_spdata.bhat;
+   }
+   else {
+      momentum = this->_mom2;
+      bhat = this->_spdata2.bhat;
+   };
+
+   if(val_coord == 0) this->_value = momentum;
+   else {
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+// Focused and Parker trajectories are already in locally spherical coordinates
+   this->_value = momentum;
+#elif TRAJ_TYPE == TRAJ_FIELDLINE
+   this->_value[0] = momentum[2];
+   this->_value[1] = 0.0;
+   this->_value[2] = 0.0;
 #elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   if(val_time == 0) this->_value[0] = this->_mom[2] / this->_mom.Norm();
-   else this->_value[0] = this->_mom2[2] / this->_mom2.Norm();
+   this->_value[0] = momentum.Norm();
+   this->_value[1] = momentum[2] / this->_value[0];
+   this->_value[2] = 0.0;
 #elif TRAJ_TYPE == TRAJ_LORENTZ
-   if(val_time == 0) this->_value[0] = (this->_mom * this->_spdata.bhat) / this->_mom.Norm();
-   else this->_value[0] = (this->_mom2 * this->_spdata2.bhat) / this->_mom2.Norm();
+   this->_value[0] = momentum.Norm();
+   this->_value[1] = momentum * bhat / this->_value[0];
+   this->_value[2] = 0.0;
 #endif
+   };
 };
 
-#endif
-
-#if TRAJ_TYPE != TRAJ_PARKER
+#if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM methods

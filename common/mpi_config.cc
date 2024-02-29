@@ -103,7 +103,44 @@ MPI_Config::MPI_Config(int argc, char** argv)
    MPI_Comm_size(node_comm, &node_comm_size);
    MPI_Comm_rank(node_comm, &node_comm_rank);
 
-// Figure out the number of nodes by counting the number of processes with rank 0 in "node_comm"
+// Adjust for multiple bosses per node
+#ifdef N_BOSSES_PER_NODE
+#if N_BOSSES_PER_NODE > 1
+   int sock_comm_size, sock_comm_rank;
+   MPI_Comm sock_comm, sock_comm_tmp;
+
+// First split based on socket. This is done to ensure that bosses only communicate with workers within their physical socket. 
+   MPI_Comm_split_type(node_comm, OMPI_COMM_TYPE_SOCKET, 0, MPI_INFO_NULL, &sock_comm);
+   MPI_Comm_size(sock_comm, &sock_comm_size);
+   MPI_Comm_rank(sock_comm, &sock_comm_rank);
+
+// Figure out the number of sockets per node by counting the number of processes with rank 0 in "sock_comm"
+   int sock_count_msg = (sock_comm_rank ? 0 : 1);
+   MPI_Allreduce(&sock_count_msg, &n_sockets_per_node, 1, MPI_INT, MPI_SUM, node_comm);
+
+// Find number of bosses per socket. This number is forced to be at least 1 and rounded down to be an integer for simplicity.
+   n_bosses_per_socket = N_BOSSES_PER_NODE / n_sockets_per_node;
+// If there are more sockets than bosses, just pretend N_BOSSES_PER_NODE = n_bosses_per_socket * n_sockets_per_node
+   if(n_bosses_per_socket < 1) {
+      n_bosses_per_socket = 1;
+   }
+// If necessary, further split sock_comm for as many bosses as
+   else if(n_bosses_per_socket > 1) {
+      MPI_Comm_split(sock_comm, (sock_comm_rank % n_bosses_per_socket), 0, &sock_comm_tmp);
+      MPI_Comm_free(&sock_comm);
+      sock_comm = sock_comm_tmp;
+   };
+
+   MPI_Comm_free(&node_comm);
+   node_comm = sock_comm;
+
+// Update rank and size in new "node" communicators
+   MPI_Comm_size(node_comm, &node_comm_size);
+   MPI_Comm_rank(node_comm, &node_comm_rank);
+#endif
+#endif
+
+// Figure out the number of nodes (or node-like units) by counting the number of processes with rank 0 in "node_comm"
    int node_count_msg = (node_comm_rank ? 0 : 1);
    MPI_Allreduce(&node_count_msg, &n_nodes, 1, MPI_INT, MPI_SUM, glob_comm);
 
@@ -298,7 +335,7 @@ void TestMPIConfig(void)
    MPI_Config mpi_config(0, nullptr);
 
 // Each process prints its config to a different file
-   std::string filename = "mpi_config_" + std::to_string(mpi_config.glob_comm_rank);
+   std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(mpi_config.glob_comm_rank);
    std::ofstream infofile;
    infofile.open(filename.c_str(), std::ofstream::out);
 
@@ -317,6 +354,8 @@ void TestMPIConfig(void)
    infofile << "This is node: " << mpi_config.my_node << std::endl;
    infofile << "Size of node communicator: " << mpi_config.node_comm_size << std::endl;
    infofile << "Rank in node communicator: " << mpi_config.node_comm_rank << std::endl;
+   infofile << "Number of sockets per node: " << mpi_config.n_sockets_per_node << std::endl;
+   infofile << "Number of bosses per socket: " << mpi_config.n_bosses_per_socket << std::endl;
    infofile << std::endl;
 
    infofile << "Total number of workers: " << mpi_config.n_workers << std::endl;

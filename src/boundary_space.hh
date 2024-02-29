@@ -348,6 +348,50 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRankine class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief Boundary in the shape of the Rankine half-body
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryBase), GeoVector origin, double radius
+*/
+class BoundaryRankine : public BoundaryBase {
+
+protected:
+
+//! Origin (persistent)
+   GeoVector origin;
+
+//! Symmetry axis (persistent)
+   GeoVector axis;
+
+//! Distance to the nose (persistent)
+   double z_nose;
+
+//! Default constructor (protected, class not designed to be instantiated)
+   BoundaryRankine(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
+//! Copy constructor (protected, class not designed to be instantiated)
+   BoundaryRankine(const BoundaryRankine& other);
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+//! Compute the distance to the boundary
+   void EvaluateBoundary(void) override;
+
+public:
+
+//! Destructor
+   ~BoundaryRankine() override = default;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryRankineAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -356,28 +400,16 @@ const std::string bnd_name_rankine_absorb = "BoundaryRankineAbsorb";
 
 /*!
 \brief Absorbing boundary in the shape of the Rankine half-body
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
 
-Parameters: (BoundaryBase), GeoVector origin, GeoVector axis, double z_nose
+Parameters: (BoundaryRankine)
 */
-class BoundaryRankineAbsorb : public BoundaryBase {
+class BoundaryRankineAbsorb : public BoundaryRankine {
 
 protected:
 
-//! Origin
-   GeoVector origin;
-
-//! Symmetry axis
-   GeoVector axis;
-
-//! Distance to the nose
-   double z_nose;
-
 //! Set up the boundary evaluator based on "params"
    void SetupBoundary(bool construct) override;
-
-//! Compute the distance to the boundary
-   void EvaluateBoundary(void) override;
 
 public:
 

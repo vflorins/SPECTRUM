@@ -83,7 +83,7 @@ public:
 
 #endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumBeam class declaration
@@ -125,6 +125,10 @@ public:
 //! Clone function
    CloneFunctionInitial(InitialMomentumBeam);
 };
+
+#endif
+
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumRing class declaration

@@ -55,6 +55,9 @@ protected:
 //! Angular frequency magnitude (persistent)
    double w0;
 
+//! Position relative to origin (transient)
+   GeoVector posprime;
+
 // TODO implement magnetic axis tilt
 
 //! Set up the field evaluator based on "params"
@@ -73,6 +76,9 @@ public:
 
 //! Default constructor
    BackgroundSolarWind(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundSolarWind(const BackgroundSolarWind& other);

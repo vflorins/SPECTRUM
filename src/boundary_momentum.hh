@@ -21,11 +21,8 @@ namespace Spectrum {
 // BoundaryMomentum class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentum class
-const std::string bnd_name_momentum = "BoundaryMomentum";
-
 /*!
-\brief Energy boundary
+\brief Momentum boundary
 \author Vladimir Florinski
 
 Parameters: (BoundaryBase), double momentum
@@ -43,22 +40,57 @@ protected:
 //! Compute the distance to the boundary
    void EvaluateBoundary(void) override;
 
-public:
-
 //! Default constructor
    BoundaryMomentum(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BoundaryMomentum(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
 //! Copy constructor
    BoundaryMomentum(const BoundaryMomentum& other);
 
+public:
+
 //! Destructor
    ~BoundaryMomentum() override = default;
-
-//! Clone function
-   CloneFunctionBoundary(BoundaryMomentum);
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumInject class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryMomentum class
+const std::string bnd_name_momentum_inject = "BoundaryMomentumInject";
+
+/*!
+\brief Absorbing (injection) momentum boundary
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryMomentum)
+*/
+class BoundaryMomentumInject : public BoundaryMomentum {
+
+protected:
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+public:
+
+//! Default constructor
+   BoundaryMomentumInject(void);
+
+//! Copy constructor
+   BoundaryMomentumInject(const BoundaryMomentumInject& other);
+
+//! Destructor
+   ~BoundaryMomentumInject() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryMomentumInject);
+};
+
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror class declaration

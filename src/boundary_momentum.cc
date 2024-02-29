@@ -15,13 +15,24 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\author Vladimir Florinski
-\date 03/25/2022
+\author Juan G Alonso Guzman
+\date 02/28/2024
 */
 BoundaryMomentum::BoundaryMomentum(void)
-                : BoundaryBase(bnd_name_momentum, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
+                : BoundaryBase("", 0, BOUNDARY_MOMENTUM)
 {
-   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+BoundaryMomentum::BoundaryMomentum(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                : BoundaryBase(name_in, specie_in, status_in)
+{
 };
 
 /*!
@@ -33,8 +44,6 @@ BoundaryMomentum::BoundaryMomentum(const BoundaryMomentum& other)
                 : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
-   max_crossings = 1;
-   RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
@@ -54,14 +63,59 @@ void BoundaryMomentum::SetupBoundary(bool construct)
 
 /*!
 \author Vladimir Florinski
-\date 03/25/2022
+\author Juan G Alonso Guzman
+\date 02/23/2024
 */
 void BoundaryMomentum::EvaluateBoundary(void)
 {
+#if (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    _delta = _mom.Norm() - momentum;
+#elif (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+   _delta = _mom[0] - momentum;
+#endif
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumInject methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+*/
+BoundaryMomentumInject::BoundaryMomentumInject(void)
+                      : BoundaryMomentum(bnd_name_momentum_inject, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
+{
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param[in] other Object to initialize from
+*/
+BoundaryMomentumInject::BoundaryMomentumInject(const BoundaryMomentumInject& other)
+                      : BoundaryMomentum(other)
+{
+   RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryMomentumInject::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryMomentum::SetupBoundary(false);
+};
+
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror methods
@@ -86,9 +140,9 @@ BoundaryMirror::BoundaryMirror(const BoundaryMirror& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
-   max_crossings = -1;
    RAISE_BITS(_status, BOUNDARY_REFLECT);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = -1;
 };
 
 /*!

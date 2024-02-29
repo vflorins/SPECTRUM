@@ -111,7 +111,7 @@ public:
 const std::string dist_name_position_uniform = "DistributionPositionUniform";
 
 /*!
-\brief An isotropic function of the spatial position
+\brief A uniform function of the spatial position
 \author Juan G Alonso Guzman
 
 Type: 3D position
@@ -148,28 +148,29 @@ public:
    CloneFunctionDistribution(DistributionPositionUniform);
 };
 
-#if TRAJ_TYPE != TRAJ_PARKER
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DistributionPitchUniform class declaration
+// DistributionMomentumUniform class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DistributionPitchUniform class
-const std::string dist_name_pitch_uniform = "DistributionPitchUniform";
+//! Readable name of the DistributionMomentumUniform class
+const std::string dist_name_momentum_uniform = "DistributionMomentumUniform";
 
 /*!
-\brief An isotropic function of the pitch angle cosine (mu)
-\author Vladimir Florinski
+\brief A uniform function of the momentum
+\author Juan G Alonso Guzman
 
-Type: 1D momentum
-Parameters: (DistributionUniform), int val_time
+Type: 3D momentum
+Parameters: (DistributionUniform), int val_time, int val_coord
 */
-class DistributionPitchUniform : public DistributionUniform<double> {
+class DistributionMomentumUniform : public DistributionUniform<double> {
 
 protected:
 
 //! Which coordinates to use for value: 0 initial, 1 final (persistent)
    int val_time;
+
+//! Which coordinate representation to use for value: 0 "native coordinates", 1 locally spherical with B || z (persistent)
+   int val_coord;
 
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
@@ -180,21 +181,20 @@ protected:
 public:
 
 //! Default constructor
-   DistributionPitchUniform(void);
+   DistributionMomentumUniform(void);
 
 //! Copy constructor
-   DistributionPitchUniform(const DistributionPitchUniform& other);
+   DistributionMomentumUniform(const DistributionMomentumUniform& other);
 
 //! Destructor
-   ~DistributionPitchUniform() override = default;
+   ~DistributionMomentumUniform() override = default;
 
 //! Clone function
-   CloneFunctionDistribution(DistributionPitchUniform);
+   CloneFunctionDistribution(DistributionMomentumUniform);
 };
 
-#endif
-
 #if TRAJ_TYPE == TRAJ_LORENTZ
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------

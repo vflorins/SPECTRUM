@@ -106,9 +106,9 @@ BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(void)
 BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(const BoundaryPlaneAbsorb& other)
                    : BoundaryPlane(other)
 {
-   max_crossings = 1;
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
 };
 
 /*!
@@ -428,9 +428,9 @@ BoundarySphereAbsorb::BoundarySphereAbsorb(void)
 BoundarySphereAbsorb::BoundarySphereAbsorb(const BoundarySphereAbsorb& other)
                     : BoundarySphere(other)
 {
-   max_crossings = 1;
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
 };
 
 /*!
@@ -486,41 +486,50 @@ void BoundarySphereReflect::SetupBoundary(bool construct)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// BoundaryRankineAbsorb methods
+// BoundaryRankine methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\author Vladimir Florinski
-\date 12/17/2020
+\author Juan G Alonso Guzman
+\date 02/28/2024
 */
-BoundaryRankineAbsorb::BoundaryRankineAbsorb(void)
-                     : BoundaryBase(bnd_name_rankine_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
+BoundaryRankine::BoundaryRankine(void)
+               : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
-   max_crossings = 1;
 };
 
 /*!
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+BoundaryRankine::BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+               : BoundaryBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 01/25/2022
 \param[in] other Object to initialize from
 */
-BoundaryRankineAbsorb::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
-                     : BoundaryBase(other)
+BoundaryRankine::BoundaryRankine(const BoundaryRankine& other)
+               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   max_crossings = 1;
-   RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
 \date 01/25/2022
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryRankineAbsorb::SetupBoundary(bool construct)
+void BoundaryRankine::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryBase::SetupBoundary(false);
@@ -530,10 +539,10 @@ void BoundaryRankineAbsorb::SetupBoundary(bool construct)
 };
 
 /*!
-\author Vladimir Florinski
+\author Juan G Alonso Guzman
 \date 01/25/2022
 */
-void BoundaryRankineAbsorb::EvaluateBoundary(void)
+void BoundaryRankine::EvaluateBoundary(void)
 {
    GeoVector pos_rel = _pos - origin;
    double z = pos_rel * axis;
@@ -541,6 +550,46 @@ void BoundaryRankineAbsorb::EvaluateBoundary(void)
 
 // TODO Develop a better method for boundary proximity test
    _delta = r - z_nose * sqrt(2.0 / (1.0 + z / r));
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryRankineAbsorb methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+*/
+BoundaryRankineAbsorb::BoundaryRankineAbsorb(void)
+                     : BoundaryRankine(bnd_name_rankine_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
+{
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param[in] other Object to initialize from
+*/
+BoundaryRankineAbsorb::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
+                     : BoundaryRankine(other)
+{
+   RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2024
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryRankineAbsorb::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) BoundaryRankine::SetupBoundary(false);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -650,9 +699,9 @@ BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(void)
 BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(const BoundaryCylinderAbsorb& other)
                       : BoundaryCylinder(other)
 {
-   max_crossings = 1;
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
 };
 
 /*!
@@ -765,9 +814,9 @@ BoundaryRegionAbsorb::BoundaryRegionAbsorb(void)
 BoundaryRegionAbsorb::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
                     : BoundaryRegion(other)
 {
-   max_crossings = 1;
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   max_crossings = 1;
 };
 
 /*!

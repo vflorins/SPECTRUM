@@ -645,15 +645,15 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionStraussEtAl2013 methods
+// DiffusionBallEtAl2005 methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Juan G Alonso Guzman
 \date 12/06/2023
 */
-DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(void)
-                        : DiffusionBase(diff_name_strauss_et_al_2013, 0, DIFF_NOBACKGROUND)
+DiffusionBallEtAl2005::DiffusionBallEtAl2005(void)
+                     : DiffusionBase(diff_name_ball_et_al_2005, 0, DIFF_NOBACKGROUND)
 {
 };
 
@@ -664,8 +664,8 @@ DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other)
-                        : DiffusionBase(other)
+DiffusionBallEtAl2005::DiffusionBallEtAl2005(const DiffusionBallEtAl2005& other)
+                     : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
@@ -678,7 +678,7 @@ DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(const DiffusionStraussEtAl201
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
+void DiffusionBallEtAl2005::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) DiffusionBase::SetupDiffusion(false);
@@ -697,7 +697,7 @@ void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
 \author Juan G Alonso Guzman
 \date 12/06/2023
 */
-void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
+void DiffusionBallEtAl2005::EvaluateDiffusion(void)
 {
    if((comp_eval == 2)) return;
 
