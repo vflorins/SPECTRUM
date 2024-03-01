@@ -167,8 +167,7 @@ void TrajectoryParker::PhysicalStep(void)
 {
    dt_physical = cfl_adv_tp * _spdata.dmax / fmax(drift_vel.Norm(), divK.Norm());
    dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_spdata.dmax) / fmax(Kperp, Kpara));
-// TODO: implement dt_physical constraint based on maximum momentum change per step
-   // dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dpmax / (_mom[0] * _spdata.divU()));
+   dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dlnpmax / fabs(_spdata.divU()));
 };
 
 /*!
