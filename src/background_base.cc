@@ -257,6 +257,7 @@ void BackgroundBase::StopServerFront(void)
 */
 double BackgroundBase::GetSafeIncr(const GeoVector& dir)
 {
+//TODO: Return a more general expression that actually depends on the input direction. Perhaps it could be negative if _spdata._dr is also negative?
    return incr_dmax_ratio * _spdata.dmax;
 };
 
