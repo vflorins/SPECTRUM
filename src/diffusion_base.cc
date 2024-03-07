@@ -143,7 +143,7 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save position, compute increment
       _pos_saved = _pos;
       _pos += _spdata._dr[xyz] * cart_unit_vec[xyz];
-      _spdata.Bvec += (_spdata._dr[xyz] * cart_unit_vec[xyz]) * _spdata.gradBvec;
+      _spdata.Bvec += _spdata.gradBvec * (_spdata._dr[xyz] * cart_unit_vec[xyz]);
       _spdata.Bmag = _spdata.Bvec.Norm();
       EvaluateDiffusion();
       derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / _spdata._dr[xyz];
@@ -155,7 +155,7 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save time, compute increment
       _t_saved = _t;
       _t += _spdata._dt;
-      _spdata.Bvec += _spdata._dt * _spdata.dBvecdt;
+      _spdata.Bvec += _spdata.dBvecdt * _spdata._dt;
       _spdata.Bmag = _spdata.Bvec.Norm();
       EvaluateDiffusion();
       derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / _spdata._dt;
