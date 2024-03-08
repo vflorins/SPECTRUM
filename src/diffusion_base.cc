@@ -143,6 +143,7 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save position, compute increment
       _pos_saved = _pos;
       _pos += _spdata._dr[xyz] * cart_unit_vec[xyz];
+//FIXME: This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough. However, when analytic derivatives are used, "_dr" is not modified after the initial setup, which could result in a bad approximation when "dmax" < "dmax0".
       _spdata.Bvec += _spdata.gradBvec * (_spdata._dr[xyz] * cart_unit_vec[xyz]);
       _spdata.Bmag = _spdata.Bvec.Norm();
       EvaluateDiffusion();
