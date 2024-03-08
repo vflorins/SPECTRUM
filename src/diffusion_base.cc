@@ -156,6 +156,7 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save time, compute increment
       _t_saved = _t;
       _t += _spdata._dt;
+//FIXME: A similar comment as the one in the spatial derivatives applies here for "_dt".
       _spdata.Bvec += _spdata.dBvecdt * _spdata._dt;
       _spdata.Bmag = _spdata.Bvec.Norm();
       EvaluateDiffusion();
