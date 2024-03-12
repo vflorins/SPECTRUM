@@ -71,16 +71,17 @@ void BackgroundSolarWindTermShock::EvaluateBackground(void)
    double r = r_ref * posprime.Norm();
    GeoVector Br, Bp, rhat = UnitVec(posprime);
    if(r > r_TS) {
-      Br = (_spdata.Bvec * rhat) * rhat;
-      Bp = (_spdata.Bvec - Br);
-      if(r > r_TS + w_TS) {
-         _spdata.Uvec *= s_TS_inv * Sqr((r_TS + w_TS) / r);
-         _spdata.Bvec = Br + s_TS * Bp * Sqr(r / (r_TS + w_TS));
-      }
-      else {
-         _spdata.Uvec *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
-         _spdata.Bvec = Br + Bp * (1.0 + (s_TS - 1.0) * (r - r_TS) / w_TS);
+      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
+         if(r > r_TS + w_TS) _spdata.Uvec *= s_TS_inv * Sqr((r_TS + w_TS) / r);
+         else _spdata.Uvec *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
       };
+      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         Br = (_spdata.Bvec * rhat) * rhat;
+         Bp = (_spdata.Bvec - Br);
+         if(r > r_TS + w_TS) _spdata.Bvec = Br + s_TS * Bp * Sqr(r / (r_TS + w_TS));
+         else _spdata.Bvec = Br + Bp * (1.0 + (s_TS - 1.0) * (r - r_TS) / w_TS);
+      };
+         
    };
 };
 
