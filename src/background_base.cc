@@ -98,7 +98,7 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 
 // Restore position
       _pos = _pos_saved;
-
+// The calculation in DirectionalDerivative() gives gradV[i][j] = dV_j / ds^i. This is the transpose of the Jacobian.
       if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec[xyz] = (_spdata.Uvec - _spdata_tmp.Uvec) / _spdata_tmp._dr[xyz];
       if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata_tmp.gradBvec[xyz] = (_spdata.Bvec - _spdata_tmp.Bvec) / _spdata_tmp._dr[xyz];
       if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec[xyz] = (_spdata.Evec - _spdata_tmp.Evec) / _spdata_tmp._dr[xyz];
@@ -134,19 +134,21 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 02/28/2024
+\date 03/11/2024
 */
 void BackgroundBase::NumericalDerivatives(void)
 {
    int xyz;
 
-// Save the mask, u,B,E. This is quicker than using the copy assignment based on _mask
+// Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
 // Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivative will be wrong
    _spdata_tmp._mask = _spdata._mask;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.Uvec = _spdata.Uvec;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata_tmp.Bvec = _spdata.Bvec;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.Evec = _spdata.Evec;
    _spdata_tmp.region = _spdata.region;
+   _spdata_tmp.n_dens = _spdata.n_dens;
+   _spdata_tmp.p_ther = _spdata.p_ther;
    _spdata_tmp.dmax = _spdata.dmax;
 
 // Spatial derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a gradient
@@ -154,11 +156,6 @@ void BackgroundBase::NumericalDerivatives(void)
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
       for(xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
    };
-
-// The calculation in DirectionalDerivative() gives gradV[i][j] = dV_j / ds^i. It needs to be transposed to match the standard mathematical notation for the Jacobian.
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec.Transpose();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata_tmp.gradBvec.Transpose();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec.Transpose();
 
 // Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.
    _spdata._mask >>= mask_offset;

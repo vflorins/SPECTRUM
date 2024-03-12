@@ -15,7 +15,8 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 07/14/2020
+\author Juan G Alonso Guzman
+\date 03/06/2024
 */
 void PrintUnits(void)
 {
@@ -32,13 +33,14 @@ void PrintUnits(void)
    std::cout << "Unit of magnetic field: " << unit_magnetic_fluid << " G\n";
    std::cout << "Unit of diffusion: " << unit_diffusion_fluid << " cm^2 s^-1\n";
    std::cout << "Unit of temperature: " << unit_temperature_fluid << " K\n";
-   std::cerr << "------------------------------particle------------------------------------------\n";
+   std::cout << "------------------------------particle------------------------------------------\n";
    std::cout << "Unit of mass: " << unit_mass_particle << " g\n";
    std::cout << "Unit of charge: " << unit_charge_particle << " CGSq\n";
    std::cout << "Unit of energy: " << unit_energy_particle << " erg\n";
    std::cout << "Unit of momentum: " << unit_momentum_particle << " g cm s^-1\n";
+   std::cout << "Unit of rigidity: " << unit_rigidity_particle << " V\n";
    std::cout << "Charge to mass factor: " << charge_mass_particle << "\n";
-   std::cerr << "--------------------------------------------------------------------------------\n";
+   std::cout << "--------------------------------------------------------------------------------\n";
    std::cout << "Speed of light in code units: " << c_code << "\n";
    std::cout << "Boltzmann constant in code units: " << kb_code << "\n";
    std::cout << "Particle mass in code units: " << mass[0] << "\n";
@@ -47,8 +49,8 @@ void PrintUnits(void)
    std::cout << "Alfven speed in code units: " << AlfvenSpeed(1.0, 1.0) << "\n";
    std::cout << "Cyclotron frequency in code units: " << CyclotronFrequency(1.0, 1.0, 0) << "\n";
    std::cout << "Larmor radius in code units: " << LarmorRadius(RelFactor(1.0) * mass[0], 1.0, 0) << "\n";
-   std::cerr << "--------------------------------------------------------------------------------\n";
-   std::cerr << std::endl;
+   std::cout << "--------------------------------------------------------------------------------\n";
+   std::cout << std::endl;
 };
 
 };

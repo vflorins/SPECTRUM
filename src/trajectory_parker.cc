@@ -78,32 +78,34 @@ void TrajectoryParker::FieldAlignedFrame(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 06/07/2023
+\date 03/11/2024
 */
 void TrajectoryParker::DiffusionCoeff(void)
 try {
-   GeoVector gradKperp, gradKpara;
-   FieldAlignedFrame();
+   int i,j;
+   double Kappa, Kperp_tmp, Kpara_tmp, Kappa_tmp, delta = incr_dmax_ratio * _spdata.dmax;
+   GeoVector pos_tmp;
+   SpatialData spdata_tmp;
+// TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_tmp._mask" should include more fields.
+   spdata_tmp._mask = BACKGROUND_B;
 
-// Compute Kperp and grad(Kperp)
+// Compute perpendicular and parallel diffusion coefficients and diffusion tensor
    Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
-   gradKperp[0] = diffusion->GetDirectionalDerivative(0);
-   gradKperp[1] = diffusion->GetDirectionalDerivative(1);
-   gradKperp[2] = diffusion->GetDirectionalDerivative(2);
-
-// Compute Kpara and grad(Kpara)
    Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
-   gradKpara[0] = diffusion->GetDirectionalDerivative(0);
-   gradKpara[1] = diffusion->GetDirectionalDerivative(1);
-   gradKpara[2] = diffusion->GetDirectionalDerivative(2);
 
-// Find components of divK in field aligned frame 
-   divK[0] = gradKperp * fa_basis[0];
-   divK[1] = gradKperp * fa_basis[1];
-   divK[2] = gradKpara * fa_basis[2];
-
-// Convert "divK" to global coordinates
-   divK.ChangeFromBasis(fa_basis);
+// Loop over dimensions to find derivatives of Kappa
+   divK = gv_zeros;
+   for(j = 0; j < 3; j++) {
+      pos_tmp = _pos + delta * cart_unit_vec[j];
+      CommonFields(_t, pos_tmp, spdata_tmp);
+      Kperp_tmp = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_tmp);
+      Kpara_tmp = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_tmp);
+      for(i = 0; i < 3; i++) {
+         Kappa = Kperp * (i == j ? 1.0 : 0.0) + (Kpara - Kperp) * _spdata.bhat[j] * _spdata.bhat[i];
+         Kappa_tmp = Kperp_tmp * (i == j ? 1.0 : 0.0) + (Kpara_tmp - Kperp_tmp) * spdata_tmp.bhat[j] * spdata_tmp.bhat[i];
+         divK[i] += (Kappa_tmp - Kappa) / delta;
+      };
+   };
 }
 
 catch(ExFieldError& exception) {
@@ -114,11 +116,12 @@ catch(ExFieldError& exception) {
 
 /*!
 \author Juan G Alonso Guzman
-\date 06/07/2023
+\date 03/11/2024
 */
 void TrajectoryParker::EulerDiffSlopes(void)
 {
    double dWx, dWy, dWz;
+   FieldAlignedFrame();
 
 // Generate stochastic factors
    dWx = sqrt(dt) * rng->GetNormal();
@@ -148,9 +151,9 @@ void TrajectoryParker::EulerDiffSlopes(void)
 void TrajectoryParker::DriftCoeff(void)
 {
 #ifdef TRAJ_PARKER_USE_B_DRIFTS
-// Compute B*curl(bhat/|B|)
+// Compute |B|*curl(b/|B|)
    drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag() ^ _spdata.bhat)) / _spdata.Bmag;
-// Scale by pvc/3qB = r_L*v/3
+// Scale by pvc/3q|B| = r_L*v/3
    drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
 // Add bulk flow velocity
    drift_vel += _spdata.Uvec;
@@ -165,10 +168,13 @@ void TrajectoryParker::DriftCoeff(void)
 */
 void TrajectoryParker::PhysicalStep(void)
 {
-   dt_physical = cfl_adv_tp * _spdata.dmax / fmax(drift_vel.Norm(), divK.Norm());
+#if TRAJ_TIME_FLOW == 0
+   dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel + divK).Norm();
+#else
+   dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel - divK).Norm();
+#endif
    dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_spdata.dmax) / fmax(Kperp, Kpara));
-// TODO: implement dt_physical constraint based on maximum momentum change per step
-   // dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dpmax / (_mom[0] * _spdata.divU()));
+   dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dlnpmax / fabs(_spdata.divU()));
 };
 
 /*!

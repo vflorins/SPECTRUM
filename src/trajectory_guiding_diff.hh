@@ -55,9 +55,6 @@ protected:
 //! Compute the basis vectors of the field aligned frame
    void FieldAlignedFrame(void);
 
-//! Compute the drift coefficient
-   void DriftCoeff(void) override;
-
 //! Computes the perpendicular diffusion coefficient
    virtual void DiffusionCoeff(void);
 

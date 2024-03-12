@@ -25,6 +25,7 @@ const uint16_t BACKGROUND_E = 0x0004;
 const uint16_t BACKGROUND_ALL = BACKGROUND_U | BACKGROUND_B | BACKGROUND_E;
 
 //! Spatial derivatives
+//! gradF[i][j] = dF_j / dx^i, which is the transpose of the Jacobian.
 const uint16_t BACKGROUND_gradU = 0x0010;
 const uint16_t BACKGROUND_gradB = 0x0020;
 const uint16_t BACKGROUND_gradE = 0x0040;
@@ -141,6 +142,15 @@ struct SpatialData {
 
 //! Gradient of Bmag
    GeoVector gradBmag(void);
+
+//! Divergence of bhat
+   double divbhat(void);
+
+//! Curl of bhat
+   GeoVector curlbhat(void);
+
+//! Gradient of bhat
+   GeoMatrix gradbhat(void);
 };
 
 /*!
@@ -218,9 +228,9 @@ inline double SpatialData::divE(void)
 inline GeoVector SpatialData::curlU(void)
 {
    GeoVector vec_tmp;
-   vec_tmp[0] = gradUvec[2][1] - gradUvec[1][2]; 
-   vec_tmp[1] = gradUvec[0][2] - gradUvec[2][0];
-   vec_tmp[2] = gradUvec[1][0] - gradUvec[0][1];
+   vec_tmp[0] = gradUvec[1][2] - gradUvec[2][1]; 
+   vec_tmp[1] = gradUvec[2][0] - gradUvec[0][2];
+   vec_tmp[2] = gradUvec[0][1] - gradUvec[1][0];
    return vec_tmp;
 };
 
@@ -232,9 +242,9 @@ inline GeoVector SpatialData::curlU(void)
 inline GeoVector SpatialData::curlB(void)
 {
    GeoVector vec_tmp;
-   vec_tmp[0] = gradBvec[2][1] - gradBvec[1][2]; 
-   vec_tmp[1] = gradBvec[0][2] - gradBvec[2][0];
-   vec_tmp[2] = gradBvec[1][0] - gradBvec[0][1];
+   vec_tmp[0] = gradBvec[1][2] - gradBvec[2][1]; 
+   vec_tmp[1] = gradBvec[2][0] - gradBvec[0][2];
+   vec_tmp[2] = gradBvec[0][1] - gradBvec[1][0];
    return vec_tmp;
 };
 
@@ -246,21 +256,56 @@ inline GeoVector SpatialData::curlB(void)
 inline GeoVector SpatialData::curlE(void)
 {
    GeoVector vec_tmp;
-   vec_tmp[0] = gradEvec[2][1] - gradEvec[1][2]; 
-   vec_tmp[1] = gradEvec[0][2] - gradEvec[2][0];
-   vec_tmp[2] = gradEvec[1][0] - gradEvec[0][1];
+   vec_tmp[0] = gradEvec[1][2] - gradEvec[2][1]; 
+   vec_tmp[1] = gradEvec[2][0] - gradEvec[0][2];
+   vec_tmp[2] = gradEvec[0][1] - gradEvec[1][0];
    return vec_tmp;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/06/2023
+\date 03/11/2024
 \return Gradient of Bmag
-\note The formula comes from grad(Bmag) = grad(sqrt(Bvec * Bvec)) = 2.0 / (2.0 * Bmag) * Bvec * gradBvec = [bhat] * [gradBvec]
+\note The formula comes from gradBmag_i = \partial_i (\sum_j B_j^2) = 2.0 / (2.0 * B) * B_j * dB_j/dx^i = dB_j/dx^i * b_j. This comes out to [gradBmag] * [bhat].
 */
 inline GeoVector SpatialData::gradBmag(void)
 {
-   return bhat * gradBvec;
+   return gradBvec * bhat;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 03/11/2024
+\return Divergence of bhat
+\note The formula comes from applying vector identity (7) in the NRL Plasma formulary
+*/
+inline double SpatialData::divbhat(void)
+{
+   return (divB() - (gradBmag() * bhat)) / Bmag;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 03/11/2024
+\return Curl of bhat
+\note The formula comes from applying vector identity (8) in the NRL Plasma formulary
+*/
+inline GeoVector SpatialData::curlbhat(void)
+{
+   return (curlB() - (gradBmag() ^ bhat)) / Bmag;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 03/11/2024
+\return Gradient of bhat
+\note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
+*/
+inline GeoMatrix SpatialData::gradbhat(void)
+{
+   GeoMatrix mat_tmp;
+   mat_tmp.Dyadic(gradBmag(), bhat);
+   return (gradBvec - mat_tmp) / Bmag;
 };
 
 };

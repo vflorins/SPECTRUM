@@ -103,7 +103,7 @@ const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
 #define charge_mass_particle ((unit_charge_particle * unit_magnetic_fluid / unit_mass_particle / unit_velocity_fluid) / unit_frequency_fluid)
 
 //! Rigidity: derived, 1 V = 1 eV / 1 e
-#define unit_rigidity_particle (unit_energy_particle / unit_charge_particle);
+#define unit_rigidity_particle (unit_energy_particle / unit_charge_particle)
 
 //! The largest nmumber of species (distinct particle mass and charge).
 #define MAX_PARTICLE_SPECIES 3

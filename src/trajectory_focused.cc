@@ -57,7 +57,7 @@ void TrajectoryFocused::SetStart(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 08/07/2023
+\date 03/11/2024
 */
 void TrajectoryFocused::DriftCoeff(void)
 {
@@ -67,9 +67,9 @@ void TrajectoryFocused::DriftCoeff(void)
    st2 = 1.0 - ct2;
 // Compute gradient drift
    drift_vel = 0.5 * st2 * (_spdata.bhat ^ _spdata.gradBmag()) / _spdata.Bmag;
-// Add curvature drift. Note that (Bvec * grad)Bvec = [gradBvec] * [Bvec].
+// Add curvature drift. Note that (Bvec * grad)Bvec = [Bvec]^T * [gradBvec].
    drift_vel += ( 0.5 * st2 * _spdata.bhat * (_spdata.Bvec * _spdata.curlB())
-                + ct2 * (_spdata.bhat ^ (_spdata.gradBvec * _spdata.Bvec)) ) / Sqr(_spdata.Bmag);
+                + ct2 * (_spdata.bhat ^ (_spdata.Bvec * _spdata.gradBvec)) ) / Sqr(_spdata.Bmag);
 // Scale by pvc/qB
    drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0];
 // Add bulk flow and parallel velocities
@@ -93,7 +93,7 @@ void TrajectoryFocused::PhysicalStep(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 08/07/2023
+\date 03/11/2024
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
@@ -116,8 +116,8 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
    bhatbhat_gradUvec = bhatbhat % _spdata.gradUvec;
 // Compute div U
    divUvec = _spdata.divU();
-// Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [gradUvec] * [Uvec].
-   cdUvecdt = _spdata.dUvecdt + (_spdata.gradUvec * _spdata.Uvec);
+// Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
+   cdUvecdt = _spdata.dUvecdt + (_spdata.Uvec * _spdata.gradUvec);
    bhat_cdUvecdt = 2.0 * _spdata.bhat * cdUvecdt / _vel[0];
 
    slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 
