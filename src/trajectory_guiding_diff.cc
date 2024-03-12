@@ -282,41 +282,35 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
 
 /*!
 \author Vladimir Florinski
-\date 13/03/2021
+\author Juan G Alonso Guzman
+\date 03/12/2024
+\param[out] position slopes
+\param[out] momentum slopes
 */
-void TrajectoryGuidingDiff::DriftCoeff(void)
+void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
-   TrajectoryGuiding::DriftCoeff();
+   TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
+   TrajectoryGuidingDiff::DiffusionCoeff();
 #if TRAJ_TIME_FLOW == 0
-   drift_vel += Vperp;
+   slope_pos_istage += Vperp;
 #else
-   drift_vel -= Vperp;
+   slope_pos_istage -= Vperp;
 #endif
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 02/11/2022
-\param[out] position slopes
-\param[out] momentum slopes
-*/
-void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
-{
-   TrajectoryGuidingDiff::DiffusionCoeff();
-   TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
-};
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 04/29/2022
+\date 03/12/2024
 */
 void TrajectoryGuidingDiff::PhysicalStep(void)
 {
-   TrajectoryGuiding::PhysicalStep();
+#if TRAJ_TIME_FLOW == 0
+   dt_physical = cfl_adv_tg * _spdata.dmax / (drift_vel + Vperp).Norm();
+#else
+   dt_physical = cfl_adv_tg * _spdata.dmax / (drift_vel - Vperp).Norm();
+#endif
    dt_physical = fmin(dt_physical, cfl_dif_gd * Sqr(_spdata.dmax) / Dperp);
-   dt_physical = fmin(dt_physical, cfl_dif_gd * _spdata.dmax / Vperp.Norm());
 };
 
 /*!

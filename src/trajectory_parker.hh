@@ -28,9 +28,6 @@ const unsigned int defsize_parker = 100000;
 //! CFL condition for advection
 const double cfl_adv_tp = 0.5;
 
-//! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity). Not currently being used.
-const double drift_safety_tp = 0.01;
-
 //! CFL condition for diffusion
 const double cfl_dif_tp = 0.5;
 

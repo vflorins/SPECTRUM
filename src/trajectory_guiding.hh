@@ -76,7 +76,7 @@ protected:
    void ModifiedFields(void);
 
 //! Compute the drift coefficient
-   virtual void DriftCoeff(void);
+   void DriftCoeff(void);
 
 //! Compute the RK slopes
    void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;

@@ -693,7 +693,7 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 12/01/2023
+\date 03/11/2024
 \param[out] spdata Fields, dmax, etc.
 */
 void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
@@ -756,27 +756,27 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
    };
 
 // Convert the gradients to SPECTRUM format
-   for(xyz = 0; xyz < 3; xyz++) {
-      for(uvw = 0; uvw < 3; uvw++) {
+   for(uvw = 0; uvw < 3; uvw++) {
+      for(xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)
-         spdata.gradUvec[xyz][uvw] = (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - spdata.Uvec[xyz] * grads[VAR_INDEX_RHO][uvw]) / rho;
+         spdata.gradUvec[uvw][xyz] = (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - spdata.Uvec[xyz] * grads[VAR_INDEX_RHO][uvw]) / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
-         spdata.gradUvec[xyz][uvw] = grads[SERVER_VAR_INDEX_FLO + xyz][uvw];
+         spdata.gradUvec[uvw][xyz] = grads[SERVER_VAR_INDEX_FLO + xyz][uvw];
 #else
-         spdata.gradUvec[xyz][uvw] = 0.0;
+         spdata.gradUvec[uvw][xyz] = 0.0;
 #endif
 
 // The magnetic field must be always provided
-         spdata.gradBvec[xyz][uvw] = grads[SERVER_VAR_INDEX_MAG + xyz][uvw];
+         spdata.gradBvec[uvw][xyz] = grads[SERVER_VAR_INDEX_MAG + xyz][uvw];
 
 // Electric field, if provided
 #ifdef SERVER_VAR_INDEX_ELE
-         spdata.gradEvec[xyz][uvw] = grads[SERVER_VAR_INDEX_ELE + xyz][uvw];
+         spdata.gradEvec[uvw][xyz] = grads[SERVER_VAR_INDEX_ELE + xyz][uvw];
 #elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))
-         spdata.gradEvec[xyz][uvw] = 0.0;
+         spdata.gradEvec[uvw][xyz] = 0.0;
 #endif
 
       };

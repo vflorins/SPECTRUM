@@ -85,6 +85,31 @@ void BackgroundMagnetizedCylinder::EvaluateBackground(void)
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 03/11/2024
+*/
+void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
+{
+#if MAGNETIZED_CYLINDER_DERIVATIVE_METHOD == 0
+
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+      if(posprimenorm < r_cylinder)  _spdata.gradBvec = gm_zeros;
+      else {
+//TODO: complete
+      };
+   };
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+
+#else
+   NumericalDerivatives();
+#endif
+};
+
+/*!
 \author Vladimir Florinski
 \date 02/13/2024
 */

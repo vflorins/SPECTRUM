@@ -13,6 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Method for computing derivatives of B (0: analytical, 1: Numerical)
+#define MAGNETIZED_CYLINDER_DERIVATIVE_METHOD 0
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundMagnetizedCylinder class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,6 +47,9 @@ protected:
 
 //! Compute the internal u, B, and E fields
    void EvaluateBackground(void) override;
+
+//! Compute the internal u, B, and E derivatives
+   void EvaluateBackgroundDerivatives(void) override;
 
 //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
