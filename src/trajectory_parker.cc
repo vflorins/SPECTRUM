@@ -151,9 +151,9 @@ void TrajectoryParker::EulerDiffSlopes(void)
 void TrajectoryParker::DriftCoeff(void)
 {
 #ifdef TRAJ_PARKER_USE_B_DRIFTS
-// Compute B*curl(b/|B|)
+// Compute |B|*curl(b/|B|)
    drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag() ^ _spdata.bhat)) / _spdata.Bmag;
-// Scale by pvc/3qB = r_L*v/3
+// Scale by pvc/3q|B| = r_L*v/3
    drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
 // Add bulk flow velocity
    drift_vel += _spdata.Uvec;
