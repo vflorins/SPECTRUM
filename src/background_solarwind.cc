@@ -88,16 +88,22 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Position in cylindrical coordinates
    double r, r3;
    r = posprime.Norm();
-   r3 = Cube(r);
 
-// Compute the velocity and Parker magnetic field
-   _spdata.Uvec = (ur0 / r) * posprime;
-   _spdata.Bvec = (Br0 / r3) * (posprime + (w0 * (r - 1.0) * r_ref / ur0) * (posprime[1] * gv_nx - posprime[0] * gv_ny));
+// Compute the (radial) velocity and convert back to global frame
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
+      _spdata.Uvec = (ur0 / r) * posprime;
+      _spdata.Uvec.ChangeFromBasis(eprime);
+   };
+   
+// Compute (Parker spiral) magnetic field and convert back to global frame
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      r3 = Cube(r);
+      _spdata.Bvec = (Br0 / r3) * (posprime + (w0 * (r - 1.0) * r_ref / ur0) * (posprime[1] * gv_nx - posprime[0] * gv_ny));
+      _spdata.Bvec.ChangeFromBasis(eprime);
+   };
 
-// Convert back to global frame and compute the electric field.
-   _spdata.Uvec.ChangeFromBasis(eprime);
-   _spdata.Bvec.ChangeFromBasis(eprime);
-   _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+// Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
