@@ -705,7 +705,8 @@ void DiffusionBallEtAl2005::EvaluateDiffusion(void)
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
    // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
-   LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
+   if(LISM_idx < 0) LISM_ind = 0.0;
+   else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
 // The 300.0 the "magic" factor for rigidity calculations.
    double rig = 300.0 * Rigidity(_mom[0], specie);
@@ -715,8 +716,11 @@ void DiffusionBallEtAl2005::EvaluateDiffusion(void)
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
    // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
-   if(LISM_ind < 0.99) Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
-   else Bmix_ind = 0.0;
+   if(Bmix_idx < 0) Bmix_ind = 1.0;
+   else {
+      if(LISM_ind < 0.99) Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+      else Bmix_ind = 0.0;
+   };
    double kap_rat = Bmix_ind * kap_rat_high + (1.0 - Bmix_ind) * kap_rat_low;
    Kappa[0] = kap_rat * Kappa[1];
 };

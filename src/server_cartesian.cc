@@ -291,14 +291,14 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
    block_size = block_pri->GetBlockSize();
 // Correct stencil zones and blocks for multi-block interpolation
 // The weights do not change because of the uniformity of the grid
-   for(iz = 0; iz < 8; iz++) {
+   for(iz = 0; iz < stencil.n_elements; iz++) {
       node_idx = mi_ones;
 
 // Find which indices fall outside of the primary block's boundaries
       for(xyz = 0; xyz < 3; xyz++) {
 
 // Use "previous" block
-         if(stencil.zones[iz][xyz] < 0) {
+         if(stencil.zones[iz][xyz] == -1) {
             stencil.zones[iz][xyz] = block_size[xyz] - 1;
             node_idx[xyz]--;
             status = xyz + 1;
@@ -327,7 +327,11 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
 
    if(n_blocks == 0) status = 0;
    else if(n_blocks == 4) {
-      block_sec = cache_line[sec_idx];
+// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
+      if(block_sec->GetNode() != sec_idx) {
+         if(block_pri->GetNode() == sec_idx) block_sec = block_pri;
+         else block_sec = cache_line[sec_idx];
+      };
    }
    else status = 4;
 
@@ -662,8 +666,11 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
    _inquiry.pos = pos;
    bidx = RequestBlock();
 
-// If "block_pri" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
-   if(block_pri->GetNode() != bidx) block_pri = cache_line[bidx];
+// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
+   if(block_pri->GetNode() != bidx) {
+      if(block_sec->GetNode() == bidx) block_pri = block_sec;
+      else block_pri = cache_line[bidx];
+   };
    spdata.dmax = fmin(spdata.dmax, block_pri->GetZoneLength().Smallest());
 
 #if SERVER_INTERP_ORDER == -1
