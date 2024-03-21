@@ -59,29 +59,15 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 02/22/2023
+\date 03/14/2024
+\param[in]  r      radial distance
+\param[out] ur_mod modified radial flow
 */
-void BackgroundSolarWindTermShock::EvaluateBackground(void)
+void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 {
-// First compute regular Parker Spiral fields
-   BackgroundSolarWind::EvaluateBackground();
-
-// Scale U (radial) and phi component of B if position is past the termination shock. The radial component of B and E should be the same.
-   posprime.ChangeFromBasis(eprime);
-   double r = r_ref * posprime.Norm();
-   GeoVector Br, Bp, rhat = UnitVec(posprime);
    if(r > r_TS) {
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
-         if(r > r_TS + w_TS) _spdata.Uvec *= s_TS_inv * Sqr((r_TS + w_TS) / r);
-         else _spdata.Uvec *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
-      };
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-         Br = (_spdata.Bvec * rhat) * rhat;
-         Bp = (_spdata.Bvec - Br);
-         if(r > r_TS + w_TS) _spdata.Bvec = Br + s_TS * Bp * Sqr(r / (r_TS + w_TS));
-         else _spdata.Bvec = Br + Bp * (1.0 + (s_TS - 1.0) * (r - r_TS) / w_TS);
-      };
-         
+      if(r > r_TS + w_TS) ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
+      else ur_mod *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
    };
 };
 
