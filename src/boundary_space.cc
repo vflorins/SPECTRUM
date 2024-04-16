@@ -122,6 +122,7 @@ void BoundaryPlaneAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryPlane::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -444,6 +445,7 @@ void BoundarySphereAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundarySphere::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -590,6 +592,7 @@ void BoundaryRankineAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryRankine::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -715,6 +718,7 @@ void BoundaryCylinderAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryCylinder::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -830,6 +834,7 @@ void BoundaryRegionAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryRegion::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 };
