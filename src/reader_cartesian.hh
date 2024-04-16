@@ -13,7 +13,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Size of the block in each dimnension
+//! Size of the block in each dimension
 const MultiIndex block_size_cartesian(4, 4, 4);
 
 //! Number of neighbors per dimension
