@@ -112,6 +112,7 @@ void BoundaryTimeExpire::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryTime::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -153,6 +154,7 @@ void BoundaryTimePass::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryTime::SetupBoundary(false);
+   max_crossings = -1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

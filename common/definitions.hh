@@ -63,6 +63,15 @@ namespace Spectrum {
 // Global floating point constants that are also available on the device
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+//! \f$\pi/2\f$
+const double pi_two = 0.5 * M_PI;
+
+//! \f$\pi/4\f$
+const double pi_four = 0.25 * M_PI;
+
+//! \f$\pi/8\f$
+const double pi_eight = 0.125 * M_PI;
+
 //! \f$2\pi\f$
 const double twopi = 2.0 * M_PI;
 

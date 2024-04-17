@@ -100,11 +100,47 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
       var_unit = unit_velocity_fluid;
       is_vector = true;
    }
+   else if(var_name == "Ux") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[0];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Uy") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[1];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Uz") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[2];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
    else if(var_name == "Bmag") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
       is_vector = true;
+   }
+   else if(var_name == "Bx") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[0];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "By") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[1];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Bz") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[2];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
    }
    else if(var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
@@ -146,7 +182,7 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
             _pos[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
             EvaluateBackground();
             if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
-            else scl_field[idx] = *scl_ptr;
+            else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
             idx++;
          };
       };
@@ -289,11 +325,47 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
       var_unit = unit_velocity_fluid;
       is_vector = true;
    }
+   else if(var_name == "Ux") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[0];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Uy") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[1];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Uz") {
+      _spdata._mask = BACKGROUND_U;
+      scl_ptr = &_spdata.Uvec[2];
+      var_unit = unit_velocity_fluid;
+      is_vector = false;
+   }
    else if(var_name == "Bmag") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
       is_vector = true;
+   }
+   else if(var_name == "Bx") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[0];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "By") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[1];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
+   }
+   else if(var_name == "Bz") {
+      _spdata._mask = BACKGROUND_B;
+      scl_ptr = &_spdata.Bvec[2];
+      var_unit = unit_magnetic_fluid;
+      is_vector = false;
    }
    else if(var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
@@ -335,7 +407,7 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
          for(xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
          EvaluateBackground();
          if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
-         else scl_field[idx] = *scl_ptr;
+         else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
          idx++;
       };
 

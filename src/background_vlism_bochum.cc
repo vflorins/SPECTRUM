@@ -173,12 +173,12 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
       _spdata.Bvec = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
       _spdata.Evec = gv_zeros;
-      _spdata.region = -1.0;
+      _spdata.region[0] = -1.0;
 
       RAISE_BITS(_status, STATE_INVALID);
       return;
    }
-   else _spdata.region = 1.0;
+   else _spdata.region[0] = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
    if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {

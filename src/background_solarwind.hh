@@ -17,6 +17,53 @@ namespace Spectrum {
 //! Method for computing derivatives (0: analytical, 1: Numerical)
 #define SOLARWIND_DERIVATIVE_METHOD 1
 
+//! Latitudinal profile for bulk speed (0: constant, 1: linear step, 2: smooth step)
+#define SOLARWIND_SPEED_LATITUDE_PROFILE 0
+
+//! Correction to Parker Spiral, mainly for polar regions (0: none, 1: Smith-Bieber 1991, 2: Zurbuchen et al. 1997, 3: Schwadron-McComas 2003)
+#define SOLARWIND_POLAR_CORRECTION 0
+
+//! Heliospheric current sheet (0: disabled, 1: flat, 2: Jokipii-Thomas 1981).
+#define SOLARWIND_CURRENT_SHEET 0
+
+//! Magnetic topology region (0: nowhere, 1: same as HCS, 2: HCS + hollow sphere)
+#define SOLARWIND_SECTORED_REGION 0
+
+//! Magnetic axis tilt angle relative to the solar rotation axis
+const double tilt_ang_sw = 15.0 * M_PI / 180.0;
+
+#if SOLARWIND_SPEED_LATITUDE_PROFILE > 0
+//! Ratio of fast to slow wind speed
+const double fast_slow_ratio_sw = 2.0;
+
+//! Angle to transition between fast and slow
+const double fast_slow_lat_sw = pi_two - 30.0 * M_PI / 180.0 - tilt_ang_sw;
+
+//! Transition speed coefficient
+const double fast_slow_dlat_sw = 20.0;
+#endif
+
+#if SOLARWIND_POLAR_CORRECTION == 1
+//! Differential rotation factor
+const double delta_omega_sw = 0.15;
+#endif
+
+#if SOLARWIND_POLAR_CORRECTION == 2
+//! Polar correction angle
+const double polar_offset_sw = 30.0 * M_PI / 180.0;
+
+//! Ratio of polar differential rotation to angular frequency of rotation
+const double dwt_sw = delta_omega_sw * sin(polar_offset_sw);
+
+//! Ratio of azimuthal differential rotation to angular frequency of rotation
+const double dwp_sw = delta_omega_sw * cos(polar_offset_sw);
+#endif
+
+#if SOLARWIND_SECTORED_REGION == 2
+//! Radial distance to start sectored region
+const double sectored_radius_sw = 100.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSolarWind class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,7 +93,7 @@ protected:
 //! Local coordinate system tied to the rotation axis (persistent)
    GeoVector eprime[3];
 
-//! Velocity magnitude (persistent)
+//! Velocity magnitude for slow wind (persistent)
    double ur0;
 
 //! Radial magnetic field at "r_ref" (persistent)
@@ -58,10 +105,25 @@ protected:
 //! Position relative to origin (transient)
    GeoVector posprime;
 
-// TODO implement magnetic axis tilt
+#if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
+//! Latitude separating transition region from slow wind (persistent)
+   double fsl_pls;
+
+//! Latitude separating transition region from fast wind (persistent)
+   double fsl_mns;
+#elif SOLARWIND_SPEED_LATITUDE_PROFILE == 2
+//! Half of fast-slow ratio plus 1 (persistent)
+   double fsr_pls;
+
+//! Half of fast-slow ratio minus 1 (persistent)
+   double fsr_mns;
+#endif
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
+
+//! Modify radial flow (if necessary)
+   virtual void ModifyUr(const double r, double &ur_mod);
 
 //! Compute the internal u, B, and E fields
    void EvaluateBackground(void) override;

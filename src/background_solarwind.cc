@@ -72,6 +72,25 @@ void BackgroundSolarWind::SetupBackground(bool construct)
    ur0 = fabs(u0[0]);
    Br0 = B0[0];
    w0 = Omega.Norm();
+
+// Compute auxiliary quantities for fast-slow wind calculation
+#if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
+   fsl_pls = fast_slow_lat_sw + 2.0 / fast_slow_dlat_sw;
+   fsl_mns = fast_slow_lat_sw - 2.0 / fast_slow_dlat_sw;
+#elif SOLARWIND_SPEED_LATITUDE_PROFILE == 2
+   fsr_pls = 0.5 * (fast_slow_ratio_sw + 1.0);
+   fsr_mns = 0.5 * (fast_slow_ratio_sw - 1.0);
+#endif
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 03/14/2024
+\param[in]  r      radial distance
+\param[out] ur_mod modified radial flow
+*/
+void BackgroundSolarWind::ModifyUr(const double r, double &ur_mod)
+{
 };
 
 /*!
@@ -80,24 +99,103 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 */
 void BackgroundSolarWind::EvaluateBackground(void)
 {
-// Convert position into flow aligned coordinates and scale to "r_ref"
+   double r, s, costheta, sintheta, sinphi, cosphi;
+   double r_mns, phase0, phase, ur, Br, Bt, Bp;
+
+// Convert position into solar rotation frame
    posprime = _pos - r0;
    posprime.ChangeToBasis(eprime);
-   posprime /= r_ref;
-
-// Position in cylindrical coordinates
-   double r, r3;
    r = posprime.Norm();
-   r3 = Cube(r);
+   r_mns = r - r_ref;
 
-// Compute the velocity and Parker magnetic field
-   _spdata.Uvec = (ur0 / r) * posprime;
-   _spdata.Bvec = (Br0 / r3) * (posprime + (w0 * (r - 1.0) * r_ref / ur0) * (posprime[1] * gv_nx - posprime[0] * gv_ny));
+// Compute latitude and enforce equatorial symmetry.
+   costheta = posprime[2] / r;
+   double fs_theta_sym = acos(costheta);
+   if(fs_theta_sym > pi_two) fs_theta_sym = M_PI - fs_theta_sym;
 
-// Convert back to global frame and compute the electric field.
-   _spdata.Uvec.ChangeFromBasis(eprime);
-   _spdata.Bvec.ChangeFromBasis(eprime);
-   _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   _spdata.region[0] = 1.0;
+   _spdata.region[1] = -1.0;
+// Assign magnetic mixing region
+#if SOLARWIND_SECTORED_REGION == 1
+   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+#elif SOLARWIND_SECTORED_REGION == 2
+   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+   else if(r > sectored_radius_sw) _spdata.region[1] = 1.0;
+#endif
+
+// Calculate speed (fast/slow) based on latitude
+   ur = ur0;
+#if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
+      if(fs_theta_sym < fsl_mns) ur *= fast_slow_ratio_sw;
+      else if(fs_theta_sym < fsl_pls) ur *= fast_slow_ratio_sw - 0.25 * fast_slow_dlat_sw * (fs_theta_sym - fsl_mns);
+#elif SOLARWIND_SPEED_LATITUDE_PROFILE == 2
+      ur *= fsr_pls - fsr_mns * tanh(fast_slow_dlat_sw * (fs_theta_sym - fast_slow_lat_sw));
+#endif
+// Modify "ur" with radial distance
+   ModifyUr(r, ur);
+
+// Compute the (radial) velocity and convert back to global frame
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
+      _spdata.Uvec = ur * UnitVec(posprime);
+      _spdata.Uvec.ChangeFromBasis(eprime);
+   };
+   
+// Compute (Parker spiral) magnetic field and convert back to global frame
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+// Coordinates for conversion
+      sintheta = sqrt(fmax(1.0 - Sqr(costheta), 0.0));
+      s = sqrt(Sqr(posprime[0]) + Sqr(posprime[1]));
+      if(s < r * tiny) {
+         cosphi = 0.0;
+         sinphi = 0.0;
+      }
+      else {
+         cosphi = posprime[0] / s;
+         sinphi = posprime[1] / s;
+      };
+// Field components
+      Br = Br0 * Sqr(r_ref / r);
+      phase = r_mns * w0 / ur;
+      Bp = -Br * phase * sintheta;
+#if SOLARWIND_POLAR_CORRECTION == 1
+      Bp -= delta_omega_sw * Br * phase;
+#elif SOLARWIND_POLAR_CORRECTION == 2
+      phase0 = r_mns * w0 / ur0;
+      double sinphase = sin(phase0);
+      double cosphase = cos(phase0);
+      Bt = Br * phase * dwt_sw * (sinphi * cosphase + cosphi * sinphase);
+      Bp += Br * phase * (dwp_sw * sintheta + dwt_sw * costheta * (cosphi * cosphase - sinphi * sinphase));
+#elif SOLARWIND_POLAR_CORRECTION == 3
+// TODO
+#endif
+
+      _spdata.Bvec[0] = Br * sintheta * cosphi - Bp * sinphi;
+      _spdata.Bvec[1] = Br * sintheta * sinphi + Bp * cosphi;
+      _spdata.Bvec[2] = Br * costheta;
+#if SOLARWIND_POLAR_CORRECTION > 1
+// Add theta component from polar correction
+      _spdata.Bvec[0] += Bt * costheta * cosphi;
+      _spdata.Bvec[1] += Bt * costheta * sinphi;
+      _spdata.Bvec[2] -= Bt * sintheta;
+#endif
+
+// Correct polarity based on current sheet
+#if SOLARWIND_CURRENT_SHEET == 1
+      if(acos(costheta) > pi_two) _spdata.Bvec *= -1.0;
+#elif SOLARWIND_CURRENT_SHEET == 2
+#if SOLARWIND_POLAR_CORRECTION != 2
+// Compute "phase0" if not already done
+      phase0 = r_mns * w0 / ur0;
+      double sinphase = sin(phase0);
+      double cosphase = cos(phase0);
+#endif
+      if(acos(costheta) > pi_two + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+#endif
+      _spdata.Bvec.ChangeFromBasis(eprime);
+   };
+
+// Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };

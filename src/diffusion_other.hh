@@ -523,6 +523,12 @@ class DiffusionBallEtAl2005 : public DiffusionBase {
 
 protected:
 
+//! Index for LISM indicator variable (persistent)
+   int LISM_idx;
+
+//! Index for magnetic mixing indicator variable (persistent)
+   int Bmix_idx;
+
 //! Parallel inner heliosphere mean free path (persistent)
    double lam_in;
 

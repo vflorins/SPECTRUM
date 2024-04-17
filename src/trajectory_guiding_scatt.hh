@@ -30,6 +30,7 @@ const std::string traj_name_guidingscatt = "TrajectoryGuidingScatt";
 const unsigned int defsize_guidingscatt = 10000;
 
 #ifdef SPLIT_SCATT
+//! Fraction of stochastic step to take before deterministic step
 const double alpha = 0.5;
 #endif
 

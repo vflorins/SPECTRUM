@@ -49,8 +49,8 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+//! Modify radial flow (if necessary)
+   void ModifyUr(const double r, double &ur_mod) override;
 
 //! Compute the internal u, B, and E derivatives
    void EvaluateBackgroundDerivatives(void) override;

@@ -17,7 +17,7 @@ namespace Spectrum {
 //! Number of variables per zone
 const int n_variables_batl = 10;
 
-//! Size of the block in each dimnension
+//! Size of the block in each dimension
 const MultiIndex block_size_batl(8, 8, 8);
 
 //! Number of neighbors per dimension (depends only on the refinement ratio)

@@ -673,7 +673,7 @@ DiffusionBallEtAl2005::DiffusionBallEtAl2005(const DiffusionBallEtAl2005& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/06/2023
+\date 03/12/2024
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -682,6 +682,8 @@ void DiffusionBallEtAl2005::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&LISM_idx);
+   container.Read(&Bmix_idx);
    container.Read(&lam_in);
    container.Read(&lam_out);
    container.Read(&R0);
@@ -695,15 +697,16 @@ void DiffusionBallEtAl2005::SetupDiffusion(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/06/2023
+\date 03/12/2024
 */
 void DiffusionBallEtAl2005::EvaluateDiffusion(void)
 {
    if((comp_eval == 2)) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
-   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[0] + 0.5), 1.0));
-   LISM_ind = (_spdata.region[0] > 0.0 ? 0.0 : 1.0);
+   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
+   if(LISM_idx < 0) LISM_ind = 0.0;
+   else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
 // The 300.0 the "magic" factor for rigidity calculations.
    double rig = 300.0 * Rigidity(_mom[0], specie);
@@ -712,9 +715,12 @@ void DiffusionBallEtAl2005::EvaluateDiffusion(void)
    Kappa[1] = (lam_para * vmag / 3.0) * pow(rig / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
-   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[1] + 0.5), 1.0));
-   if(LISM_ind < 0.99) Bmix_ind = (_spdata.region[1] < 0.0 ? 0.0 : 1.0);
-   else Bmix_ind = 0.0;
+   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
+   if(Bmix_idx < 0) Bmix_ind = 1.0;
+   else {
+      if(LISM_ind < 0.99) Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+      else Bmix_ind = 0.0;
+   };
    double kap_rat = Bmix_ind * kap_rat_high + (1.0 - Bmix_ind) * kap_rat_low;
    Kappa[0] = kap_rat * Kappa[1];
 };

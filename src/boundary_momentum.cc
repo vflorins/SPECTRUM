@@ -113,6 +113,7 @@ void BoundaryMomentumInject::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryMomentum::SetupBoundary(false);
+   max_crossings = 1;
 };
 
 #if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
@@ -156,6 +157,7 @@ void BoundaryMirror::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BoundaryBase::SetupBoundary(false);
+   max_crossings = -1;
 };
 
 /*!

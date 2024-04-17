@@ -291,14 +291,14 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
    block_size = block_pri->GetBlockSize();
 // Correct stencil zones and blocks for multi-block interpolation
 // The weights do not change because of the uniformity of the grid
-   for(iz = 0; iz < 8; iz++) {
+   for(iz = 0; iz < stencil.n_elements; iz++) {
       node_idx = mi_ones;
 
 // Find which indices fall outside of the primary block's boundaries
       for(xyz = 0; xyz < 3; xyz++) {
 
 // Use "previous" block
-         if(stencil.zones[iz][xyz] < 0) {
+         if(stencil.zones[iz][xyz] == -1) {
             stencil.zones[iz][xyz] = block_size[xyz] - 1;
             node_idx[xyz]--;
             status = xyz + 1;
@@ -327,7 +327,11 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
 
    if(n_blocks == 0) status = 0;
    else if(n_blocks == 4) {
-      block_sec = cache_line[sec_idx];
+// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
+      if(block_sec->GetNode() != sec_idx) {
+         if(block_pri->GetNode() == sec_idx) block_sec = block_pri;
+         else block_sec = cache_line[sec_idx];
+      };
    }
    else status = 4;
 
@@ -427,7 +431,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
    for(xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
-#if defined(SERVER_VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)
+#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
       spdata.Uvec[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
@@ -442,7 +446,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
       spdata.Evec[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
-#elif defined(SERVER_VAR_INDEX_FLO) && !(defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)) 
+#elif defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)) 
       spdata.Evec[xyz] = 0.0;
 #endif
 
@@ -450,7 +454,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
 
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
-#if defined(SERVER_VAR_INDEX_FLO) || (defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))   
+#if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
    spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
 #endif
 #endif
@@ -498,7 +502,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
    for(xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
-#if defined(SERVER_VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)
+#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
       spdata.Uvec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_MOM + xyz) / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
@@ -513,7 +517,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
       spdata.Evec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_ELE + xyz);
-#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))
+#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
       spdata.Evec[xyz] = 0.0;
 #endif
 
@@ -521,7 +525,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
-#if defined(SERVER_VAR_INDEX_FLO) || (defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))   
+#if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
    spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
 #endif
 #endif
@@ -609,7 +613,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
    for(xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
-#if defined(SERVER_VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)
+#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
       spdata.Uvec[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
@@ -624,7 +628,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
       spdata.Evec[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
-#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))
+#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
       spdata.Evec[xyz] = 0.0;
 #endif
 
@@ -632,7 +636,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
 
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
-#if defined(SERVER_VAR_INDEX_FLO) || (defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))   
+#if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
    spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
 #endif
 #endif
@@ -662,8 +666,11 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
    _inquiry.pos = pos;
    bidx = RequestBlock();
 
-// If "block_pri" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
-   if(block_pri->GetNode() != bidx) block_pri = cache_line[bidx];
+// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
+   if(block_pri->GetNode() != bidx) {
+      if(block_sec->GetNode() == bidx) block_pri = block_sec;
+      else block_pri = cache_line[bidx];
+   };
    spdata.dmax = fmin(spdata.dmax, block_pri->GetZoneLength().Smallest());
 
 #if SERVER_INTERP_ORDER == -1
@@ -760,8 +767,8 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
       for(xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
-#if defined(SERVER_VAR_INDEX_MOM) && defined(VAR_INDEX_RHO)
-         spdata.gradUvec[uvw][xyz] = (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - spdata.Uvec[xyz] * grads[VAR_INDEX_RHO][uvw]) / rho;
+#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
+         spdata.gradUvec[uvw][xyz] = (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - spdata.Uvec[xyz] * grads[SERVER_VAR_INDEX_RHO][uvw]) / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
          spdata.gradUvec[uvw][xyz] = grads[SERVER_VAR_INDEX_FLO + xyz][uvw];
@@ -775,7 +782,7 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
 // Electric field, if provided
 #ifdef SERVER_VAR_INDEX_ELE
          spdata.gradEvec[uvw][xyz] = grads[SERVER_VAR_INDEX_ELE + xyz][uvw];
-#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))
+#elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
          spdata.gradEvec[uvw][xyz] = 0.0;
 #endif
 
@@ -784,7 +791,7 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
 
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
-#if defined(SERVER_VAR_INDEX_FLO) || (defined(VAR_INDEX_MOM) && defined(VAR_INDEX_RHO))
+#if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
    spdata.gradEvec = -((spdata.gradUvec ^ spdata.Bvec) + (spdata.Uvec ^ spdata.gradBvec)) / c_code;
 #endif
 #endif

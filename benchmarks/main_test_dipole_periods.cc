@@ -103,8 +103,8 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Max crossings
-   int max_crossings = -1;
-   container.Insert(max_crossings);
+   int max_crossings_time = 1;
+   container.Insert(max_crossings_time);
 
 // Action
    std::vector<int> actions; // empty vector because there are no distributions
@@ -146,6 +146,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Max crossings
+   int max_crossings = -1;
    container.Insert(max_crossings);
 
 // Action
