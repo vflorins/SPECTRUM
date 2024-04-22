@@ -129,7 +129,7 @@ int main(int argc, char** argv)
    container.Insert(actions_time);
    
 // Duration of the trajectory
-   double maxtime = 1001.0 * timemark;
+   double maxtime = 101.0 * timemark;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);

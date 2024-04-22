@@ -197,11 +197,11 @@ int main(int argc, char** argv)
    container.Insert(n_bins);
    
 // Smallest value
-   GeoVector minval(EnrKin(momentum1), 0.0, 0.0);
+   GeoVector minval(EnrKin(momentum1, specie), 0.0, 0.0);
    container.Insert(minval);
 
 // Largest value
-   GeoVector maxval(EnrKin(momentum2), 0.0, 0.0);
+   GeoVector maxval(EnrKin(momentum2, specie), 0.0, 0.0);
    container.Insert(maxval);
 
 // Linear or logarithmic bins

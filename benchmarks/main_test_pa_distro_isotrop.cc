@@ -194,15 +194,15 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins(100, 1, 1);
+   MultiIndex n_bins(1, 100, 1);
    container.Insert(n_bins);
    
 // Smallest value
-   GeoVector minval(-1.0, 0.0, 0.0);
+   GeoVector minval(0.99 * momentum, -1.0, 0.0);
    container.Insert(minval);
 
 // Largest value
-   GeoVector maxval(1.0, 0.0, 0.0);
+   GeoVector maxval(1.01 * momentum, 1.0, 0.0);
    container.Insert(maxval);
 
 // Linear or logarithmic bins
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
    container.Insert(unit_distro);
 
 // Physical units of the bin variable
-   GeoVector unit_val = {1.0, 1.0, 1.0};
+   GeoVector unit_val = {unit_momentum_particle, 1.0, 1.0};
    container.Insert(unit_val);
 
 // Don't keep records
@@ -237,7 +237,11 @@ int main(int argc, char** argv)
    int val_time = 0;
    container.Insert(val_time);
 
-   simulation->AddDistribution(DistributionPitchUniform(), container);
+// Coordinate representation to use (native or locally spherical)
+   int val_coord = 1;
+   container.Insert(val_coord);
+
+   simulation->AddDistribution(DistributionMomentumUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 2
@@ -280,7 +284,10 @@ int main(int argc, char** argv)
    val_time = 1;
    container.Insert(val_time);
 
-   simulation->AddDistribution(DistributionPitchUniform(), container);
+// Coordinate representation to use (native or locally spherical)
+   container.Insert(val_coord);
+
+   simulation->AddDistribution(DistributionMomentumUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 3
@@ -322,7 +329,10 @@ int main(int argc, char** argv)
 // Coordinates to use (initial or final)
    container.Insert(val_time);
 
-   simulation->AddDistribution(DistributionPitchUniform(), container);
+// Coordinate representation to use (native or locally spherical)
+   container.Insert(val_coord);
+
+   simulation->AddDistribution(DistributionMomentumUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 4
@@ -364,7 +374,10 @@ int main(int argc, char** argv)
 // Coordinates to use (initial or final)
    container.Insert(val_time);
 
-   simulation->AddDistribution(DistributionPitchUniform(), container);
+// Coordinate representation to use (native or locally spherical)
+   container.Insert(val_coord);
+
+   simulation->AddDistribution(DistributionMomentumUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 5
@@ -406,7 +419,10 @@ int main(int argc, char** argv)
 // Coordinates to use (initial or final)
    container.Insert(val_time);
 
-   simulation->AddDistribution(DistributionPitchUniform(), container);
+// Coordinate representation to use (native or locally spherical)
+   container.Insert(val_coord);
+
+   simulation->AddDistribution(DistributionMomentumUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation
@@ -423,11 +439,11 @@ int main(int argc, char** argv)
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
-   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "initial_distro.dat", true);
-   simulation->PrintDistro1D(1, 0, simulation_files_prefix + "timemark1_distro.dat", true);
-   simulation->PrintDistro1D(2, 0, simulation_files_prefix + "timemark2_distro.dat", true);
-   simulation->PrintDistro1D(3, 0, simulation_files_prefix + "timemark3_distro.dat", true);
-   simulation->PrintDistro1D(4, 0, simulation_files_prefix + "final_distro.dat", true);
+   simulation->PrintDistro1D(0, 1, simulation_files_prefix + "initial_distro.dat", true);
+   simulation->PrintDistro1D(1, 1, simulation_files_prefix + "timemark1_distro.dat", true);
+   simulation->PrintDistro1D(2, 1, simulation_files_prefix + "timemark2_distro.dat", true);
+   simulation->PrintDistro1D(3, 1, simulation_files_prefix + "timemark3_distro.dat", true);
+   simulation->PrintDistro1D(4, 1, simulation_files_prefix + "final_distro.dat", true);
 
    if(simulation->IsMaster()) {
       std::cout << std::endl;

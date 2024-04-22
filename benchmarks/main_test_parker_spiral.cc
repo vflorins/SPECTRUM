@@ -159,7 +159,8 @@ int main(int argc, char** argv)
    std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
    std::cout << "=========================================================" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
-   std::cout << "Time elapsed (simulated)     = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
+   std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
+   std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
    std::cout << "=========================================================" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
