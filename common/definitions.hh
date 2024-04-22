@@ -64,49 +64,49 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! \f$\pi/2\f$
-const double pi_two = 0.5 * M_PI;
+constexpr double pi_two = 0.5 * M_PI;
 
 //! \f$\pi/4\f$
-const double pi_four = 0.25 * M_PI;
+constexpr double pi_four = 0.25 * M_PI;
 
 //! \f$\pi/8\f$
-const double pi_eight = 0.125 * M_PI;
+constexpr double pi_eight = 0.125 * M_PI;
 
 //! \f$2\pi\f$
-const double twopi = 2.0 * M_PI;
+constexpr double twopi = 2.0 * M_PI;
 
 //! \f$4\pi\f$
-const double fourpi = 4.0 * M_PI;
+constexpr double fourpi = 4.0 * M_PI;
 
 //! \f$8\pi\f$
-const double eightpi = 8.0 * M_PI;
+constexpr double eightpi = 8.0 * M_PI;
 
 //! \f$\sqrt{\pi}\f$
-const double sqrtpi = sqrt(M_PI);
+constexpr double sqrtpi = sqrt(M_PI);
 
 //! \f$\sqrt{2}\f$
-const double sqrttwo = sqrt(2.0);
+constexpr double sqrttwo = sqrt(2.0);
 
 //! \f$\sqrt{3}\f$
-const double sqrtthr = sqrt(3.0);
+constexpr double sqrtthr = sqrt(3.0);
 
 //! \f$1/\sqrt{3}\f$
-const double oo_sqrtthr = 1.0 / sqrtthr;
+constexpr double oo_sqrtthr = 1.0 / sqrtthr;
 
 //! \f$\sqrt{5}\f$
-const double sqrtfiv = sqrt(5.0);
+constexpr double sqrtfiv = sqrt(5.0);
 
 //! \f$\sqrt{6}\f$
-const double sqrtsix = sqrt(6.0);
+constexpr double sqrtsix = sqrt(6.0);
 
 //! \f$\sqrt{7}\f$
-const double sqrtsev = sqrt(7.0);
+constexpr double sqrtsev = sqrt(7.0);
 
 //! \f$\sqrt{8}\f$
-const double sqrteig = sqrt(8.0);
+constexpr double sqrteig = sqrt(8.0);
 
 //! \f$\sqrt{10}\f$
-const double sqrtten = sqrt(10.0);
+constexpr double sqrtten = sqrt(10.0);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Some inlined functions
@@ -143,7 +143,10 @@ SPECTRUM_DEVICE_FUNC inline double DegToRad(double deg)
 \param[in] n The exponent
 \return \f$2^n\f$
 */
-SPECTRUM_DEVICE_FUNC inline int Pow2(int n) {return 1 << n;};
+SPECTRUM_DEVICE_FUNC inline int Pow2(int n)
+{
+   return 1 << n;
+};
 
 /*!
 \brief Checks whether an integer is a power of two
@@ -244,6 +247,12 @@ template <typename T> SPECTRUM_DEVICE_FUNC T** Map2D(int n, int m, T* start, int
 //! Deletes the pointers used by Map2D()
 template <typename T> SPECTRUM_DEVICE_FUNC void Unmap2D(T** array);
 
+//! Creates a three-dimensional array of arbitrary type
+template <typename T> SPECTRUM_DEVICE_FUNC T*** Create3D(int n, int m, int l);
+
+//! Releases memory allocated by Create3D()
+template <typename T> SPECTRUM_DEVICE_FUNC void Delete3D(T*** array);
+
 //! Integer power
 template <typename T> SPECTRUM_DEVICE_FUNC T IntPow(T x, int n);
 
@@ -267,6 +276,9 @@ template <typename T> SPECTRUM_DEVICE_FUNC bool CubicSolve(T a, T b, T c, T d, T
 
 //! Reduce a periodic argument to lie between 0 and "period"
 template <typename T> SPECTRUM_DEVICE_FUNC T MakePeriodic(T x, T period);
+
+//! Distribute a number of tasks among the workers as evenly as possible
+template <typename T> SPECTRUM_DEVICE_FUNC void DistributeTasks(T& tasks, T& workers, T& tpw, T& tplw);
 
 };
 

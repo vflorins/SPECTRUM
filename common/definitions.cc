@@ -79,6 +79,38 @@ template <typename T> SPECTRUM_DEVICE_FUNC T** Map2D(int n, int m, T* start, int
 
 /*!
 \author Vladimir Florinski
+\date 03/04/2024
+\param[in] n First dimension
+\param[in] m Second dimension
+\param[in] l Third dimension
+\return Pointer to the storage
+*/
+template <typename T> SPECTRUM_DEVICE_FUNC T*** Create3D(int n, int m, int l)
+{
+   T*** array = new T**[n];
+   array[0] = new T*[n * m];
+   array[0][0] = new T[n * m * l];
+   for(auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
+   for(auto j = 1; j < n * m; j++) array[0][j] = array[0][j - 1] + l;
+   return array;
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/04/2024
+\param[in,out] array Pointer to the storage
+*/
+template <typename T> SPECTRUM_DEVICE_FUNC void Delete3D(T*** array)
+{
+   if(array) {
+      delete[] array[0][0];
+      delete[] array[0];
+      delete[] array;
+   };
+};
+
+/*!
+\author Vladimir Florinski
 \date 02/18/2018
 \param[in] x The argument
 \param[in] n The exponent
@@ -269,6 +301,45 @@ template <typename T> SPECTRUM_DEVICE_FUNC T MakePeriodic(T x, T period)
    else return x - n * period;
 };
 
+/*!
+\author Vladimir Florinski
+\date 02/15/2024
+\param[in,out] tasks   Number of tasks to perform
+\param[in,out] workers Number of workers available/required
+\param[out]    tpw     Number of tasks per worker (except the last)
+\param[out]    tplw    Number of tasks for the last worker
+*/
+template <typename T> SPECTRUM_DEVICE_FUNC void DistributeTasks(T& tasks, T& workers, T& tpw, T& tplw)
+{
+   T excess_tasks;
+
+// Invalid input, but the return must make sense
+   if((tasks <= 0) || (workers <= 0)) {
+      tasks = 0;
+      workers = 0;
+      tpw = tplw = 0;
+   }
+
+// Workers exceed tasks
+   else if(workers >= tasks) {
+      workers = tasks;
+      tpw = tplw = 1;
+   }
+
+// Normal situation
+   else {
+
+// Initial estimate
+      tpw = tasks / workers;
+      if(tasks % workers) tpw++;
+
+// Redundant workers and the last worker load
+      excess_tasks = tpw * workers - tasks;
+      workers -= excess_tasks / tpw;
+      tplw = tpw - excess_tasks % tpw;
+   };
+};
+
 template SPECTRUM_DEVICE_FUNC double IntPow <double>(double x, int n);
 template SPECTRUM_DEVICE_FUNC int InList <int>(int size, const int* array, int val);
 template SPECTRUM_DEVICE_FUNC int LocateInArray <double>(int l1, int l2, const double* array, double val, bool limit);
@@ -276,8 +347,13 @@ template SPECTRUM_DEVICE_FUNC bool QuadraticSolve <double>(double a, double b, d
 template SPECTRUM_DEVICE_FUNC bool CubicSolve <double>(double a, double b, double c, double d, double& x1, double& x2, double& x3);
 template SPECTRUM_DEVICE_FUNC double MakePeriodic <double>(double x, double period);
 template SPECTRUM_DEVICE_FUNC double** Create2D <double>(int n, int m);
+template SPECTRUM_DEVICE_FUNC int** Create2D <int>(int n, int m);
 template SPECTRUM_DEVICE_FUNC void Delete2D <double>(double** array);
+template SPECTRUM_DEVICE_FUNC void Delete2D <int>(int** array);
+template SPECTRUM_DEVICE_FUNC double*** Create3D <double>(int n, int m, int l);
+template SPECTRUM_DEVICE_FUNC void Delete3D <double>(double*** array);
 template SPECTRUM_DEVICE_FUNC double MinMod <double>(double x, double y);
 template SPECTRUM_DEVICE_FUNC double MinMod <double>(double x, double y, double z);
+template SPECTRUM_DEVICE_FUNC void DistributeTasks(int& tasks, int& workers, int& tpw, int& tplw);
 
 };
