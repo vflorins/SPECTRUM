@@ -36,6 +36,7 @@ namespace Spectrum {
 
 //! Velocity: Speed of light or 1 km/s are sensible values
 #define unit_velocity_fluid 1.0E7
+//#define unit_velocity_fluid GSL_CONST_CGSM_SPEED_OF_LIGHT
 
 //! Time: derived, should be hours/days
 #define unit_time_fluid (unit_length_fluid / unit_velocity_fluid)
