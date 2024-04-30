@@ -51,7 +51,7 @@ int main(int argc, char** argv)
    container.Insert(B0);
 
 // Effective "mesh" resolution
-   double enr = 1000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
+   double enr = 100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
    double R_L = LarmorRadius(Mom(enr, specie), Bmag, specie);
    double dmax = 0.1 * R_L;
    container.Insert(dmax);
@@ -125,14 +125,9 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double momentum = Mom(enr, specie);
-   
-   container.Insert(momentum);
+   GeoVector init_mom(0.0, 0.0, momentum);
 
-   double theta = 0.0;
-   container.Insert(theta);
-
-   double phi = 0.0;
-   container.Insert(phi);
+   container.Insert(init_mom);
 
    trajectory->AddInitial(InitialMomentumFixed(), container);
 
@@ -151,7 +146,7 @@ int main(int argc, char** argv)
    container.Insert(actions);
    
 // Duration of the trajectory
-   double maxtime = 100 / unit_time_fluid;
+   double maxtime = 100.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTimeExpire(), container);
