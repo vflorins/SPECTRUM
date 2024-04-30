@@ -20,7 +20,7 @@ namespace Spectrum {
 \date 09/15/2022
 \param[in] vect Vector
 */
-void GeoMatrix::Dyadic(const GeoVector& vect)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect)
 {
    for(auto i = 0; i < 3; i++) {
       for(auto j = i; j < 3; j++) {
@@ -38,7 +38,7 @@ void GeoMatrix::Dyadic(const GeoVector& vect)
 \param[in] vect_l First vector \f$\mathbf{v}_1\f$
 \param[in] vect_r Second vector \f$\mathbf{v}_2\f$
 */
-void GeoMatrix::Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    for(auto i = 0; i < 3; i++) {
       for(auto j = 0; j < 3; j++) {
@@ -55,7 +55,7 @@ void GeoMatrix::Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
 
 \note mean can be subtracted by calling IncrementCov(Bmean, -Bmean);
 */
-void GeoMatrix::IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    for(auto i = 0; i < 3; i++) {
       for(auto j = 0; j < 3; j++) {
@@ -69,7 +69,7 @@ void GeoMatrix::IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r)
 \date 08/30/2022
 \param[in] ez A vector in the new z-direction
 */
-void GeoMatrix::AxisymmetricBasis(const GeoVector& ez)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::AxisymmetricBasis(const GeoVector& ez)
 {
    row[2] = UnitVec(ez);
    row[0] = GetSecondUnitVec(row[2]);
@@ -81,7 +81,7 @@ void GeoMatrix::AxisymmetricBasis(const GeoVector& ez)
 \date 08/31/2022
 \param[in] basis A matrix whose rows are new basis vectors
 */
-void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 {
    for(auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeToBasis(basis.VectorArray());
 };
@@ -91,7 +91,7 @@ void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 \date 08/31/2022
 \param[in] basis A matrix whose rows are new basis vectors
 */
-void GeoMatrix::ChangeFromBasis(const GeoMatrix& basis)
+SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeFromBasis(const GeoMatrix& basis)
 {
    for(auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeFromBasis(basis.VectorArray());
 };
@@ -103,7 +103,7 @@ void GeoMatrix::ChangeFromBasis(const GeoMatrix& basis)
 \param[in] j Second index
 \return A minor corresponding to (i,j)
 */
-double GeoMatrix::Minor(int i, int j) const
+SPECTRUM_DEVICE_FUNC double GeoMatrix::Minor(int i, int j) const
 {
    int i1, i2, j1, j2;
    
@@ -120,7 +120,7 @@ double GeoMatrix::Minor(int i, int j) const
 \date 08/11/2022
 \return The inverse of this matrix
 */
-GeoMatrix GeoMatrix::Inverse(void) const
+SPECTRUM_DEVICE_FUNC GeoMatrix GeoMatrix::Inverse(void) const
 {
    int i, j;
    GeoMatrix inverse;
@@ -139,7 +139,7 @@ GeoMatrix GeoMatrix::Inverse(void) const
 \date 08/11/2022
 \return Three eigenvalues as a vector
 */
-GeoVector GeoMatrix::Eigenvalues(void) const
+SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigenvalues(void) const
 {
    double a, b, c, d;
    GeoVector eval;
@@ -160,7 +160,7 @@ GeoVector GeoMatrix::Eigenvalues(void) const
 \param[out] evec Normalized left eigenvectors, but arranged in rows
 \return Three eigenvalues as a vector
 */
-GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
+SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
 {
    int i, k, ei, ei1, ei2;
    GeoVector eval;
@@ -200,54 +200,12 @@ GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
 
 /*!
 \author Vladimir Florinski
-\date 02/27/2023
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] matr_r right operand \f$\mathbf{M}_2\f$
-\return \f$\mathbf{v}_1\times\mathbf{M}_2\f$
-*/
-GeoMatrix operator ^(const GeoVector& vect_l, const GeoMatrix& matr_r)
-{
-   GeoMatrix matr_tmp;
-   for(auto i = 0; i < 3; i++) matr_tmp[i] = vect_l ^ matr_r[i];
-   return matr_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 02/27/2023
-\param[in] matr_l left operand \f$\mathbf{M}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{M}_1\times\mathbf{v}_2\f$
-*/
-GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r)
-{
-   GeoMatrix matr_tmp;
-   for(auto i = 0; i < 3; i++) matr_tmp[i] = matr_l[i] ^ vect_r;
-   return matr_tmp;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/06/2023
-\param[in] matr_l left operand \f$\mathbf{M}_1\f$
-\param[in] matr_r right operand \f$\mathbf{M}_2\f$
-\return \f$\mathbf{M}_1 : \mathbf{M}_2\f$
-*/
-double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
-{
-   double ip = 0.0;
-   for(auto i = 0; i < 3; i++) ip += matr_l[i] * matr_r[i];
-   return ip;
-};
-
-/*!
-\author Vladimir Florinski
 \date 09/09/2022
 \param[in] vect_l First vector \f$\mathbf{v}_1\f$
 \param[in] vect_r Second vector \f$\mathbf{v}_2\f$
-\return Covariance matrix
+\return Dyadic matrix
 */
-GeoMatrix CovMatrix(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    GeoMatrix cov_matr;
 
@@ -266,7 +224,7 @@ GeoMatrix CovMatrix(const GeoVector& vect_l, const GeoVector& vect_r)
 \param[in] vect Vector to build dyadic from
 \return Dyadic matrix
 */
-GeoMatrix Dyadic(const GeoVector& vect)
+SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect)
 {
    GeoMatrix dyadic;
    dyadic.Dyadic(vect);
