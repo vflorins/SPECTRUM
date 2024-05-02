@@ -9,8 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DEFINITIONS_HH
 #define SPECTRUM_DEFINITIONS_HH
 
-#include "common/gpu_config.hh"
 #include <cmath>
+#include "common/gpu_config.hh"
 
 namespace Spectrum {
 
@@ -63,53 +63,28 @@ namespace Spectrum {
 // Global floating point constants that are also available on the device
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! \f$\pi/2\f$
-constexpr double pi_two = 0.5 * M_PI;
+#ifndef M_PI
+#define M_PI      3.141592653589793238462643383279502884E+0
+#define M_PI_2    1.570796326794896619231321691639751442E+0
+#define M_PI_4    7.853981633974483096156608458198757205E-1
+#define M_SQRT2   1.414213562373095048801688724209698079E+0
+#endif
 
-//! \f$\pi/4\f$
-constexpr double pi_four = 0.25 * M_PI;
-
-//! \f$\pi/8\f$
-constexpr double pi_eight = 0.125 * M_PI;
-
-//! \f$2\pi\f$
-constexpr double twopi = 2.0 * M_PI;
-
-//! \f$4\pi\f$
-constexpr double fourpi = 4.0 * M_PI;
-
-//! \f$8\pi\f$
-constexpr double eightpi = 8.0 * M_PI;
-
-//! \f$\sqrt{\pi}\f$
-constexpr double sqrtpi = sqrt(M_PI);
-
-//! \f$\sqrt{2}\f$
-constexpr double sqrttwo = sqrt(2.0);
-
-//! \f$\sqrt{3}\f$
-constexpr double sqrtthr = sqrt(3.0);
-
-//! \f$1/\sqrt{3}\f$
-constexpr double oo_sqrtthr = 1.0 / sqrtthr;
-
-//! \f$\sqrt{5}\f$
-constexpr double sqrtfiv = sqrt(5.0);
-
-//! \f$\sqrt{6}\f$
-constexpr double sqrtsix = sqrt(6.0);
-
-//! \f$\sqrt{7}\f$
-constexpr double sqrtsev = sqrt(7.0);
-
-//! \f$\sqrt{8}\f$
-constexpr double sqrteig = sqrt(8.0);
-
-//! \f$\sqrt{10}\f$
-constexpr double sqrtten = sqrt(10.0);
+#define M_PI_8    3.926990816987241548078304229099378605E-1
+#define M_2PI     6.283185307179586476925286766559005768E+0
+#define M_4PI     1.256637061435917295385057353311801154E+1
+#define M_8PI     2.513274122871834590770114706623602307E+1
+#define M_SQRTPI  1.772453850905516027298167483341145183E+0
+#define M_SQRT3   1.732050807568877293527446341505872367E+0
+#define M_SQRT1_3 5.773502691896257645091487805019574556E-1
+#define M_SQRT5   2.236067977499789696409173668731276235E+0
+#define M_SQRT6   2.449489742783178098197284074705891392E+0
+#define M_SQRT7   2.645751311064590590501615753639260426E+0
+#define M_SQRT8   2.828427124746190097603377448419396157E+0
+#define M_SQRT10  3.162277660168379331998893544432718534E+0
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Some inlined functions
+// Some commonly used functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -181,13 +156,27 @@ SPECTRUM_DEVICE_FUNC inline int Log2(int n)
 };
 
 /*!
+\brief Sign of a variable
+\author Vladimir Florinski
+\date 04/29/2024
+\param[in] x The argument
+\return Sign of x (-1 or 1, never 0)
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T sign(T x)
+{
+   return (x >= 0 ? 1 : -1);
+};
+
+/*!
 \brief Computes the square
 \author Vladimir Florinski
 \date 07/28/2016
 \param[in] x The argument
 \return \f$x^2\f$
 */
-template <typename T> SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
 {
    return x * x;
 };
@@ -199,7 +188,8 @@ template <typename T> SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
 \param[in] x The argument
 \return \f$x^3\f$
 */
-template <typename T> SPECTRUM_DEVICE_FUNC inline T Cube(T x)
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Cube(T x)
 {
    return x * x * x;
 };
@@ -211,7 +201,8 @@ template <typename T> SPECTRUM_DEVICE_FUNC inline T Cube(T x)
 \param[in] x The argument
 \return \f$x^4\f$
 */
-template <typename T> SPECTRUM_DEVICE_FUNC inline T Quad(T x)
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Quad(T x)
 {
    return x * x * x * x;
 };
@@ -223,62 +214,328 @@ template <typename T> SPECTRUM_DEVICE_FUNC inline T Quad(T x)
 \param[in] x The argument
 \return \f$x^5\f$
 */
-template <typename T> SPECTRUM_DEVICE_FUNC inline T Quint(T x)
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Quint(T x)
 {
    return x * x * x * x * x;
 };
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Some non-inlined functions
-//----------------------------------------------------------------------------------------------------------------------------------------------------
+/*!
+\brief Creates a two-dimensional array of arbitrary type
+\author Vladimir Florinski
+\date 07/28/2016
+\param[in] n First dimension
+\param[in] m Second dimension
+\return Pointer to the storage
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T** Create2D(int n, int m)
+{
+   T** array = new T*[n];
+   array[0] = new T[n * m];
+   for(auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
+   return array;
+};
 
-//! Creates a two-dimensional array of arbitrary type
-template <typename T> SPECTRUM_DEVICE_FUNC T** Create2D(int n, int m);
+/*!
+\brief Releases memory allocated by Create2D()
+\author Vladimir Florinski
+\date 07/28/2016
+\param[in,out] array Pointer to the storage
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline void Delete2D(T** array)
+{
+   if(array) {
+      delete[] array[0];
+      delete[] array;
+   };
+};
 
-//! Creates a two-dimensional array of arbitrary type with index offset
-template <typename T> SPECTRUM_DEVICE_FUNC T** Create2D_IO(int n, int m, int fidx);
+/*!
+\brief Creates a three-dimensional array of arbitrary type
+\author Vladimir Florinski
+\date 03/04/2024
+\param[in] n First dimension
+\param[in] m Second dimension
+\param[in] l Third dimension
+\return Pointer to the storage
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T*** Create3D(int n, int m, int l)
+{
+   T*** array = new T**[n];
+   array[0] = new T*[n * m];
+   array[0][0] = new T[n * m * l];
+   for(auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
+   for(auto j = 1; j < n * m; j++) array[0][j] = array[0][j - 1] + l;
+   return array;
+};
 
-//! Releases memory allocated by Create2D()
-template <typename T> SPECTRUM_DEVICE_FUNC void Delete2D(T** array);
+/*!
+\brief Releases memory allocated by Create3D()
+\author Vladimir Florinski
+\date 03/04/2024
+\param[in,out] array Pointer to the storage
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline void Delete3D(T*** array)
+{
+   if(array) {
+      delete[] array[0][0];
+      delete[] array[0];
+      delete[] array;
+   };
+};
 
-//! Creates pointers into a two-dimensional array previously allocated
-template <typename T> SPECTRUM_DEVICE_FUNC T** Map2D(int n, int m, T* start, int fidx);
+/*!
+\brief Integer power
+\author Vladimir Florinski
+\date 02/18/2018
+\param[in] x The argument
+\param[in] n The exponent
+\return \f$x^n\f$, or -1 if a negative power of zero is requested
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T IntPow(T x, int n)
+{
+   int i;
+   T res = 1.0;
 
-//! Deletes the pointers used by Map2D()
-template <typename T> SPECTRUM_DEVICE_FUNC void Unmap2D(T** array);
+   if(n < 0) {
+      if(x == 0) return -1.0;
+      for(i = 0; i > n; i--) res /= x;
+   }
+   else {
+      for(i = 0; i < n; i++) res *= x;
+   };
 
-//! Creates a three-dimensional array of arbitrary type
-template <typename T> SPECTRUM_DEVICE_FUNC T*** Create3D(int n, int m, int l);
+   return res;
+};
 
-//! Releases memory allocated by Create3D()
-template <typename T> SPECTRUM_DEVICE_FUNC void Delete3D(T*** array);
+/*!
+\brief Minmod operation
+\author Vladimir Florinski
+\date 07/22/2019
+\param[in] x First argument
+\param[in] y Second argument
+\return The result of a minmod operation
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y)
+{
+   if(x * y <= 0.0) return 0.0;
+   else if(x * x > y * y) return y;
+   else return x;
+};
 
-//! Integer power
-template <typename T> SPECTRUM_DEVICE_FUNC T IntPow(T x, int n);
+/*!
+\brief Minmod operation with three arguments
+\author Vladimir Florinski
+\date 11/16/2023
+\param[in] x First argument
+\param[in] y Second argument
+\param[in] z Third argument
+\return The result of a 3-argument minmod operation
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y, T z)
+{
+   T absx, absy, absz;
+   absx = std::abs(x);
+   absy = std::abs(y);
+   absz = std::abs(z);
+   if(x * y <= 0.0) return 0.0;
+   if(absx > absy) {
+      if(absy > absz) return z;
+      else return y;
+   }
+   else {
+      if(absx > absz) return z;
+      else return x;
+   };
+};
 
-//! Minmod operation
-template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y);
+/*!
+\brief Find a matching element in an array
+\author Vladimir Florinski
+\date 07/22/2019
+\param[in] size  Size of array
+\param[in] array Array of numbers
+\param[in] val   Number to match
+\return Index in the array, or -1 if not found
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline int InList(int size, const T* array, T val)
+{
+   int idx = 0;
+   while(idx < size && array[idx] != val) idx++;
+   return (idx == size ? -1 : idx);
+};
 
-//! Minmod operation with three arguments
-template <typename T> SPECTRUM_DEVICE_FUNC T MinMod(T x, T y, T z);
+/*!
+\brief Find the interval in an ascending array containing the given number
+\author Vladimir Florinski
+\date 02/18/2018
+\param[in] l1    Lower starting index
+\param[in] l2    Upper starting index
+\param[in] array Array of numbers in ascending order
+\param[in] val   Value to locate in the array
+\param[in] limit If true, return "l2" for val > array[l2]
+\return Interval containing the value "val", -1 if outside the limits
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T val, bool limit)
+{
+   if(l2 <= l1) return -1;
+   if(val < array[l1]) return -1;
+   if(val > array[l2]) {
+      if(limit) return l2;
+      else return -1;
+   };
 
-//! Find a matching element in an array
-template <typename T> SPECTRUM_DEVICE_FUNC int InList(int size, const T* array, T val);
+   int i1, i2, i3;
+   i1 = i2 = l1;
+   i3 = l2;
 
-//! Find the interval in an ascending array containing the given number
-template <typename T> SPECTRUM_DEVICE_FUNC int LocateInArray(int l1, int l2, const T* array, T val, bool limit = false);
+// Bisection algorithm
+   while(i3 - i1 > 1) {
+      i2 = (i1 + i3) >> 1;
+      (val > array[i2] ? i1 : i3) = i2;
+   };
 
-//! Solve a quadratic equation (real roots only)
-template <typename T> SPECTRUM_DEVICE_FUNC bool QuadraticSolve(T a, T b, T c, T& x1, T& x2);
+// The interval has the same index as the _left_ interface
+   return i1;
+};
 
-//! Solve a cubic equation (real roots only)
-template <typename T> SPECTRUM_DEVICE_FUNC bool CubicSolve(T a, T b, T c, T d, T& x1, T& x2, T& x3);
+/*!
+\brief Solve a quadratic equation (real roots only)
+\author Vladimir Florinski
+\date 08/11/2022
+\param[in] a  Coefficient of x^2
+\param[in] b  Coefficient of x^1
+\param[in] c  Coefficient of x^0
+\param[in] x1 First root
+\param[in] x2 Second root
+\return True if the roots are real
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline bool QuadraticSolve(T a, T b, T c, T& x1, T& x2)
+{
+   T q;
 
-//! Reduce a periodic argument to lie between 0 and "period"
-template <typename T> SPECTRUM_DEVICE_FUNC T MakePeriodic(T x, T period);
+   q = Sqr(b) - 4.0 * a * c;
+   if(q >= 0.0) {
+      q = sqrt(q);
+      x1 = (-b + q) / (2.0 * a);
+      x2 = (-b - q) / (2.0 * a);
+      return true;
+   }
+   else {
+     x1 = 0.0;
+     x2 = 0.0;
+     return false;
+  };
+};
 
-//! Distribute a number of tasks among the workers as evenly as possible
-template <typename T> SPECTRUM_DEVICE_FUNC void DistributeTasks(T& tasks, T& workers, T& tpw, T& tplw);
+/*!
+\brief Solve a cubic equation (real roots only)
+\author Vladimir Florinski
+\date 08/11/2022
+\param[in] a  Coefficient of x^3
+\param[in] b  Coefficient of x^2
+\param[in] c  Coefficient of x^1
+\param[in] d  Coefficient of x^0
+\param[in] x1 First root
+\param[in] x2 Second root
+\param[in] x2 Third root
+\return True if all roots are real
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline bool CubicSolve(T a, T b, T c, T d, T& x1, T& x2, T& x3)
+{
+   T a1, b1, c1, p, q, Q, R, D, theta;
+
+   a1 = b / a;
+   b1 = c / a;
+   c1 = d / a;
+   p = b1 - a1 * a1 / 3.0;
+   q = a1 * b1 / 3.0 - c1 - 2.0 * a1 * a1 * a1 / 27.0;
+   Q = p / 3.0;
+   R = q / 2.0;
+   D = Q * Q * Q + R * R;
+   if(D <= 0.0) {
+      theta = acos(R / sqrt(-Q * Q * Q));
+      Q = sqrt(-Q);
+      x1 = 2.0 * Q * cos(theta / 3.0) - a1 / 3.0;
+      x2 = 2.0 * Q * cos((theta + 2.0 * M_PI) / 3.0) - a1 / 3.0;
+      x3 = 2.0 * Q * cos((theta + 4.0 * M_PI) / 3.0) - a1 / 3.0;
+      return true;
+   }
+   else {
+      x1 = 0.0;
+      x2 = 0.0;
+      x3 = 0.0;
+      return false;
+   };
+};
+
+/*!
+\brief Reduce a periodic argument to lie between 0 and "period"
+\author Vladimir Florinski
+\date 08/22/2023
+\param[in] x      A number to be reduced
+\param[in] period The reduced number is between 0 and this number (must be positive)
+\return Reduced number
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
+{
+   int n = x / period;
+   if(x < 0.0) return x - (n - 1) * period;
+   else return x - n * period;
+};
+
+/*!
+\brief Distribute a number of tasks among the workers as evenly as possible
+\author Vladimir Florinski
+\date 02/15/2024
+\param[in,out] tasks   Number of tasks to perform
+\param[in,out] workers Number of workers available/required
+\param[out]    tpw     Number of tasks per worker (except the last)
+\param[out]    tplw    Number of tasks for the last worker
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline void DistributeTasks(T& tasks, T& workers, T& tpw, T& tplw)
+{
+   T excess_tasks;
+
+// Invalid input, but the return must make sense
+   if((tasks <= 0) || (workers <= 0)) {
+      tasks = 0;
+      workers = 0;
+      tpw = tplw = 0;
+   }
+
+// Workers exceed tasks
+   else if(workers >= tasks) {
+      workers = tasks;
+      tpw = tplw = 1;
+   }
+
+// Normal situation
+   else {
+
+// Initial estimate
+      tpw = tasks / workers;
+      if(tasks % workers) tpw++;
+
+// Redundant workers and the last worker load
+      excess_tasks = tpw * workers - tasks;
+      workers -= excess_tasks / tpw;
+      tplw = tpw - excess_tasks % tpw;
+   };
+};
 
 };
 
