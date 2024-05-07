@@ -72,6 +72,9 @@ struct GeoVector : public SimpleArray<double, 3>
 //! Constructor from the base class
    SPECTRUM_DEVICE_FUNC GeoVector(const SimpleArray<double, 3>& other);
 
+//! Constructor from a multi-index
+   SPECTRUM_DEVICE_FUNC GeoVector(const MultiIndex& other);
+
 //! Store the content of the vector into three separate components
    SPECTRUM_DEVICE_FUNC void Store(double& x_out, double& y_out, double& z_out) const;
 
@@ -90,7 +93,16 @@ struct GeoVector : public SimpleArray<double, 3>
 //! Vector-multiply this by another vector
    SPECTRUM_DEVICE_FUNC GeoVector& operator ^=(const GeoVector& other);
 
-//! Vector component-wise division by multi-index
+//! Add a multi-index to this
+   SPECTRUM_DEVICE_FUNC GeoVector& operator +=(const MultiIndex& other);
+
+//! Subtract a multi-index from this
+   SPECTRUM_DEVICE_FUNC GeoVector& operator -=(const MultiIndex& other);
+
+//! Multiply component-wise by a multi-index
+   SPECTRUM_DEVICE_FUNC GeoVector& operator *=(const MultiIndex& other);
+
+//! Divide component-wise by a multi-index
    SPECTRUM_DEVICE_FUNC GeoVector& operator /=(const MultiIndex& other);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -188,6 +200,18 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const SimpleArray<double, 3>& o
 
 /*!
 \author Vladimir Florinski
+\date 03/10/2024
+\param[in] other Object to initialize from
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const MultiIndex& other)
+{
+   data[0] = other.data[0];
+   data[1] = other.data[1];
+   data[2] = other.data[2];
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/01/2018
 \param[out] x First component
 \param[out] y Second component
@@ -268,7 +292,52 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& o
 \author Juan G Alonso Guzman
 \date 04/26/2024
 \param[in] other Right operand (multi-index)
-\return This vector scaled by a multi-index
+\return The result of a summation with a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] + other.data[0];
+   data[1] = vect_tmp.data[1] + other.data[1];
+   data[2] = vect_tmp.data[2] + other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a subtraction of a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] - other.data[0];
+   data[1] = vect_tmp.data[1] - other.data[1];
+   data[2] = vect_tmp.data[2] - other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a component-wise multiplication by a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] * other.data[0];
+   data[1] = vect_tmp.data[1] * other.data[1];
+   data[2] = vect_tmp.data[2] * other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a component-wise division by a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& other)
 {
@@ -326,12 +395,109 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator ^(const GeoVector& vect_l, const 
 };
 
 /*!
+\brief Compute a component-wise addition of a vector and a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Addition of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp += midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise addition of a multi-index and a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Addition of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp += vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise subtraction of a multi-index from a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Subtraction of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp -= midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise subtraction of a vector from a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Subtraction of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp -= vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise multiplication of a vector by a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Vector multiplied by the multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp *= midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise multiplication of a multi-index by a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Vector multiplied by the multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp *= vect_r;
+   return vect_tmp;
+};
+
+/*!
 \brief Compute a component-wise division of a vector by a multi-index
 \author Juan G Alonso Guzman
+\author Vladimir Florinski
 \date 04/26/2024
-\param[in] vect_l Left operand (vector) \f$\mathbf{v}_1\f$
+\param[in] vect_l Left operand (vector)
 \param[in] midx_r Right operand (multi-index)
-\return Vector scaled by the multi-index
+\return Vector divided by the multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r)
 {
