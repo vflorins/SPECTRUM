@@ -2,7 +2,6 @@
 \file vectors.hh
 \brief Declares and defines a three-component vector class
 \author Vladimir Florinski
-\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -10,8 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_VECTORS_HH
 #define SPECTRUM_VECTORS_HH
 
-#include "definitions.hh"
-#include "multi_index.hh"
+#include "common/multi_index.hh"
 
 namespace Spectrum {
 
@@ -49,84 +47,42 @@ namespace Spectrum {
 /*!
 \brief A three component vector class
 \author Vladimir Florinski
-
-A class operating on a three-component vector. The following operations are provided: copying, reflection, normalization, rescaling, scalar product, vector product. Almost all functions are inlined.
+\author Juan G Alonso Guzman
 */
-struct GeoVector {
-
-//! Storage
-   union {
-      struct {
-         double x, y, z;
-      };
-      double data[3];
-   };
+struct GeoVector : public SimpleArray<double, 3>
+{
+   using SimpleArray::operator=;
+   using SimpleArray::operator+=;
+   using SimpleArray::operator-=;
+   using SimpleArray::operator*=;
+   using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoVector(void);
+   SPECTRUM_DEVICE_FUNC GeoVector(void) = default;
 
-//! Constructor from components
-   SPECTRUM_DEVICE_FUNC constexpr GeoVector(double x_in, double y_in, double z_in);
+//! Constructor from a single value
+   SPECTRUM_DEVICE_FUNC explicit GeoVector(double a);
 
 //! Constructor from an array
-   SPECTRUM_DEVICE_FUNC GeoVector(const double* data_r);
+   SPECTRUM_DEVICE_FUNC explicit GeoVector(const double* other);
 
-//! Copy constructor
-   SPECTRUM_DEVICE_FUNC GeoVector(const GeoVector& other);
+//! Constructor from components
+   SPECTRUM_DEVICE_FUNC GeoVector(double x_in, double y_in, double z_in);
 
-//! Access to the data for reading
-   SPECTRUM_DEVICE_FUNC const double* Data(void) const;
+//! Constructor from the base class
+   SPECTRUM_DEVICE_FUNC GeoVector(const SimpleArray<double, 3>& other);
 
-//! Access to the data for writing
-   SPECTRUM_DEVICE_FUNC double* Data(void);
-
-//! Access to components for reading
-   SPECTRUM_DEVICE_FUNC const double& operator [](int i) const;
-
-//! Access to components for writing
-   SPECTRUM_DEVICE_FUNC double& operator [](int i);
-
-//! Store the content of the vector into an array
-   SPECTRUM_DEVICE_FUNC void Store(double* data_l) const;
+//! Constructor from a multi-index
+   SPECTRUM_DEVICE_FUNC GeoVector(const MultiIndex& other);
 
 //! Store the content of the vector into three separate components
-   SPECTRUM_DEVICE_FUNC void Store(double& x, double& y, double& z) const;
-
-//! Assignment operator from an array
-   SPECTRUM_DEVICE_FUNC GeoVector& operator =(const double* data_r);
-
-//! Assignment operator from another vector
-   SPECTRUM_DEVICE_FUNC GeoVector& operator =(const GeoVector& vect_r);
-
-//! Set all three components to the given value
-   SPECTRUM_DEVICE_FUNC GeoVector& operator =(double val);
+   SPECTRUM_DEVICE_FUNC void Store(double& x_out, double& y_out, double& z_out) const;
 
 //! Convertion operator to MultiIndex
    SPECTRUM_DEVICE_FUNC operator MultiIndex(void) const;
 
-//! Add another vector to this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator +=(const GeoVector& vect_r);
-
-//! Add a multi-index to this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator +=(const MultiIndex& midx_r);
-
-//! Subtract another vector from this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator -=(const GeoVector& vect_r);
-
-//! Subtract a multi-index from this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator -=(const MultiIndex& midx_r);
-
-//! Multiply this vector by a scalar
-   SPECTRUM_DEVICE_FUNC GeoVector& operator *=(double sclr_r);
-
-//! Divide this vector by a scalar
-   SPECTRUM_DEVICE_FUNC GeoVector& operator /=(double sclr_r);
-
 //! Computes the norm of this vector
    SPECTRUM_DEVICE_FUNC double Norm(void) const;
-
-//! Computes the square of the norm of this vector
-   SPECTRUM_DEVICE_FUNC double Norm2(void) const;
 
 //! Makes this a unit vector
    SPECTRUM_DEVICE_FUNC GeoVector& Normalize(void);
@@ -134,13 +90,22 @@ struct GeoVector {
 //! Makes this a unit vector but saves the norm
    SPECTRUM_DEVICE_FUNC GeoVector& Normalize(double& norm);
 
-//! Sum of the components
-   SPECTRUM_DEVICE_FUNC double Sum(void) const;
+//! Vector-multiply this by another vector
+   SPECTRUM_DEVICE_FUNC GeoVector& operator ^=(const GeoVector& other);
+
+//! Add a multi-index to this
+   SPECTRUM_DEVICE_FUNC GeoVector& operator +=(const MultiIndex& other);
+
+//! Subtract a multi-index from this
+   SPECTRUM_DEVICE_FUNC GeoVector& operator -=(const MultiIndex& other);
+
+//! Multiply component-wise by a multi-index
+   SPECTRUM_DEVICE_FUNC GeoVector& operator *=(const MultiIndex& other);
+
+//! Divide component-wise by a multi-index
+   SPECTRUM_DEVICE_FUNC GeoVector& operator /=(const MultiIndex& other);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Smallest component
-   SPECTRUM_DEVICE_FUNC double Smallest(void) const;
 
 //! Polar angle of a position vector
    SPECTRUM_DEVICE_FUNC double Theta(void);
@@ -166,6 +131,9 @@ struct GeoVector {
 //! Rotate about an axis
    SPECTRUM_DEVICE_FUNC void Rotate(const GeoVector& axis, double angle);
 
+//! Project onto normal space of a vector
+   SPECTRUM_DEVICE_FUNC void SubtractParallel(const GeoVector& axis);
+
 //! Convert components from the standard basis to a different basis
    SPECTRUM_DEVICE_FUNC void ChangeToBasis(const GeoVector* basis);
 
@@ -180,80 +148,6 @@ struct GeoVector {
 
 //! Check if a vector is inside a wedge
    SPECTRUM_DEVICE_FUNC bool InsideWedge(int n_verts, const GeoVector* verts, double tol) const;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Computes the reflected vector
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(const GeoVector& vect);
-
-//! Add an array and a vector
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator +(const double* data_l, const GeoVector& vect_r);
-
-//! Add a vector and an array
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator +(const GeoVector& vect_l, const double* data_r);
-
-//! Add two vectors together
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator +(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Add a vector to scaled ones
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator +(double sclr_l, const GeoVector& vect_r);
-
-//! Increment all components by an equal amount
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator +(const GeoVector& vect_l, double sclr_r);
-
-//! Subtract a vector from an array
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(const double* data_l, const GeoVector& vect_r);
-
-//! Subtract an array from a vector
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(const GeoVector& vect_l, const double* data_r);
-
-//! Subtract one vector from another
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Subtract a vector from scaled ones
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(double sclr_l, const GeoVector& vect_r);
-
-//! Decrement all components by an equal amount
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator -(const GeoVector& vect_l, double sclr_r);
-
-//! Multiply a vector by a scalar from the right
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator *(const GeoVector& vect_l, double sclr_r);
-
-//! Multiply a vector by a scalar from the left
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator *(double sclr_l, const GeoVector& vect_r);
-
-//! Divide a vector by a scalar
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator /(const GeoVector& vect_l, double sclr_r);
-
-//! Divide a vector by another vector component-wise
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator /(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Multiply a vector by a multi-index component-wise
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r);
-
-//! Multiply a multi-index by a vector component-wise
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r);
-
-//! Divide a vector by a multi-index component-wise
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r);
-
-//! Return a scalar product of a vector and an array
-   SPECTRUM_DEVICE_FUNC friend double operator *(const GeoVector& vect_l, const double* data_r);
-
-//! Return a scalar product of an array and a vector
-   SPECTRUM_DEVICE_FUNC friend double operator *(const double* data_l, const GeoVector& vect_r);
-
-//! Return a scalar product of two vectors
-   SPECTRUM_DEVICE_FUNC friend double operator *(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Compute a vector product of a vector and an array
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator ^(const GeoVector& vect_l, const double* data_r);
-
-//! Compute a vector product of an array and a vector
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator ^(const double* data_l, const GeoVector& vect_r);
-
-//! Compute a vector product of two vectors
-   SPECTRUM_DEVICE_FUNC friend GeoVector operator ^(const GeoVector& vect_l, const GeoVector& vect_r);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -262,10 +156,22 @@ struct GeoVector {
 
 /*!
 \author Vladimir Florinski
-\date 04/19/2023
+\date 03/10/2024
+\param[in] a Number to be asigned to each index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(void)
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double a)
 {
+   data[0] = data[1] = data[2] = a;
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/01/2018
+\param[in] other Array to initialize the vector from
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const double* other)
+{
+   std::memcpy(data, other, 3 * sizeof(double));
 };
 
 /*!
@@ -275,83 +181,33 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(void)
 \param[in] y Second component
 \param[in] z Third component
 */
-SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y_in, double z_in)
-                                               : x(x_in),
-                                                 y(y_in),
-                                                 z(z_in)
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double x_in, double y_in, double z_in)
 {
+   data[0] = x_in;
+   data[1] = y_in;
+   data[2] = z_in;
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_r Array to initialize the vector from
+\date 03/10/2024
+\param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const double* data_r)
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const SimpleArray<double, 3>& other)
 {
-   std::memcpy(data, data_r, 3 * SZDBL);
+   memcpy(data, other.data, 3 * sizeof(double));
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/01/2018
-\param[in] other Vector to create a copy of
+\date 03/10/2024
+\param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const GeoVector& other)
+SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const MultiIndex& other)
 {
-   std::memcpy(data, &other, 3 * SZDBL);;
-};
-
-/*!
-\author Vladimir Florinski
-\date 12/03/2020
-\return "data" array
-*/
-SPECTRUM_DEVICE_FUNC inline const double* GeoVector::Data(void) const
-{
-   return data;
-};
-
-/*!
-\author Vladimir Florinski
-\date 12/03/2020
-\return "data" array
-*/
-SPECTRUM_DEVICE_FUNC inline double* GeoVector::Data(void)
-{
-   return data;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] i The desired component
-\return \f$v_i\f$
-*/
-SPECTRUM_DEVICE_FUNC inline const double& GeoVector::operator [](int i) const
-{
-   return data[i];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] i The desired component
-\return \f$v_i\f$
-*/
-SPECTRUM_DEVICE_FUNC inline double& GeoVector::operator [](int i)
-{
-   return data[i];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[out] data_l Array to store the vector in
-*/
-SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double* data_l) const
-{
-   std::memcpy(data_l, data, 3 * SZDBL);
+   data[0] = other.data[0];
+   data[1] = other.data[1];
+   data[2] = other.data[2];
 };
 
 /*!
@@ -361,47 +217,11 @@ SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double* data_l) const
 \param[out] y Second component
 \param[out] z Third component
 */
-SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x, double& y, double& z) const
+SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x_out, double& y_out, double& z_out) const
 {
-   x = data[0];
-   y = data[1];
-   z = data[2];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_r Array to copy into this vector
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator =(const double* data_r)
-{
-   std::memcpy(data, data_r, 3 * SZDBL);
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_r A vector that will be copied into this vector
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator =(const GeoVector& vect_r)
-{
-   if(this != &vect_r) std::memcpy(data, vect_r.data, 3 * SZDBL);
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] val A number to be assigned to all three components
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator =(double val)
-{
-   data[0] = data[1] = data[2] = val;
-   return *this;
+   x_out = data[0];
+   y_out = data[1];
+   z_out = data[2];
 };
 
 /*!
@@ -416,106 +236,12 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
 
 /*!
 \author Vladimir Florinski
-\date 07/23/2019
-\param[in] vect_r right operand \f$\mathbf{v}_1\f$
-\return \f$\mathbf{v}+\mathbf{v}_1\f$
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const GeoVector& vect_r)
-{
-   data[0] += vect_r.data[0];
-   data[1] += vect_r.data[1];
-   data[2] += vect_r.data[2];
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] midx_r right operand
-\return Sum of this vector and a multi-index
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& midx_r)
-{
-   data[0] += midx_r.i;
-   data[1] += midx_r.j;
-   data[2] += midx_r.k;
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 07/23/2019
-\param[in] data_r right operand \f$\mathbf{v}_1\f$
-\return \f$\mathbf{v}-\mathbf{v}_1\f$
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const GeoVector& vect_r)
-{
-   data[0] -= vect_r.data[0];
-   data[1] -= vect_r.data[1];
-   data[2] -= vect_r.data[2];
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] midx_r right operand
-\return Difference between this vector and a multi-index
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& midx_r)
-{
-   data[0] -= midx_r.i;
-   data[1] -= midx_r.j;
-   data[2] -= midx_r.k;
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] sclr_r right operand \f$a\f$
-\return \f$a\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(double sclr_r)
-{
-   data[0] *= sclr_r;
-   data[1] *= sclr_r;
-   data[2] *= sclr_r;
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] sclr_r right operand \f$a\f$
-\return \f$a^{-1}\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(double sclr_r)
-{
-   data[0] /= sclr_r;
-   data[1] /= sclr_r;
-   data[2] /= sclr_r;
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
+\date 04/24/2024
 \return \f$|v|\f$
 */
 SPECTRUM_DEVICE_FUNC inline double GeoVector::Norm(void) const
 {
-   return sqrt(fmax(Sqr(data[0]) + Sqr(data[1]) + Sqr(data[2]), 0.0));
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\return \f$|v|^2\f$
-*/
-SPECTRUM_DEVICE_FUNC inline double GeoVector::Norm2(void) const
-{
-   return Sqr(data[0]) + Sqr(data[1]) + Sqr(data[2]);
+   return sqrt(Norm2());
 };
 
 /*!
@@ -549,20 +275,251 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
 
 /*!
 \author Vladimir Florinski
-\date 05/14/2021
-\return Sum of components
+\date 04/25/2024
+\param[in] other Right operand \f$\mathbf{v}_1\f$
+\return \f$\mathbf{v}\times\mathbf{v}_1\f$
 */
-SPECTRUM_DEVICE_FUNC inline double GeoVector::Sum(void) const
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& other)
 {
-   return data[0] + data[1] + data[2];
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[1] * other.data[2] - vect_tmp.data[2] * other.data[1];
+   data[1] = vect_tmp.data[2] * other.data[0] - vect_tmp.data[0] * other.data[2];
+   data[2] = vect_tmp.data[0] * other.data[1] - vect_tmp.data[1] * other.data[0];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a summation with a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] + other.data[0];
+   data[1] = vect_tmp.data[1] + other.data[1];
+   data[2] = vect_tmp.data[2] + other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a subtraction of a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] - other.data[0];
+   data[1] = vect_tmp.data[1] - other.data[1];
+   data[2] = vect_tmp.data[2] - other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a component-wise multiplication by a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] * other.data[0];
+   data[1] = vect_tmp.data[1] * other.data[1];
+   data[2] = vect_tmp.data[2] * other.data[2];
+   return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 04/26/2024
+\param[in] other Right operand (multi-index)
+\return The result of a component-wise division by a multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& other)
+{
+   GeoVector vect_tmp(*this);
+   data[0] = vect_tmp.data[0] / other.data[0];
+   data[1] = vect_tmp.data[1] / other.data[1];
+   data[2] = vect_tmp.data[2] / other.data[2];
+   return *this;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Other methods operating on vectors
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Convert input to a unit vector
-SPECTRUM_DEVICE_FUNC GeoVector UnitVec(const GeoVector& vect);
+/*!
+\brief Computes the reflected vector
+\author Vladimir Florinski
+\date 04/25/2024
+\param[in] vect Vector to reflect \f$\mathbf{v}\f$
+\return \f$-\mathbf{v}\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect)
+{
+   GeoVector vect_tmp(vect);
+   vect_tmp.Negate();
+   return vect_tmp;
+};
+
+/*!
+\brief Return a scalar product of two vectors
+\author Vladimir Florinski
+\date 04/25/2024
+\param[in] sarr_l Left operand \f$\mathbf{v}_1\f$
+\param[in] sarr_r Right operand \f$\mathbf{v}_2\f$
+\return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
+*/
+SPECTRUM_DEVICE_FUNC inline double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
+{
+   return vect_l.ScalarProd(vect_r);
+};
+
+/*!
+\brief Compute a vector product of two vectors
+\author Vladimir Florinski
+\date 04/25/2024
+\param[in] vect_l Left operand \f$\mathbf{v}_1\f$
+\param[in] vect_r Right operand \f$\mathbf{v}_2\f$
+\return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator ^(const GeoVector& vect_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp ^= vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise addition of a vector and a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Addition of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp += midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise addition of a multi-index and a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Addition of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp += vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise subtraction of a multi-index from a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Subtraction of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp -= midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise subtraction of a vector from a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Subtraction of vector and multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp -= vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise multiplication of a vector by a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Vector multiplied by the multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp *= midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise multiplication of a multi-index by a vector
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 05/07/2024
+\param[in] midx_l Left operand (multi-index)
+\param[in] vect_r Right operand (vector)
+\return Vector multiplied by the multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r)
+{
+   GeoVector vect_tmp(midx_l);
+   vect_tmp *= vect_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Compute a component-wise division of a vector by a multi-index
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 04/26/2024
+\param[in] vect_l Left operand (vector)
+\param[in] midx_r Right operand (multi-index)
+\return Vector divided by the multi-index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r)
+{
+   GeoVector vect_tmp(vect_l);
+   vect_tmp /= midx_r;
+   return vect_tmp;
+};
+
+/*!
+\brief Convert input to a unit vector
+\author Vladimir Florinski
+\date 07/10/2019
+\param[in] vect Vector to rescale \f$\mathbf{v}\f$
+\return Normalized vector
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector UnitVec(const GeoVector& vect)
+{
+   GeoVector vect_tmp(vect);
+   return vect_tmp.Normalize();
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Compute a unit vector bisecting the angle formed by two unit vectors
 SPECTRUM_DEVICE_FUNC GeoVector Bisect(const GeoVector& vect_l, const GeoVector& vect_r);
@@ -609,17 +566,10 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& first);
 //! Find a unit vector normal to a given vector in the plane given by the second vector
 SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const GeoVector& vect_r);
 
-//! Stream insertion operator (host only)
-std::ostream& operator <<(std::ostream& os, const GeoVector& vect_r);
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Three unit vectors in an array
-#ifdef __CUDA_ARCH__
-__device__ constexpr GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
-#else
-constexpr GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
-#endif
+//! Three unit vectors in an array (host only)
+const GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
 
 };
 

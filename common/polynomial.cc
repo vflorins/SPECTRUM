@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "polynomial.hh"
+#include "common/polynomial.hh"
 
 namespace Spectrum {
 
@@ -17,7 +17,7 @@ namespace Spectrum {
 \param[in] pl Three power law indices encoded as a single number
 \return \f$x^l \cdot y^m \cdot z^n\f$
 */
-double CoordPower3D(const GeoVector& v, uint32_t pl)
+SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t pl)
 {
    uint32_t i;
    double res = 1.0;
@@ -37,7 +37,7 @@ double CoordPower3D(const GeoVector& v, uint32_t pl)
 \param[in] pl Three power law indices encoded as a single number
 \return \f$r^{l+m+n}\f$
 */
-double CoordPower3D(double r, uint32_t pl)
+SPECTRUM_DEVICE_FUNC double CoordPower3D(double r, uint32_t pl)
 {
    int i, pl_tot;
    double res = 1.0;
@@ -56,7 +56,7 @@ double CoordPower3D(double r, uint32_t pl)
 \param[in] n Power law for z
 \return \f$x^l \cdot y^m \cdot z^n\f$
 */
-double CoordPower3D(const GeoVector& v, int l, int m, int n)
+SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, int l, int m, int n)
 {
    int i;
    double res = 1.0;
@@ -76,7 +76,7 @@ double CoordPower3D(const GeoVector& v, int l, int m, int n)
 \param[in] x Argument
 \return \f$P(x)=c_0+c_1x+c_2x^2+...\f$
 */
-double EvalPoly1D(int p, const double* c, double x)
+SPECTRUM_DEVICE_FUNC double EvalPoly1D(int p, const double* c, double x)
 {
    int i;
    double sum = c[p];
@@ -94,7 +94,7 @@ double EvalPoly1D(int p, const double* c, double x)
 \param[in] y Second argument
 \return \f$P(x,y)=c_0+c_1x+c_2y+c_3x^2+c_4xy+c_5y^2+...\f$
 */
-double EvalPoly2D(int p, const double* c, double x, double y)
+SPECTRUM_DEVICE_FUNC double EvalPoly2D(int p, const double* c, double x, double y)
 {
    int i, j, idx = 0;
    double psum, sum = c[0];
@@ -126,7 +126,7 @@ double EvalPoly2D(int p, const double* c, double x, double y)
 \param[in] z Third argument
 \return \f$P(x,y,z)=c_0+c_1x+c_2y+c_3z+c_4x^2+c_5xy+c_6xz+c_7y^2+c_8yz+c_9z^2+...\f$
 */
-double EvalPoly3D(int p, const double* c, double x, double y, double z)
+SPECTRUM_DEVICE_FUNC double EvalPoly3D(int p, const double* c, double x, double y, double z)
 {
    int i, j, k, idx = 0;
    double psum, qsum, sum = c[0];

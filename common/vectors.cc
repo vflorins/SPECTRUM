@@ -2,33 +2,17 @@
 \file vectors.cc
 \brief Defines some non-trivial functions operating on vectors
 \author Vladimir Florinski
-\author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "vectors.hh"
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Methods of GeoVector
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Vladimir Florinski
-\date 08/13/2020
-\return Smallest component by absolute value
-*/
-SPECTRUM_DEVICE_FUNC double GeoVector::Smallest(void) const
-{
-   if(fabs(data[0]) < fabs(data[1])) {
-      if(fabs(data[0]) < fabs(data[2])) return fabs(data[0]);
-      else return fabs(data[2]);
-   }
-   else if(fabs(data[1]) < fabs(data[2])) return fabs(data[1]);
-   else return fabs(data[2]);
-};
 
 /*!
 \author Vladimir Florinski
@@ -142,6 +126,16 @@ SPECTRUM_DEVICE_FUNC void GeoVector::Rotate(const GeoVector& axis, double angle)
 
 /*!
 \author Vladimir Florinski
+\date 02/13/2024
+\param[in] axis  Unit vector whose normal space we project to \f$\sim\mathbf{n}\f$
+*/
+SPECTRUM_DEVICE_FUNC void GeoVector::SubtractParallel(const GeoVector& axis)
+{
+   *this -= (*this * axis) * axis;
+};
+
+/*!
+\author Vladimir Florinski
 \date 09/12/2019
 \param[in] basis Three new basis vectors
 */
@@ -249,406 +243,20 @@ SPECTRUM_DEVICE_FUNC bool GeoVector::InsideWedge(int n_verts, const GeoVector* v
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Friend methods of GeoVector
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect Vector to reflect \f$\mathbf{v}\f$
-\return \f$-\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(const GeoVector& vect)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = -vect.data[0];
-   vect_tmp.data[1] = -vect.data[1];
-   vect_tmp.data[2] = -vect.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1+\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator +(const double* data_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp(data_l);
-   vect_tmp.data[0] += vect_r.data[0];
-   vect_tmp.data[1] += vect_r.data[1];
-   vect_tmp.data[2] += vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] data_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1+\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator +(const GeoVector& vect_l, const double* data_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] += data_r[0];
-   vect_tmp.data[1] += data_r[1];
-   vect_tmp.data[2] += data_r[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1+\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator +(const GeoVector& vect_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] += vect_r.data[0];
-   vect_tmp.data[1] += vect_r.data[1];
-   vect_tmp.data[2] += vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] sclr_l left operand \f$a\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\a(1,1,1)+\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator +(double sclr_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = sclr_l + vect_r.data[0];
-   vect_tmp.data[1] = sclr_l + vect_r.data[1];
-   vect_tmp.data[2] = sclr_l + vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] sclr_r right operand \f$a\f$
-\return \f$\mathbf{v}_1+a(1,1,1)\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator +(const GeoVector& vect_l, double sclr_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] += sclr_r;
-   vect_tmp.data[1] += sclr_r;
-   vect_tmp.data[2] += sclr_r;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1-\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(const double* data_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp(data_l);
-   vect_tmp.data[0] -= vect_r.data[0];
-   vect_tmp.data[1] -= vect_r.data[1];
-   vect_tmp.data[2] -= vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] data_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1-\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(const GeoVector& vect_l, const double* data_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] -= data_r[0];
-   vect_tmp.data[1] -= data_r[1];
-   vect_tmp.data[2] -= data_r[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1-\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(const GeoVector& vect_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] -= vect_r.data[0];
-   vect_tmp.data[1] -= vect_r.data[1];
-   vect_tmp.data[2] -= vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] sclr_l left operand \f$a\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\a(1,1,1)-\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(double sclr_l, const GeoVector& vect_r)
-   {
-      GeoVector vect_tmp;
-      vect_tmp.data[0] = sclr_l - vect_r.data[0];
-      vect_tmp.data[1] = sclr_l - vect_r.data[1];
-      vect_tmp.data[2] = sclr_l - vect_r.data[2];
-      return vect_tmp;
-   };
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] sclr_r right operand \f$a\f$
-\return \f$\mathbf{v}_1-a(1,1,1)\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator -(const GeoVector& vect_l, double sclr_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] -= sclr_r;
-   vect_tmp.data[1] -= sclr_r;
-   vect_tmp.data[2] -= sclr_r;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$a\f$
-\param[in] sclt_r right operand \f$\mathbf{v}\f$
-\return \f$a\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator *(const GeoVector& vect_l, double sclr_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] *= sclr_r;
-   vect_tmp.data[1] *= sclr_r;
-   vect_tmp.data[2] *= sclr_r;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 04/10/2023
-\param[in] sclt_l right operand \f$\mathbf{v}\f$
-\param[in] vect_r left operand \f$a\f$
-\return \f$a\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator *(double sclr_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp(vect_r);
-   vect_tmp.data[0] *= sclr_l;
-   vect_tmp.data[1] *= sclr_l;
-   vect_tmp.data[2] *= sclr_l;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}\f$
-\param[in] sclr_r right operand \f$a\f$
-\return \f$a^{-1}\mathbf{v}\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator /(const GeoVector& vect_l, double sclr_r)
-{
-   GeoVector vect_tmp(vect_l);
-   vect_tmp.data[0] /= sclr_r;
-   vect_tmp.data[1] /= sclr_r;
-   vect_tmp.data[2] /= sclr_r;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/08/2020
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return First vector scaled by the second vector
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator /(const GeoVector& vect_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = vect_l.data[0] / vect_r.data[0];
-   vect_tmp.data[1] = vect_l.data[1] / vect_r.data[1];
-   vect_tmp.data[2] = vect_l.data[2] / vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/14/2021
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] midx_r right operand (a multi-index)
-\return Vector scaled by the multi-index
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = vect_l.data[0] * midx_r.i;
-   vect_tmp.data[1] = vect_l.data[1] * midx_r.j;
-   vect_tmp.data[2] = vect_l.data[2] * midx_r.k;
-   return vect_tmp;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/20/2023
-\param[in] midx_l left operand (a multi-index)
-\param[in] vect_r right operand \f$\mathbf{v}_1\f$
-\return Vector scaled by the multi-index
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = midx_l.i * vect_r.data[0];
-   vect_tmp.data[1] = midx_l.j * vect_r.data[1];
-   vect_tmp.data[2] = midx_l.k * vect_r.data[2];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/08/2020
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] midx_r right operand (a multi-index)
-\return Vector scaled by the multi-index
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = vect_l.data[0] / midx_r.i;
-   vect_tmp.data[1] = vect_l.data[1] / midx_r.j;
-   vect_tmp.data[2] = vect_l.data[2] / midx_r.k;
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] data_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC double operator *(const GeoVector& vect_l, const double* data_r)
-{
-   return vect_l.data[0] * data_r[0] + vect_l.data[1] * data_r[1] + vect_l.data[2] * data_r[2];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC double operator *(const double* data_l, const GeoVector& vect_r)
-{
-   return vect_r.data[0] * data_l[0] + vect_r.data[1] * data_l[1] + vect_r.data[2] * data_l[2];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
-{
-   return vect_l.data[0] * vect_r.data[0] + vect_l.data[1] * vect_r.data[1] + vect_l.data[2] * vect_r.data[2];
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] data_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator ^(const GeoVector& vect_l, const double* data_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = vect_l.data[1] * data_r[2] - vect_l.data[2] * data_r[1];
-   vect_tmp.data[1] = vect_l.data[2] * data_r[0] - vect_l.data[0] * data_r[2];
-   vect_tmp.data[2] = vect_l.data[0] * data_r[1] - vect_l.data[1] * data_r[0];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] data_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator ^(const double* data_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = data_l[1] * vect_r.data[2] - data_l[2] * vect_r.data[1];
-   vect_tmp.data[1] = data_l[2] * vect_r.data[0] - data_l[0] * vect_r.data[2];
-   vect_tmp.data[2] = data_l[0] * vect_r.data[1] - data_l[1] * vect_r.data[0];
-   return vect_tmp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2018
-\param[in] vect_l left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r right operand \f$\mathbf{v}_2\f$
-\return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
-*/
-SPECTRUM_DEVICE_FUNC GeoVector operator ^(const GeoVector& vect_l, const GeoVector& vect_r)
-{
-   GeoVector vect_tmp;
-   vect_tmp.data[0] = vect_l.data[1] * vect_r.data[2] - vect_l.data[2] * vect_r.data[1];
-   vect_tmp.data[1] = vect_l.data[2] * vect_r.data[0] - vect_l.data[0] * vect_r.data[2];
-   vect_tmp.data[2] = vect_l.data[0] * vect_r.data[1] - vect_l.data[1] * vect_r.data[0];
-   return vect_tmp;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Other methods operating on vectors
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
-\date 07/10/2019
-\param[in] vect Vector to rescale \f$\mathbf{v}\f$
-\return Normalized vector
-*/
-SPECTRUM_DEVICE_FUNC GeoVector UnitVec(const GeoVector& vect)
-{
-   GeoVector vect_tmp(vect);
-   return vect_tmp.Normalize();
-};
-
-/*!
-\author Vladimir Florinski
-\date 07/23/2019
+\date 03/13/2024
 \param[in] vect_l left operand \f$\mathbf{v}_1\f$
 \param[in] vect_r right operand \f$\mathbf{v}_2\f$
 \return \f$\sim(\mathbf{v}_1+\mathbf{v}_2)/2\f$
 */
 SPECTRUM_DEVICE_FUNC GeoVector Bisect(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   return (vect_l + vect_r).Normalize();
+   GeoVector sum = vect_l + vect_r;
+   return sum.Normalize();
 };
 
 /*!
@@ -666,7 +274,7 @@ SPECTRUM_DEVICE_FUNC double TriangleArea(const GeoVector& vect_l, const GeoVecto
 
 /*!
 \author Vladimir Florinski
-\date 07/23/2019
+\date 03/13/2024
 \param[in] vect_l left operand \f$\mathbf{v}_1\f$
 \param[in] vect_m middle operand \f$\mathbf{v}_2\f$
 \param[in] vect_r right operand \f$\mathbf{v}_3\f$
@@ -674,7 +282,8 @@ SPECTRUM_DEVICE_FUNC double TriangleArea(const GeoVector& vect_l, const GeoVecto
 */
 SPECTRUM_DEVICE_FUNC GeoVector PlaneNormal(const GeoVector& vect_l, const GeoVector& vect_m, const GeoVector& vect_r)
 {
-   return ((vect_m - vect_l) ^ (vect_r - vect_l)).Normalize();
+   GeoVector n = (vect_m - vect_l) ^ (vect_r - vect_l);
+   return n.Normalize();
 };
 
 /*!
@@ -692,7 +301,7 @@ SPECTRUM_DEVICE_FUNC GeoVector TriangleCenter(const GeoVector& vect_l, const Geo
 
 /*!
 \author Vladimir Florinski
-\date 07/23/2019
+\date 03/13/2024
 \param[in] vect_l left operand \f$\mathbf{v}_1\f$
 \param[in] vect_m middle operand \f$\mathbf{v}_2\f$
 \param[in] vect_r right operand \f$\mathbf{v}_3\f$
@@ -700,7 +309,8 @@ SPECTRUM_DEVICE_FUNC GeoVector TriangleCenter(const GeoVector& vect_l, const Geo
 */
 SPECTRUM_DEVICE_FUNC GeoVector CircumCenter(const GeoVector& vect_l, const GeoVector& vect_m, const GeoVector& vect_r)
 {
-   GeoVector n = ((vect_m - vect_l) ^ (vect_r - vect_l)).Normalize();
+   GeoVector n = (vect_m - vect_l) ^ (vect_r - vect_l);
+   n.Normalize();
    return (n * vect_l) * n;
 };
 
@@ -930,20 +540,9 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& first)
 */
 SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   GeoVector norm = vect_r - ((vect_l * vect_r) / vect_l.Norm2()) * vect_l;
-   return norm.Normalize();
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/11/2022
-\param[in] vect_r right operand
-\return Modified "ostream" object
-*/
-std::ostream& operator <<(std::ostream& os, const GeoVector& vect_r)
-{
-   os << "(" << vect_r[0] << ", " << vect_r[1] << ", " << vect_r[2] << ")";
-   return os;
+   GeoVector normal;
+   normal = vect_r - ((vect_l * vect_r) / vect_l.Norm2()) * vect_l;
+   return normal.Normalize();
 };
 
 };

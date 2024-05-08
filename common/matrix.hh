@@ -23,6 +23,7 @@ namespace Spectrum {
 /*!
 \brief A 3x3 component matrix class
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 A class representing a square 3x3 matrix used in vector transformations
 */
@@ -35,123 +36,87 @@ struct GeoMatrix {
    };
 
 //! Default constructor
-   GeoMatrix(void);
+   SPECTRUM_DEVICE_FUNC GeoMatrix(void) = default;
 
 //! Constructor from row vectors
-   GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
+   SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
 
 //! Copy constructor
-   GeoMatrix(const GeoMatrix& matr_r);
+   SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoMatrix& matr_r);
 
 //! Access to the data for reading
-   const double* Data(void) const;
+   SPECTRUM_DEVICE_FUNC const double* Data(void) const;
 
 //! Access to the data for writing
-   double* Data(void);
+   SPECTRUM_DEVICE_FUNC double* Data(void);
 
 //! Trace of the matrix
-   double Trace(void) const;
+   SPECTRUM_DEVICE_FUNC double Trace(void) const;
 
 //! Access to the rows as a vector array
-   const GeoVector* VectorArray(void) const;
+   SPECTRUM_DEVICE_FUNC const GeoVector* VectorArray(void) const;
 
 //! Access to rows for reading
-   const GeoVector& operator [](int i) const;
+   SPECTRUM_DEVICE_FUNC const GeoVector& operator [](int i) const;
 
 //! Access to rows for writing
-   GeoVector& operator [](int i);
+   SPECTRUM_DEVICE_FUNC GeoVector& operator [](int i);
 
 //! Assignment operator from another matrix
-   GeoMatrix& operator =(const GeoMatrix& matr_r);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(const GeoMatrix& matr_r);
 
 //! Set all three components to the given value
-   GeoMatrix& operator =(double val);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(double val);
 
 //! Transpose this matrix
-   GeoMatrix& Transpose(void);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& Transpose(void);
 
 //! Add another matrix to this
-   GeoMatrix& operator +=(const GeoMatrix& matr_r);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator +=(const GeoMatrix& matr_r);
 
 //! Subtract another matrix from this
-   GeoMatrix& operator -=(const GeoMatrix& matr_r);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator -=(const GeoMatrix& matr_r);
 
 //! Multiply this matrix by a scalar from the left
-   GeoMatrix& operator *=(double sclr_r);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator *=(double sclr_r);
 
 //! Divide this matrix by a scalar
-   GeoMatrix& operator /=(double sclr_r);
-
-//! Make a dyadic product out of the same vector
-   void Dyadic(const GeoVector& vect);
-
-//! Make a dyadic product out of two vectors
-   void Dyadic(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Add to a correlation matrix
-   void IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r);
-
-//! Generate a basis with the z-axis along the given direction
-   void AxisymmetricBasis(const GeoVector& ez);
-
-//! Convert components from the standard basis to a different basis
-   void ChangeToBasis(const GeoMatrix& basis);
-
-//! Convert components to the standard basis from a different basis
-   void ChangeFromBasis(const GeoMatrix& basis);
+   SPECTRUM_DEVICE_FUNC GeoMatrix& operator /=(double sclr_r);
 
 //! Compute the determinant
-   double Det(void) const;
-
-//! Compute a minor
-   double Minor(int i, int j) const;
-
-//! Compute the inverse
-   GeoMatrix Inverse(void) const;
-
-//! Compute the eigenvalues
-   GeoVector Eigenvalues(void) const;
-
-//! Compute the eigenvalues and left eigenvectors
-   GeoVector Eigensystem(GeoMatrix& evec) const;
+   SPECTRUM_DEVICE_FUNC double Det(void) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Negative of a matrix
-   friend GeoMatrix operator -(const GeoMatrix& matr);
+//! Make a dyadic product out of the same vector
+   SPECTRUM_DEVICE_FUNC void Dyadic(const GeoVector& vect);
 
-//! Add two matrices together
-   friend GeoMatrix operator +(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
+//! Make a dyadic product out of two vectors
+   SPECTRUM_DEVICE_FUNC void Dyadic(const GeoVector& vect_l, const GeoVector& vect_r);
 
-//! Subtract one matrix from another
-   friend GeoMatrix operator -(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
+//! Add to a correlation matrix
+   SPECTRUM_DEVICE_FUNC void IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r);
 
-//! Multiply a matrix by a scalar from the right
-   friend GeoMatrix operator *(const GeoMatrix& matr_l, double sclr_r);
+//! Generate a basis with the z-axis along the given direction
+   SPECTRUM_DEVICE_FUNC void AxisymmetricBasis(const GeoVector& ez);
 
-//! Multiply a matrix by a scalar from the left
-   friend GeoMatrix operator *(double sclr_l, const GeoMatrix& matr_r);
+//! Convert components from the standard basis to a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeToBasis(const GeoMatrix& basis);
 
-//! Divide a matrix by a scalar
-   friend GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r);
+//! Convert components to the standard basis from a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeFromBasis(const GeoMatrix& basis);
 
-//! Return a product of a matrix and a column vectors
-   friend GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r);
+//! Compute a minor
+   SPECTRUM_DEVICE_FUNC double Minor(int i, int j) const;
 
-//! Return a product of a row vector and a matrix
-   friend GeoVector operator *(const GeoVector& vect_l, const GeoMatrix& matr_r);
+//! Compute the inverse
+   SPECTRUM_DEVICE_FUNC GeoMatrix Inverse(void) const;
 
-//! Return a product of two matrices
-   friend GeoMatrix operator *(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
+//! Compute the eigenvalues
+   SPECTRUM_DEVICE_FUNC GeoVector Eigenvalues(void) const;
 
-//! Return a vector product of a vector and a matrix
-   friend GeoMatrix operator ^(const GeoVector& vect_l, const GeoMatrix& matr_r);
-
-//! Return a vector product of a matrix and a vector
-   friend GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r);
-
-//! Inner product between two matrices together
-   friend double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r);
+//! Compute the eigenvalues and left eigenvectors
+   SPECTRUM_DEVICE_FUNC GeoVector Eigensystem(GeoMatrix& evec) const;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -161,19 +126,11 @@ struct GeoMatrix {
 /*!
 \author Vladimir Florinski
 \date 11/02/2021
-*/
-inline GeoMatrix::GeoMatrix(void)
-{
-}
-
-/*!
-\author Vladimir Florinski
-\date 11/02/2021
 \param[in] v1 First row
 \param[in] v2 Second row
 \param[in] v3 Third row
 */
-inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3) : row{v1, v2, v3}
+SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3) : row{v1, v2, v3}
 {
 };
 
@@ -182,7 +139,7 @@ inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoV
 \date 11/02/2021
 \param[in] vect_r Matrix to create a copy of
 */
-inline GeoMatrix::GeoMatrix(const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoMatrix& matr_r)
 {
    operator =(matr_r);
 };
@@ -192,7 +149,7 @@ inline GeoMatrix::GeoMatrix(const GeoMatrix& matr_r)
 \date 12/03/2020
 \return "data" array
 */
-inline const double* GeoMatrix::Data(void) const
+SPECTRUM_DEVICE_FUNC inline const double* GeoMatrix::Data(void) const
 {
    return linear;
 };
@@ -202,7 +159,7 @@ inline const double* GeoMatrix::Data(void) const
 \date 12/03/2020
 \return "data" array
 */
-inline double* GeoMatrix::Data(void)
+SPECTRUM_DEVICE_FUNC inline double* GeoMatrix::Data(void)
 {
    return linear;
 };
@@ -212,7 +169,7 @@ inline double* GeoMatrix::Data(void)
 \date 11/02/2021
 \return Sum of diagonal components
 */
-inline double GeoMatrix::Trace(void) const
+SPECTRUM_DEVICE_FUNC inline double GeoMatrix::Trace(void) const
 {
    return linear[0] + linear[4] + linear[8];
 };
@@ -222,7 +179,7 @@ inline double GeoMatrix::Trace(void) const
 \date 08/15/2022
 \return Access to the storage as an array of type GeoVector
 */
-inline const GeoVector* GeoMatrix::VectorArray(void) const
+SPECTRUM_DEVICE_FUNC inline const GeoVector* GeoMatrix::VectorArray(void) const
 {
    return row;
 };
@@ -233,7 +190,7 @@ inline const GeoVector* GeoMatrix::VectorArray(void) const
 \param[in] i The desired row
 \return \f$M_i\f$
 */
-inline const GeoVector& GeoMatrix::operator [](int i) const
+SPECTRUM_DEVICE_FUNC inline const GeoVector& GeoMatrix::operator [](int i) const
 {
    return row[i];
 };
@@ -244,7 +201,7 @@ inline const GeoVector& GeoMatrix::operator [](int i) const
 \param[in] i The desired row
 \return \f$M_i\f$
 */
-inline GeoVector& GeoMatrix::operator [](int i)
+SPECTRUM_DEVICE_FUNC inline GeoVector& GeoMatrix::operator [](int i)
 {
    return row[i];
 };
@@ -255,7 +212,7 @@ inline GeoVector& GeoMatrix::operator [](int i)
 \param[in] matr_r A matrix that will be copied into this matrix
 \return Reference to this object
 */
-inline GeoMatrix& GeoMatrix::operator =(const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator =(const GeoMatrix& matr_r)
 {
    if(this != &matr_r) memcpy(linear, matr_r.linear, 9 * SZDBL);
    return *this;
@@ -267,7 +224,7 @@ inline GeoMatrix& GeoMatrix::operator =(const GeoMatrix& matr_r)
 \param[in] val A number to be assigned to all nine components
 \return Reference to this object
 */
-inline GeoMatrix& GeoMatrix::operator =(double val)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator =(double val)
 {
    row[0] = row[1] = row[2] = val;
    return *this;
@@ -278,7 +235,7 @@ inline GeoMatrix& GeoMatrix::operator =(double val)
 \date 11/02/2021
 \return Reference to this object
 */
-inline GeoMatrix& GeoMatrix::Transpose(void)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::Transpose(void)
 {
    std::swap(linear[1], linear[3]);
    std::swap(linear[2], linear[6]);
@@ -292,7 +249,7 @@ inline GeoMatrix& GeoMatrix::Transpose(void)
 \param[in] matr_r right operand \f$\mathbf{M}_1\f$
 \return \f$\mathbf{M}+\mathbf{M}_1\f$
 */
-inline GeoMatrix& GeoMatrix::operator +=(const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator +=(const GeoMatrix& matr_r)
 {
    row[0] += matr_r.row[0];
    row[1] += matr_r.row[1];
@@ -306,7 +263,7 @@ inline GeoMatrix& GeoMatrix::operator +=(const GeoMatrix& matr_r)
 \param[in] matr_r right operand \f$\mathbf{M}_1\f$
 \return \f$\mathbf{M}-\mathbf{M}_1\f$
 */
-inline GeoMatrix& GeoMatrix::operator -=(const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator -=(const GeoMatrix& matr_r)
 {
    row[0] -= matr_r.row[0];
    row[1] -= matr_r.row[1];
@@ -320,7 +277,7 @@ inline GeoMatrix& GeoMatrix::operator -=(const GeoMatrix& matr_r)
 \param[in] sclr_r right operand \f$a\f$
 \return \f$a\mathbf{M}\f$
 */
-inline GeoMatrix& GeoMatrix::operator *=(double sclr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator *=(double sclr_r)
 {
    row[0] *= sclr_r;
    row[1] *= sclr_r;
@@ -334,7 +291,7 @@ inline GeoMatrix& GeoMatrix::operator *=(double sclr_r)
 \param[in] sclr_r right operand \f$a\f$
 \return \f$a^{-1}\mathbf{M}\f$
 */
-inline GeoMatrix& GeoMatrix::operator /=(double sclr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator /=(double sclr_r)
 {
    row[0] /= sclr_r;
    row[1] /= sclr_r;
@@ -347,14 +304,14 @@ inline GeoMatrix& GeoMatrix::operator /=(double sclr_r)
 \date 08/11/2022
 \return The determinant of this matrix
 */
-inline double GeoMatrix::Det(void) const
+SPECTRUM_DEVICE_FUNC inline double GeoMatrix::Det(void) const
 {
    return row[0][0] * row[1][1] * row[2][2] + row[0][1] * row[1][2] * row[2][0] + row[0][2] * row[1][0] * row[2][1]
         - row[0][0] * row[1][2] * row[2][1] - row[0][1] * row[1][0] * row[2][2] - row[0][2] * row[1][1] * row[2][0];
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Friend methods of GeoMatrix
+// Other methods operating on GeoMatrix
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -363,7 +320,7 @@ inline double GeoMatrix::Det(void) const
 \param[in] matr Matrix to multiply by -1 \f$\mathbf{M}\f$
 \return \f$-\mathbf{M}\f$
 */
-inline GeoMatrix operator -(const GeoMatrix& matr)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator -(const GeoMatrix& matr)
 {
    GeoMatrix matr_tmp;
    matr_tmp.row[0] = -matr.row[0];
@@ -379,7 +336,7 @@ inline GeoMatrix operator -(const GeoMatrix& matr)
 \param[in] matr_r right operand \f$\mathbf{M}_2\f$
 \return \f$\mathbf{M}_1+\mathbf{M}_2\f$
 */
-inline GeoMatrix operator +(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator +(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 {
    GeoMatrix matr_tmp(matr_l);
    matr_tmp.row[0] += matr_r.row[0];
@@ -395,7 +352,7 @@ inline GeoMatrix operator +(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 \param[in] matr_r right operand \f$\mathbf{M}_2\f$
 \return \f$\mathbf{M}_1-\mathbf{M}_2\f$
 */
-inline GeoMatrix operator -(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator -(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 {
    GeoMatrix matr_tmp(matr_l);
    matr_tmp.row[0] -= matr_r.row[0];
@@ -411,7 +368,7 @@ inline GeoMatrix operator -(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 \param[in] sclr_r right operand \f$a\f$
 \return \f$a\mathbf{M}\f$
 */
-inline GeoMatrix operator *(const GeoMatrix& matr_l, double sclr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(const GeoMatrix& matr_l, double sclr_r)
 {
    GeoMatrix matr_tmp(matr_l);
    matr_tmp.row[0] *= sclr_r;
@@ -427,7 +384,7 @@ inline GeoMatrix operator *(const GeoMatrix& matr_l, double sclr_r)
 \param[in] matr_r right operand \f$\mathbf{v}\f$
 \return \f$a\mathbf{M}\f$
 */
-inline GeoMatrix operator *(double sclr_l, const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(double sclr_l, const GeoMatrix& matr_r)
 {
    GeoMatrix matr_tmp(matr_r);
    matr_tmp.row[0] *= sclr_l;
@@ -443,7 +400,7 @@ inline GeoMatrix operator *(double sclr_l, const GeoMatrix& matr_r)
 \param[in] sclr_r right operand \f$a\f$
 \return \f$a^{-1}\mathbf{v}\f$
 */
-inline GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r)
 {
    GeoMatrix matr_tmp(matr_l);
    matr_tmp.row[0] /= sclr_r;
@@ -460,7 +417,7 @@ inline GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r)
 \param[in] vect_r right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{M}_1\mathbf{v}_2\f$
 */
-inline GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r)
 {
    return GeoVector(matr_l.row[0] * vect_r, matr_l.row[1] * vect_r, matr_l.row[2] * vect_r);
 };
@@ -473,7 +430,7 @@ inline GeoVector operator *(const GeoMatrix& matr_l, const GeoVector& vect_r)
 \param[in] matr_r right operand \f$\mathbf{M}_2\f$
 \return \f$\mathbf{v}^T_1\mathbf{M}_2\f$
 */
-inline GeoVector operator *(const GeoVector& vect_l, const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const GeoMatrix& matr_r)
 {
    GeoVector vect_tmp;
    vect_tmp[0] = vect_l[0] * matr_r.row[0][0] + vect_l[1] * matr_r.row[1][0] + vect_l[2] * matr_r.row[2][0];
@@ -489,7 +446,7 @@ inline GeoVector operator *(const GeoVector& vect_l, const GeoMatrix& matr_r)
 \param[in] matr_r right operand \f$\mathbf{M}_2\f$
 \return \f$\mathbf{M}_1\mathbf{M}_2\f$
 */
-inline GeoMatrix operator *(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 {
    int i, j;
    GeoMatrix matr_tmp, matr_rt(matr_r);
@@ -502,15 +459,55 @@ inline GeoMatrix operator *(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
    return matr_tmp;
 };
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Other methods operating on matrices
+/*!
+\author Vladimir Florinski
+\date 02/27/2023
+\param[in] vect_l left operand \f$\mathbf{v}_1\f$
+\param[in] matr_r right operand \f$\mathbf{M}_2\f$
+\return \f$\mathbf{v}_1\times\mathbf{M}_2\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoVector& vect_l, const GeoMatrix& matr_r)
+{
+   GeoMatrix matr_tmp;
+   for(auto i = 0; i < 3; i++) matr_tmp[i] = vect_l ^ matr_r[i];
+   return matr_tmp;
+};
+
+/*!
+\author Vladimir Florinski
+\date 02/27/2023
+\param[in] matr_l left operand \f$\mathbf{M}_1\f$
+\param[in] vect_r right operand \f$\mathbf{v}_2\f$
+\return \f$\mathbf{M}_1\times\mathbf{v}_2\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r)
+{
+   GeoMatrix matr_tmp;
+   for(auto i = 0; i < 3; i++) matr_tmp[i] = matr_l[i] ^ vect_r;
+   return matr_tmp;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/06/2023
+\param[in] matr_l left operand \f$\mathbf{M}_1\f$
+\param[in] matr_r right operand \f$\mathbf{M}_2\f$
+\return \f$\mathbf{M}_1 : \mathbf{M}_2\f$
+*/
+SPECTRUM_DEVICE_FUNC inline double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
+{
+   double ip = 0.0;
+   for(auto i = 0; i < 3; i++) ip += matr_l[i] * matr_r[i];
+   return ip;
+};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Compute a covariance matrix
-GeoMatrix CovMatrix(const GeoVector& vect_l, const GeoVector& vect_r);
+SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect_l, const GeoVector& vect_r);
 
 //! Make a matrix object out of components of a vector
-GeoMatrix Dyadic(const GeoVector& vect);
+SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect);
 
 //! Stream insertion operator
 std::ostream& operator <<(std::ostream& os, const GeoMatrix& matr_r);

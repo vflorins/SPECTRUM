@@ -9,9 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_MULTI_INDEX_HH
 #define SPECTRUM_MULTI_INDEX_HH
 
-#include "common/gpu_config.hh"
-#include <cstring>
-#include <ostream>
+#include "common/simple_array.hh"
 
 namespace Spectrum {
 
@@ -21,6 +19,7 @@ namespace Spectrum {
 //! A multi-index with zero components
 #define mi_zeros MultiIndex(0, 0, 0)
 
+//! A multi-index with unit components
 #define mi_ones MultiIndex(1, 1, 1)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30,55 +29,36 @@ namespace Spectrum {
 /*!
 \brief A three component index class
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 */
-struct MultiIndex {
-
-//! Storage
-   union {
-      struct {
-         int i, j, k;
-      };
-      int ijk[3];
-   };
+struct MultiIndex : public SimpleArray<int, 3>
+{
+   using SimpleArray::operator=;
+   using SimpleArray::operator+=;
+   using SimpleArray::operator-=;
+   using SimpleArray::operator*=;
+   using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC MultiIndex(void);
+   SPECTRUM_DEVICE_FUNC MultiIndex(void) = default;
+
+//! Constructor from a single value
+   SPECTRUM_DEVICE_FUNC explicit MultiIndex(int a);
+
+//! Constructor from an array
+   SPECTRUM_DEVICE_FUNC explicit MultiIndex(const int* other);
 
 //! Constructor from indices
-   SPECTRUM_DEVICE_FUNC constexpr MultiIndex(int i_in, int j_in, int k_in);
+   SPECTRUM_DEVICE_FUNC MultiIndex(int i_in, int j_in, int k_in);
 
-//! Copy constructor
-   SPECTRUM_DEVICE_FUNC MultiIndex(const MultiIndex& other);
-
-//! Sum of the indices
-   SPECTRUM_DEVICE_FUNC int Sum(void) const;
-
-//! Product of the indices
-   SPECTRUM_DEVICE_FUNC long Prod(void) const;
-
-//! Largest index
-   SPECTRUM_DEVICE_FUNC int Largest(void) const;
-
-//! Smallest index
-   SPECTRUM_DEVICE_FUNC int Smallest(void) const;
+//! Constructor from the base class
+   SPECTRUM_DEVICE_FUNC MultiIndex(const SimpleArray<int, 3>& other);
 
 //! Compute a linear index in a 3D array using a second multi-index
    SPECTRUM_DEVICE_FUNC long LinIdx(const MultiIndex& other) const;
 
 //! Switch the first and third index
    SPECTRUM_DEVICE_FUNC void Flip(void);
-
-//! Access to components for reading
-   SPECTRUM_DEVICE_FUNC const int& operator [](int xyz) const;
-
-//! Access to components for writing
-   SPECTRUM_DEVICE_FUNC int& operator [](int xyz);
-
-//! Assignment operator
-   SPECTRUM_DEVICE_FUNC MultiIndex& operator =(const MultiIndex& other);
-
-//! Set all three indices to the given value
-   SPECTRUM_DEVICE_FUNC MultiIndex& operator =(int val);
 
 //! Increment all three indices by one
    SPECTRUM_DEVICE_FUNC MultiIndex& operator ++(void);
@@ -88,50 +68,23 @@ struct MultiIndex {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Add two multi-indices together
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator +(const MultiIndex& midx_l, const MultiIndex& midx_r);
-
-//! Add a constant (on the right) to all three indices
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator +(const MultiIndex& midx_l, int sclr_r);
-
-//! Add a constant (on the left) to all three indices
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator +(int sclr_l, const MultiIndex& midx_r);
-
-//! Subtract one multi-index from another
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator -(const MultiIndex& midx_l, const MultiIndex& midx_r);
-
-//! Subtract a constant from all three indices
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator -(const MultiIndex& midx_l, int sclr_r);
-
-//! Multiply a multi-index by a constant from the right
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator *(const MultiIndex& midx_l, int sclr_r);
-
-//! Multiply a multi-index by a constant from the left
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator *(int sclr_l, const MultiIndex& midx_r);
-
-//! Divide a multi-index by a constant
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator /(const MultiIndex& midx_l, int sclr_r);
-
-//! Modulo division of one multi-index by another
-   SPECTRUM_DEVICE_FUNC friend MultiIndex operator %(const MultiIndex& midx_l, const MultiIndex& midx_r);
-
 //! Determine whether the first multi-index is larger than the second
-   SPECTRUM_DEVICE_FUNC friend bool operator >(const MultiIndex& midx_l, const MultiIndex& midx_r);
+   SPECTRUM_DEVICE_FUNC friend bool operator >(const MultiIndex& left, const MultiIndex& right);
 
 //! Determine whether the first multi-index is smaller than the second
-   SPECTRUM_DEVICE_FUNC friend bool operator <(const MultiIndex& midx_l, const MultiIndex& midx_r);
+   SPECTRUM_DEVICE_FUNC friend bool operator <(const MultiIndex& left, const MultiIndex& right);
 
-//! Determine whether the first multi-index is larger of equial to the second
-   SPECTRUM_DEVICE_FUNC friend bool operator >=(const MultiIndex& midx_l, const MultiIndex& midx_r);
+//! Determine whether the first multi-index is larger of equal to the second
+   SPECTRUM_DEVICE_FUNC friend bool operator >=(const MultiIndex& left, const MultiIndex& right);
 
-//! Determine whether the first multi-index is smaller of equial to the second
-   SPECTRUM_DEVICE_FUNC friend bool operator <=(const MultiIndex& midx_l, const MultiIndex& midx_r);
+//! Determine whether the first multi-index is smaller of equal to the second
+   SPECTRUM_DEVICE_FUNC friend bool operator <=(const MultiIndex& left, const MultiIndex& right);
 
 //! Determine whether two multi-indices are equal
-   SPECTRUM_DEVICE_FUNC friend bool operator ==(const MultiIndex& midx_l, const MultiIndex& midx_r);
+   SPECTRUM_DEVICE_FUNC friend bool operator ==(const MultiIndex& left, const MultiIndex& right);
 
 //! Determine whether two multi-indices are not equal
-   SPECTRUM_DEVICE_FUNC friend bool operator !=(const MultiIndex& midx_l, const MultiIndex& midx_r);
+   SPECTRUM_DEVICE_FUNC friend bool operator !=(const MultiIndex& left, const MultiIndex& right);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,174 +93,171 @@ struct MultiIndex {
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2020
+\date 03/09/2024
+\param[in] a Number to be asigned to each index
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(void)
+SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int a)
 {
+   data[0] = data[1] = data[2] = a;
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2020
+\date 03/10/2024
+\param[in] other Array to initialize from
+*/
+SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const int* other)
+{
+   memcpy(data, other, 3 * sizeof(int));
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/09/2024
 \param[in] i_in First index
 \param[in] j_in Second index
 \param[in] k_in Third index
 */
-SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(int i_in, int j_in, int k_in)
-                                                : i(i_in),
-                                                  j(j_in),
-                                                  k(k_in)
+SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int i_in, int j_in, int k_in)
 {
+   data[0] = i_in;
+   data[1] = j_in;
+   data[2] = k_in;
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/10/2022
-\param[in] other Multi-index to create a copy of
+\date 03/13/2024
+\param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const SimpleArray<int, 3>& other)
 {
-   std::memcpy(ijk, other.ijk, 3 * sizeof(int));
+   memcpy(data, other.data, 3 * sizeof(int));
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2020
-\return Sum of components
-*/
-SPECTRUM_DEVICE_FUNC inline int MultiIndex::Sum(void) const
-{
-   return i + j + k;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/08/2020
-\return Product of components
-*/
-SPECTRUM_DEVICE_FUNC inline long MultiIndex::Prod(void) const
-{
-   return i * j * k;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\return Largest index of the three
-*/
-SPECTRUM_DEVICE_FUNC inline int MultiIndex::Largest(void) const
-{
-   return (i > j ? (i > k ? i : k) : (j > k ? j : k));
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\return Smallest index of the three
-*/
-SPECTRUM_DEVICE_FUNC inline int MultiIndex::Smallest(void) const
-{
-   return (i < j ? (i < k ? i : k) : (j < k ? j : k));
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/14/2021
+\date 03/09/2024
 \param[in] other A multi-index corresponding to a triplet of coordinate indices
 \return Linear index in a 3D contiguous array
 */
 SPECTRUM_DEVICE_FUNC inline long MultiIndex::LinIdx(const MultiIndex& other) const
 {
-   return k * (j * other.i + other.j) + other.k;
+   return data[2] * (data[1] * other.data[0] + other.data[1]) + other.data[2];
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/09/2024
+*/
+SPECTRUM_DEVICE_FUNC inline void MultiIndex::Flip(void)
+{
+   int l = data[2];
+   data[2] = data[0];
+   data[0] = l;
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/09/2024
+\return Reference to this object
+*/
+SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator ++(void)
+{
+   data[0]++;
+   data[1]++;
+   data[2]++;
+   return *this;
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/09/2024
+\return Reference to this object
+*/
+SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator --(void)
+{
+   data[0]--;
+   data[1]--;
+   data[2]--;
+   return *this;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Friend methods of MultiIndex
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Vladimir Florinski
+\date 06/14/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if all three components of "left" are larger than those of "right"
+*/
+SPECTRUM_DEVICE_FUNC inline bool operator >(const MultiIndex& left, const MultiIndex& right)
+{
+   return ((left.data[0] > right.data[0]) && (left.data[1] > right.data[1]) && (left.data[2] > right.data[2]));
 };
 
 /*!
 \author Vladimir Florinski
 \date 06/14/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if all three components of "left" are smaller than those of "right"
 */
-SPECTRUM_DEVICE_FUNC inline void MultiIndex::Flip(void)
+SPECTRUM_DEVICE_FUNC inline bool operator <(const MultiIndex& left, const MultiIndex& right)
 {
-   int l = k;
-   k = i;
-   i = l;
+   return ((left.data[0] < right.data[0]) && (left.data[1] < right.data[1]) && (left.data[2] < right.data[2]));
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/10/2020
-\param[in] i The desired component
-\return Component of the multi-index
+\date 06/14/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if all three components of "left" are greater or equal to those of "right"
 */
-SPECTRUM_DEVICE_FUNC inline const int& MultiIndex::operator [](int xyz) const
+SPECTRUM_DEVICE_FUNC inline bool operator >=(const MultiIndex& left, const MultiIndex& right)
 {
-   return ijk[xyz];
+   return ((left.data[0] >= right.data[0]) && (left.data[1] >= right.data[1]) && (left.data[2] >= right.data[2]));
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/08/2020
-\param[in] i The desired component
-\return Component of the multi-index
+\date 06/14/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if all three components of "left" are smaller or equal to those of "right"
 */
-SPECTRUM_DEVICE_FUNC inline int& MultiIndex::operator [](int xyz)
+SPECTRUM_DEVICE_FUNC inline bool operator <=(const MultiIndex& left, const MultiIndex& right)
 {
-   return ijk[xyz];
+   return ((left.data[0] <= right.data[0]) && (left.data[1] <= right.data[1]) && (left.data[2] <= right.data[2]));
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/08/2020
-\param[in] other A multi-index that will be copied
-\return Reference to this object
+\date 06/15/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if all three components of "left" are equal to those of "right"
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator =(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline bool operator ==(const MultiIndex& left, const MultiIndex& right)
 {
-   if(this != &other) std::memcpy(ijk, other.ijk, 3 * sizeof(int));
-   return *this;
+   return ((left.data[0] == right.data[0]) && (left.data[1] == right.data[1]) && (left.data[2] == right.data[2]));
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/09/2020
-\param[in] val A number to be assigned to all three components
-\return Reference to this object
+\date 06/15/2021
+\param[in] left  Left operand
+\param[in] right Right operand
+\return True if any of the three components of "left" is not equal to those of "right"
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator =(int val)
+SPECTRUM_DEVICE_FUNC inline bool operator !=(const MultiIndex& left, const MultiIndex& right)
 {
-   i = j = k = val;
-   return *this;
+   return ((left.data[0] != right.data[0]) || (left.data[1] != right.data[1]) || (left.data[2] != right.data[2]));
 };
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator ++(void)
-{
-   i++;
-   j++;
-   k++;
-   return *this;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/09/2020
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator --(void)
-{
-   i--;
-   j--;
-   k--;
-   return *this;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Stream insertion operator (host only)
-std::ostream& operator <<(std::ostream& os, const MultiIndex& midx_r);
 
 };
 

@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_POLYNOMIAL_HH
 
 #include <cstdint>
-#include "vectors.hh"
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
@@ -51,7 +51,7 @@ const int deg_freedom[3][MONO_ORDER_HIGH + 1]
 \param[in] order The order of reconstruction polynomial
 \return The number of DOF
 */
-inline int DOF_1D(int order)
+SPECTRUM_DEVICE_FUNC inline int DOF_1D(int order)
 {
    return order + 1;
 };
@@ -63,7 +63,7 @@ inline int DOF_1D(int order)
 \param[in] order The order of reconstruction polynomial
 \return The number of DOF
 */
-inline int DOF_2D(int order)
+SPECTRUM_DEVICE_FUNC inline int DOF_2D(int order)
 {
    return (order + 1) * (order + 2) / 2;
 };
@@ -75,25 +75,25 @@ inline int DOF_2D(int order)
 \param[in] order The order of reconstruction polynomial
 \return The number of DOF
 */
-inline int DOF_3D(int order)
+SPECTRUM_DEVICE_FUNC inline int DOF_3D(int order)
 {
    return (order + 1) * (order + 2) * (order + 3) / 6;
 };
 
 //! Binomial coefficents, power 0
-const int binomial0[1] = {1};
+SPECTRUM_DEVICE_FUNC const int binomial0[1] = {1};
 
 //! Binomial coefficents, power 1
-const int binomial1[2] = {1, 1};
+SPECTRUM_DEVICE_FUNC const int binomial1[2] = {1, 1};
 
 //! Binomial coefficents, power 2
-const int binomial2[3] = {1, 2, 1};
+SPECTRUM_DEVICE_FUNC const int binomial2[3] = {1, 2, 1};
 
 //! Binomial coefficents, power 3
-const int binomial3[4] = {1, 3, 3, 1};
+SPECTRUM_DEVICE_FUNC const int binomial3[4] = {1, 3, 3, 1};
 
 //! Binomial coefficents, power 4
-const int binomial4[5] = {1, 4, 6, 4, 1};
+SPECTRUM_DEVICE_FUNC const int binomial4[5] = {1, 4, 6, 4, 1};
 
 //! Binomial coefficents, power 5
 const int binomial5[6] = {1, 5, 10, 10, 5, 1};
@@ -214,22 +214,22 @@ const int moment_lookup[MONO_ORDER_HIGH + 1][MONO_ORDER_HIGH + 1][MONO_ORDER_HIG
     {-1, -1, -1, -1, -1, -1}}}; // y^5 z^5
 
 //! Returns a product of powers of x, y, and z using bitfield input
-double CoordPower3D(const GeoVector& v, uint32_t pl);
+SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t pl);
 
 //! Returns a power of r
-double CoordPower3D(double r, uint32_t pl);
+SPECTRUM_DEVICE_FUNC double CoordPower3D(double r, uint32_t pl);
 
 //! Returns a product of powers of x, y, and z
-double CoordPower3D(const GeoVector& v, int l, int m, int n);
+SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, int l, int m, int n);
 
 //! Evaluates a polynomial of one argument
-double EvalPoly1D(int p, const double* c, double x);
+SPECTRUM_DEVICE_FUNC double EvalPoly1D(int p, const double* c, double x);
 
 //! Evaluates a polynomial of two arguments
-double EvalPoly2D(int p, const double* c, double x, double y);
+SPECTRUM_DEVICE_FUNC double EvalPoly2D(int p, const double* c, double x, double y);
 
 //! Evaluates a polynomial of three arguments
-double EvalPoly3D(int p, const double* c, double x, double y, double z);
+SPECTRUM_DEVICE_FUNC double EvalPoly3D(int p, const double* c, double x, double y, double z);
 
 };
 

@@ -10,8 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_PHYSICS_HH
 #define SPECTRUM_PHYSICS_HH
 
-#include "common/vectors.hh"
 #include <gsl/gsl_const_cgsm.h>
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
@@ -19,13 +19,13 @@ namespace Spectrum {
 #define SPC_CONST_CGSM_ELECTRON_CHARGE 4.8032044E-10
 
 //! keV (cgs)
-#define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0e3 * GSL_CONST_CGSM_ELECTRON_VOLT)
+#define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0E3 * GSL_CONST_CGSM_ELECTRON_VOLT)
 
 //! MeV (cgs)
-#define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0e6 * GSL_CONST_CGSM_ELECTRON_VOLT)
+#define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0E6 * GSL_CONST_CGSM_ELECTRON_VOLT)
 
 //! GeV (cgs)
-#define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0e9 * GSL_CONST_CGSM_ELECTRON_VOLT)
+#define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0E9 * GSL_CONST_CGSM_ELECTRON_VOLT)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Fluid units used in the code - user configurable
@@ -35,7 +35,8 @@ namespace Spectrum {
 #define unit_length_fluid GSL_CONST_CGSM_ASTRONOMICAL_UNIT
 
 //! Velocity: Speed of light or 1 km/s are sensible values
-#define unit_velocity_fluid 1.0E7
+//#define unit_velocity_fluid 1.0E7
+#define unit_velocity_fluid GSL_CONST_CGSM_SPEED_OF_LIGHT
 
 //! Time: derived, should be hours/days
 #define unit_time_fluid (unit_length_fluid / unit_velocity_fluid)
@@ -74,13 +75,13 @@ namespace Spectrum {
 #define kb_code (GSL_CONST_CGSM_BOLTZMANN / unit_pressure_fluid * unit_temperature_fluid * unit_number_density_fluid)
 
 //! The largest nmumber of fluids (right now only distinguishable by the adiabatic ratio).
-#define MAX_FLUIDS 2
+#define MAX_FLUIDS 6
 
 //! Polytropic indices
 #ifdef __CUDA_ARCH__
-__device__ const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
+__device__ const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 #else
-const double gamma_eos[] = {5.0 / 3.0, 4.0 / 3.0};
+const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -117,24 +118,24 @@ enum Specie {
 
 //! Particle masses
 #ifdef __CUDA_ARCH__
-__device__ const double mass[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
-                       4.0 * GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
-                       GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
+__device__ const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                            4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                                  GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
 #else
-const double mass[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
-                       4.0 * GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
+const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                 4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
                        GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
 #endif
 
 //! Particle charges
 #ifdef __CUDA_ARCH__
 __device__ const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                         2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                         -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
+                              2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                   -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 #else
 const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                         2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                         -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
+                   2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                        -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -192,7 +193,7 @@ SPECTRUM_DEVICE_FUNC inline double Sound2(double den, double pre, unsigned int i
 */
 SPECTRUM_DEVICE_FUNC inline double AlfvenSpeed(double den, double B2)
 {
-   return sqrt(B2 / den / fourpi);
+   return sqrt(B2 / den / M_4PI);
 };
 
 /*!
@@ -205,7 +206,7 @@ SPECTRUM_DEVICE_FUNC inline double AlfvenSpeed(double den, double B2)
 */
 SPECTRUM_DEVICE_FUNC inline double Alfven2(double den, double B2)
 {
-   return B2 / den / fourpi;
+   return B2 / den / M_4PI;
 };
 
 /*!
@@ -223,7 +224,7 @@ SPECTRUM_DEVICE_FUNC inline double FastMagnetosonicSpeed(double Va2, double Vax2
 };
 
 /*!
-\brief Compute fast magnetosonic speed
+\brief Compute slow magnetosonic speed
 \author Vladimir Florinski
 \date 07/31/2019
 \param[in] Va2  Square of the Alfven speed
@@ -234,6 +235,23 @@ SPECTRUM_DEVICE_FUNC inline double FastMagnetosonicSpeed(double Va2, double Vax2
 SPECTRUM_DEVICE_FUNC inline double SlowMagnetosonicSpeed(double Va2, double Vax2, double Cs2)
 {
    return sqrt(0.5 * (Va2 + Cs2 - sqrt(Sqr(Va2 + Cs2) - 4.0 * Vax2 * Cs2)));
+};
+
+/*!
+\brief Compute squares of both fast and slow magnetosonic speeds
+\author Vladimir Florinski
+\date 04/24/2024
+\param[in]  Va2  Square of the Alfven speed
+\param[in]  Vax2 Square of the component of Alfven speed along direction of interest
+\param[in]  Cs2  Square of the sound speed
+\param[out] Vf   Fast magnetosonic speed
+\param[out] Vs   Slow magnetosonic speed
+*/
+SPECTRUM_DEVICE_FUNC inline void Magnetosonic2(double Va2, double Vax2, double Cs2, double& Vf2, double& Vs2)
+{
+   double Vd2 = sqrt(Sqr(Va2 + Cs2) - 4.0 * Vax2 * Cs2);
+   Vf2 = 0.5 * (Va2 + Cs2 + Vd2);
+   Vs2 = Vf2 - Vd2;
 };
 
 /*!
@@ -249,7 +267,7 @@ SPECTRUM_DEVICE_FUNC inline double SlowMagnetosonicSpeed(double Va2, double Vax2
 */
 SPECTRUM_DEVICE_FUNC inline double Energy(double den, double u2, double B2, double pre, unsigned int ifl = 0)
 {
-   return den * u2 / 2.0 + pre / (gamma_eos[ifl] - 1.0) + B2 / eightpi;
+   return den * u2 / 2.0 + pre / (gamma_eos[ifl] - 1.0) + B2 / M_8PI;
 };
 
 /*!
@@ -278,7 +296,7 @@ SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double T)
 */
 SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, double enr, unsigned int ifl = 0)
 {
-   return (enr - den * u2 / 2.0 - B2 / eightpi) * (gamma_eos[ifl] - 1.0);
+   return (enr - den * u2 / 2.0 - B2 / M_8PI) * (gamma_eos[ifl] - 1.0);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
