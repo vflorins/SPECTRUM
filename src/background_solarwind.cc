@@ -111,15 +111,15 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Compute latitude and enforce equatorial symmetry.
    costheta = posprime[2] / r;
    double fs_theta_sym = acos(costheta);
-   if(fs_theta_sym > pi_two) fs_theta_sym = M_PI - fs_theta_sym;
+   if(fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
    _spdata.region[0] = 1.0;
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
 #if SOLARWIND_SECTORED_REGION == 1
-   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
 #elif SOLARWIND_SECTORED_REGION == 2
-   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
    else if(r > sectored_radius_sw) _spdata.region[1] = 1.0;
 #endif
 
@@ -181,7 +181,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
-      if(acos(costheta) > pi_two) _spdata.Bvec *= -1.0;
+      if(acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
 #elif SOLARWIND_CURRENT_SHEET == 2
 #if SOLARWIND_POLAR_CORRECTION != 2
 // Compute "phase0" if not already done
@@ -189,7 +189,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
       double sinphase = sin(phase0);
       double cosphase = cos(phase0);
 #endif
-      if(acos(costheta) > pi_two + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+      if(acos(costheta) > M_PI_2 + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);
    };

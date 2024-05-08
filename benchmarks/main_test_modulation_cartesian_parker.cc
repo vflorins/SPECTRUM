@@ -213,7 +213,7 @@ int main(int argc, char** argv)
    container.Insert(bin_outside);
 
 // Physical units of the distro variable
-   double unit_distro = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * fourpi * unit_energy_particle);
+   double unit_distro = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * M_4PI * unit_energy_particle);
    container.Insert(unit_distro);
 
 // Physical units of the bin variable

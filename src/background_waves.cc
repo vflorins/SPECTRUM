@@ -65,7 +65,7 @@ void BackgroundWaves::SetupBackground(bool construct)
       container.Read(&properties);
       dlnk = log(properties.kmax / properties.kmin) / (properties.n_waves - 1.0);
       n_waves[t_type] = properties.n_waves;
-      shortest_wave = fmin(twopi / properties.kmax, shortest_wave);
+      shortest_wave = fmin(M_2PI / properties.kmax, shortest_wave);
 
 // Make all vectors zero length
       psd_tot = 0.0;
@@ -80,7 +80,7 @@ void BackgroundWaves::SetupBackground(bool construct)
       for(wave = 0; wave < n_waves[t_type]; wave++) {
          kn = properties.kmin * pow(properties.kmax / properties.kmin, wave / (properties.n_waves - 1.0));
          k[t_type].push_back(kn);
-         phase[t_type].push_back(twopi * rng->GetUniform());
+         phase[t_type].push_back(M_2PI * rng->GetUniform());
 
 // "cost" is the cosine of the angle between k and B, "phi" is the angle of k_perp in the B-plane, "alpha" is the angle of deltaB in the K-plane.
          switch(t_type) {
@@ -90,14 +90,14 @@ void BackgroundWaves::SetupBackground(bool construct)
             dim = 0;
             cost = 1.0;
             phi = 0.0;
-            alpha = twopi * rng->GetUniform();
+            alpha = M_2PI * rng->GetUniform();
             break;
 
 // Perpendicular propagation, phi is random in the B-plane, alpha is pi/2 or -pi/2 in the K-plane
          case turb_transverse:
             dim = 1;
             cost = 0.0;
-            phi = twopi * rng->GetUniform();
+            phi = M_2PI * rng->GetUniform();
 
 // The randomness of phase implies this can be fixed
 //            alpha = 0.5 * M_PI * (rng->GetUniform() > 0.5 ? 1.0 : -1.0);
@@ -108,7 +108,7 @@ void BackgroundWaves::SetupBackground(bool construct)
          case turb_longitudinal:
             dim = 1;
             cost = 0.0;
-            phi = twopi * rng->GetUniform();
+            phi = M_2PI * rng->GetUniform();
             alpha = 0.0;
             break;
 
@@ -116,8 +116,8 @@ void BackgroundWaves::SetupBackground(bool construct)
          case turb_isotropic:
             dim = 2;
             cost = 2.0 * (rng->GetUniform() - 0.5);
-            phi = twopi * rng->GetUniform();
-            alpha = twopi * rng->GetUniform();
+            phi = M_2PI * rng->GetUniform();
+            alpha = M_2PI * rng->GetUniform();
             break;
 
          default:

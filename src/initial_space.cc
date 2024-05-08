@@ -209,7 +209,7 @@ void InitialSpaceCircle::EvaluateInitial(void)
 {
    double phi;
 
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
    _pos = origin + radius_x * cos(phi) + radius_y * sin(phi);
 };
 
@@ -313,7 +313,7 @@ void InitialSpaceSphere::EvaluateInitial(void)
 // The polar angle _cosine_ is uniformly distributed to achieve equal point density everywhere.
    ct = -1.0 + 2.0 * rng->GetUniform();
    st = sqrt(1.0 - Sqr(ct));
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
 
    _pos = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
 };
@@ -372,7 +372,7 @@ void InitialSpaceSphereSector::SetupInitial(bool construct)
    // if(phi1 < 0.0) phi1 = 0.0;
 
    container.Read(&phi2);
-   if(phi2 > twopi) phi2 = twopi;
+   if(phi2 > M_2PI) phi2 = M_2PI;
    if(phi2 < phi1) phi2 = phi1;
 };
 
@@ -458,7 +458,7 @@ void InitialSpaceRankineHalfBody::EvaluateInitial(void)
    r = z_nose * sqrt(2.0 / (1.0 + costheta));
    z = r * costheta;
    s = sqrt(Sqr(r) - Sqr(z));
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
 
    _pos = origin + GeoVector(s * cos(phi), s * sin(phi), z);
 };
@@ -575,7 +575,7 @@ void InitialSpaceCylinder::EvaluateInitial(void)
    double z, phi;
 
    z = rng->GetUniform();
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
 
    _pos = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
 };
@@ -624,7 +624,7 @@ void InitialSpaceCylinderSector::SetupInitial(bool construct)
    // if(phi1 < 0.0) phi1 = 0.0;
 
    container.Read(&phi2);
-   if(phi2 > twopi) phi2 = twopi;
+   if(phi2 > M_2PI) phi2 = M_2PI;
    if(phi2 < phi1) phi2 = phi1;
 };
 

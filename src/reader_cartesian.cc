@@ -206,9 +206,9 @@ void ReadCartesianGetBlockData(const double* pos, double* vars, int* found)
    };
 
 // Get zone indices and offsets (does not work for edge cells of domain)
-   offset_lo = (pos - CartData.domain_min) / CartData.zone_length - 0.5;
+   offset_lo = (GeoVector(pos) - CartData.domain_min) / CartData.zone_length - 0.5;
    zone_lo = offset_lo;
-   offset_lo -= zone_lo;
+   offset_lo = offset_lo - zone_lo;
    offset_hi = 1.0 - offset_lo;
    zone_hi = zone_lo + 1;
 
@@ -273,7 +273,7 @@ void ReadCartesianGetNode(const double* pos, int* node_id)
       return;
    };
 
-   node_idx = (pos - CartData.domain_min) / CartData.block_length;
+   node_idx = (GeoVector(pos) - CartData.domain_min) / CartData.block_length;
    *node_id = node_idx.i + CartData.Nblocks.i * (node_idx.j + CartData.Nblocks.j * node_idx.k);
 };
 

@@ -133,7 +133,7 @@ void DiffusionQLTConstant::SetupDiffusion(bool construct)
    container.Read(&A2A);
    container.Read(&l_max);
    container.Read(&ps_index);
-   k_min = twopi / l_max;
+   k_min = M_2PI / l_max;
    ps_minus = ps_index - 1.0;
 };
 
@@ -229,7 +229,7 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
 #endif
 
    if(A2T > tiny) {
-      xi1 = vmag * k_min * sqrt(st2) / sqrttwo / fabs(Omega);
+      xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
       F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
       DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
       xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
@@ -310,7 +310,7 @@ void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
    }
 // Linearly interpolate l_max between z_nose and z_sheath
    else {
-      k_min = twopi / (l_max_HP + dl_max * (z0 - z_nose) / dz);
+      k_min = M_2PI / (l_max_HP + dl_max * (z0 - z_nose) / dz);
       k_ratio = pow(k_min_ref / k_min, ps_minus);
       A2A = A2A_ref * k_ratio;
       A2T = A2T_ref * k_ratio;

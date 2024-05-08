@@ -71,8 +71,8 @@ int main(int argc, char** argv)
 // Shortest wave
    double lambda_min = 0.002 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
 
-   turb_prop.kmax = twopi / lambda_min;
-   turb_prop.kmin = twopi / lambda_max;
+   turb_prop.kmax = M_2PI / lambda_min;
+   turb_prop.kmin = M_2PI / lambda_max;
    turb_prop.slope = 5.0 / 3.0;
 
 // Variance between 2*pi/Lmax and infinity
