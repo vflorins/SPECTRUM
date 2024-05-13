@@ -288,6 +288,9 @@ public:
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -333,6 +336,9 @@ public:
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -381,6 +387,65 @@ public:
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionMomentumPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionMomentumPowerLaw class
+const std::string diff_name_momentum_power_law = "DiffusionMomentumPowerLaw";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, momentum (magnitude) power law
+\author Juan G Alonso Guzman
+
+Parameters: (DiffusionBase), kappa0, double p0, double pow_law_p, double kap_rat
+*/
+class DiffusionMomentumPowerLaw : public DiffusionBase {
+
+protected:
+
+//! Reference diffusion coefficient (persistent)
+   double kappa0;
+
+//! Momentum normalization factor (persistent)
+   double p0;
+
+//! Power law slope for momentum (persistent)
+   double pow_law_p;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionMomentumPowerLaw(void);
+
+//! Copy constructor
+   DiffusionMomentumPowerLaw(const DiffusionMomentumPowerLaw& other);
+
+//! Destructor
+   ~DiffusionMomentumPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionMomentumPowerLaw);
+
+//! Compute derivative of diffusion coefficient in position or time
+   double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -442,6 +507,9 @@ public:
 // TODO: Implement directional derivative (only spatial dependence is in Bmag)
 //! Compute derivative of diffusion coefficient in position or time
    // double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -503,6 +571,9 @@ public:
 // TODO: Implement directional derivative (only spatial dependence is in radial distance)
 //! Compute derivative of diffusion coefficient in position or time
    // double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -581,6 +652,9 @@ public:
 
 //! Clone function
    CloneFunctionDiffusion(DiffusionBallEtAl2005);
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
 };
 
 typedef DiffusionBallEtAl2005 DiffusionLuoEtAl2011;
