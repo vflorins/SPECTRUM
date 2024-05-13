@@ -63,15 +63,16 @@ void BackgroundSolarWind::SetupBackground(bool construct)
    container.Read(&r_ref);
    container.Read(&dmax_fraction);
 
-// Build the new coordinate system. The z axis is along "omega"
-   eprime[2] = UnitVec(Omega);
+// Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
+   w0 = Omega.Norm(); 
+   if(w0 < tiny) eprime[2] = gv_nz;
+   else eprime[2] = UnitVec(Omega);
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
 
 // Only the first components of velocity is used. The value for B could be negative (for negative cycles).
    ur0 = fabs(u0[0]);
    Br0 = B0[0];
-   w0 = Omega.Norm();
 
 // Compute auxiliary quantities for fast-slow wind calculation
 #if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
