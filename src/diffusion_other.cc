@@ -609,7 +609,6 @@ void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
 void DiffusionMomentumPowerLaw::EvaluateDiffusion(void)
 {
    if((comp_eval == 2)) return;
-// The 300.0 the "magic" factor for rigidity calculations.
    Kappa[1] = kappa0 * pow(_mom[0] / p0, pow_law_p);
    Kappa[0] = kap_rat * Kappa[1];
 };
