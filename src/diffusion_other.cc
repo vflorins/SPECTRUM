@@ -70,12 +70,11 @@ void DiffusionIsotropicConstant::EvaluateDiffusion(void)
 \author Vladimir Florinsk
 \date 10/19/2022
 \return double       Derivative in mu
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
 double DiffusionIsotropicConstant::GetMuDerivative(void)
 {
    return -2.0 * D0 * mu;
-}
+};
 
 #endif
 
@@ -133,7 +132,7 @@ void DiffusionQLTConstant::SetupDiffusion(bool construct)
    container.Read(&A2A);
    container.Read(&l_max);
    container.Read(&ps_index);
-   k_min = twopi / l_max;
+   k_min = M_2PI / l_max;
    ps_minus = ps_index - 1.0;
 };
 
@@ -229,7 +228,7 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
 #endif
 
    if(A2T > tiny) {
-      xi1 = vmag * k_min * sqrt(st2) / sqrttwo / fabs(Omega);
+      xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
       F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
       DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
       xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
@@ -310,7 +309,7 @@ void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
    }
 // Linearly interpolate l_max between z_nose and z_sheath
    else {
-      k_min = twopi / (l_max_HP + dl_max * (z0 - z_nose) / dz);
+      k_min = M_2PI / (l_max_HP + dl_max * (z0 - z_nose) / dz);
       k_ratio = pow(k_min_ref / k_min, ps_minus);
       A2A = A2A_ref * k_ratio;
       A2T = A2T_ref * k_ratio;
@@ -384,9 +383,19 @@ void DiffusionParaConstant::EvaluateDiffusion(void)
 \date 06/07/2023
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 double DiffusionParaConstant::GetDirectionalDerivative(int xyz)
+{
+   return 0.0;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionParaConstant::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -452,9 +461,19 @@ void DiffusionPerpConstant::EvaluateDiffusion(void)
 \date 10/18/2022
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 double DiffusionPerpConstant::GetDirectionalDerivative(int xyz)
+{
+   return 0.0;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionPerpConstant::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -522,9 +541,96 @@ void DiffusionFullConstant::EvaluateDiffusion(void)
 \date 10/18/2022
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 double DiffusionFullConstant::GetDirectionalDerivative(int xyz)
+{
+   return 0.0;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionFullConstant::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionMomentumPowerLaw methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/17/2023
+*/
+DiffusionMomentumPowerLaw::DiffusionMomentumPowerLaw(void)
+                         : DiffusionBase(diff_name_momentum_power_law, 0, DIFF_NOBACKGROUND)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/09/2022
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionMomentumPowerLaw::DiffusionMomentumPowerLaw(const DiffusionMomentumPowerLaw& other)
+                         : DiffusionBase(other)
+{
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/04/2024
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kappa0);
+   container.Read(&p0);
+   container.Read(&pow_law_p);
+   container.Read(&kap_rat);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/04/2024
+*/
+void DiffusionMomentumPowerLaw::EvaluateDiffusion(void)
+{
+   if((comp_eval == 2)) return;
+   Kappa[1] = kappa0 * pow(_mom[0] / p0, pow_law_p);
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return double       Directional derivative
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+*/
+double DiffusionMomentumPowerLaw::GetDirectionalDerivative(int xyz)
+{
+   return 0.0;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionMomentumPowerLaw::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -587,6 +693,16 @@ void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
    Kappa[0] = kap_rat * Kappa[1];
 };
 
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionRigidityMagneticFieldPowerLaw::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionKineticEnergyRadialDistancePowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -642,6 +758,16 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
    if((comp_eval == 2)) return;
    Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
    Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionKineticEnergyRadialDistancePowerLaw::GetMuDerivative(void)
+{
+   return 0.0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -723,6 +849,16 @@ void DiffusionBallEtAl2005::EvaluateDiffusion(void)
    };
    double kap_rat = Bmix_ind * kap_rat_high + (1.0 - Bmix_ind) * kap_rat_low;
    Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionBallEtAl2005::GetMuDerivative(void)
+{
+   return 0.0;
 };
 
 };

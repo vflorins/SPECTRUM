@@ -22,7 +22,7 @@ namespace Spectrum {
 SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void)
 {
    double theta = atan2(sqrt(Sqr(data[0]) + Sqr(data[1])), data[2]);
-   return (theta >= 0.0 ? theta : theta + twopi);
+   return (theta >= 0.0 ? theta : theta + M_2PI);
 };
 
 /*!
@@ -33,7 +33,7 @@ SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void)
 SPECTRUM_DEVICE_FUNC double GeoVector::Phi(void)
 {
    double phi = atan2(data[1], data[0]);
-   return (phi >= 0.0 ? phi : phi + twopi);
+   return (phi >= 0.0 ? phi : phi + M_2PI);
 };
 
 /*!
@@ -58,7 +58,7 @@ SPECTRUM_DEVICE_FUNC void GeoVector::XYZ_RTP(void)
    double r = Norm();
    double theta = acos(data[2] / r);
    double phi = atan2(data[1], data[0]);
-   if(phi < 0.0) phi += twopi;
+   if(phi < 0.0) phi += M_2PI;
    data[0] = r;
    data[1] = theta;
    data[2] = phi;

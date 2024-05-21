@@ -207,33 +207,4 @@ double DiffusionBase::GetMuDerivative(void)
    return derivative;
 };
 
-#ifdef GEO_DEBUG
-/*
-void DiffusionBase::DiagnoseDiffusion(void)
-{
-   double vmag = _vel.Norm();
-   double mu = _vel[2] / vmag;
-   double st2 = 1.0 - Sqr(mu);
-   double A2A = dB2_A0 / Sqr(B0);
-   double k_min = k_min0;
-   double Omega = CyclotronFrequency(vmag, _spdata.Bmag, specie);
-
-   // double Dmumu = DmumuSlab(vmag, mu, st2, A2A, k_min, Omega);
-   double Dmumu = D0 * st2;
-
-   std::cerr << std::endl;
-   std::cerr << "Printing scattering coefficient diagnostics\n";
-   std::cerr << "--------------------------------------------------------------------------------\n";
-   std::cerr << "Particle kinetic energy: " << EnrKin(_mom.Norm(), specie) * unit_energy_particle / MeV_cgs << " MeV\n";
-   std::cerr << "Cyclotron frequency: " << Omega * unit_frequency_fluid << " s^-1\n";
-   std::cerr << "Larmor radius: " << LarmorRadius(_mom.Norm(), Bmag, specie) * unit_length_fluid / 1.0E5 << " km\n";
-   std::cerr << "A2A: " << A2A << "\n";
-   std::cerr << "PSD break length: " << twopi / k_min0 * unit_length_fluid / 1.0E5 << " km\n";
-   std::cerr << "Dmumu: " << Dmumu * unit_frequency_fluid << " s^-1\n";
-   std::cerr << "# |mu| > 1: " << Nabsmugt1 << std::endl;
-   std::cerr << "--------------------------------------------------------------------------------\n";
-};
-*/
-#endif
-
 };

@@ -56,7 +56,7 @@ int main(void)
    container.Insert(dmax);
 
 // solar rotation vector
-   double w0 = twopi / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 

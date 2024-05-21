@@ -99,8 +99,6 @@ public:
 
 //! Compute derivative of diffusion coefficient in mu. By default, it is computed numerically, but specific classes can override with analytic expressions.
    virtual double GetMuDerivative(void);
-
-//   void DiagnoseDiffusion(void);
 };
 
 };

@@ -198,7 +198,7 @@ void BlockBase::GetZoneOffset(const GeoVector& pos, MultiIndex& zone, GeoVector&
    for(auto xyz = 0; xyz < 3; xyz++) {
       if(offset[xyz] < 0.0) zone[xyz]--;
    };
-   offset -= zone;
+   offset = offset - zone;
 };
 
 /*!

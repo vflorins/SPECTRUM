@@ -225,7 +225,7 @@ void InitialMomentumRing::EvaluateInitial(void)
 // Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
 #elif (TRAJ_TYPE == TRAJ_LORENTZ)
 
-   double phi = twopi * rng->GetUniform();
+   double phi = M_2PI * rng->GetUniform();
    GeoVector e1, e2;
 
 // Component parallel to "axis"
@@ -315,7 +315,7 @@ void InitialMomentumShell::EvaluateInitial(void)
    double mu, st, phi;
    mu = -1.0 + 2.0 * rng->GetUniform();
    st = sqrt(1.0 - Sqr(mu));
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
    _mom = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
 
 #endif
@@ -403,7 +403,7 @@ void InitialMomentumThickShell::EvaluateInitial(void)
    double mu, st, phi;
    mu = -1.0 + 2.0 * rng->GetUniform();
    st = sqrt(1.0 - Sqr(mu));
-   phi = twopi * rng->GetUniform();
+   phi = M_2PI * rng->GetUniform();
    _mom = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
 
 #endif
@@ -501,8 +501,8 @@ void InitialMomentumMaxwell::SetupInitial(bool construct)
    container.Read(&dp_perp);
 
 // The RNG calculation is based on a standard deviation, which is smaller than the thermal speeed by a factor of sqrt(2).
-   dp_para /= sqrttwo;
-   dp_perp /= sqrttwo;
+   dp_para /= M_SQRT2;
+   dp_perp /= M_SQRT2;
 };
 
 /*!
@@ -521,7 +521,7 @@ void InitialMomentumMaxwell::EvaluateInitial(void)
 
 #if TRAJ_TYPE == TRAJ_LORENTZ
 
-   double phi = twopi * rng->GetUniform();
+   double phi = M_2PI * rng->GetUniform();
    GeoVector e1, e2;
    e1 = GetSecondUnitVec(axis);
    e2 = axis ^ e1;

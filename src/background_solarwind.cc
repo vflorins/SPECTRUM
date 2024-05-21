@@ -63,15 +63,16 @@ void BackgroundSolarWind::SetupBackground(bool construct)
    container.Read(&r_ref);
    container.Read(&dmax_fraction);
 
-// Build the new coordinate system. The z axis is along "omega"
-   eprime[2] = UnitVec(Omega);
+// Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
+   w0 = Omega.Norm(); 
+   if(w0 < tiny) eprime[2] = gv_nz;
+   else eprime[2] = UnitVec(Omega);
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
 
 // Only the first components of velocity is used. The value for B could be negative (for negative cycles).
    ur0 = fabs(u0[0]);
    Br0 = B0[0];
-   w0 = Omega.Norm();
 
 // Compute auxiliary quantities for fast-slow wind calculation
 #if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
@@ -111,15 +112,15 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Compute latitude and enforce equatorial symmetry.
    costheta = posprime[2] / r;
    double fs_theta_sym = acos(costheta);
-   if(fs_theta_sym > pi_two) fs_theta_sym = M_PI - fs_theta_sym;
+   if(fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
    _spdata.region[0] = 1.0;
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
 #if SOLARWIND_SECTORED_REGION == 1
-   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
 #elif SOLARWIND_SECTORED_REGION == 2
-   if(pi_two - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
    else if(r > sectored_radius_sw) _spdata.region[1] = 1.0;
 #endif
 
@@ -181,7 +182,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
-      if(acos(costheta) > pi_two) _spdata.Bvec *= -1.0;
+      if(acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
 #elif SOLARWIND_CURRENT_SHEET == 2
 #if SOLARWIND_POLAR_CORRECTION != 2
 // Compute "phase0" if not already done
@@ -189,7 +190,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
       double sinphase = sin(phase0);
       double cosphase = cos(phase0);
 #endif
-      if(acos(costheta) > pi_two + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+      if(acos(costheta) > M_PI_2 + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);
    };
