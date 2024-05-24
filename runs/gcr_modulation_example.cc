@@ -57,7 +57,7 @@ int main(int argc, char** argv)
    container.Insert(dmax);
 
 // solar rotation vector
-   double w0 = twopi / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
    container.Insert(bin_outside1);
 
 // Physical units of the distro variable
-   double unit_distro1 = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * fourpi * unit_energy_particle);
+   double unit_distro1 = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * M_4PI * unit_energy_particle);
    container.Insert(unit_distro1);
 
 // Physical units of the bin variable
