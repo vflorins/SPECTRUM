@@ -37,9 +37,6 @@ const double cfl_acc_tp = 0.5;
 //! Maximum allowed fraction of momentum change per step
 const double dlnpmax = 0.01;
 
-//! How many time steps to allow before recording a mirror event
-const int mirror_thresh_parker = 10;
-
 /*!
 \brief A derived class for Parker equation (diffusive simulation)
 \author Juan G Alonso Guzman
