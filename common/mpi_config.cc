@@ -82,7 +82,8 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 06/07/2022
+\author Juan G Alonso Guzman
+\date 02/26/2024
 \param[in] argc Number of command line arguments
 \param[in] argv Array of command line arguments
 */
@@ -328,7 +329,8 @@ MPI_Request_Info::~MPI_Request_Info()
 
 /*!
 \author Vladimir Florinski
-\date 09/17/2020
+\author Juan G Alonso Guzman
+\date 02/26/2024
 */
 void TestMPIConfig(void)
 {
