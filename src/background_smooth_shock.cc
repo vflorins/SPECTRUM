@@ -40,7 +40,7 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\date 05/30/2024
 \param [in] x Relative transition region location
 \return Relative value of shocked quantity
 */
@@ -69,7 +69,7 @@ double BackgroundSmoothShock::ShockTransition(double x)
 
 /*!
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\date 05/30/2024
 \param [in] x Relative transition region location 
 \return Derivative of relative value of shocked quantity
 */
@@ -114,7 +114,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\date 05/30/2024
 */
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
