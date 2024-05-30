@@ -47,24 +47,23 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 double BackgroundSmoothShock::ShockTransition(double x)
 {
 #if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return x;
 #elif SMOOTH_SHOCK_ORDER == 1 // differentiable
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return Sqr(x) * (3.0 - 2.0 * x);
 #elif SMOOTH_SHOCK_ORDER == 2 // twice differentiable
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return Cube(x) * (10.0 - 15.0 * x + 6.0 * Sqr(x));
 #elif SMOOTH_SHOCK_ORDER == 3 // thrice differentiable
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return Sqr(Sqr(x)) * (35.0 - 84.0 * x + 70.0 * Sqr(x) - 20.0 * Cube(x));
-#else // discontinuous
-   if(x < 0.5) return 0.0;
-   else return 1.0;
+#else // smooth
+   return 0.5 * (1.0 + tanh(tanh_width_factor * x));
 #endif
 };
 
@@ -77,23 +76,23 @@ double BackgroundSmoothShock::ShockTransition(double x)
 double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 {
 #if SMOOTH_SHOCK_ORDER == 0
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return 1.0;
 #elif SMOOTH_SHOCK_ORDER == 1
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return 6.0 * x * (1.0 - x);
 #elif SMOOTH_SHOCK_ORDER == 2
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return 30.0 * Sqr(x) * (1.0 - 2.0 * x + Sqr(x));
 #elif SMOOTH_SHOCK_ORDER == 3
-   if(x < 0.0) return 0.0;
-   else if(x > 1.0) return 1.0;
+   if(x < -0.5) return 0.0;
+   else if(x > 0.5) return 1.0;
    else return 140.0 * Cube(x) * (1.0 - 3.0 * x + 3.0 * Sqr(x) - 1.0 * Cube(x));
 #else
-   return 0.0;
+   return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
 #endif
 };
 
@@ -120,7 +119,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
    double a1, a2;
-   ds_shock = 0.5 + (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock;
+   ds_shock = (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock;
 
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;
