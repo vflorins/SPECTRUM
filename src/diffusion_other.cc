@@ -644,7 +644,7 @@ double DiffusionMomentumPowerLaw::GetMuDerivative(void)
 \date 08/17/2023
 */
 DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(void)
-                                      : DiffusionBase(diff_name_rigidity_magnetic_field_power_law, 0, DIFF_NOBACKGROUND)
+                                      : DiffusionBase(diff_name_rigidity_magnetic_field_power_law, 0, STATE_NONE)
 {
 };
 
@@ -658,7 +658,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(const DiffusionRigidityMagneticFieldPowerLaw& other)
                                       : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   RAISE_BITS(_status, STATE_NONE);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -779,7 +779,7 @@ double DiffusionKineticEnergyRadialDistancePowerLaw::GetMuDerivative(void)
 \date 12/06/2023
 */
 DiffusionBallEtAl2005::DiffusionBallEtAl2005(void)
-                     : DiffusionBase(diff_name_ball_et_al_2005, 0, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name_ball_et_al_2005, 0, STATE_NONE)
 {
 };
 
@@ -793,7 +793,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DiffusionBallEtAl2005::DiffusionBallEtAl2005(const DiffusionBallEtAl2005& other)
                      : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   RAISE_BITS(_status, STATE_NONE);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -857,6 +857,75 @@ void DiffusionBallEtAl2005::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 double DiffusionBallEtAl2005::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionFlowPowerLaw methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+*/
+DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(void)
+                     : DiffusionBase(diff_name_flow_power_law, 0, STATE_NONE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other)
+                     : DiffusionBase(other)
+{
+   RAISE_BITS(_status, STATE_NONE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kappa0);
+   container.Read(&U0);
+   container.Read(&pow_law_U);
+   container.Read(&kap_rat);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+*/
+void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
+{
+   if((comp_eval == 2)) return;
+   Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U);
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/03/2024
+\return double       Derivative in mu
+*/
+double DiffusionFlowPowerLaw::GetMuDerivative(void)
 {
    return 0.0;
 };

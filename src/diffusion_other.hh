@@ -660,6 +660,64 @@ public:
 typedef DiffusionBallEtAl2005 DiffusionLuoEtAl2011;
 typedef DiffusionBallEtAl2005 DiffusionStraussEtAl2013;
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionFlowPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionFlowPowerLaw class
+const std::string diff_name_flow_power_law = "DiffusionFlowPowerLaw";
+
+/*!
+\brief Diffusion as a power law of flow velocity magnitude
+\author Juan G Alonso Guzman
+\author Swati Sharma
+
+Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double kap_rat
+*/
+class DiffusionFlowPowerLaw : public DiffusionBase {
+
+protected:
+
+//! Reference diffusion coefficient (persistent)
+   double kappa0;
+
+//! Flow velocity normalization factor (persistent)
+   double U0;
+
+//! Power law slope for flow velocity (persistent)
+   double pow_law_U;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionFlowPowerLaw(void);
+
+//! Copy constructor
+   DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other);
+
+//! Destructor
+   ~DiffusionFlowPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionFlowPowerLaw);
+
+// TODO: Implement directional derivative (only spatial dependence is in magnitude of Uvec)
+//! Compute derivative of diffusion coefficient in position or time
+   // double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
+
 };
 
 #endif
