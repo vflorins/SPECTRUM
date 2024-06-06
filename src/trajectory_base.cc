@@ -170,7 +170,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-   if(dt + delta_next >= 0.0) dt = -(1.0 + little) * delta_next;
+   if(dt + delta_next >= 0.0) dt = fmax(-(1.0 + little) * delta_next, small * _spdata.dmax / c_code);
 };
 
 /*!
