@@ -168,7 +168,7 @@ void TrajectoryParker::DriftCoeff(void)
 */
 void TrajectoryParker::PhysicalStep(void)
 {
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel + divK).Norm();
 #else
    dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel - divK).Norm();
@@ -188,7 +188,7 @@ void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_
    DriftCoeff();
    DiffusionCoeff();
    slope_pos_istage = drift_vel;
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    slope_pos_istage += divK;
 #else
    slope_pos_istage -= divK;

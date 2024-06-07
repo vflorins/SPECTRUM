@@ -310,7 +310,7 @@ bool TrajectoryBase::RKSlopes(void)
 // Advance to the current stage.
       _t += RK_Table.a[istage] * dt;
       for(islope = 0; islope < istage; islope++) {
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
 #else
@@ -358,7 +358,7 @@ bool TrajectoryBase::RKStep(void)
    if(RK_Table.adaptive) pos_lo = _pos;
    for(islope = 0; islope < RK_Table.stages; islope++) {
 
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
       _pos += dt * RK_Table.v[islope] * slope_pos[islope];
       _mom += dt * RK_Table.v[islope] * slope_mom[islope];
       if(RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
