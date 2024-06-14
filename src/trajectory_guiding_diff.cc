@@ -291,7 +291,7 @@ void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope
 {
    TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
    TrajectoryGuidingDiff::DiffusionCoeff();
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    slope_pos_istage += Vperp;
 #else
    slope_pos_istage -= Vperp;
@@ -305,7 +305,7 @@ void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope
 */
 void TrajectoryGuidingDiff::PhysicalStep(void)
 {
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    dt_physical = cfl_adv_tg * _spdata.dmax / ((drift_vel + Vperp).Norm() + drift_safety_tg * _vel.Norm());
 #else
    dt_physical = cfl_adv_tg * _spdata.dmax / ((drift_vel - Vperp).Norm() + drift_safety_tg * _vel.Norm());

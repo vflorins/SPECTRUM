@@ -13,15 +13,19 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// BackgroundSmoothShock class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Flag to control smoothness of shock
 #define SMOOTH_SHOCK_ORDER 1
 
 //! Method for computing derivatives (0: analytical, 1: Numerical)
 #define SMOOTHSHOCK_DERIVATIVE_METHOD 1
+
+//! Scaling factor to better match shock width when using smooth shock (tanh)
+const double tanh_width_factor = 4.0;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BackgroundSmoothShock class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Readable name of the BackgroundSmoothShock class
 const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
@@ -39,7 +43,7 @@ protected:
 //! Width of shock transition region (persistent)
    double width_shock;
 
-//! Relative distance to shock
+//! Relative distance to shock (transient)
    double ds_shock;
 
 //! Shock transition region function

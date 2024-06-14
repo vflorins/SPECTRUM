@@ -170,7 +170,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-   if(dt + delta_next >= 0.0) dt = -(1.0 + little) * delta_next;
+   if(dt + delta_next >= 0.0) dt = fmax(-(1.0 + little) * delta_next, small * _spdata.dmax / c_code);
 };
 
 /*!
@@ -310,7 +310,7 @@ bool TrajectoryBase::RKSlopes(void)
 // Advance to the current stage.
       _t += RK_Table.a[istage] * dt;
       for(islope = 0; islope < istage; islope++) {
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
 #else
@@ -358,7 +358,7 @@ bool TrajectoryBase::RKStep(void)
    if(RK_Table.adaptive) pos_lo = _pos;
    for(islope = 0; islope < RK_Table.stages; islope++) {
 
-#if TRAJ_TIME_FLOW == 0
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
       _pos += dt * RK_Table.v[islope] * slope_pos[islope];
       _mom += dt * RK_Table.v[islope] * slope_mom[islope];
       if(RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
