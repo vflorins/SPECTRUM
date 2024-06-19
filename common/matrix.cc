@@ -168,7 +168,7 @@ SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
 
 // Find eigenvalues
    eval = Eigenvalues();
-   if(eval.Norm() < tiny) {
+   if(eval.Norm() < sp_tiny) {
       evec = gm_zeros;
       return gv_zeros;
    };

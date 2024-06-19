@@ -62,9 +62,6 @@ protected:
 //! Load the local trajectory point
    void LoadLocal(void) override;
 
-//! Conversion from (p_perp,0,p_para) to (p,mu,0)
-   GeoVector ConvertMomentum(void) const override;
-
 //! Momentum transformation on reflection at a boundary
    void ReverseMomentum(void) override;
 
@@ -138,17 +135,6 @@ inline void TrajectoryFocused::LoadLocal(void)
    _vel[1] = _mom[1];
    _vel[2] = 0.0;
 };
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/07/2023
-\return A vector in the (p_perp,0,p_para) format
-*/
-inline GeoVector TrajectoryFocused::ConvertMomentum(void) const
-{
-   return GeoVector(_mom[0] * sqrt(1.0 - Sqr(_mom[1])), 0.0, _mom[0] * _mom[1]);
-};
-
 
 /*!
 \author Juan G Alonso Guzman

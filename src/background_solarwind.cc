@@ -65,7 +65,7 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 
 // Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
    w0 = Omega.Norm(); 
-   if(w0 < tiny) eprime[2] = gv_nz;
+   if(w0 < sp_tiny) eprime[2] = gv_nz;
    else eprime[2] = UnitVec(Omega);
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
@@ -146,7 +146,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Coordinates for conversion
       sintheta = sqrt(fmax(1.0 - Sqr(costheta), 0.0));
       s = sqrt(Sqr(posprime[0]) + Sqr(posprime[1]));
-      if(s < r * tiny) {
+      if(s < r * sp_tiny) {
          cosphi = 0.0;
          sinphi = 0.0;
       }

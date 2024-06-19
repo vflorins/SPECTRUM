@@ -43,6 +43,11 @@ protected:
 //! Compute the internal derivatives of the fields
    void EvaluateBackgroundDerivatives(void) override;
 
+#if SERVER_INTERP_ORDER > 0
+//! Calculate magnetic field magnitude
+   void EvaluateBmag(void) override;
+#endif
+
 public:
 
 //! Default constructor

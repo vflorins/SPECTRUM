@@ -152,7 +152,7 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
    _delta_old = _delta;
 
 // The initial point may be right on the boundary, so the code will not be able to determine whether a crossing occurred. For this resaon "_delta_old" is set to a small negative value. This will work for an _external_ boundary, which is the most common case. TODO 
-   if(_delta_old == 0.0) _delta_old = -tiny * delta_scale;
+   if(_delta_old == 0.0) _delta_old = -sp_tiny * delta_scale;
    LOWER_BITS(_status, BOUNDARY_CROSSED);
 };
    

@@ -26,6 +26,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Number of local coordinate systems in which to evaluate and average numerical derivatives
+#define BACKGROUND_NUM_GRAD_EVALS 8
+
 #ifdef USE_SILO
 
 //! Name of the 2D mesh
@@ -38,6 +41,13 @@ const std::string mesh3d_name = "cube_mesh";
 
 //! What fraction of "_dmax" to use to calculate the field increment
 const double incr_dmax_ratio = 0.0001;
+
+//! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
+const double local_rot_ang = M_PI / BACKGROUND_NUM_GRAD_EVALS;
+
+//! Sine and cosine of local rotation angle
+const double sin_lra = sin(local_rot_ang);
+const double cos_lra = cos(local_rot_ang);
 
 //! Clone function pattern
 #define CloneFunctionBackground(T) std::unique_ptr<BackgroundBase> Clone(void) const override {return std::make_unique<T>();};
@@ -96,11 +106,23 @@ protected:
 //! Distance reference value (persistent)
    double dmax0;
 
-//! Spatial data (transient)
+//! Spatial data object (transient)
    SpatialData _spdata;
 
-//! Auxiliary spatial data for derivative computations (transient)
-   SpatialData _spdata_tmp;
+//! Auxiliary spatial data objects for derivative computations (transient)
+   SpatialData _spdata_tmp, _spdata_forw, _spdata_back;
+
+//! Gyro-radius for derivative computations (transient)
+   double r_g;
+
+//! Gyro-frequency for derivative computations (transient)
+   double w_g;
+
+//! Field-aligned basis (transient)
+   GeoMatrix fa_basis;
+
+//! Rotation matrix (transient)
+   GeoMatrix rot_mat;
 
 #ifdef USE_SILO
 
@@ -151,6 +173,9 @@ protected:
 //! Calculate the maximum distance allowed per time step
    virtual void EvaluateDmax(void);
 
+//! Calculate magnetic field magnitude
+   virtual void EvaluateBmag(void);
+
 public:
 
 //! Destructor
@@ -172,7 +197,7 @@ public:
    double GetDmax(void) const;
 
 //! Return fields at the internal position, evaluated or previously stored
-   void GetFields(double t_in, const GeoVector& pos_in, SpatialData& spdata);
+   void GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata);
 
 #ifdef USE_SILO
 
