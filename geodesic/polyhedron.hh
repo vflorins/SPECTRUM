@@ -27,7 +27,7 @@ struct Schlafli
    SPECTRUM_DEVICE_FUNC Schlafli(void) = default;
 
 //! Constructor
-   SPECTRUM_DEVICE_FUNC Schlafli(int p_in, int q_in);
+   SPECTRUM_DEVICE_FUNC constexpr Schlafli(int p_in, int q_in);
 
 //! Number of vertices
    SPECTRUM_DEVICE_FUNC constexpr int NVerts(void) const;
@@ -45,9 +45,9 @@ struct Schlafli
 \param[in] p_in Number of vertices of each face
 \param[in] q_in Number of edges that meet at each vertex
 */
-SPECTRUM_DEVICE_FUNC inline Schlafli::Schlafli(int p_in, int q_in)
-                                    : p(p_in),
-                                      q(q_in)
+SPECTRUM_DEVICE_FUNC constexpr inline Schlafli::Schlafli(int p_in, int q_in)
+                                              : p(p_in),
+                                                q(q_in)
 {};
 
 /*!
@@ -87,6 +87,8 @@ enum PolyType {POLY_TETRAHEDRON, POLY_HEXAHEDRON, POLY_OCTAHEDRON, POLY_DODECAHE
 
 //! Human readable names (host only)
 const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "dodecahedron", "icosahedron"};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \brief A class describing a convex regular polyhedron
@@ -134,6 +136,9 @@ public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC Polyhedron(void);
+
+//! Copy constructor is not needed because the class is fully specified by its template arguments
+   SPECTRUM_DEVICE_FUNC Polyhedron(const Polyhedron& other) = delete;
 
 //! Destructor
    SPECTRUM_DEVICE_FUNC ~Polyhedron();
@@ -192,9 +197,10 @@ SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::~Polyhedron()
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::Setup(void)
 {
-   Schlafli(3, 3);
+   p = 3;
+   q = 3;
 };
 
 /*!
@@ -202,7 +208,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::Setup(v
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
 {
    edge_length = 2.0 * sqrt(2.0 / 3.0);
    double poly_ang = asin(1.0 / 3.0);
@@ -254,7 +260,8 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::SetConn
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_HEXAHEDRON>::Setup(void)
 {
-   Schlafli(4, 3);
+   p = 4;
+   q = 3;
 };
 
 /*!
@@ -323,7 +330,8 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_HEXAHEDRON>::SetConne
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_OCTAHEDRON>::Setup(void)
 {
-   Schlafli(3, 4);
+   p = 3;
+   q = 4;
 };
 
 /*!
@@ -423,7 +431,8 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_OCTAHEDRON>::SetConne
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
 {
-   Schlafli(5, 3);
+   p = 5;
+   q = 3;
 };
 
 /*!
@@ -433,8 +442,8 @@ SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
 template <>
 SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::VertexCoords(void)
 {
-   edge_length = 4.0 / sqrt(3.0) / (1.0 + sqrt(5.0));
-   double poly_ang1 = acos(edge_length * sqrt(2.0) / sqrt(5.0 - sqrt(5.0)));
+   edge_length = 4.0 / M_SQRT3 / (1.0 + M_SQRT5);
+   double poly_ang1 = acos(edge_length * M_SQRT2 / sqrt(5.0 - M_SQRT5));
    double poly_ang2 = poly_ang1 - 2.0 * asin(0.5 * edge_length);
 
    vlat[ 0] =  poly_ang1; vlat[ 1] =  poly_ang1; vlat[ 2] =  poly_ang1; vlat[ 3] =  poly_ang1; vlat[ 4] =  poly_ang1;
@@ -455,7 +464,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::Vertex
 template <>
 SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::SetConnectivity(void)
 {
-   vert_vert[ 0][0] =  1; vert_vert[ 0][1] =  1; vert_vert[ 0][2] =  7;
+   vert_vert[ 0][0] =  1; vert_vert[ 0][1] =  4; vert_vert[ 0][2] =  7;
    vert_vert[ 1][0] =  2; vert_vert[ 1][1] =  0; vert_vert[ 1][2] =  9;
    vert_vert[ 2][0] =  3; vert_vert[ 2][1] =  1; vert_vert[ 2][2] = 11;
    vert_vert[ 3][0] =  4; vert_vert[ 3][1] =  2; vert_vert[ 3][2] = 13;
@@ -547,7 +556,8 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::SetCon
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_ICOSAHEDRON>::Setup(void)
 {
-   Schlafli(3, 5);
+   p = 3;
+   q = 5;
 };
 
 /*!
@@ -579,11 +589,11 @@ template <>
 SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_ICOSAHEDRON>::SetConnectivity(void)
 {
    vert_vert[ 0][0] =  1; vert_vert[ 0][1] =  2; vert_vert[ 0][2] =  3; vert_vert[ 0][3] =  4; vert_vert[ 0][4] =  5;
-   vert_vert[ 1][0] =  0; vert_vert[ 1][1] =  5; vert_vert[ 1][2] =  6; vert_vert[ 1][3] =  7; vert_vert[ 0][4] =  2;
-   vert_vert[ 2][0] =  0; vert_vert[ 2][1] =  1; vert_vert[ 2][2] =  7; vert_vert[ 2][3] =  8; vert_vert[ 0][4] =  3;
-   vert_vert[ 3][0] =  0; vert_vert[ 3][1] =  2; vert_vert[ 3][2] =  8; vert_vert[ 3][3] =  9; vert_vert[ 0][4] =  4;
-   vert_vert[ 4][0] =  0; vert_vert[ 4][1] =  3; vert_vert[ 4][2] =  9; vert_vert[ 4][3] = 10; vert_vert[ 0][4] =  5;
-   vert_vert[ 5][0] =  0; vert_vert[ 5][1] =  4; vert_vert[ 5][2] = 10; vert_vert[ 5][3] =  6; vert_vert[ 0][4] =  1;
+   vert_vert[ 1][0] =  0; vert_vert[ 1][1] =  5; vert_vert[ 1][2] =  6; vert_vert[ 1][3] =  7; vert_vert[ 1][4] =  2;
+   vert_vert[ 2][0] =  0; vert_vert[ 2][1] =  1; vert_vert[ 2][2] =  7; vert_vert[ 2][3] =  8; vert_vert[ 2][4] =  3;
+   vert_vert[ 3][0] =  0; vert_vert[ 3][1] =  2; vert_vert[ 3][2] =  8; vert_vert[ 3][3] =  9; vert_vert[ 3][4] =  4;
+   vert_vert[ 4][0] =  0; vert_vert[ 4][1] =  3; vert_vert[ 4][2] =  9; vert_vert[ 4][3] = 10; vert_vert[ 4][4] =  5;
+   vert_vert[ 5][0] =  0; vert_vert[ 5][1] =  4; vert_vert[ 5][2] = 10; vert_vert[ 5][3] =  6; vert_vert[ 5][4] =  1;
    vert_vert[ 6][0] = 11; vert_vert[ 6][1] =  7; vert_vert[ 6][2] =  1; vert_vert[ 6][3] =  5; vert_vert[ 6][4] = 10;
    vert_vert[ 7][0] = 11; vert_vert[ 7][1] =  8; vert_vert[ 7][2] =  2; vert_vert[ 7][3] =  1; vert_vert[ 7][4] =  6;
    vert_vert[ 8][0] = 11; vert_vert[ 8][1] =  9; vert_vert[ 8][2] =  3; vert_vert[ 8][3] =  2; vert_vert[ 8][4] =  7;
