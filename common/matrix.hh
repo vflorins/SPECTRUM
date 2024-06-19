@@ -41,9 +41,6 @@ struct GeoMatrix {
 //! Constructor from row vectors
    SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
 
-//! Copy constructor
-   SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoMatrix& matr_r);
-
 //! Access to the data for reading
    SPECTRUM_DEVICE_FUNC const double* Data(void) const;
 
@@ -61,9 +58,6 @@ struct GeoMatrix {
 
 //! Access to rows for writing
    SPECTRUM_DEVICE_FUNC GeoVector& operator [](int i);
-
-//! Assignment operator from another matrix
-   SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(const GeoMatrix& matr_r);
 
 //! Set all three components to the given value
    SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(double val);
@@ -136,16 +130,6 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoV
 
 /*!
 \author Vladimir Florinski
-\date 11/02/2021
-\param[in] vect_r Matrix to create a copy of
-*/
-SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoMatrix& matr_r)
-{
-   operator =(matr_r);
-};
-
-/*!
-\author Vladimir Florinski
 \date 12/03/2020
 \return "data" array
 */
@@ -204,18 +188,6 @@ SPECTRUM_DEVICE_FUNC inline const GeoVector& GeoMatrix::operator [](int i) const
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoMatrix::operator [](int i)
 {
    return row[i];
-};
-
-/*!
-\author Vladimir Florinski
-\date 11/02/2021
-\param[in] matr_r A matrix that will be copied into this matrix
-\return Reference to this object
-*/
-SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator =(const GeoMatrix& matr_r)
-{
-   if(this != &matr_r) memcpy(linear, matr_r.linear, 9 * SZDBL);
-   return *this;
 };
 
 /*!

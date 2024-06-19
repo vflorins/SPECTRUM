@@ -6,26 +6,34 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
+#ifdef GEO_DEBUG
+#include <iostream>
+#include <iomanip>
+#endif
 #include "common/polynomial.hh"
 
 namespace Spectrum {
 
+int Polynomial::binomial[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
+uint32_t Polynomial::moment_pl[poly_table_length];
+int Polynomial::moment_lu[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
+
 /*!
 \author Vladimir Florinski
 \date 07/17/2019
-\param[in] v  Position vector
-\param[in] pl Three power law indices encoded as a single number
+\param[in] v    Position vector
+\param[in] mlex Three power law indices encoded as a single number
 \return \f$x^l \cdot y^m \cdot z^n\f$
 */
-SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t pl)
+SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t mlex)
 {
    uint32_t i;
    double res = 1.0;
 
 // To compute the exponent, all bits except those relevant to the desired vector component are set to zero by applying the mask.
-   for(i = 0; i < (pl & xbitfield) >> 16; i++) res *= v[0];
-   for(i = 0; i < (pl & ybitfield) >> 8 ; i++) res *= v[1];
-   for(i = 0; i < (pl & zbitfield)      ; i++) res *= v[2];
+   for(i = 0; i < (mlex & xbitfield) >> 16; i++) res *= v[0];
+   for(i = 0; i < (mlex & ybitfield) >> 8 ; i++) res *= v[1];
+   for(i = 0; i < (mlex & zbitfield)      ; i++) res *= v[2];
 
    return res;
 };
@@ -33,17 +41,17 @@ SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t pl)
 /*!
 \author Vladimir Florinski
 \date 07/17/2019
-\param[in] r  Distance from the center of the sphere
-\param[in] pl Three power law indices encoded as a single number
-\return \f$r^{l+m+n}\f$
+\param[in] x    A number to be raised
+\param[in] mlex Three power law indices encoded as a single number
+\return \f$x^{l+m+n}\f$
 */
-SPECTRUM_DEVICE_FUNC double CoordPower3D(double r, uint32_t pl)
+SPECTRUM_DEVICE_FUNC double CoordPower3D(double x, uint32_t mlex)
 {
    int i, pl_tot;
    double res = 1.0;
 
-   pl_tot = ((pl & xbitfield) >> 16) + ((pl & ybitfield) >> 8) + (pl & zbitfield);
-   for(i = 0; i < pl_tot; i++) res *= r;
+   pl_tot = ((mlex & xbitfield) >> 16) + ((mlex & ybitfield) >> 8) + (mlex & zbitfield);
+   for(i = 0; i < pl_tot; i++) res *= x;
    return res;
 };
 
@@ -153,5 +161,44 @@ SPECTRUM_DEVICE_FUNC double EvalPoly3D(int p, const double* c, double x, double 
 
    return sum;
 };
+
+#ifdef GEO_DEBUG
+
+/*!
+\author Vladimir Florinski
+\date 05/10/2024
+*/
+void PrintMomentTables(void)
+{
+   Polynomial poly;
+   std::cerr << std::setiosflags(std::ios::showbase);
+
+   std::cerr << "Printing the binomial coefficients\n";   
+   for(auto n = 0; n <= MONO_DEGREE_HIGH; n++) {
+      for(auto k = 0; k <= n; k++) {
+         std::cerr << std::dec << std::setw(3) << poly.binomial[n][k];
+      };
+      std::cerr << std::endl;
+   };
+
+   std::cerr << "\nPrinting the moment numbering table\n";   
+   for(auto idx = 0; idx < poly_table_length; idx++) {
+      std::cerr << std::dec << std::setw(3) << idx;
+      std::cerr << std::hex << std::setw(12) << poly.moment_pl[idx] << std::endl;
+   };
+
+   std::cerr << "\nPrinting the moment lookup table\n";   
+   for(auto k = 0; k <= MONO_DEGREE_HIGH; k++) {
+      for(auto j = 0; j <= MONO_DEGREE_HIGH; j++) {
+         for(auto i = 0; i <= MONO_DEGREE_HIGH; i++) {
+            std::cerr << std::dec << std::setw(3) << poly.moment_lu[k][j][i];
+         };
+         std::cerr << std::endl;
+      };
+      std::cerr << std::endl;
+   };
+};
+
+#endif
 
 };

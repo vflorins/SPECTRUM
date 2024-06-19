@@ -57,7 +57,7 @@ namespace Spectrum {
 #define miniscule 1.0E-12
 
 //! A very small number, according to the code
-#define tiny 1.0E-15
+#define sp_tiny 1.0E-15
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Global floating point constants that are also available on the device

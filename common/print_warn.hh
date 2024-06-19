@@ -63,25 +63,47 @@ inline void PrintMessage(const char* filename, int line, const std::string& mess
 };
 
 /*!
-\brief Returns the number of lines in a file
+\brief Returns the number of lines in a file stream
 \author Vladimir Florinski
-\date 08/29/2023
-\param[in] ifname Input file name
+\date 07/24/2023
+\param[in] inpfile Input stream
 \return Number of lines in the file
 */
-inline unsigned int CountLines(std::string& ifname)
+inline unsigned int CountLines(std::ifstream& inpfile)
 {
    unsigned int count = 0;
    char line[line_width + 1];
-   std::ifstream inpfile;
 
-   inpfile.open(ifname.c_str());
    while(inpfile.peek() != EOF) {
       inpfile.getline(line, line_width);
       count++;
    };
-   inpfile.close();
    return count;
+};
+
+
+/*!
+\brief Print a general connectivity table
+\author Vladimir Florinski
+\date 07/22/2019
+\param[in] n_nodes Total nodes
+\param[in] n_nbrs  Number of neighbors per node
+\param[in] n_sing  Number of singular nodes
+\param[in] conn    Connectivity list
+*/
+inline void PrintConnectivity(int n_nodes, int n_nbrs, int n_sing, const int* const* conn)
+{
+   int n_nbrs_actual;
+
+   for(auto node = 0; node < n_nodes; node++) {
+      std::cerr << std::setw(8) << node << " │ ";
+      n_nbrs_actual = (node < n_sing ? n_nbrs - 1 : n_nbrs);
+
+      for(auto i = 0; i < n_nbrs_actual; i++) {
+         std::cerr << std::setw(8) << conn[node][i];
+      };
+      std::cerr << std::endl;
+   };
 };
 
 };
