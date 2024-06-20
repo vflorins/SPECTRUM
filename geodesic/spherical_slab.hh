@@ -72,7 +72,7 @@ public:
    SPECTRUM_DEVICE_FUNC int TotalShells(void) const {return n_shells_withghost;};
 
 //! Set the slab dimensions
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost);
+   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
 };
 
 /*!
@@ -83,7 +83,7 @@ public:
 */
 SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
 {
-   SetDimensions(height, hghost);
+   SetDimensions(height, hghost, true);
 };
 
 /*!
@@ -113,10 +113,11 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell_Int(int k) const
 /*!
 \author Vladimir Florinski
 \date 02/19/2020
-\param[in] width  Height of the slab, without ghost cells
-\param[in] wgohst Height of the ghost cell layer outside the slab
+\param[in] width     Height of the slab, without ghost cells
+\param[in] wgohst    Height of the ghost cell layer outside the slab
+\param[in] construct Set to true when called from a constructor
 */
-SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost)
+SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
 {
    if(height < min_block_height || height > max_block_height || hghost < min_ghost_height || hghost > max_ghost_height) {
       PrintError(__FILE__, __LINE__, "Cannot allocate a slab with these dimensions", true);

@@ -290,6 +290,8 @@ SPECTRUM_DEVICE_FUNC inline void RiemannSolverHLLE<cl_prim, cl_cons, cl_flux>::I
 /*!
 \author Vladimir Florinski
 \date 03/18/2024
+
+Ref: Einfeldt, B., On Godunov-type methods for gas dynamics, SIAM Journal on Numerical Analysis, v. 25, p. 294 (1988).
 */
 template<typename cl_prim, typename cl_cons, typename cl_flux>
 SPECTRUM_DEVICE_FUNC inline void RiemannSolverHLLE<cl_prim, cl_cons, cl_flux>::SolveInternal(void)
@@ -489,7 +491,7 @@ SPECTRUM_DEVICE_FUNC inline void RiemannSolverNoreflect<cl_prim, cl_cons, cl_flu
       };
    };
 
-// Obtain the sonic state
+// Obtain the sonic state. The standard situation is the interior cell on the left and the ghost cell on the right. For the opposite case all vector quantities must be inverted on input to "ToSonic()" and then inverted back.
    if(dir > 0.0) resv_prim = left_prim.ToSonic(false);
    else {
       rght_prim.Invert();

@@ -9,6 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_GRID_BLOCK
 #define SPECTRUM_GRID_BLOCK
 
+#include "config.h"
+
 #ifdef USE_SILO
 #include <silo.h>
 #endif

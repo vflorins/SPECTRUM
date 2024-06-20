@@ -16,21 +16,25 @@ namespace Spectrum {
 //! Number of fluid variables (DEN,VELx3,PRE)
 #define CL_GASDYN_NVARS 5
 
-//! Total number of variables
-#define CL_GASDYN_TOTAL (CL_GASDYN_NVARS + n_ind)
-
-template <int fluid, int n_ind> struct PrimitiveStateGasdyn;
-template <int fluid, int n_ind> struct ConservedStateGasdyn;
-template <int fluid, int n_ind> struct FluxFunctionGasdyn;
+template <int fluid> struct PrimitiveStateGasdyn;
+template <int fluid> struct ConservedStateGasdyn;
+template <int fluid> struct FluxFunctionGasdyn;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // PrimitiveStateGasdyn class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct PrimitiveStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
+/*!
+\brief Codifies physics for compressible gas dynamics
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct PrimitiveStateGasdyn : public SimpleArray<double, CL_GASDYN_NVARS>
 {
-   using SimpleArray<double, CL_GASDYN_TOTAL>::data;
+   using SimpleArray<double, CL_GASDYN_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density (RO)
    const double& den(void) const {return data[0];};
@@ -51,22 +55,19 @@ struct PrimitiveStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
    double& pre(void) {return data[4];};
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_GASDYN_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_GASDYN_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn(void) = default;
 
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn(double den_in, const GeoVector& vel_in, double pre_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn(double den_in, const GeoVector& vel_in, double pre_in);
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other);
 
 //! Calculate the fastest wave speed
    SPECTRUM_DEVICE_FUNC double FastestWave(void) const;
@@ -75,13 +76,13 @@ struct PrimitiveStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
    SPECTRUM_DEVICE_FUNC double FastestWaveNormal(void) const;
 
 //! Calculate conserved state
-   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn<fluid, n_ind> ToConserved(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn<fluid> ToConserved(void) const;
 
 //! Calculate flux function
-   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn<fluid, n_ind> ToFlux(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn<fluid> ToFlux(void) const;
 
 //! Calculate sonic state
-   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn<fluid, n_ind> ToSonic(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn<fluid> ToSonic(void) const;
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -91,10 +92,17 @@ struct PrimitiveStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
 // ConservedStateGasdyn class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct ConservedStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
+/*!
+\brief Codifies physics for compressible gas dynamics
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct ConservedStateGasdyn : public SimpleArray<double, CL_GASDYN_NVARS>
 {
-   using SimpleArray<double, CL_GASDYN_TOTAL>::data;
+   using SimpleArray<double, CL_GASDYN_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density (RO)
    const double& den(void) const {return data[0];};
@@ -115,22 +123,19 @@ struct ConservedStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
    double& enr(void) {return data[4];};
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_GASDYN_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_GASDYN_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC ConservedStateGasdyn(void) = default;
 
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn(double den_in, const GeoVector& mom_in, double enr_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn(double den_in, const GeoVector& mom_in, double enr_in);
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC ConservedStateGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other);
 
 //! Calculate the fastest wave speed
    SPECTRUM_DEVICE_FUNC double FastestWave(void) const;
@@ -139,19 +144,19 @@ struct ConservedStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
    SPECTRUM_DEVICE_FUNC double FastestWaveNormal(void) const;
 
 //! Calculate primitive state
-   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn<fluid, n_ind> ToPrimitive(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn<fluid> ToPrimitive(void) const;
 
 //! Calculate flux function
-   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn<fluid, n_ind> ToFlux(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn<fluid> ToFlux(void) const;
 
 //! Calculate _gas_ pressure
    SPECTRUM_DEVICE_FUNC double GetPressure(void) const;
 
 //! Calculate y and z components of momentum from the externally provided flux in a moving frame
-   SPECTRUM_DEVICE_FUNC void FixMomentum(FluxFunctionGasdyn<fluid, n_ind>& flux, double S1, double S2);
+   SPECTRUM_DEVICE_FUNC void FixMomentum(FluxFunctionGasdyn<fluid>& flux, double S1, double S2);
 
 //! Calculate energy from the externally provided flux in a moving frame
-   SPECTRUM_DEVICE_FUNC void FixEnergy(FluxFunctionGasdyn<fluid, n_ind>& flux, double S1, double S2);
+   SPECTRUM_DEVICE_FUNC void FixEnergy(FluxFunctionGasdyn<fluid>& flux, double S1, double S2);
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -161,10 +166,17 @@ struct ConservedStateGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
 // FluxFunctionGasdyn class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct FluxFunctionGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
+/*!
+\brief Codifies physics for compressible gas dynamics
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct FluxFunctionGasdyn : public SimpleArray<double, CL_GASDYN_NVARS>
 {
-   using SimpleArray<double, CL_GASDYN_TOTAL>::data;
+   using SimpleArray<double, CL_GASDYN_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density flux (RO)
    const double& denf(void) const {return data[0];};
@@ -185,22 +197,19 @@ struct FluxFunctionGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
    double& enrf(void) {return data[4];};
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_GASDYN_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_GASDYN_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn(void) = default;
 
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn(double denf_in, const GeoVector& momf_in, double enrf_in, double* indf_in);
+   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn(double denf_in, const GeoVector& momf_in, double enrf_in);
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC FluxFunctionGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other);
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -216,16 +225,13 @@ struct FluxFunctionGasdyn : public SimpleArray<double, CL_GASDYN_TOTAL>
 \param[in] den_in Density
 \param[in] vel_in Velocity
 \param[in] pre_in Pressure
-\param[in] ind_in Indicator variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind>::PrimitiveStateGasdyn(double den_in, const GeoVector& vel_in,
-                                                                                     double pre_in, double* ind_in)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid>::PrimitiveStateGasdyn(double den_in, const GeoVector&vel_in, double pre_in)
 {
    den() = den_in;
    vel() = vel_in;
    pre() = pre_in;
-   if(n_ind != 0) memcpy(data + CL_GASDYN_NVARS, ind_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -233,9 +239,9 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind>::PrimitiveStateGa
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind>::PrimitiveStateGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other)
-   : SimpleArray<double, CL_GASDYN_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid>::PrimitiveStateGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other)
+                                                       : SimpleArray<double, CL_GASDYN_NVARS>(other)
 {
 };
 
@@ -244,8 +250,8 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind>::PrimitiveStateGa
 \date 03/16/2024
 \return Fastest wave speed (sound)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid, n_ind>::FastestWave(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid>::FastestWave(void) const
 {
    return SoundSpeed(den(), pre(), fluid);
 };
@@ -255,8 +261,8 @@ SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid, n_ind>::FastestWa
 \date 03/16/2024
 \return Fastest normal wave speed (sound)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid, n_ind>::FastestWaveNormal(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid>::FastestWaveNormal(void) const
 {
    return SoundSpeed(den(), pre(), fluid);
 };
@@ -266,21 +272,15 @@ SPECTRUM_DEVICE_FUNC inline double PrimitiveStateGasdyn<fluid, n_ind>::FastestWa
 \date 03/06/2024
 \return Vector of conserved variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind> PrimitiveStateGasdyn<fluid, n_ind>::ToConserved(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid> PrimitiveStateGasdyn<fluid>::ToConserved(void) const
 {
-   ConservedStateGasdyn<fluid, n_ind> cons;
+   ConservedStateGasdyn<fluid> cons;
 
    cons.den() = den();
    cons.mom() = den() * vel();
    cons.enr() = Energy(den(), vel().Norm2(), 0.0, pre(), fluid);
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_GASDYN_NVARS; i < CL_GASDYN_NVARS + n_ind; i++) {
-         cons.data[i] = den() * data[i];
-      };
-   };
    return cons;
 };
 
@@ -289,53 +289,47 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind> PrimitiveStateGas
 \date 03/06/2024
 \return Flux vector
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind> PrimitiveStateGasdyn<fluid, n_ind>::ToFlux(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid> PrimitiveStateGasdyn<fluid>::ToFlux(void) const
 {
    double enr = Energy(den(), vel().Norm2(), 0.0, pre(), fluid);
-   FluxFunctionGasdyn<fluid, n_ind> flux;
+   FluxFunctionGasdyn<fluid> flux;
 
    flux.denf() = den() * vel()[0];
    flux.momf() = den() * vel()[0] * vel() + pre() * gv_nx;
    flux.enrf() = (enr + pre()) * vel()[0];
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_GASDYN_NVARS; i < CL_GASDYN_NVARS + n_ind; i++) {
-         flux.data[i] = den() * data[i] * vel()[0];
-      };
-   };
    return flux;
 };
 
 /*!
 \author Vladimir Florinski
-\date 04/10/2024
+\date 04/24/2024
 \return Vector of primitive variables in a sonic state
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC PrimitiveStateGasdyn<fluid, n_ind> PrimitiveStateGasdyn<fluid, n_ind>::ToSonic(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid> PrimitiveStateGasdyn<fluid>::ToSonic(void) const
 {
    double cs = Sound(den(), pre(), fluid);
-   double gamm1 = gamma_eos[fluid] - 1.0;
-   double gamp1 = gamma_eos[fluid] + 1.0;
-   double del_den = 2.8 * den() / gamp1 * (vel()[0] / cs - 1.0);
-   double cs_star = cs * (1.0 + 0.5 * gamm1 * cs * del_den / den());
-   PrimitiveStateGasdyn<fluid, n_ind> prim;
+   double del_den = 2.0 * den() / (gamma_eos[fluid] + 1.0) * (vel()[0] / cs - 1.0);
+   double cs_star = vel()[0] - cs * del_den / den();
+
+   PrimitiveStateGasdyn<fluid> prim;
    
    prim.den() = den() + del_den;
-   prim.vel()[0] = vel()[0] - cs * del_den / den();
+   prim.vel()[0] = cs_star;
    prim.vel()[1] = vel()[1];
    prim.vel()[2] = vel()[2];
    prim.pre() = prim.den() * Sqr(cs_star) / gamma_eos[fluid];
+   return prim;
 };
 
 /*!
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void PrimitiveStateGasdyn<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void PrimitiveStateGasdyn<fluid>::Invert(void)
 {
    vel()[0] = -vel()[0];
 };
@@ -350,16 +344,13 @@ SPECTRUM_DEVICE_FUNC inline void PrimitiveStateGasdyn<fluid, n_ind>::Invert(void
 \param[in] den_in Density
 \param[in] mom_in Momentum
 \param[in] enr_in Energy
-\param[in] ind_in Indicator variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind>::ConservedStateGasdyn(double den_in, const GeoVector& mom_in,
-                                                                                     double enr_in, double* ind_in)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid>::ConservedStateGasdyn(double den_in, const GeoVector& mom_in, double enr_in)
 {
    den() = den_in;
    mom() = mom_in;
    enr() = enr_in;
-   if(n_ind != 0) memcpy(data + CL_GASDYN_NVARS, ind_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -367,9 +358,9 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind>::ConservedStateGa
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind>::ConservedStateGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other)
-   : SimpleArray<double, CL_GASDYN_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid>::ConservedStateGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other)
+                                                       : SimpleArray<double, CL_GASDYN_NVARS>(other)
 {
 };
 
@@ -378,8 +369,8 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateGasdyn<fluid, n_ind>::ConservedStateGa
 \date 03/16/2024
 \return Fastest wave speed (sound)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::FastestWave(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid>::FastestWave(void) const
 {
    GeoVector vel = mom() / den();
    double pre = Pressure(den(), vel.Norm2(), 0.0, enr(), fluid);
@@ -391,8 +382,8 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::FastestWa
 \date 03/16/2024
 \return Fastest normal wave speed (sound)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::FastestWaveNormal(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid>::FastestWaveNormal(void) const
 {
    GeoVector vel = mom() / den();
    double pre = Pressure(den(), vel.Norm2(), 0.0, enr(), fluid);
@@ -404,21 +395,15 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::FastestWa
 \date 03/06/2024
 \return Vector of primitive variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind> ConservedStateGasdyn<fluid, n_ind>::ToPrimitive(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid> ConservedStateGasdyn<fluid>::ToPrimitive(void) const
 {
-   PrimitiveStateGasdyn<fluid, n_ind> prim;
+   PrimitiveStateGasdyn<fluid> prim;
 
    prim.den() = den();
    prim.vel() = mom() / den();
    prim.pre() = Pressure(den(), prim.vel().Norm2(), 0.0, enr(), fluid);
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_GASDYN_NVARS; i < CL_GASDYN_NVARS + n_ind; i++) {
-         prim.data[i] = data[i] / den();
-      };
-   };
    return prim;
 };
 
@@ -427,22 +412,16 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateGasdyn<fluid, n_ind> ConservedStateGas
 \date 03/06/2024
 \return Flux vector
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind> ConservedStateGasdyn<fluid, n_ind>::ToFlux(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid> ConservedStateGasdyn<fluid>::ToFlux(void) const
 {
    double pre = Pressure(den(), mom().Norm2() / Sqr(den()), 0.0, enr(), fluid);
 
-   FluxFunctionGasdyn<fluid, n_ind> flux;
+   FluxFunctionGasdyn<fluid> flux;
    flux.denf() = mom()[0];
    flux.momf() = mom()[0] * mom() / den() + pre * gv_nx;
    flux.enrf() = (enr() + pre) * mom()[0] / den();
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_GASDYN_NVARS; i < CL_GASDYN_NVARS + n_ind; i++) {
-         flux.data[i] = data[i] * mom()[0];
-      };
-   };
    return flux;
 };
 
@@ -451,8 +430,8 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind> ConservedStateGasdy
 \date 03/20/2024
 \return Gas pressure
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::GetPressure(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid>::GetPressure(void) const
 {
    return Pressure(den(), mom().Norm2() / Sqr(den()), 0.0, enr(), fluid);
 };
@@ -464,8 +443,8 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateGasdyn<fluid, n_ind>::GetPressu
 \param[in] S1   First wave speed
 \param[in] S2   Second wave speed
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::FixMomentum(FluxFunctionGasdyn<fluid, n_ind>& flux, double S1, double S2)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid>::FixMomentum(FluxFunctionGasdyn<fluid>& flux, double S1, double S2)
 {
    mom()[1] = flux.mom()[1] / (S1 - S2);
    mom()[2] = flux.mom()[2] / (S1 - S2);
@@ -478,8 +457,8 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::FixMomentum
 \param[in] S1   First wave speed
 \param[in] S2   Second wave speed
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::FixEnergy(FluxFunctionGasdyn<fluid, n_ind>& flux, double S1, double S2)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid>::FixEnergy(FluxFunctionGasdyn<fluid>& flux, double S1, double S2)
 {
    double pre_total = S1 * mom()[0] - flux.mom()[0];
    enr() = (flux.enr() + pre_total * S2) / (S1 - S2);
@@ -489,8 +468,8 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::FixEnergy(F
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid>::Invert(void)
 {
    mom()[0] = -mom()[0];
 };
@@ -505,16 +484,13 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateGasdyn<fluid, n_ind>::Invert(void
 \param[in] denf_in Density flux
 \param[in] momf_in Momentum flux
 \param[in] enrf_in Energy flux
-\param[in] indf_in Indicator variables flux
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind>::FluxFunctionGasdyn(double denf_in, const GeoVector& momf_in,
-                                                                                 double enrf_in, double* indf_in)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid>::FluxFunctionGasdyn(double denf_in, const GeoVector& momf_in, double enrf_in)
 {
    denf() = denf_in;
    momf() = momf_in;
    enrf() = enrf_in;
-   if(n_ind != 0) memcpy(data + CL_GASDYN_NVARS, indf_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -522,9 +498,9 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind>::FluxFunctionGasdyn
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind>::FluxFunctionGasdyn(const SimpleArray<double, CL_GASDYN_TOTAL>& other)
-   : SimpleArray<double, CL_GASDYN_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid>::FluxFunctionGasdyn(const SimpleArray<double, CL_GASDYN_NVARS>& other)
+                                                     : SimpleArray<double, CL_GASDYN_NVARS>(other)
 {
 };
 
@@ -532,8 +508,8 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionGasdyn<fluid, n_ind>::FluxFunctionGasdyn
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void FluxFunctionGasdyn<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void FluxFunctionGasdyn<fluid>::Invert(void)
 {
    momf()[0] = -momf()[0];
 };

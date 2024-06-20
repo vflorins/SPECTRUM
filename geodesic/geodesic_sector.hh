@@ -160,13 +160,13 @@ protected:
 //! Maximum value of the vertex j-index for the given vertex i-index
    SPECTRUM_DEVICE_FUNC int MaxVertJ(int len, int i) const;
 
-//! Maximum value of the vertex j-index for the given i-index for a sub-block
+//! Maximum value of the vertex j-index for the given vertex i-index for a sub-block
    SPECTRUM_DEVICE_FUNC int MaxVertJ(std::pair<int, int> base_vertex, int len, int i) const;
 
-//! Maximum value of the face j-index for the given i-index
+//! Maximum value of the face j-index for the given face i-index
    SPECTRUM_DEVICE_FUNC int MaxFaceJ(int len, int i) const;
 
-//! Maximum value of the face j-index for the given i-index for a sub-block
+//! Maximum value of the face j-index for the given face i-index for a sub-block
    SPECTRUM_DEVICE_FUNC int MaxFaceJ(std::pair<int, int> base_vertex, int len, int i) const;
 
 //! Determine whether a vertex is a corner of a sub-block
@@ -258,7 +258,7 @@ public:
    SPECTRUM_DEVICE_FUNC ~GeodesicSector();
 
 //! Allocate memory and set up connectivity between mesh elements
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int width, int wghost);
+   SPECTRUM_DEVICE_FUNC void SetDimensions(int width, int wghost, bool construct);
 
 //! Free all dynamically allocated memory
    SPECTRUM_DEVICE_FUNC void FreeStorage(void);
@@ -358,7 +358,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<4>::MaxVertJ(std::pair<int, int> 
 template <>
 SPECTRUM_DEVICE_FUNC inline int GeodesicSector<3>::MaxFaceJ(int len, int i) const
 {
-   return 2 * i;
+   return square_fill * i;
 };
 
 /*!
@@ -385,7 +385,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<4>::MaxFaceJ(int len, int i) cons
 template <>
 SPECTRUM_DEVICE_FUNC inline int GeodesicSector<3>::MaxFaceJ(std::pair<int, int> base_vertex, int len, int i) const
 {
-   return 2 * (base_vertex.second - base_vertex.first + i);
+   return square_fill * (base_vertex.second - base_vertex.first + i);
 };
 
 /*!

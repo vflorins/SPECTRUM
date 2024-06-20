@@ -69,8 +69,8 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::SetDimensions(int width, in
 {
 // Call base methods
    if(!construct) {
-      GeodesicSector<verts_per_face>::SetDimensions(width, wghost);
-      SphericalSlab::SetDimensions(height, hghost);
+      GeodesicSector<verts_per_face>::SetDimensions(width, wghost, false);
+      SphericalSlab::SetDimensions(height, hghost, false);
    };
 
 // Allocate duplicate element lists (used for singular corners). We use continuous storage so that the corners are stored in sequence and can be addressed as a single array.
@@ -296,7 +296,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
                j = j_origin + rotated_shift[rot][etype_rot][1] + rotated_verts[rot][1][0] * i_rot + rotated_verts[rot][1][1] * j_rot;
                edge = edge_index_sector[etype][i][j];
 
-// Check if it is a duplicate edge (lies on the cut line). In rotated coordinates, the cut line is side "0" and side "VERTICES_PER_TFACE-1".
+// Check if it is a duplicate edge (lies on the cut line). In rotated coordinates, the cut line is side "0" and side "verts_per_face-1".
                bl_side = BoundaryEdge(base_vert, ghost_width, etype_rot, i_rot, j_rot);
                dup_found = false;
                if(bl_side == 0) {

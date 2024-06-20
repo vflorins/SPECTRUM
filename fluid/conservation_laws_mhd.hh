@@ -13,33 +13,39 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Number of fluid variables (DEN,VELx3,PRE,MAGx3)
-#define CL_MHD_NVARS 8
-
 //! Number of GLM variables
-#define CL_MHD_GLM 1
-#if (CL_MHD_GLM != 0) && (CL_MHD_GLM != 1)
-#error The number of GLM variables must be 0 or 1
-#endif
+#define CL_MHD_GLM
 
+#ifdef CL_MHD_GLM
+//! Number of fluid variables (DEN,VELx3,PRE,MAGx3, GLM)
+#define CL_MHD_NVARS 9
 //! Safety factor for GLM transport
 #define CL_MHD_GLMSAFETY 1.05
 
-//! Total number of variables
-#define CL_MHD_TOTAL (CL_MHD_NVARS + CL_MHD_GLM + n_ind)
+#else
+//! Number of fluid variables (DEN,VELx3,PRE,MAGx3)
+#define CL_MHD_NVARS 8
+#endif
 
-template <int fluid, int n_ind> struct PrimitiveStateMHD;
-template <int fluid, int n_ind> struct ConservedStateMHD;
-template <int fluid, int n_ind> struct FluxFunctionMHD;
+template <int fluid> struct PrimitiveStateMHD;
+template <int fluid> struct ConservedStateMHD;
+template <int fluid> struct FluxFunctionMHD;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // PrimitiveStateMHD class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
+/*!
+\brief Codifies physics for ideal single fluid MHD
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_NVARS>
 {
-   using SimpleArray<double, CL_MHD_TOTAL>::data;
+   using SimpleArray<double, CL_MHD_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density (RO)
    const double& den(void) const {return data[0];};
@@ -65,7 +71,7 @@ struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 //! Alias for magnetic field (RW)
    GeoVector& mag(void) {return (GeoVector&)data[5];};
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
 
 //! Alias for Largange multiplier (RO)
    const double& glm(void) const {return data[8];};
@@ -76,27 +82,24 @@ struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 #endif
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_MHD_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_MHD_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(void) = default;
 
-#if CL_MHD_GLM == 0
+#ifdef CL_MHD_GLM
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in, double glm_in);
 #else
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in, double glm_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in);
 #endif
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(const SimpleArray<double, CL_MHD_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD(const SimpleArray<double, CL_MHD_NVARS>& other);
 
 //! Calculate the fastest wave speed
    SPECTRUM_DEVICE_FUNC double FastestWave(void) const;
@@ -105,10 +108,13 @@ struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
    SPECTRUM_DEVICE_FUNC double FastestWaveNormal(void) const;
 
 //! Calculate primitive state
-   SPECTRUM_DEVICE_FUNC ConservedStateMHD<fluid, n_ind> ToConserved(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC ConservedStateMHD<fluid> ToConserved(void) const;
 
 //! Calculate flux function
-   SPECTRUM_DEVICE_FUNC FluxFunctionMHD<fluid, n_ind> ToFlux(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC FluxFunctionMHD<fluid> ToFlux(void) const;
+
+//! Calculate sonic state
+   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD<fluid> ToSonic(void) const;
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -118,10 +124,17 @@ struct PrimitiveStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 // ConservedStateMHD class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct ConservedStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
+/*!
+\brief Codifies physics for ideal single fluid MHD
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct ConservedStateMHD : public SimpleArray<double, CL_MHD_NVARS>
 {
-   using SimpleArray<double, CL_MHD_TOTAL>::data;
+   using SimpleArray<double, CL_MHD_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density (RO)
    const double& den(void) const {return data[0];};
@@ -147,7 +160,7 @@ struct ConservedStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 //! Alias for magnetic field (RW)
    GeoVector& mag(void) {return (GeoVector&)data[5];};
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
 
 //! Alias for Largange multiplier (RO)
    const double& glm(void) const {return data[8];};
@@ -158,27 +171,24 @@ struct ConservedStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 #endif
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_MHD_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_MHD_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC ConservedStateMHD(void) = default;
 
-#if CL_MHD_GLM == 0
+#ifdef CL_MHD_GLM
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in, double glm_in);
 #else
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in, double glm_in, double* ind_in);
+   SPECTRUM_DEVICE_FUNC ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in);
 #endif
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC ConservedStateMHD(const SimpleArray<double, CL_MHD_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC ConservedStateMHD(const SimpleArray<double, CL_MHD_NVARS>& other);
 
 //! Calculate the fastest wave speed
    SPECTRUM_DEVICE_FUNC double FastestWave(void) const;
@@ -187,19 +197,19 @@ struct ConservedStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
    SPECTRUM_DEVICE_FUNC double FastestWaveNormal(void) const;
 
 //! Calculate primitive state
-   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD<fluid, n_ind> ToPrimitive(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC PrimitiveStateMHD<fluid> ToPrimitive(void) const;
 
 //! Calculate flux function
-   SPECTRUM_DEVICE_FUNC FluxFunctionMHD<fluid, n_ind> ToFlux(bool ind_ok) const;
+   SPECTRUM_DEVICE_FUNC FluxFunctionMHD<fluid> ToFlux(void) const;
 
 //! Calculate _gas_ pressure
    SPECTRUM_DEVICE_FUNC double GetPressure(void) const;
 
 //! Calculate y and z components of momentum from the externally provided flux in a moving frame
-   SPECTRUM_DEVICE_FUNC void FixMomentum(FluxFunctionMHD<fluid, n_ind>& flux, double S1, double S2);
+   SPECTRUM_DEVICE_FUNC void FixMomentum(FluxFunctionMHD<fluid>& flux, double S1, double S2);
 
 //! Calculate energy from the externally provided flux in a moving frame
-   SPECTRUM_DEVICE_FUNC void FixEnergy(FluxFunctionMHD<fluid, n_ind>& flux, double S1, double S2);
+   SPECTRUM_DEVICE_FUNC void FixEnergy(FluxFunctionMHD<fluid>& flux, double S1, double S2);
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -209,10 +219,17 @@ struct ConservedStateMHD : public SimpleArray<double, CL_MHD_TOTAL>
 // FluxFunctionMHD class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-template <int fluid, int n_ind>
-struct FluxFunctionMHD : public SimpleArray<double, CL_MHD_TOTAL>
+/*!
+\brief Codifies physics for ideal single fluid MHD
+\author Vladimir Florinski
+*/
+template <int fluid>
+struct FluxFunctionMHD : public SimpleArray<double, CL_MHD_NVARS>
 {
-   using SimpleArray<double, CL_MHD_TOTAL>::data;
+   using SimpleArray<double, CL_MHD_NVARS>::data;
+
+//! A trait to be used in template specializations
+   static constexpr bool is_cons_law_active = true;
 
 //! Alias for density flux (RO)
    const double& denf(void) const {return data[0];};
@@ -238,7 +255,7 @@ struct FluxFunctionMHD : public SimpleArray<double, CL_MHD_TOTAL>
 //! Alias for magnetic flux (RW)
    GeoVector& magf(void) {return (GeoVector&)data[5];};
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
 
 //! Alias for Largange multiplier flux (RO)
    const double& glmf(void) const {return data[8];};
@@ -249,27 +266,24 @@ struct FluxFunctionMHD : public SimpleArray<double, CL_MHD_TOTAL>
 #endif
 
 //! Return the "fluid" template parameter
-   SPECTRUM_DEVICE_FUNC int Fluid(void) const {return fluid;};
+   SPECTRUM_DEVICE_FUNC static constexpr int Fluid(void) {return fluid;};
 
-//! Return the "n_ind" template parameter
-   SPECTRUM_DEVICE_FUNC int Nind(void) const {return n_ind;};
-
-//! Return the number of main variables
-   SPECTRUM_DEVICE_FUNC int Nmain(void) const {return CL_MHD_NVARS;};
+//! Return the number of variables
+   SPECTRUM_DEVICE_FUNC static constexpr int Nvars(void) {return CL_MHD_NVARS;};
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC FluxFunctionMHD(void) = default;
 
-#if CL_MHD_GLM == 0
+#ifdef CL_MHD_GLM
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in, double* indf_in);
+   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in, double glmf_in);
 #else
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in, double glmf_in, double* indf_in);
+   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in);
 #endif
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(const SimpleArray<double, CL_MHD_TOTAL>& other);
+   SPECTRUM_DEVICE_FUNC FluxFunctionMHD(const SimpleArray<double, CL_MHD_NVARS>& other);
 
 //! Invert vector variables
    SPECTRUM_DEVICE_FUNC void Invert(void);
@@ -287,15 +301,12 @@ struct FluxFunctionMHD : public SimpleArray<double, CL_MHD_TOTAL>
 \param[in] pre_in Pressure
 \param[in] mag_in Magnetic field
 \param[in] glm_in Largange multiplier
-\param[in] ind_in Indicator variables
 */
-template <int fluid, int n_ind>
-#if CL_MHD_GLM == 0
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in,
-                                                                               const GeoVector& mag_in, double* ind_in)
+template <int fluid>
+#ifdef CL_MHD_GLM
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid>::PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in, double glm_in)
 #else
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in,
-                                                                               const GeoVector& mag_in, double glm_in, double* ind_in)
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid>::PrimitiveStateMHD(double den_in, const GeoVector& vel_in, double pre_in, const GeoVector& mag_in)
 #endif
 {
    den() = den_in;
@@ -303,11 +314,9 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(d
    pre() = pre_in;
    mag() = mag_in;
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
    glm() = glm_in;
 #endif
-
-   if(n_ind != 0) memcpy(data + CL_MHD_NVARS + CL_MHD_GLM, ind_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -315,9 +324,9 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(d
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(const SimpleArray<double, CL_MHD_TOTAL>& other)
-   : SimpleArray<double, CL_MHD_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid>::PrimitiveStateMHD(const SimpleArray<double, CL_MHD_NVARS>& other)
+                                                    : SimpleArray<double, CL_MHD_NVARS>(other)
 {
 };
 
@@ -326,14 +335,14 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind>::PrimitiveStateMHD(c
 \date 03/16/2024
 \return Fastest wave speed (max fast with GLM safety)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid, n_ind>::FastestWave(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid>::FastestWave(void) const
 {
    double Va2 = Alfven2(den(), mag().Norm2());
    double Cs2 = Sound2(den(), pre(), fluid);
 
 // FIXME decide where to use "CL_MHD_GLMSAFETY"
-//#if CL_MHD_GLM == 0
+//#ifdef CL_MHD_GLM
    return sqrt(Va2 + Cs2);
 //#else
 //   return CL_MHD_GLMSAFETY * sqrt(Va2 + Cs2);
@@ -345,8 +354,8 @@ SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid, n_ind>::FastestWave(
 \date 03/16/2024
 \return Fastest normal wave speed (fast_n)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid, n_ind>::FastestWaveNormal(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid>::FastestWaveNormal(void) const
 {
    double Va2 = Alfven2(den(), mag().Norm2());
    double Vax2 = Alfven2(den(), Sqr(mag()[0]));
@@ -360,26 +369,20 @@ SPECTRUM_DEVICE_FUNC inline double PrimitiveStateMHD<fluid, n_ind>::FastestWaveN
 \date 03/06/2024
 \return Vector of conserved variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind> PrimitiveStateMHD<fluid, n_ind>::ToConserved(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid> PrimitiveStateMHD<fluid>::ToConserved(void) const
 {
-   ConservedStateMHD<fluid, n_ind> cons;
+   ConservedStateMHD<fluid> cons;
 
    cons.den() = den();
    cons.mom() = vel() * den();
    cons.enr() = Energy(den(), vel().Norm2(), mag().Norm2(), pre(), fluid);
    cons.mag() = mag();
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
    cons.glm() = glm();
 #endif
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_MHD_NVARS + CL_MHD_GLM; i < CL_MHD_NVARS + CL_MHD_GLM + n_ind; i++) {
-         cons.data[i] = den() * data[i];
-      };
-   };
    return cons;
 };
 
@@ -388,19 +391,19 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind> PrimitiveStateMHD<fl
 \date 03/06/2024
 \return Flux vector
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind> PrimitiveStateMHD<fluid, n_ind>::ToFlux(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid> PrimitiveStateMHD<fluid>::ToFlux(void) const
 {
    double enr = Energy(den(), vel().Norm2(), mag().Norm2(), pre(), fluid);
-   double pre_tot = pre() + mag().Norm2() / eightpi;
-   FluxFunctionMHD<fluid, n_ind> flux;
+   double pre_tot = pre() + mag().Norm2() / M_8PI;
+   FluxFunctionMHD<fluid> flux;
 
    flux.denf() = den() * vel()[0];
-   flux.momf() = den() * vel()[0] * vel() + pre_tot * gv_nx - (mag()[0] / fourpi) * mag();
-   flux.enrf() = (enr + pre_tot) * vel()[0] - (vel() * mag()) * mag()[0] / fourpi;
+   flux.momf() = den() * vel()[0] * vel() + pre_tot * gv_nx - (mag()[0] / M_4PI) * mag();
+   flux.enrf() = (enr + pre_tot) * vel()[0] - (vel() * mag()) * mag()[0] / M_4PI;
    flux.magf() = vel()[0] * mag() - mag()[0] * vel();
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
 // The GLM flux is proportional to the square of the fastest speed. The safety factor "CL_MHD_GLMSAFETY" is used to make sure it is slightly outside of the "normal" Riemann fan.
    flux.magf() += glm() * gv_nx;
 
@@ -408,21 +411,54 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind> PrimitiveStateMHD<flui
 //   flux.glmf() = Sqr(CL_MHD_GLMSAFETY * FastestWaveNormal()) * mag()[0];
 #endif
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_MHD_NVARS + CL_MHD_GLM; i < CL_MHD_NVARS + CL_MHD_GLM + n_ind; i++) {
-         flux.data[i] = den() * data[i] * vel()[0];
-      };
-   };
    return flux;
+};
+
+/*!
+\author Vladimir Florinski
+\date 04/24/2024
+\return Vector of primitive variables in a sonic state
+*/
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid> PrimitiveStateMHD<fluid>::ToSonic(void) const
+{
+   GeoVector aa = mag() / sqrt(M_4PI * den());
+   double ax2 = Sqr(aa[0]);
+   double at2 = Sqr(aa[1]) + Sqr(aa[2]);
+   double c2 = Sound2(den(), pre(), fluid);
+   double c = sqrt(c2);
+   double s2 = c2 + ax2 + at2;
+   double d2 = sqrt(s2 - 4.0 * c2 * ax2);
+   double af2 = 0.5 * (s2 + d2);
+   double af = sqrt(af2);
+   double as2 = af2 - d2;
+   double den_prime = den() * fmax(1.0 - as2 / c2, small);
+
+   double q2 = 0.25 * den() / af2 * ((gamma_eos[fluid] * c2 - s2) / den() + 2.0 * at2 * (d2 + s2) / d2 / den_prime
+      + (gamma_eos[fluid] * c2 * (s2 - 2.0 * ax2) - s2 * s2) / d2 / den());
+   double del_den = den() / (1.0 + q2) * (vel()[0] / af - 1.0);
+   double af_star = vel()[0] - af * del_den / den();
+   double cs_star = vel()[0] - c  * del_den / den();
+
+   PrimitiveStateMHD<fluid> prim;
+   
+   prim.den() = den() + del_den;
+   prim.vel()[0] = af_star;
+   prim.vel()[1] = vel()[1] + sqrt(as2) * aa[1] * sign(mag()[0]) * del_den / c / den_prime;
+   prim.vel()[2] = vel()[2] + sqrt(as2) * aa[2] * sign(mag()[0]) * del_den / c / den_prime;
+   prim.mag()[0] = mag()[0];
+   prim.mag()[1] = mag()[1] * (1.0 + del_den / den_prime);
+   prim.mag()[2] = mag()[2] * (1.0 + del_den / den_prime);
+   prim.pre() = prim.den() * Sqr(cs_star) / gamma_eos[fluid];
+   return prim;
 };
 
 /*!
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void PrimitiveStateMHD<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void PrimitiveStateMHD<fluid>::Invert(void)
 {
    vel()[0] = -vel()[0];
    mag()[0] = -mag()[0];
@@ -440,15 +476,12 @@ SPECTRUM_DEVICE_FUNC inline void PrimitiveStateMHD<fluid, n_ind>::Invert(void)
 \param[in] enr_in Energy
 \param[in] mag_in Magnetic field
 \param[in] glm_in Largange multiplier
-\param[in] ind_in Indicator variables
 */
-template <int fluid, int n_ind>
-#if CL_MHD_GLM == 0
-SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in,
-                                                                               const GeoVector& mag_in, double* ind_in)
+template <int fluid>
+#ifdef CL_MHD_GLM
+SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid>::ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in, double glm_in)
 #else
-SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in,
-                                                                               const GeoVector& mag_in, double glm_in, double* ind_in)
+SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid>::ConservedStateMHD(double den_in, const GeoVector& mom_in, double enr_in, const GeoVector& mag_in)
 #endif
 {
    den() = den_in;
@@ -456,11 +489,9 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(d
    enr() = enr_in;
    mag() = mag_in;
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
    glm() = glm_in;
 #endif
-
-   if(n_ind != 0) memcpy(data + CL_MHD_NVARS + CL_MHD_GLM, ind_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -468,9 +499,9 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(d
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(const SimpleArray<double, CL_MHD_TOTAL>& other)
-   : SimpleArray<double, CL_MHD_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid>::ConservedStateMHD(const SimpleArray<double, CL_MHD_NVARS>& other)
+                                                    : SimpleArray<double, CL_MHD_NVARS>(other)
 {
 };
 
@@ -479,8 +510,8 @@ SPECTRUM_DEVICE_FUNC inline ConservedStateMHD<fluid, n_ind>::ConservedStateMHD(c
 \date 03/16/2024
 \return Fastest wave speed (max fast with GLM safety)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::FastestWave(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid>::FastestWave(void) const
 {
    GeoVector vel = mom() / den();
    double pre = Pressure(den(), vel.Norm2(), mag().Norm2(), enr(), fluid);
@@ -488,7 +519,7 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::FastestWave(
    double Cs2 = Sound2(den(), pre, fluid);
 
 // FIXME decide where to use "CL_MHD_GLMSAFETY"
-//#if CL_MHD_GLM == 0
+//#ifdef CL_MHD_GLM
    return sqrt(Va2 + Cs2);
 //#else
 //   return CL_MHD_GLMSAFETY * sqrt(Va2 + Cs2);
@@ -500,8 +531,8 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::FastestWave(
 \date 03/16/2024
 \return Fastest normal wave speed (fast_n)
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::FastestWaveNormal(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid>::FastestWaveNormal(void) const
 {
    GeoVector vel = mom() / den();
    double pre = Pressure(den(), vel.Norm2(), mag().Norm2(), enr(), fluid);
@@ -517,26 +548,20 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::FastestWaveN
 \date 03/06/2024
 \return Vector of primitive variables
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind> ConservedStateMHD<fluid, n_ind>::ToPrimitive(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid> ConservedStateMHD<fluid>::ToPrimitive(void) const
 {
-   PrimitiveStateMHD<fluid, n_ind> prim;
+   PrimitiveStateMHD<fluid> prim;
 
    prim.den() = den();
    prim.vel() = mom() / den();
    prim.pre() = Pressure(den(), prim.vel().Norm2(), mag().Norm2(), enr(), fluid);
    prim.mag() = mag();
 
-#if CL_MHD_LAGR != 0
+#ifdef CL_MHD_LAGR
    prim.glm() = glm();
 #endif
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_MHD_NVARS + CL_MHD_GLM; i < CL_MHD_NVARS + CL_MHD_GLM + n_ind; i++) {
-         prim.data[i] = data[i] / den();
-      };
-   };
    return prim;
 };
 
@@ -545,20 +570,20 @@ SPECTRUM_DEVICE_FUNC inline PrimitiveStateMHD<fluid, n_ind> ConservedStateMHD<fl
 \date 03/14/2024
 \return Flux vector
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind> ConservedStateMHD<fluid, n_ind>::ToFlux(bool ind_ok) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid> ConservedStateMHD<fluid>::ToFlux(void) const
 {
    GeoVector vel = mom() / den();
    double pre = Pressure(den(), vel.Norm2(), mag().Norm2(), enr(), fluid);
-   double pre_tot = pre + mag().Norm2() / eightpi;
-   FluxFunctionMHD<fluid, n_ind> flux;
+   double pre_tot = pre + mag().Norm2() / M_8PI;
+   FluxFunctionMHD<fluid> flux;
 
    flux.denf() = mom()[0];
-   flux.momf() = mom()[0] * vel + pre_tot * gv_nx - (mag()[0] / fourpi) * mag();
-   flux.enrf() = (enr() + pre_tot) * vel[0] - (vel * mag()) * mag()[0] / fourpi;
+   flux.momf() = mom()[0] * vel + pre_tot * gv_nx - (mag()[0] / M_4PI) * mag();
+   flux.enrf() = (enr() + pre_tot) * vel[0] - (vel * mag()) * mag()[0] / M_4PI;
    flux.magf() = vel[0] * mag() - mag()[0] * vel;
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
 // The GLM flux is proportional to the square of the fastest speed. The safety factor "CL_MHD_GLMSAFETY" is used to make sure it is slightly outside of the "normal" Riemann fan.
    flux.magf() += glm() * gv_nx;
 
@@ -566,12 +591,6 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind> ConservedStateMHD<flui
 //   flux.glmf() = Sqr(CL_MHD_GLMSAFETY * FastestWaveNormal()) * mag()[0];
 #endif
 
-// Optionally convert the indicator variables
-   if(ind_ok) {
-      for(auto i = CL_MHD_NVARS; i < CL_MHD_NVARS + n_ind; i++) {
-         flux.data[i] = data[i] * mom()[0];
-      };
-   };
    return flux;
 };
 
@@ -580,8 +599,8 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind> ConservedStateMHD<flui
 \date 03/20/2024
 \return Gas pressure
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::GetPressure(void) const
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid>::GetPressure(void) const
 {
    return Pressure(den(), mom().Norm2() / Sqr(den()), mag().Norm2(), enr(), fluid);
 };
@@ -593,11 +612,11 @@ SPECTRUM_DEVICE_FUNC inline double ConservedStateMHD<fluid, n_ind>::GetPressure(
 \param[in] S1   First wave speed
 \param[in] S2   Second wave speed
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::FixMomentum(FluxFunctionMHD<fluid, n_ind>& flux, double S1, double S2)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid>::FixMomentum(FluxFunctionMHD<fluid>& flux, double S1, double S2)
 {
-   mom()[1] = (flux.mom()[1] - mag()[0] * mag()[1] / fourpi) / (S1 - S2);
-   mom()[2] = (flux.mom()[2] - mag()[0] * mag()[2] / fourpi) / (S1 - S2);
+   mom()[1] = (flux.mom()[1] - mag()[0] * mag()[1] / M_4PI) / (S1 - S2);
+   mom()[2] = (flux.mom()[2] - mag()[0] * mag()[2] / M_4PI) / (S1 - S2);
 };
 
 /*!
@@ -607,10 +626,10 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::FixMomentum(Fl
 \param[in] S1   First wave speed
 \param[in] S2   Second wave speed
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::FixEnergy(FluxFunctionMHD<fluid, n_ind>& flux, double S1, double S2)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid>::FixEnergy(FluxFunctionMHD<fluid>& flux, double S1, double S2)
 {
-   double pre_total = S1 * mom()[0] + mag()[0] * mag()[0] / fourpi - flux.mom()[0];
+   double pre_total = S1 * mom()[0] + mag()[0] * mag()[0] / M_4PI - flux.mom()[0];
    enr() = (flux.enr() - (mag()[0] * S2 + (mag()[1] * mom()[1] + mag()[2] * mom()[2]) / den()) * mag()[0] + pre_total * S2) / (S1 - S2);
 };
 
@@ -618,8 +637,8 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::FixEnergy(Flux
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid>::Invert(void)
 {
    mom()[0] = -mom()[0];
    mag()[0] = -mag()[0];
@@ -637,15 +656,12 @@ SPECTRUM_DEVICE_FUNC inline void ConservedStateMHD<fluid, n_ind>::Invert(void)
 \param[in] enrf_in Energy flux
 \param[in] magf_in Magnetic field
 \param[in] glmf_in Largange multiplier flux
-\param[in] indf_in Indicator variables flux
 */
-template <int fluid, int n_ind>
-#if CL_MHD_GLM == 0
-SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in,
-                                                                           const GeoVector& magf_in, double* indf_in)
+template <int fluid>
+#ifdef CL_MHD_GLM
+SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid>::FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in, double glmf_in)
 #else
-SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in,
-                                                                           const GeoVector& magf_in, double glmf_in, double* indf_in)
+SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid>::FluxFunctionMHD(double denf_in, const GeoVector& momf_in, double enrf_in, const GeoVector& magf_in)
 #endif
 {
    denf() = denf_in;
@@ -653,11 +669,9 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(doubl
    enrf() = enrf_in;
    magf() = magf_in;
 
-#if CL_MHD_GLM != 0
+#ifdef CL_MHD_GLM
    glmf() = glmf_in;
 #endif
-
-   if(n_ind != 0) memcpy(data + CL_MHD_NVARS + CL_MHD_GLM, indf_in, n_ind * sizeof(double));
 };
 
 /*!
@@ -665,9 +679,9 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(doubl
 \date 03/14/2024
 \param[in] other Object to initialize from
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(const SimpleArray<double, CL_MHD_TOTAL>& other)
-   : SimpleArray<double, CL_MHD_TOTAL>(other)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid>::FluxFunctionMHD(const SimpleArray<double, CL_MHD_NVARS>& other)
+                                                  : SimpleArray<double, CL_MHD_NVARS>(other)
 {
 };
 
@@ -675,8 +689,8 @@ SPECTRUM_DEVICE_FUNC inline FluxFunctionMHD<fluid, n_ind>::FluxFunctionMHD(const
 \author Vladimir Florinski
 \date 04/09/2024
 */
-template <int fluid, int n_ind>
-SPECTRUM_DEVICE_FUNC inline void FluxFunctionMHD<fluid, n_ind>::Invert(void)
+template <int fluid>
+SPECTRUM_DEVICE_FUNC inline void FluxFunctionMHD<fluid>::Invert(void)
 {
    momf()[0] = -momf()[0];
    magf()[0] = -magf()[0];
