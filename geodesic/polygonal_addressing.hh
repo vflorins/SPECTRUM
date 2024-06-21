@@ -80,6 +80,9 @@ public:
 //! Default constructor
    SPECTRUM_DEVICE_FUNC PolygonalAddressing(void);
 
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other);
+
 //! Destructor
    SPECTRUM_DEVICE_FUNC ~PolygonalAddressing() = default;
 };
@@ -92,6 +95,17 @@ template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(void)
 {
    Setup();
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/21/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other)
+                                                               : PolygonalAddressing<verts_per_face>()
+{
 };
 
 /*!

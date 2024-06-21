@@ -62,6 +62,9 @@ public:
 //! Default constructor
    SPECTRUM_DEVICE_FUNC SphericalSlab(void) = default;
 
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC SphericalSlab(const SphericalSlab& other);
+
 //! Construtor with parameters
    SPECTRUM_DEVICE_FUNC SphericalSlab(int height, int hghost);
 
@@ -73,6 +76,16 @@ public:
 
 //! Set the slab dimensions
    SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/21/2024
+\param[in] other Object to initialize from
+*/
+SPECTRUM_DEVICE_FUNC inline SphericalSlab(const SphericalSlab& other)
+{
+   SetDimensions(other.height, other.hghost, true);
 };
 
 /*!

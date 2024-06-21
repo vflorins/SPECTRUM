@@ -286,7 +286,7 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 \param comidx An array of indices in the global array of communicators corresponding to this block's communicators
 */
 template <int verts_per_face>
-void BufferedBlock<verts_per_face>::ImportExchangeComms(NeighborType ntype, const MPI_Comm** comms, const int* comidx)
+void BufferedBlock<verts_per_face>::ImportExchangeComms(NeighborType ntype, const MPI_Comm* const* comms, const int* comidx)
 {
    for(auto site = 0; site < exch_site_count[ntype]; site++) {
       exch_site_comm[ntype][site] = comms[comidx[site]];

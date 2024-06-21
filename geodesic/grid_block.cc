@@ -141,8 +141,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
 
 /*!
 \author Vladimir Florinski
-\date 05/08/2024
-\param[in] index       Unique ID of this block in the mesh
+\date 06/21/2024
 \param[in] ximin       Smallest reference distance of the block (without ghost)
 \param[in] ximax       Largest reference distance of the block (without ghost)
 \param[in] corners     Corner type, true for singular corners
@@ -151,11 +150,10 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
 \param[in] dist_map_in Radial map function 
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(int index, double ximin, double ximax, const bool* corners,
-                                                               const bool* borders, const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
+SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
 {
    int k, iv;
-   block_index = index;
 
 // Copy border information and correct connectivity at singular corners
    memcpy(corner_type, corners, verts_per_face * sizeof(bool));

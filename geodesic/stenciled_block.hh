@@ -121,8 +121,8 @@ public:
    void FreeStorage(void);
 
 //! Set up the dimensions and geometry of the mesh
-   void AssociateMesh(int index, double ximin, double ximax, const bool* corners, const bool* borders, const GeoVector* vcart,
-                       std::shared_ptr<DistanceBase> dist_map_in);
+   void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                      const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in);
 
 #ifdef GEO_DEBUG
 

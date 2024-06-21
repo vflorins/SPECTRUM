@@ -82,7 +82,7 @@ protected:
    ConservedVariables** cons_vars;
 
 //! MPI buffers
-   ConservedVariables*** buffers[N_NBRTYPES];
+   ConservedVariables*** buffers[N_NBRTYPES] = {nullptr};
 
 //! MPI data type for "ConservedVariables"
    MPI_Datatype MPIConsVarType;
@@ -126,7 +126,7 @@ public:
    void FreeStorage(void);
 
 //! Assign exchange site communicators
-   void ImportExchangeComms(NeighborType ntype, const MPI_Comm** comms, const int* comidx);
+   void ImportExchangeComms(NeighborType ntype, const MPI_Comm* const* comms, const int* comidx);
 
 //! Pack ghost regions for exchange
    void PackBuffers(NeighborType ntype);

@@ -237,8 +237,14 @@ public:
    SPECTRUM_DEVICE_FUNC void FreeStorage(void);
 
 //! Set up the dimensions and geometry of the mesh
-   SPECTRUM_DEVICE_FUNC void AssociateMesh(int index, double ximin, double ximax, const bool* corners, const bool* borders, const GeoVector* vcart,
-                                           std::shared_ptr<DistanceBase> dist_map_in);
+   SPECTRUM_DEVICE_FUNC void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                           const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in);
+
+//! Assign the block index
+   SPECTRUM_DEVICE_FUNC void SetIndex(int index) {block_index = index;};
+
+//! Retrieve the block index
+   SPECTRUM_DEVICE_FUNC int GetIndex(void) const {return block_index;};
 
 #ifdef USE_SILO
 //! Write the entire block to a SILO database
