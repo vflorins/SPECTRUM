@@ -227,7 +227,7 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
    return;
 #endif
 
-   if(A2T > tiny) {
+   if(A2T > sp_tiny) {
       xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
       F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
       DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;

@@ -52,7 +52,7 @@ void TrajectoryLorentz::SetStart(void)
 void TrajectoryLorentz::PhysicalStep(void)
 {
 // Obtain the time step based on the orbit resolution. If B is zero, use a small but finite value of "Omega".
-   double Omega = fmax(CyclotronFrequency(_vel.Norm(), _spdata.Bmag, specie), tiny);
+   double Omega = fmax(CyclotronFrequency(_vel.Norm(), _spdata.Bmag, specie), sp_tiny);
    dt_physical = M_2PI / Omega / steps_per_orbit;
 
 // Obtain the grid based time step based on grid max distance.

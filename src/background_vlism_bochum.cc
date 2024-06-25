@@ -74,7 +74,7 @@ void BackgroundVLISMBochum::SetupBackground(bool construct)
    u0.ChangeToBasis(eprime);
    B0.ChangeToBasis(eprime);
 
-   sin_theta_B0 = fmax(tiny, sqrt(1.0 - Sqr(UnitVec(B0) * eprime[2])));
+   sin_theta_B0 = fmax(sp_tiny, sqrt(1.0 - Sqr(UnitVec(B0) * eprime[2])));
 
 #if MOD_TYPE == 3
    double ht = Sqr(scB / sin_theta_B0) * (Sqr(ztr) - 1.0);
@@ -106,7 +106,7 @@ double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
 
 // Newton iterations
    zev = 2.0;
-   while(fabs(delta) > tiny) {
+   while(fabs(delta) > sp_tiny) {
       f0 = (zev + 0.5 * log((zev - 1.0) / (zev + 1.0)) - zeta);
       f1 = (zev * zev) / (zev * zev - 1.0); 
       delta = f0 / f1;
@@ -128,13 +128,13 @@ double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
 // No modification for zev>ztr, constant for zev<ztr
 #elif MOD_TYPE == 2
 
-   if(fabs(sin_theta_B0) < tiny) return 1.0;
+   if(fabs(sin_theta_B0) < sp_tiny) return 1.0;
    else return (zev > ztr ? 1.0 : RelBtrans(ztr) / RelBtrans(zev));
 
 // No modification for zev>ztr, scaled to reach scB at the nose for zev<ztr
 #elif MOD_TYPE == 3
 
-   if((fabs(sin_theta_B0) < tiny) || (zev > ztr)) return 1.0;
+   if((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
    else return RelBtrans(fzoom * zev) / RelBtrans(fzoom * ztr) / RelBtrans(zev) * RelBtrans(ztr);
 
 // Unmodified field
@@ -169,7 +169,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    a2 = s2 - 2.0 * (1.0 - z / r);
 
 // Test for inside of the HP
-   if((z < 1.0) && ((s < tiny) || (a2 < 0.0))) {
+   if((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
       _spdata.Bvec = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
       _spdata.Evec = gv_zeros;
@@ -199,8 +199,8 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    a1s1 = sqrt(a2s2);
 
 // Separate treatment for z axis
-   if(s < tiny) {
-      if(z > 1.0 + tiny) {
+   if(s < sp_tiny) {
+      if(z > 1.0 + sp_tiny) {
          wus = sqrt(1.0 - 1.0 / Sqr(z));
          _spdata.Bvec[0] = B0[0] / wus;
          _spdata.Bvec[1] = B0[1] / wus;
@@ -252,8 +252,8 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
       calT = (2.0 * kappa - 1.0 / kappa) * ellintE - 2.0 * (kappa - 1.0 / kappa) * ellintF;
 
 // Cylindrical components of the field at infinity for the same x and y as the point
-      sinphi = posprime[1] / fmax(s, tiny);
-      cosphi = posprime[0] / fmax(s, tiny);
+      sinphi = posprime[1] / fmax(s, sp_tiny);
+      cosphi = posprime[0] / fmax(s, sp_tiny);
 
       Bs_inf = B0[0] * cosphi + B0[1] * sinphi;
       Bp_inf = B0[1] * cosphi - B0[0] * sinphi;

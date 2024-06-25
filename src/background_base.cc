@@ -291,7 +291,7 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, SpatialData
    spdata = _spdata;
    if(BITS_RAISED(spdata._mask, BACKGROUND_B)) {
       spdata.Bmag = spdata.Bvec.Norm();
-      if(spdata.Bmag < tiny) RAISE_BITS(_status, STATE_INVALID);
+      if(spdata.Bmag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
       spdata.bhat = spdata.Bvec / spdata.Bmag;
    };
 };

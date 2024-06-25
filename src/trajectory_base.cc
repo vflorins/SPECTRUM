@@ -379,7 +379,7 @@ bool TrajectoryBase::RKStep(void)
       dt_adaptive = fmax(dt / rk_safety, dt_adaptive);
 
 // Don't make this step if the error is unacceptable. The FINISH flag must be cleared.
-      if(error > 1.0 + tiny) {
+      if(error > 1.0 + sp_tiny) {
          LOWER_BITS(_status, TRAJ_FINISH);
          return true;
       };
@@ -971,7 +971,7 @@ void TrajectoryBase::Integrate(void)
 
 #if TRAJ_ADV_SAFETY_LEVEL > 0
 // Time step is too small - terminate
-      if(dt < tiny * _spdata.dmax / c_code) {
+      if(dt < sp_tiny * _spdata.dmax / c_code) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepTooSmall();
       }
