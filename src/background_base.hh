@@ -209,19 +209,19 @@ public:
    void BoxPlot3DMesh(const std::string box_fname, bool phys_units);
 
 //! Generate a 3D box scalar plot
-   void BoxPlot3DScalar(const std::string var_name, bool phys_units);
+   void BoxPlot3DScalar(const std::string var_name, bool phys_units, double t = 0.0);
 
 //! Generate a 3D box vector plot
-   void BoxPlot3DVector(const std::string var_name, bool phys_units);
+   void BoxPlot3DVector(const std::string var_name, bool phys_units, double t = 0.0);
 
 //! Generate a 2D mesh
    void BoxPlot2DMesh(const std::string box_fname, bool phys_units);
 
 //! Generate a 2D box scalar plot
-   void BoxPlot2DScalar(const std::string var_name, bool phys_units);
+   void BoxPlot2DScalar(const std::string var_name, bool phys_units, double t = 0.0);
 
 //! Generate a 2D box vector plot
-   void BoxPlot2DVector(const std::string var_name, bool phys_units);
+   void BoxPlot2DVector(const std::string var_name, bool phys_units, double t = 0.0);
 
 //! Finalize the output
    void BoxPlotFinalize(void);

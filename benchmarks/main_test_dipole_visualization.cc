@@ -22,6 +22,9 @@ int main(int argc, char** argv)
    DataContainer container;
    container.Clear();
 
+// Initial time
+   container.Insert(0.0);
+
 // Origin
    container.Insert(gv_zeros);
 

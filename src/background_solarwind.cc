@@ -21,7 +21,7 @@ namespace Spectrum {
 \date 10/28/2022
 */
 BackgroundSolarWind::BackgroundSolarWind(void)
-                   : BackgroundBase(bg_name_solarwind, 0, MODEL_STATIC)
+                   : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
 {
 };
 
@@ -95,13 +95,25 @@ void BackgroundSolarWind::ModifyUr(const double r, double &ur_mod)
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 06/21/2024
+\param[in]  r radial distance
+\param[out] time lag of propagation from solar surface to current position
+*/
+double BackgroundSolarWind::TimeLag(const double r)
+{
+   return r / ur0;
+};
+
+/*!
 \author Vladimir Florinski
-\date 01/27/2022
+\date 06/21/2024
 */
 void BackgroundSolarWind::EvaluateBackground(void)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, ur, Br, Bt, Bp;
+   double sinphase, cosphase, tilt_amp, t_lag;
 
 // Convert position into solar rotation frame
    posprime = _pos - r0;
@@ -114,14 +126,24 @@ void BackgroundSolarWind::EvaluateBackground(void)
    double fs_theta_sym = acos(costheta);
    if(fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
+// indicator variables: region[0] = heliosphere/LISM; region[1] = unipolar/sectored field
    _spdata.region[0] = 1.0;
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
-#if SOLARWIND_SECTORED_REGION == 1
-   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
-#elif SOLARWIND_SECTORED_REGION == 2
-   if(M_PI_2 - fs_theta_sym < tilt_ang_sw) _spdata.region[1] = 1.0;
+#if SOLARWIND_CURRENT_SHEET >= 2
+   t_lag = TimeLag(r) - _t;
+// Constant tilt
+   tilt_amp = tilt_ang_sw;
+#if SOLARWIND_CURRENT_SHEET == 3
+// Variable tilt
+   tilt_amp += dtilt_ang_sw * cos(2.0 * W0_sw * t_lag);
+#endif
+#endif
+#if SOLARWIND_SECTORED_REGION >= 1
+   if(M_PI_2 - fs_theta_sym < tilt_amp) _spdata.region[1] = 1.0;
+#if SOLARWIND_SECTORED_REGION == 2
    else if(r > sectored_radius_sw) _spdata.region[1] = 1.0;
+#endif
 #endif
 
 // Calculate speed (fast/slow) based on latitude
@@ -162,8 +184,8 @@ void BackgroundSolarWind::EvaluateBackground(void)
       Bp -= delta_omega_sw * Br * phase;
 #elif SOLARWIND_POLAR_CORRECTION == 2
       phase0 = r_mns * w0 / ur0;
-      double sinphase = sin(phase0);
-      double cosphase = cos(phase0);
+      sinphase = sin(phase0);
+      cosphase = cos(phase0);
       Bt = Br * phase * dwt_sw * (sinphi * cosphase + cosphi * sinphase);
       Bp += Br * phase * (dwp_sw * sintheta + dwt_sw * costheta * (cosphi * cosphase - sinphi * sinphase));
 #elif SOLARWIND_POLAR_CORRECTION == 3
@@ -182,15 +204,18 @@ void BackgroundSolarWind::EvaluateBackground(void)
 
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
+// Flat current sheet at the equator
       if(acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
-#elif SOLARWIND_CURRENT_SHEET == 2
-#if SOLARWIND_POLAR_CORRECTION != 2
-// Compute "phase0" if not already done
-      phase0 = r_mns * w0 / ur0;
-      double sinphase = sin(phase0);
-      double cosphase = cos(phase0);
+#elif SOLARWIND_CURRENT_SHEET >= 2
+// Wavy current sheet
+      phase0 = w0 * t_lag;
+      sinphase = sin(phase0);
+      cosphase = cos(phase0);
+      if(acos(costheta) > M_PI_2 + tilt_amp * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+#if SOLARWIND_CURRENT_SHEET == 3
+// Solar cycle polarity changes
+      if(sin(W0_sw * t_lag) < 0.0) _spdata.Bvec *= -1.0;
 #endif
-      if(acos(costheta) > M_PI_2 + tilt_ang_sw * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);
    };

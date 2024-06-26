@@ -335,6 +335,7 @@ void BackgroundBase::SetupBackground(bool construct)
    LOWER_BITS(_status, STATE_INVALID);
 
 // Unpack parameters
+   container.Read(&t0);
    container.Read(r0.Data());
    container.Read(u0.Data());
    container.Read(B0.Data());
@@ -425,7 +426,7 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVe
    };
 
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
-   SetState(t_in, pos_in, mom_in);
+   SetState(t_in + t0, pos_in, mom_in);
    EvaluateDmax();
    if(BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 
