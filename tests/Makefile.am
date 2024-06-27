@@ -6,7 +6,8 @@ AM_LDFLAGS = $(MPI_LIBS)
 bin_PROGRAMS = main_test_units \
                main_tesstest \
                main_drawsector \
-               main_onegridblock
+               main_onegridblock \
+               main_test_exchange_site
 
 SPBL_COMMON_DIR = ../common
 SPBL_SOURCE_DIR = ../src
@@ -79,3 +80,12 @@ main_onegridblock_SOURCES = main_onegridblock.cc \
 
 main_onegridblock_LDADD = $(SILO_LIBS)
 
+
+main_test_exchange_site_SOURCES = main_test_exchange_site.cc \
+   $(SPBL_COMMON_DIR)/exchange_site.hh \
+   $(SPBL_COMMON_DIR)/mpi_config.cc \
+   $(SPBL_COMMON_DIR)/mpi_config.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh
+
+main_test_exchange_site_LDADD =
