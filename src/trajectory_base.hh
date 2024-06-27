@@ -299,8 +299,8 @@ protected:
 //! Save the current postion and momentum in local variables (during advance step)
    void StoreLocal(void);
 
-//! Conversion from (p_perp,0,p_para) to (p,mu,0)
-   virtual GeoVector ConvertMomentum(void) const = 0;
+//! Conversion of momentum from "native" to (p,mu,phi) coordinates
+   virtual GeoVector ConvertMomentum(void) const;
 
 //! Momentum transformation on reflection at a boundary
    virtual void ReverseMomentum(void);
@@ -315,7 +315,7 @@ protected:
    void CommonFields(void);
 
 //! Overloaded CommonFields for custom time and position, and output field
-   void CommonFields(double t_in, GeoVector pos_in, SpatialData& spdata);
+   void CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata);
 
 //! Compute the RK slopes
    virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) = 0;
@@ -526,6 +526,16 @@ inline void TrajectoryBase::StoreLocal(void)
    local_t = _t;
    local_pos = _pos;
    local_mom = _mom;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/12/2024
+\return Momentum in (p,mu,phi) coordinates
+*/
+virtual GeoVector ConvertMomentum(void) const
+{
+   return _mom;
 };
 
 /*!

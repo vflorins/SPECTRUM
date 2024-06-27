@@ -65,6 +65,9 @@ struct GeoMatrix {
 //! Transpose this matrix
    SPECTRUM_DEVICE_FUNC GeoMatrix& Transpose(void);
 
+//! Set this matrix to the transpose of a given matrix
+   SPECTRUM_DEVICE_FUNC void Transpose(const GeoMatrix& matr_in);
+
 //! Add another matrix to this
    SPECTRUM_DEVICE_FUNC GeoMatrix& operator +=(const GeoMatrix& matr_r);
 
@@ -213,6 +216,16 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::Transpose(void)
    std::swap(linear[2], linear[6]);
    std::swap(linear[5], linear[7]);
    return *this;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/12/2024
+*/
+SPECTRUM_DEVICE_FUNC inline void GeoMatrix::Transpose(const GeoMatrix& matr_in)
+{
+   if(this != &matr_in) memcpy(linear, matr_in.linear, 9 * SZDBL);
+   this->Transpose();
 };
 
 /*!

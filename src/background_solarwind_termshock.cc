@@ -73,6 +73,18 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 
 /*!
 \author Juan G Alonso Guzman
+\date 06/21/2024
+\param[in]  r radial distance
+\param[out] time lag of propagation from solar surface to current position
+*/
+double BackgroundSolarWindTermShock::TimeLag(const double r)
+{
+   if(r < r_TS) return r / ur0;
+   else return (r_TS + (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 02/22/2023
 */
 void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)

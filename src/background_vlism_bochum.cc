@@ -215,7 +215,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
          wus = 0.0;
          _spdata.Bvec[0] = B0[0] * scB / sin_theta_B0;
          _spdata.Bvec[1] = B0[1] * scB / sin_theta_B0;
-         zeta = ztr + small;
+         zeta = ztr + sp_small;
 
 #endif
 

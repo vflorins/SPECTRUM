@@ -156,7 +156,7 @@ This function should be called near the _beginning_ of the "Advance()" routine, 
 void TrajectoryBase::TimeBoundaryBefore(void)
 {
    unsigned int bnd;
-   double delta, delta_next = -large * _spdata.dmax / c_code;
+   double delta, delta_next = -sp_large * _spdata.dmax / c_code;
 
 // TODO: can we delete this statement? bactive_t is reset at trajectory start and in HandleBoundaries()
    bactive_t = -1;
@@ -170,7 +170,7 @@ void TrajectoryBase::TimeBoundaryBefore(void)
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-   if(dt + delta_next >= 0.0) dt = fmax(-(1.0 + little) * delta_next, small * _spdata.dmax / c_code);
+   if(dt + delta_next >= 0.0) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
 };
 
 /*!
@@ -237,7 +237,7 @@ catch(ExBoundaryError& exception) {
 */
 void TrajectoryBase::CommonFields(void)
 try {
-   background->GetFields(_t, _pos, _spdata);
+   background->GetFields(_t, _pos, ConvertMomentum(), _spdata);
 }
 
 catch(ExUninitialized& exception) {
@@ -266,11 +266,12 @@ catch(ExServerError& exception) {
 \date 01/04/2024
 \param[in]  t_in   Time at which to compute fields
 \param[in]  pos_in Position at which to compute fields
+\param[in]  mom_in Momentum (p,mu,phi) coordinates
 \param[out] spdata Spatial data at t_in and pos_in for output
 */
-void TrajectoryBase::CommonFields(double t_in, GeoVector pos_in, SpatialData& spdata)
+void TrajectoryBase::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
 try {
-   background->GetFields(t_in, pos_in, spdata);
+   background->GetFields(t_in, pos_in, mom_in, spdata);
 }
 
 catch(ExUninitialized& exception) {
@@ -886,7 +887,7 @@ try {
    _vel = Vel(_mom, specie);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
-   dt_adaptive = large * _spdata.dmax / c_code;
+   dt_adaptive = sp_large * _spdata.dmax / c_code;
 
 // Re-initialize the trajectory arrays
 #ifdef RECORD_TRAJECTORY

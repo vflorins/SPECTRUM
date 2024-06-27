@@ -79,8 +79,9 @@ void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 \date 01/04/2024
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
+\param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units)
+void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units, double t)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -173,6 +174,7 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
    std::cerr << "Calculating the variable " << var_name << ":     ";
 
 // Mesh based output
+   _t = t;
    idx = 0;
    for(iz = 0; iz < dims_z[2]; iz++) {
       _pos[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
@@ -204,8 +206,9 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
 \date 10/23/2020
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
+\param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units)
+void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -235,6 +238,7 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
    std::cerr << "Calculating the variable " << var_name << ":     ";
 
 // Mesh based output
+   _t = t;
    idx = 0;
    for(iz = 0; iz < dims_z[2]; iz++) {
       _pos[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
@@ -304,8 +308,9 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 \date 01/04/2024
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
+\param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units)
+void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -399,6 +404,7 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
    std::cerr << "Calculating the variable " << var_name << ":     ";
 
 // Mesh based output
+   _t = t;
    idx = 0;
    for(iy = 0; iy < dims_z[1]; iy++) {
       local_coord[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
@@ -428,8 +434,9 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
 \date 11/02/2020
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
+\param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units)
+void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
 {
    if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -460,6 +467,7 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
    std::cerr << "Calculating the variable " << var_name << ":     ";
 
 // Mesh based output
+   _t = t;
    idx = 0;
    for(iy = 0; iy < dims_z[1]; iy++) {
       local_coord[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);

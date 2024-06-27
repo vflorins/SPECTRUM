@@ -548,10 +548,11 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData& spdata)
 {
    int xyz, iz, vidx, pri_idx, sec_idx;
-   double rho, var, vars[n_variables] = {0.0};
+   double rho, var, vars[n_variables] = {0.0}, _Bmag2;
 
 // Build the stencil. This is a time consuming operation.
    stencil_status = BuildInterpolationStencil(pos);
+   spdata.Bmag = 0.0;
 
 // Internal interpolation
    if(stencil_status == 0) {
@@ -561,6 +562,11 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
             var = block_pri->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
+// B magnitude
+         _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
       };
    }
 
@@ -577,6 +583,11 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
             var = block_stn->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
+// B magnitude
+         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
       };
    }
 
@@ -591,6 +602,11 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
             var = block_stn->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
+// B magnitude
+         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
       };
    };
 
@@ -705,10 +721,11 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
 */
 void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
 {
-   double var, rho = 0.0;
+   double var, _Bmag2, rho = 0.0;
    int vidx, xyz, uvw, iz, pri_idx, sec_idx;
 
    double grads[n_variables][3] = {0.0};
+   spdata.gradBmag = gv_zeros;
 
    LOWER_BITS(spdata._mask, BACKGROUND_grad_FAIL);
 
@@ -717,12 +734,17 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
       for(iz = 0; iz < stencil.n_elements; iz++) {
          for(vidx = 0; vidx < n_variables; vidx++) {
             var = block_pri->GetValue(stencil.zones[iz], vidx);
+            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+         };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
-            if(vidx == SERVER_VAR_INDEX_RHO) rho += stencil.weights[iz] * var;
+         rho += stencil.weights[iz] * block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
-            for(xyz = 0; xyz < 3; xyz++) grads[vidx][xyz] += stencil.derivatives[3 * iz + xyz] * var;
-         };
+// gradient of B magnitude
+         _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
@@ -736,12 +758,17 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
          else block_stn = cache_line[stencil.blocks[iz]];
          for(vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
+            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+         };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
-            if(vidx == SERVER_VAR_INDEX_RHO) rho += stencil.weights[iz] * var;
+         rho += stencil.weights[iz] * block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
-            for(xyz = 0; xyz < 3; xyz++) grads[vidx][xyz] += stencil.derivatives[3 * iz + xyz] * var;
-         };
+// gradient of B magnitude
+         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
@@ -753,12 +780,17 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
          else block_stn = block_sec;
          for(vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
+            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+         };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
-            if(vidx == SERVER_VAR_INDEX_RHO) rho += stencil.weights[iz] * var;
+         rho += stencil.weights[iz] * block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
-            for(xyz = 0; xyz < 3; xyz++) grads[vidx][xyz] += stencil.derivatives[3 * iz + xyz] * var;
-         };
+// gradient of B magnitude
+         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
+                + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
+         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    };
 
@@ -802,7 +834,7 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 07/19/2023
-\param[out] spdata Field greadients
+\param[out] spdata Field gradients
 */
 void ServerCartesianFront::GetGradients(SpatialData& spdata)
 {
@@ -812,9 +844,10 @@ void ServerCartesianFront::GetGradients(SpatialData& spdata)
    return;
 #elif SERVER_INTERP_ORDER == 0
 // All gradients are explicitly set to zero, and the background must not attempt to compute them using "NumericalDerivatives()"
-   spdata.gradUvec = 0.0;
-   spdata.gradBvec = 0.0;
-   spdata.gradEvec = 0.0;
+   spdata.gradUvec = gm_zeros;
+   spdata.gradBvec = gm_zeros;
+   spdata.gradBmag = gv_zeros;
+   spdata.gradEvec = gm_zeros;
 #elif SERVER_INTERP_ORDER == 1
 // Gradients can be obtained from the stencil construction
    GetGradientsInterp1(spdata);

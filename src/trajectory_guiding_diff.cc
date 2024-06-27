@@ -151,7 +151,7 @@ void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
    xhat.ChangeFromBasis(fa_basis);
    dx = background->GetSafeIncr(xhat);
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dbdx = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dx;
 
@@ -159,7 +159,7 @@ void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
    yhat.ChangeFromBasis(fa_basis);
    dy = background->GetSafeIncr(yhat);
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dbdy = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dy;
 
@@ -206,7 +206,7 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    _pos += gambar * dpos;
    if(SpaceTerminateCheck()) return true;
 
-   CommonFields(_t + dt, _pos, spdata_new);
+   CommonFields(_t + dt, _pos, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, spdata_new);
    slope_Dperp[1] = sqrt(2.0 * Dperp_new);
    _pos = local_pos;
@@ -215,7 +215,7 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    _pos -= dpos / (3.0 * gambar);
    if(SpaceTerminateCheck()) return true;
 
-   CommonFields(_t + dt, _pos, spdata_new);
+   CommonFields(_t + dt, _pos, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, spdata_new);
    slope_Dperp[2] = sqrt(2.0 * Dperp_new);
    _pos = local_pos;
@@ -227,11 +227,11 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    xhat.ChangeFromBasis(fa_basis);
    dx = background->GetSafeIncr(xhat);
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dx *= 0.5;
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_newx = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dbdx = (sqrt(2.0 * Dperp_newx) - slope_Dperp[0]) / dx;
    d2bdx2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newx) + slope_Dperp[0]) / Sqr(dx);
@@ -241,18 +241,18 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    yhat.ChangeFromBasis(fa_basis);
    dy = background->GetSafeIncr(yhat);
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, spdata_new);   
+   CommonFields(_t, pos_new, mom_conv, spdata_new);   
    Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dy *= 0.5;
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_newy = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    dbdy = (sqrt(2.0 * Dperp_newy) - slope_Dperp[0]) / dy;
    d2bdy2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / Sqr(dy);
 
 // mixed second derivative
    pos_new = _pos + dx * xhat + dy * yhat;
-   CommonFields(_t, pos_new, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, spdata_new);
    Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
    d2bdxdy = (sqrt(2.0 * Dperp_new) - sqrt(2.0 * Dperp_newx) - sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / (dx * dy);
 

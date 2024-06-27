@@ -279,7 +279,7 @@ void BoundaryBox::EvaluateBoundary(void)
 // corner[0]
 
    double delta_tmp;
-   _delta = -large;
+   _delta = -sp_large;
    for(int s = 0; s < 3; s++) {
       delta_tmp = -(_pos - corners[0]) * normals[s];
       if(delta_tmp > _delta) {

@@ -87,9 +87,6 @@ class TrajectoryParker : public TrajectoryBase {
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
    bool IsSimmulationReady(void) const override;
 
-//! Conversion from (p_x,p_y,p_z) to (p,mu,phi)
-   GeoVector ConvertMomentum(void) const override;
-
 //! Momentum transformation on reflection at a boundary
    void ReverseMomentum(void) override;
 
@@ -118,17 +115,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryParker inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Vladimir Florinski
-\date 09/30/2022
-\return A vector in the (p,mu,phi) format
-\note Not used, but needs to be "overriden" from virtual definition in TrajectoryBase
-*/
-inline GeoVector TrajectoryParker::ConvertMomentum(void) const
-{
-   return _mom;
-};
 
 /*!
 \author Juan G Alonso Guzman

@@ -38,10 +38,10 @@ const uint16_t BACKGROUND_dEdt = 0x0400;
 const uint16_t BACKGROUND_dALLdt = BACKGROUND_dUdt | BACKGROUND_dBdt | BACKGROUND_dEdt;
 
 //! Flag to indicate spatial derivatives were not computed
-const uint16_t BACKGROUND_grad_FAIL = 0x0800;
+const uint16_t BACKGROUND_grad_FAIL = 0x1000;
 
 //! Flag to indicate time derivatives were not computed
-const uint16_t BACKGROUND_ddt_FAIL = 0x1000;
+const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
 
 //! Shift between mask blocks
 const int mask_offset = 4;
@@ -76,17 +76,23 @@ struct SpatialData {
 //! Electric field gradient
    GeoMatrix gradEvec;
 
-//! Plasma velocity gradient
+//! Plasma velocity time derivative
    GeoVector dUvecdt;
 
-//! Magnetic field gradient
+//! Magnetic field time derivative
    GeoVector dBvecdt;
 
-//! Electric field gradient
+//! Electric field time derivative
    GeoVector dEvecdt;
 
 //! Magnetic field magnitude
    double Bmag;
+
+//! Magnetic field magnitude gradient
+   GeoVector gradBmag;
+
+//! Magnetic field magnitude time derivative
+   double dBmagdt;
 
 //! Minimum magnetic field magnitude along a trajectory
    double Bmag_min;
@@ -100,8 +106,20 @@ struct SpatialData {
 //! "Safe" box for computing directional derivatives
    GeoVector _dr;
 
+//! Flag for forward increment when computing directional derivatives
+   bool _dr_forw_fail[3];
+
+//! Flag for backward increment when computing directional derivatives
+   bool _dr_back_fail[3];
+
 //! "Safe" time increment for computing time derivatives
    double _dt;
+
+//! Flag for forward increment when computing time derivatives
+   bool _dt_forw_fail;
+
+//! Flag for backward increment when computing time derivatives
+   bool _dt_back_fail;
 
 //! Number density
    double n_dens;
@@ -110,7 +128,7 @@ struct SpatialData {
    double p_ther;
 
 //! Region
-// TODO: provide for more regions (perhaps use an std::vector?)
+// TODO: provide for more regions (perhaps use a SimpleArray)
    GeoVector region;
 
 //! Spatial maximum distance per time step, grid dependent
@@ -140,9 +158,6 @@ struct SpatialData {
 //! Curl of Evec
    GeoVector curlE(void);
 
-//! Gradient of Bmag
-   GeoVector gradBmag(void);
-
 //! Divergence of bhat
    double divbhat(void);
 
@@ -156,7 +171,7 @@ struct SpatialData {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 01/04/2024
+\date 07/11/2024
 \param[in] other Structure to copy from
 \return Reference to the object
 */
@@ -171,17 +186,33 @@ inline SpatialData& SpatialData::operator =(const SpatialData& other)
    };
    if(BITS_RAISED(_mask, BACKGROUND_E)) Evec = other.Evec;
 
-// Gradient copy
-   if(BITS_RAISED(_mask, BACKGROUND_gradU)) gradUvec = other.gradUvec;
-   if(BITS_RAISED(_mask, BACKGROUND_gradB)) gradBvec = other.gradBvec;
-   if(BITS_RAISED(_mask, BACKGROUND_gradE)) gradEvec = other.gradEvec;
-   if(BITS_RAISED(_mask, BACKGROUND_gradALL)) _dr = other._dr;
+// Gradient copy. Check first if ANY of BACKGROUND_gradALL bits are raised for speed.
+   if(BITS_RAISED(_mask, BACKGROUND_gradALL)) {
+      _dr = other._dr;
+      for(int xyz = 0; xyz < 3; xyz++) {
+         _dr_forw_fail[xyz] = other._dr_forw_fail[xyz];
+         _dr_back_fail[xyz] = other._dr_back_fail[xyz];
+      };
+      if(BITS_RAISED(_mask, BACKGROUND_gradU)) gradUvec = other.gradUvec;
+      if(BITS_RAISED(_mask, BACKGROUND_gradB)) {
+         gradBvec = other.gradBvec;
+         gradBmag = other.gradBmag;
+      };
+      if(BITS_RAISED(_mask, BACKGROUND_gradE)) gradEvec = other.gradEvec;
+   };
 
-// Time derivative copy
-   if(BITS_RAISED(_mask, BACKGROUND_dUdt)) dUvecdt = other.dUvecdt;
-   if(BITS_RAISED(_mask, BACKGROUND_dBdt)) dBvecdt = other.dBvecdt;
-   if(BITS_RAISED(_mask, BACKGROUND_dEdt)) dEvecdt = other.dEvecdt;
-   if(BITS_RAISED(_mask, BACKGROUND_dALLdt)) _dt = other._dt;
+// Time derivative copy. Check first if ANY of BACKGROUND_dALLdt bits are raised for speed.
+   if(BITS_RAISED(_mask, BACKGROUND_dALLdt)) {
+      _dt = other._dt;
+      _dt_forw_fail = other._dt_forw_fail;
+      _dt_back_fail = other._dt_back_fail;
+      if(BITS_RAISED(_mask, BACKGROUND_dUdt)) dUvecdt = other.dUvecdt;
+      if(BITS_RAISED(_mask, BACKGROUND_dBdt)) {
+         dBvecdt = other.dBvecdt;
+         dBmagdt = other.dBmagdt;
+      };
+      if(BITS_RAISED(_mask, BACKGROUND_dEdt)) dEvecdt = other.dEvecdt;
+   };
 
    region = other.region;
    n_dens = other.n_dens;
@@ -264,47 +295,36 @@ inline GeoVector SpatialData::curlE(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 03/11/2024
-\return Gradient of Bmag
-\note The formula comes from gradBmag_i = \partial_i (\sum_j B_j^2) = 2.0 / (2.0 * B) * B_j * dB_j/dx^i = dB_j/dx^i * b_j. This comes out to [gradBmag] * [bhat].
-*/
-inline GeoVector SpatialData::gradBmag(void)
-{
-   return gradBvec * bhat;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 03/11/2024
+\date 07/11/2024
 \return Divergence of bhat
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
 inline double SpatialData::divbhat(void)
 {
-   return (divB() - (gradBmag() * bhat)) / Bmag;
+   return (divB() - (gradBmag * bhat)) / Bmag;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 03/11/2024
+\date 07/11/2024
 \return Curl of bhat
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
 inline GeoVector SpatialData::curlbhat(void)
 {
-   return (curlB() - (gradBmag() ^ bhat)) / Bmag;
+   return (curlB() - (gradBmag ^ bhat)) / Bmag;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 03/11/2024
+\date 07/11/2024
 \return Gradient of bhat
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
 inline GeoMatrix SpatialData::gradbhat(void)
 {
    GeoMatrix mat_tmp;
-   mat_tmp.Dyadic(gradBmag(), bhat);
+   mat_tmp.Dyadic(gradBmag, bhat);
    return (gradBvec - mat_tmp) / Bmag;
 };
 

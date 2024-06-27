@@ -52,6 +52,9 @@ protected:
 //! Modify radial flow (if necessary)
    void ModifyUr(const double r, double &ur_mod) override;
 
+//! Get time lag for time dependent current sheet (if necessary)
+   double TimeLag(const double r) override;
+
 //! Compute the internal u, B, and E derivatives
    void EvaluateBackgroundDerivatives(void) override;
 
