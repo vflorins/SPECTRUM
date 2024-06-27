@@ -11,6 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "geodesic/stenciled_block.hh"
 #include "fluid/variables.hh"
+#include "common/exchange_site.hh"
 #include "common/mpi_config.hh"
 
 namespace Spectrum {
@@ -25,6 +26,38 @@ enum NeighborType {
    GEONBR_TEDGE,
    GEONBR_REDGE,
    GEONBR_VERTX
+};
+
+/*!
+\brief Compute the number of exchange sites
+\author Vladimir Florinski
+\date 06/24/2024
+\param[in]  p          Vertices per face
+\param[out] site_count Array of site counts of each type
+*/
+inline void ExchangeSiteCount(int p, int* site_count)
+{
+   site_count[GEONBR_TFACE] = 2;
+   site_count[GEONBR_RFACE] = p;
+   site_count[GEONBR_TEDGE] = 2 * p;
+   site_count[GEONBR_REDGE] = p;
+   site_count[GEONBR_VERTX] = 2 * p;
+};
+
+/*!
+\brief Compute the number of participants of each exchange site
+\author Vladimir Florinski
+\date 06/24/2024
+\param[in]  q          Edges meeting at each vertex
+\param[out] part_count Array of participant counts of each type
+*/
+inline void ExchangePartCount(int q, int* part_count)
+{
+   part_count[GEONBR_TFACE] = 2;
+   part_count[GEONBR_RFACE] = 2;
+   part_count[GEONBR_TEDGE] = 4;
+   part_count[GEONBR_REDGE] = q;
+   part_count[GEONBR_VERTX] = 2 * q;
 };
 
 /*!
@@ -49,16 +82,17 @@ protected:
    using GeodesicSector<verts_per_face>::ghost_width;
    using GeodesicSector<verts_per_face>::n_faces;
    using GeodesicSector<verts_per_face>::face_index_sector;
+   using GridBlock<verts_per_face>::block_index;
    using StenciledBlock<verts_per_face>::AssociateMesh;
 
 //! Number of exchange sites
    int exch_site_count[N_NBRTYPES];
 
-//! Pointers of communicators, one per site
-   MPI_Comm** exch_site_comm[N_NBRTYPES];
+//! Default (not actual) number of parts per site
+   int default_part_per_site[N_NBRTYPES];
 
-//! Exchange participants per site, including this block
-   int part_per_site[N_NBRTYPES];
+//! Pointers of exchange sites
+   std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites[N_NBRTYPES];
 
 //! Face rotation transformations
    int face_rotation_matrix[edges_per_vert][2][4];
@@ -80,12 +114,6 @@ protected:
 
 //! Conserved variables storage
    ConservedVariables** cons_vars;
-
-//! MPI buffers
-   ConservedVariables*** buffers[N_NBRTYPES] = {nullptr};
-
-//! MPI data type for "ConservedVariables"
-   MPI_Datatype MPIConsVarType;
 
 //! Translation tables for each buffer
    int*** buf_face_translation[N_NBRTYPES];
@@ -126,13 +154,10 @@ public:
    void FreeStorage(void);
 
 //! Assign exchange site communicators
-   void ImportExchangeComms(NeighborType ntype, const MPI_Comm* const* comms, const int* comidx);
+   void ImportExchangeSites(NeighborType ntype, std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_in);
 
 //! Pack ghost regions for exchange
    void PackBuffers(NeighborType ntype);
-
-//! Exchange buffered data across the block's boundaries
-   void Exchange(NeighborType ntype);
 
 //! Assign ghost values after exchange
    void UnPackBuffers(NeighborType ntype);

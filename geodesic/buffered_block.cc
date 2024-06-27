@@ -29,27 +29,18 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
    int site, part;
    NeighborType ntype;
 
-// Call base method.
+// Call base method
    if(!construct) StenciledBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
+   ComputeRotationMatrices();
+
+// Note: it is possible to have only one participant at a t-face exchange site that is on the simulation boundary, which in principle requires no exchange. We still count it here, and it is up to ExchangeSite to figure out how to handle this efficiently.
+   ExchangeSiteCount(verts_per_face, exch_site_count);
+
+// This is the default, the actual number of parts at some sites could be smaller. For simplicity, the face and shell maps are generated for the default configuration.
+   ExchangePartCount(edges_per_vert, default_part_per_site);
 
 // Space for the conserved variables
    cons_vars = Create2D<ConservedVariables>(n_shells_withghost, n_faces_withghost);
-
-// Number of exchange sites per block
-   exch_site_count[GEONBR_TFACE] = 2;
-   exch_site_count[GEONBR_RFACE] = verts_per_face;
-   exch_site_count[GEONBR_TEDGE] = 2 * verts_per_face;
-   exch_site_count[GEONBR_REDGE] = verts_per_face;
-   exch_site_count[GEONBR_VERTX] = 2 * verts_per_face;
-
-// Number of participants in each exchange
-   part_per_site[GEONBR_TFACE] = 2;
-   part_per_site[GEONBR_RFACE] = 2;
-   part_per_site[GEONBR_TEDGE] = 4;
-   part_per_site[GEONBR_REDGE] = edges_per_vert;
-   part_per_site[GEONBR_VERTX] = 4 * edges_per_vert;
-
-   ComputeRotationMatrices();
 
 // Buffer sizes: TFACE
    buf_length[GEONBR_TFACE] = side_length - (square_fill + 1) * ghost_width;
@@ -90,26 +81,15 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
       };
    };
 
-// Allocate storage for buffers. One buffer per site, corresponding to this block's participation order, is for sending, and the rest are for receiving. All buffers are allocated even if there is no exchange (the inner or outer boundary, or near a singular corner).
-   for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
-      buffers[ntype] = new ConservedVariables**[exch_site_count[ntype]];
-      for(site = 0; site < exch_site_count[ntype]; site++) {
-         buffers[ntype][site] = new ConservedVariables*[part_per_site[ntype]];
-         for(part = 0; part < part_per_site[ntype]; part++) {
-            buffers[ntype][site][part] = new ConservedVariables[buf_volume[ntype]];
-         };
-      };
-   };
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Allocate storage for buffer face maps. There is much redundancy in these maps, so only the minimum amount of storage is used; the remaining indices are just pointers.
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // TFACE: 2 sites with 2 PPS, all 4 maps are identical
    buf_face_translation[GEONBR_TFACE] = new int**[exch_site_count[GEONBR_TFACE]];
-   buf_face_translation[GEONBR_TFACE][0] = new int*[part_per_site[GEONBR_TFACE]];
+   buf_face_translation[GEONBR_TFACE][0] = new int*[default_part_per_site[GEONBR_TFACE]];
    buf_face_translation[GEONBR_TFACE][0][0] = new int[buf_area[GEONBR_TFACE]];
-   for(part = 1; part < part_per_site[GEONBR_TFACE]; part++) {
+   for(part = 1; part < default_part_per_site[GEONBR_TFACE]; part++) {
       buf_face_translation[GEONBR_TFACE][0][part] = buf_face_translation[GEONBR_TFACE][0][0];
    };
    for(site = 1; site < exch_site_count[GEONBR_TFACE]; site++) {
@@ -119,7 +99,7 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 // All 4 starting shells are different
    buf_shell_start[GEONBR_TFACE] = new int*[exch_site_count[GEONBR_TFACE]];
    for(site = 0; site < exch_site_count[GEONBR_TFACE]; site++) {
-      buf_shell_start[GEONBR_TFACE][site] = new int[part_per_site[GEONBR_TFACE]];
+      buf_shell_start[GEONBR_TFACE][site] = new int[default_part_per_site[GEONBR_TFACE]];
    };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -127,15 +107,15 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 // RFACE: 3/4 sites with 2 PPS, all 6/8 maps are different
    buf_face_translation[GEONBR_RFACE] = new int**[exch_site_count[GEONBR_RFACE]];
    for(site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
-      buf_face_translation[GEONBR_RFACE][site] = new int*[part_per_site[GEONBR_RFACE]];
-      for(part = 0; part < part_per_site[GEONBR_RFACE]; part++) {
+      buf_face_translation[GEONBR_RFACE][site] = new int*[default_part_per_site[GEONBR_RFACE]];
+      for(part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
          buf_face_translation[GEONBR_RFACE][site][part] = new int[buf_area[GEONBR_RFACE]];
       };
    };
 
 // All 6/8 starting shells are identical; the code computing the shells must assign identical values to three sets
    buf_shell_start[GEONBR_RFACE] = new int*[exch_site_count[GEONBR_RFACE]];
-   buf_shell_start[GEONBR_RFACE][0] = new int[part_per_site[GEONBR_RFACE]];
+   buf_shell_start[GEONBR_RFACE][0] = new int[default_part_per_site[GEONBR_RFACE]];
    for(site = 1; site < exch_site_count[GEONBR_RFACE]; site++) {
       buf_shell_start[GEONBR_RFACE][site] = buf_shell_start[GEONBR_RFACE][0];
    };
@@ -151,8 +131,8 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 
 // The starting shells are identical to those of TFACE, but the arrays are longer, so some storage must be allocated here
    buf_shell_start[GEONBR_TEDGE] = new int*[exch_site_count[GEONBR_TEDGE]];
-   buf_shell_start[GEONBR_TEDGE][0] = new int[part_per_site[GEONBR_TEDGE]];
-   buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2] = new int[part_per_site[GEONBR_TEDGE]];
+   buf_shell_start[GEONBR_TEDGE][0] = new int[default_part_per_site[GEONBR_TEDGE]];
+   buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2] = new int[default_part_per_site[GEONBR_TEDGE]];
    for(site = 1; site < exch_site_count[GEONBR_TEDGE] / 2; site++) {
       buf_shell_start[GEONBR_TEDGE][site] = buf_shell_start[GEONBR_TEDGE][0];
       buf_shell_start[GEONBR_TEDGE][site + exch_site_count[GEONBR_TEDGE] / 2] = buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2];
@@ -163,15 +143,15 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 // REDGE: 3/4 sites with 6/4 PPS, all 18/16 maps are different
    buf_face_translation[GEONBR_REDGE] = new int**[exch_site_count[GEONBR_REDGE]];
    for(site = 0; site < exch_site_count[GEONBR_REDGE]; site++) {
-      buf_face_translation[GEONBR_REDGE][site] = new int*[part_per_site[GEONBR_REDGE]];
-      for(part = 0; part < part_per_site[GEONBR_REDGE]; part++) {
+      buf_face_translation[GEONBR_REDGE][site] = new int*[default_part_per_site[GEONBR_REDGE]];
+      for(part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
          buf_face_translation[GEONBR_REDGE][site][part] = new int[buf_area[GEONBR_REDGE]];
       };
    };
 
 // The starting shells are identical to those of RFACE, but the arrays are longer, so some storage must be allocated here
    buf_shell_start[GEONBR_REDGE] = new int*[exch_site_count[GEONBR_REDGE]];
-   buf_shell_start[GEONBR_REDGE][0] = new int[part_per_site[GEONBR_REDGE]];
+   buf_shell_start[GEONBR_REDGE][0] = new int[default_part_per_site[GEONBR_REDGE]];
    for(site = 1; site < exch_site_count[GEONBR_REDGE]; site++) {
       buf_shell_start[GEONBR_REDGE][site] = buf_shell_start[GEONBR_REDGE][0];
    };
@@ -189,15 +169,12 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 
 // The starting shells are identical to those of TFACE and TEDGE, but the arrays are longer, so some storage must be allocated here
    buf_shell_start[GEONBR_VERTX] = new int*[exch_site_count[GEONBR_VERTX]];
-   buf_shell_start[GEONBR_VERTX][0] = new int[part_per_site[GEONBR_VERTX]];
-   buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2] = new int[part_per_site[GEONBR_VERTX]];
+   buf_shell_start[GEONBR_VERTX][0] = new int[default_part_per_site[GEONBR_VERTX]];
+   buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2] = new int[default_part_per_site[GEONBR_VERTX]];
    for(site = 1; site < exch_site_count[GEONBR_VERTX] / 2; site++) {
       buf_shell_start[GEONBR_VERTX][site] = buf_shell_start[GEONBR_VERTX][0];
       buf_shell_start[GEONBR_VERTX][site + exch_site_count[GEONBR_VERTX] / 2] = buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2];
    };
-
-// Generate the MPI datatype "MPIConsVarType"
-   MPI_Type_contiguous(sizeof(ConservedVariables), MPI_BYTE, &MPIConsVarType);
 };
 
 /*!
@@ -209,17 +186,6 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 {
    int site, part;
    NeighborType ntype;
-
-// Free up buffer space
-   for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
-      for(site = 0; site < exch_site_count[ntype]; site++) {
-         for(part = 0; part < part_per_site[ntype]; part++) {
-            delete[] buffers[ntype][site][part];
-         };
-         delete[] buffers[ntype][site];
-      };
-      delete[] buffers[ntype];
-   };
 
 // Free up storage for the variables
    Delete2D(cons_vars);
@@ -239,7 +205,7 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 
 // RFACE
    for(site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
-      for(part = 0; part < part_per_site[GEONBR_RFACE]; part++) {
+      for(part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
          delete[] buf_face_translation[GEONBR_RFACE][site][part];
       };
       delete[] buf_face_translation[GEONBR_RFACE][site];
@@ -256,7 +222,7 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 
 // REDGE
    for(site = 0; site < exch_site_count[GEONBR_REDGE]; site++) {
-      for(part = 0; part < part_per_site[GEONBR_REDGE]; part++) {
+      for(part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
          delete[] buf_face_translation[GEONBR_REDGE][site][part];
       };
       delete[] buf_face_translation[GEONBR_REDGE][site];
@@ -271,92 +237,85 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
    delete[] buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2];
    delete[] buf_shell_start[GEONBR_VERTX];
 
-// Free up the MPI datatype
-   MPI_Type_free(&MPIConsVarType);
-
 // Call the base class memory deallocator
    StenciledBlock<verts_per_face>::FreeStorage();
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/18/2024
+\date 06/26/2024
 \param ntype  Neighbor type
 \param comms  A global array of communicators
-\param comidx An array of indices in the global array of communicators corresponding to this block's communicators
 */
 template <int verts_per_face>
-void BufferedBlock<verts_per_face>::ImportExchangeComms(NeighborType ntype, const MPI_Comm* const* comms, const int* comidx)
+void BufferedBlock<verts_per_face>::ImportExchangeSites(NeighborType ntype, std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_in)
 {
-   for(auto site = 0; site < exch_site_count[ntype]; site++) {
-      exch_site_comm[ntype][site] = comms[comidx[site]];
-   };
+   exch_sites[ntype] = exch_sites_in;
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/18/2024
+\date 06/27/2024
 \param ntype Neighbor type
 */
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::PackBuffers(NeighborType ntype)
 {
-   int site, rank, shell, face_buf, face, bufidx;
+   int site, my_part, shell, face_buf, face;
+   long int bufidx;
+   ConservedVariables* buffer;
 
    for(site = 0; site < exch_site_count[ntype]; site++) {
+      my_part = exch_sites[ntype][site]->part_lookup[block_index];
+      buffer = exch_sites[ntype][site]->buffer_entry[my_part];
       bufidx = 0;
 
-// Our rank in the site communicator is used as the index for the send buffer
-      MPI_Comm_rank(*exch_site_comm[ntype][site], &rank);
-      for(shell = buf_shell_start[ntype][site][rank]; shell < buf_shell_start[ntype][site][rank] + buf_height[ntype]; shell++) {
+// TODO the code below is incorrect
+/*
+      for(shell = buf_shell_start[ntype][site][my_part]; shell < buf_shell_start[ntype][site][my_part] + buf_height[ntype]; shell++) {
          for(face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
-            face = buf_face_translation[ntype][site][rank][face_buf];
-            buffers[ntype][site][rank][bufidx++] = cons_vars[shell][face];
+            face = buf_face_translation[ntype][site][my_part][face_buf];
+            buffer[bufidx++] = cons_vars[shell][face];
          };
       };
-   };
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/18/2024
-\param ntype Neighbor type
 */
-template <int verts_per_face>
-void BufferedBlock<verts_per_face>::Exchange(NeighborType ntype)
-{
-   for(auto site = 0; site < exch_site_count[ntype]; site++) {
-      MPI_Alltoall(buffers[ntype][site][0], buf_volume[ntype], MPIConsVarType,
-                   buffers[ntype][site][0], buf_volume[ntype], MPIConsVarType, *exch_site_comm[ntype][site]);
+
    };
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/18/2024
+\date 06/27/2024
 \param ntype Neighbor type
 */
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::UnPackBuffers(NeighborType ntype)
 {
-   int site, part, rank, shell, face_buf, face, bufidx;
+   int site, part, my_part, shell, face_buf, face;
+   long int bufidx;
+   ConservedVariables* buffer;
 
    for(site = 0; site < exch_site_count[ntype]; site++) {
+      my_part = exch_sites[ntype][site]->part_lookup[block_index];
+      for(part = 0; part < default_part_per_site[ntype]; part++) {
 
-// The index equal to our rank will be skipped
-      MPI_Comm_rank(*exch_site_comm[ntype][site], &rank);
-      for(part = 0; part < part_per_site[ntype]; part++) {
-         if(part != rank) {
-            bufidx = 0;
+// The part equal to ours will be skipped
+         if(part == my_part) continue;
+         buffer = exch_sites[ntype][site]->buffer_entry[part];
+         bufidx = 0;
 
+// TODO the code below is incorrect
+
+/*
 // Copy each zone in the buffer to its proper place in the block
-            for(shell = buf_shell_start[ntype][site][part]; shell < buf_shell_start[ntype][site][part] + buf_height[ntype]; shell++) {
-               for(face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
-                  face = buf_face_translation[ntype][site][part][face_buf];
-                  cons_vars[shell][face] = buffers[ntype][site][part][bufidx++];
-               };
+         for(shell = buf_shell_start[ntype][site][part]; shell < buf_shell_start[ntype][site][part] + buf_height[ntype]; shell++) {
+            for(face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
+               face = buf_face_translation[ntype][site][part][face_buf];
+               cons_vars[shell][face] = buffers[ntype][site][part][bufidx++];
             };
          };
+*/
+
       };
    };
 };
@@ -493,7 +452,7 @@ void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
 
 // RFACE neighbor face translation (6)
    for(site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
-      for(part = 0; part < part_per_site[GEONBR_RFACE]; part++) {
+      for(part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
          bufidx = 0;
 //         base_vertex = ???;
          for(ibuf = 0; ibuf < buf_length[GEONBR_RFACE]; ibuf++) {
