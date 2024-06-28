@@ -40,7 +40,7 @@ namespace Spectrum {
 \brief A class representing an MPI exchange site
 \author Vladimir Florinski
 
-An object of this class contains an MPI communicator, a data buffer, and metadata to enable an exchange with MPI_Alltoallv. The array "buffer" has "n_part" slots corresponding to each participating block. Because a process could own multiple blocks that participate in this exchange, "ExchangeSite" will aggregate those into larger slots in the array (in MPI_Alltoallv each process sends and receives _one_ message, but the message size could be different). The intended use is for the calling function to create an array of ExchangeSite objects, one per site. This is redundant because each process may only need access to a subset of all sites. However, MPI communicator creation routines must be called on all processes, and it is desirable to perform all such operations within the class. The unused sites will remain, but since the communicator and buffers are not allocated, the memory used will be negligible.
+An object of this class contains an MPI communicator, a data buffer, and metadata to enable an exchange with MPI_Alltoallv. The array "buffer" has "n_part" slots corresponding to each participant. Because a process could host multiple participants, "ExchangeSite" will aggregate those into larger slots in the array (in MPI_Alltoallv each process sends and receives _one_ message, but the message size could be different). The intended use is for the calling function to create an array of ExchangeSite objects, one per site. This is redundant because each process may only need access to a subset of all sites. However, MPI communicator creation routines must be called on all processes, and it is desirable to perform all such operations within the class. The unused sites will remain, but since the communicator and buffers are not allocated, the memory lost will be small.
 */
 template <typename datatype>
 struct ExchangeSite
@@ -82,8 +82,8 @@ struct ExchangeSite
    ~ExchangeSite();
 
 //! Set up the properties
-   void SetUpProperties(int index_in, int n_parts_in, int buf_size_in, const std::vector<int>& ranks_in, const std::vector<int>& labels_in,
-                        const std::shared_ptr<MPI_Config> mpi_config_in);
+   void SetUpProperties(int index_in, int n_parts_in, int buf_size_in, const std::vector<int>& ranks_in,
+                        const std::vector<int>& labels_in, const std::shared_ptr<MPI_Config> mpi_config_in);
 
 //! Perform the exchange
    void Exchange(void);
@@ -93,15 +93,15 @@ struct ExchangeSite
 \author Vladimir Florinski
 \date 06/26/2024
 \param[in] index_in   Index of this exchange site
-\param[in] n_parts_in Number of participating blocks
+\param[in] n_parts_in Number of participants
 \param[in] buf_size   Size of a single buffer in units of "datatype"
 \param[in] ranks_in   List of ranks (with possible repeats)
 \param[in] labels_in  List of labels
 \param[in] mpi_config MPI configuration object
 */
 template <typename datatype>
-inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in, int buf_size, const std::vector<int>& ranks_in, const std::vector<int>& labels_in,
-                                                    const std::shared_ptr<MPI_Config> mpi_config)
+inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in, int buf_size, const std::vector<int>& ranks_in,
+                                                    const std::vector<int>& labels_in, const std::shared_ptr<MPI_Config> mpi_config)
 {
    int idx, part, rank, newrank;
    unsigned int ppr;
@@ -131,7 +131,7 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
       };
    };
 
-// Create the site communicator
+// Create the site communicator. Every process must call "MPI_Comm_create", even if not in the group, so the code will not deadlock.
    MPI_Group parent_group, site_group;
    MPI_Comm_group(mpi_config->glob_comm, &parent_group);
    MPI_Group_incl(parent_group, unique_ranks.size(), unique_ranks.data(), &site_group);
@@ -141,6 +141,8 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
 
 // Not in the communicator - do not allocate storage
    if(site_comm == MPI_COMM_NULL) return;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Create the MPI datatype
    MPI_Type_contiguous(sizeof(datatype), MPI_BYTE, &mpi_datatype);
@@ -158,7 +160,7 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
       sdispls[rank] = (rank == 0 ? 0 : sdispls[rank - 1]) + sendcounts[rank - 1];
    };
 
-// Create map to pointers in buffer space for the client blocks
+// Create map to pointers in buffer space
    idx = 0;
    for(rank = 0; rank < site_comm_size; rank++) {
       for(ppr = 0; ppr < part_lists[rank].size(); ppr++) {

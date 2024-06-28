@@ -141,6 +141,9 @@ public:
 //! Default constructor
    BufferedBlock(void) = default;
 
+//! Copy constructor
+   BufferedBlock(const BufferedBlock& other);
+
 //! Constructor with arguments
    BufferedBlock(int width, int wghost, int height, int hghost);
 

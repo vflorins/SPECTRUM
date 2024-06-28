@@ -82,9 +82,6 @@ public:
 
 //! Copy constructor
    SPECTRUM_DEVICE_FUNC PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other);
-
-//! Destructor
-   SPECTRUM_DEVICE_FUNC ~PolygonalAddressing() = default;
 };
 
 /*!

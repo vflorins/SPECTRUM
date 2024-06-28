@@ -11,8 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #ifdef USE_MPI
 
-#include "definitions.hh"
-#include "print_warn.hh"
+#include "common/definitions.hh"
+#include "common/print_warn.hh"
 #include <algorithm>
 #include <fstream>
 
@@ -327,6 +327,8 @@ MPI_Request_Info::~MPI_Request_Info()
    delete[] cpu_rank;
 }
 
+#ifdef GEO_DEBUG
+
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -376,6 +378,8 @@ void TestMPIConfig(void)
    
    infofile.close();
 };
+
+#endif
 
 };
 

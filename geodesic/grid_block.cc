@@ -30,6 +30,25 @@ SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(void)
 
 /*!
 \author Vladimir Florinski
+\date 06/28/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
+                                              : GeodesicSector<verts_per_face>(static_cast<GeodesicSector<verts_per_face>>(other)),
+                                                SphericalSlab(static_cast<SphericalSlab>(other))
+{
+   Setup();
+   if(other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
+   if(other.mesh_associated) {
+      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map);
+   };
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/08/2024
 \param[in] width  Length of the side, without ghost cells
 \param[in] wgohst Width of the ghost cell layer outside the sector
@@ -72,6 +91,9 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::SetDimensions(int width, in
       GeodesicSector<verts_per_face>::SetDimensions(width, wghost, false);
       SphericalSlab::SetDimensions(height, hghost, false);
    };
+
+// Free up storage (not that of the base class) because this could be a repeat call
+   FreeStorage();
 
 // Allocate duplicate element lists (used for singular corners). We use continuous storage so that the corners are stored in sequence and can be addressed as a single array.
    dup_vert[0] = Create2D<int>(verts_per_face * (ghost_width + 1), 2);
@@ -153,6 +175,9 @@ template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
                                                                    const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
 {
+// The dimensions were not set, cannot proceed.
+   if(side_length == -1) return;
+
    int k, iv;
 
 // Copy border information and correct connectivity at singular corners
@@ -202,6 +227,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin,
 
 // Copy vertex coordinates
    memcpy(block_vert_cart, vcart, n_verts_withghost * sizeof(GeoVector));
+   mesh_associated = true;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

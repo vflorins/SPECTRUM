@@ -16,6 +16,30 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
+\date 06/28/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+BufferedBlock<verts_per_face>::BufferedBlock(const BufferedBlock& other)
+                             : StenciledBlock<verts_per_face>(static_cast<StenciledBlock<verts_per_face>>(other))
+{
+   if(other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/28/2024
+*/
+template <int verts_per_face>
+BufferedBlock<verts_per_face>::~BufferedBlock()
+{
+   FreeStorage();
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/29/2024
 \param[in] width     Length of the side, without ghost cells
 \param[in] wghost    Width of the ghost cell layer outside the sector
@@ -31,6 +55,10 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 
 // Call base method
    if(!construct) StenciledBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
+
+// Free up storage (not that of the base class) because this could be a repeat call
+   FreeStorage();
+
    ComputeRotationMatrices();
 
 // Note: it is possible to have only one participant at a t-face exchange site that is on the simulation boundary, which in principle requires no exchange. We still count it here, and it is up to ExchangeSite to figure out how to handle this efficiently.

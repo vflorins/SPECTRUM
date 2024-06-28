@@ -69,7 +69,7 @@ protected:
    using PolygonalAddressing<verts_per_face>::VertCount;
 
 //! Length of a side of the sector (in edges)
-   int side_length;
+   int side_length = -1;
 
 //! Length of a side with ghost cells
    int total_length;
@@ -250,6 +250,9 @@ public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC GeodesicSector(void) = default;
+
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC GeodesicSector(const GeodesicSector& other);
 
 //! Constructor with arguments
    SPECTRUM_DEVICE_FUNC GeodesicSector(int width, int wghost);

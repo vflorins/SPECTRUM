@@ -19,6 +19,20 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
+\date 06/28/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(const GeodesicSector& other)
+                                                   : PolygonalAddressing<verts_per_face>()
+{
+   if(other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, true);
+   };
+};
+
+/*!
+\author Vladimir Florinski
 \date 07/23/2019
 \param[in] width  Length of the side, without ghost cells
 \param[in] wgohst Width of the ghost cell layer outside the sector
@@ -42,9 +56,10 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::~GeodesicSector()
 
 /*!
 \author Vladimir Florinski
-\date 05/07/2024
-\param[in] width  Length of the side, without ghost cells
-\param[in] wgohst Width of the ghost cell layer outside the sector
+\date 06/28/2024
+\param[in] width     Length of the side, without ghost cells
+\param[in] wgohst    Width of the ghost cell layer outside the sector
+\param[in] construct Unused, but included for consistency with derived classes
 */
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::SetDimensions(int width, int wghost, bool construct)
@@ -53,6 +68,9 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::SetDimensions(int widt
       PrintError(__FILE__, __LINE__, "Cannot allocate a sector with these dimensions", true);
       return;
    };
+
+// Free up storage because this could be a repeat call
+   FreeStorage();
 
 // Set up the grid dimensions
    side_length = width;
@@ -145,6 +163,9 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FreeStorage(void)
    Delete2D(face_index_sector);
    for(auto etype = 0; etype < cardinal_directions; etype++) Delete2D(edge_index_sector[etype]);
    Delete2D(vert_index_sector);
+
+// This marks this sector as un-allocated
+   side_length = -1;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

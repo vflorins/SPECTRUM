@@ -83,9 +83,9 @@ public:
 \date 06/21/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab(const SphericalSlab& other)
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
 {
-   SetDimensions(other.height, other.hghost, true);
+   SetDimensions(other.n_shells, other.ghost_height, true);
 };
 
 /*!

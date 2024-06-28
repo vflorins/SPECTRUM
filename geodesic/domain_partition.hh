@@ -9,8 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DOMAIN_PARTITION
 #define SPECTRUM_DOMAIN_PARTITION
 
-#include "geodesic/buffered_block.hh"
 #include "geodesic/traversable_tesselation.hh"
+#include "geodesic/buffered_block.hh"
+#include "common/exchange_site.hh"
 #include "common/mpi_config.hh"
 
 namespace Spectrum {
@@ -133,23 +134,23 @@ protected:
 //! Size of the _thinner_ slab
    int thinner_slab_height;
 
-//! Working variable for the neighbor type
-   static NeighborType _ntype;
-
 //! Radii of all slab interfaces
-   double* slab_interfaces = nullptr;
+   double* slab_interfaces;
 
 //! Total number of exchange sites
    int exch_site_count[N_NBRTYPES];
 
-//! Pointers of communicators, one per site
-   MPI_Comm** exch_site_comm[N_NBRTYPES] = {nullptr};
+//! Global array of exchange sites
+   std::vector<ExchangeSite<ConservedVariables>> exch_sites[N_NBRTYPES];
 
-//! Simulation blocks 
-   static std::vector<BufferedBlock<VERTS_PER_FACE>> blocks_local;
+//! Local simulation blocks 
+   std::vector<BufferedBlock<VERTS_PER_FACE>> blocks_local;
+
+//! Local exchange sites indices
+   std::vector<int> exch_site_idx[N_NBRTYPES];
 
 //! Tesselation object
-   TraversableTesselation<POLY_TYPE, MAX_FACE_DIVISION>* tesselation = nullptr;
+   TraversableTesselation<POLY_TYPE, MAX_FACE_DIVISION> tesselation;
 
 //! Distance map object
    std::shared_ptr<DistanceBase> distance_map;
@@ -169,9 +170,6 @@ protected:
 //! Find the global block index containing the given vector
    int LocateBlock(const GeoVector& pos) const;
 
-//! Threaded implementation of boundary exchange
-   static void* ThreadedExchange(void* arg);
-
 public:
 
 //! Constructor with arguments
@@ -186,8 +184,8 @@ public:
 //! Set up the exchange sites
    void SetUpExchangeSites(void);
 
-//! Perform exchange of the type set by "_ntype"
-   void ExchangeOneType(void);
+//! Perform the exchange
+   void ExchangeAll(void);
 };
 
 /*!

@@ -33,13 +33,12 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
    distance_map = dist_map;
    mpi_config = mpi_config_in;
 
-   tesselation = new TraversableTesselation<POLY_TYPE, MAX_FACE_DIVISION>();
-   n_faces_global = tesselation->NFaces(face_division);
+   n_faces_global = tesselation.NFaces(face_division);
 
 // Perform domain decomposition based on sector size
    slab_height_fp = n_shells_global;
    sector_width = Pow2(face_division - sector_division);
-   n_sectors = tesselation->NFaces(sector_division);
+   n_sectors = tesselation.NFaces(sector_division);
    sector_division = 0;
    n_slabs = 1;
    
@@ -50,13 +49,13 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
       }
       else {
          sector_division++;
-         n_sectors = tesselation->NFaces(sector_division);
+         n_sectors = tesselation.NFaces(sector_division);
          sector_width = Pow2(face_division - sector_division);
       };
    };
    thinner_slab_height = n_shells_global / n_slabs;
    n_thinner_slabs = n_slabs * (thinner_slab_height + 1) - n_shells_global;
-   n_faces_global = tesselation->NFaces(face_division);
+   n_faces_global = tesselation.NFaces(face_division);
    n_blocks = n_slabs * n_sectors;
 
 // Allocate space for slab interfaces and set up the radial limits
@@ -68,10 +67,12 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
    bidx = 0;
    BufferedBlock<VERTS_PER_FACE> block_templ;
    for(auto slab = 0; slab < n_slabs; slab++) {
+      shells_per_slab = (slab < n_thinner_slabs ? thinner_slab_height : thinner_slab_height + 1);
+      if(slab) slab_interfaces[slab] = slab_interfaces[slab - 1] + shells_per_slab / n_shells_global;
+
       for(auto sector = 0; sector < n_sectors; sector++) {
          if(MakePeriodic(bidx, mpi_config->work_comm_size) == mpi_config->work_comm_rank) {
             blocks_local.push_back(block_templ);
-            shells_per_slab = (slab < n_thinner_slabs ? thinner_slab_height : thinner_slab_height + 1);
             blocks_local.back().SetDimensions(sector_width, GHOST_WIDTH, shells_per_slab, GHOST_HEIGHT, false);
             blocks_local.back().SetIndex(bidx);
          };
@@ -103,7 +104,6 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
 */
 DomainPartition::~DomainPartition()
 {
-   delete tesselation;
    delete[] slab_interfaces;
 };
 
@@ -122,91 +122,70 @@ int DomainPartition::LocateBlock(const GeoVector& pos) const
    if(slab < 0) return -1;
 
 // Locate the sector using the tesselation
-   sect = tesselation->Locate(sector_division, UnitVec(pos));
+   sect = tesselation.Locate(sector_division, UnitVec(pos));
 
    return GetBlockIndex(slab, sect);
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 06/28/2024
 */
 void DomainPartition::SetUpExchangeSites(void)
 {
-   int site, part, block;
+   int site;
    NeighborType ntype;
-   int* comidx;
 
-   exch_site_count[GEONBR_TFACE] = (n_slabs + 1) * tesselation->NFaces(sector_division);
-   exch_site_count[GEONBR_RFACE] = n_slabs * tesselation->NEdges(sector_division);
-   exch_site_count[GEONBR_TEDGE] = (n_slabs + 1) * tesselation->NEdges(sector_division);
-   exch_site_count[GEONBR_REDGE] = n_slabs * tesselation->NVerts(sector_division);
-   exch_site_count[GEONBR_VERTX] = (n_slabs + 1) * tesselation->NVerts(sector_division);
+// Figure out the number of sites of each type
+   exch_site_count[GEONBR_TFACE] = (n_slabs + 1) * tesselation.NFaces(sector_division);
+   exch_site_count[GEONBR_RFACE] =  n_slabs      * tesselation.NEdges(sector_division);
+   exch_site_count[GEONBR_TEDGE] = (n_slabs + 1) * tesselation.NEdges(sector_division);
+   exch_site_count[GEONBR_REDGE] =  n_slabs      * tesselation.NVerts(sector_division);
+   exch_site_count[GEONBR_VERTX] = (n_slabs + 1) * tesselation.NVerts(sector_division);
 
-// Allocate storage for communicators
+// TODO Create the exchange sites
+   ExchangeSite<ConservedVariables> exch_site_templ;
    for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
-      exch_site_comm[ntype] = new MPI_Comm*[exch_site_count[ntype]];
-   };
-
-   for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
-
-// TODO Initialize the communicators
       for(site = 0; site < exch_site_count[ntype]; site++) {
-      
-      
+         exch_sites[ntype].push_back(exch_site_templ);
+
+
+
+
+
+
+
+
+         
+//         exch_sites[ntype].back().SetUpProperties(.....);
+
+// This is a local site, add it to the list
+         if(exch_sites[ntype].back().site_comm != MPI_COMM_NULL) exch_site_idx[ntype].push_back(site);
       };
-
-
-
-// Inform the blocks
-      for(block = 0; block < blocks_local.size(); block++) {
-
-// TODO generate "commidx" for this block and ntype
-
-
-         blocks_local[block].ImportExchangeComms(ntype, exch_site_comm[ntype], comidx);
-      };
-
-
    };
-      
+
+// TODO Generate list of exchange sites for each block
+
+
+// TODO Inform the blocks about their exchange sites
 
 };
 
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
-\param[in] ntype Neighbor type
+\date 06/27/2024
 */
-void* DomainPartition::ThreadedExchange(void* arg)
+void DomainPartition::ExchangeAll(void)
 {
-   int block = *static_cast<int*>(arg);
+   NeighborType ntype;
 
-   blocks_local[block].PackBuffers(_ntype);
-   blocks_local[block].Exchange(_ntype);
-   blocks_local[block].UnPackBuffers(_ntype);
-
-   return nullptr;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/21/2024
-*/
-void DomainPartition::ExchangeOneType(void)
-{
-   int block;
-
-// MPI exchange must be done all at once to avoid a dewadlock, so we spawn a separate thread for each block
-   pthread_t* block_threads = new pthread_t[blocks_local.size()];
-   for(block = 0; block < blocks_local.size(); block++) {
-      pthread_create(&block_threads[block], NULL, ThreadedExchange, &block);
+// All work is done by the exchange sites
+   for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
+      for(auto idx = 0; idx < exch_site_idx[ntype].size(); idx++) {
+         exch_sites[ntype][exch_site_idx[ntype][idx]].Exchange();
+      };
    };
-   for(block = 0; block < blocks_local.size(); block++) {
-      pthread_join(block_threads[block], NULL);
-   };
-   delete[] block_threads;
 };
 
 };

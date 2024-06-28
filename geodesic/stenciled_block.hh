@@ -108,6 +108,9 @@ public:
 //! Default constructor
    StenciledBlock(void) = default;
 
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC StenciledBlock(const StenciledBlock& other);
+
 //! Constructor with arguments
    StenciledBlock(int width, int wghost, int height, int hghost);
 

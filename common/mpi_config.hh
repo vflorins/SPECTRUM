@@ -157,8 +157,10 @@ struct MPI_Request_Info {
    ~MPI_Request_Info();
 };
 
+#ifdef GEO_DEBUG
 //! Self-test for the class
 void TestMPIConfig(void);
+#endif
 
 };
 

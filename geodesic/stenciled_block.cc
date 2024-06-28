@@ -23,12 +23,16 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 05/14/2024
+\date 06/28/2024
+\param[in] other Object to initialize from
 */
 template <int verts_per_face>
-StenciledBlock<verts_per_face>::~StenciledBlock()
+SPECTRUM_DEVICE_FUNC StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
+                                                   : GridBlock<verts_per_face>(static_cast<GridBlock<verts_per_face>>(other))
 {
-   FreeStorage();
+   if(other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
 };
 
 /*!
@@ -48,6 +52,16 @@ StenciledBlock<verts_per_face>::StenciledBlock(int width, int wghost, int height
 
 /*!
 \author Vladimir Florinski
+\date 05/14/2024
+*/
+template <int verts_per_face>
+StenciledBlock<verts_per_face>::~StenciledBlock()
+{
+   FreeStorage();
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/17/2024
 \param[in] width     Length of the side, without ghost cells
 \param[in] wghost    Width of the ghost cell layer outside the sector
@@ -60,6 +74,9 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
 {
 // Call base method.
    if(!construct) GridBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
+
+// Free up storage (not that of the base class) because this could be a repeat call
+   FreeStorage();
 
    face_area = new double[n_faces_withghost];
    face_cmass = new GeoVector[n_faces_withghost];

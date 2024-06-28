@@ -106,6 +106,9 @@ protected:
 //! Unique numerical index of the block
    int block_index;
 
+//! Indicates a mesh was associated
+   bool mesh_associated = false;
+
 //! Flag telling whether this block is in the innermost or outermost slab
    bool border_type[2];
 
@@ -223,6 +226,9 @@ public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC GridBlock(void);
+
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC GridBlock(const GridBlock& other);
 
 //! Constructor with arguments
    SPECTRUM_DEVICE_FUNC GridBlock(int width, int wghost, int height, int hghost);
