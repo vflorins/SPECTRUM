@@ -23,7 +23,7 @@ namespace Spectrum {
 
 This function performs a basic move that allow visiting every face in the tesselation. The base vertex ("vert1") determines the base edge (CC from the base vertex). The moves are defined for the t-face resting on its base edge, so that the base vertex is in the SW corner. They are S (dir=1), NE (dir=2), and NW (dir=3).
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC void TraversableTesselation<poly_type, max_division>::Step(int div, int face1, int vert1, int dir, int& face2, int& vert2) const
 {
    int iv1, iv2;
@@ -154,7 +154,7 @@ SPECTRUM_DEVICE_FUNC void TraversableTesselation<POLY_HEXAHEDRON, max_division>:
 
 This rather complicated function performs a walk through a triangular region that consists of a sector surrounded by a layer of ghost faces on each side. The walk is performed in the TAS pattern starting from the base (SW) corner, and the index of each t-face visited and each vertex encountered are recorded. NB: The TAS is the addressing systems used by grid blocks.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int divs, int sect, int divf, int nghost,
                                                                              int* flist, int* vlist, bool* corners) const
 {

@@ -24,7 +24,7 @@ namespace Spectrum {
 
 The output is a series of curves that when visualized on an XY plot represent the great circle arcs that are edges of the tesselation.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool opaque, double rot_z, double rot_x, bool smooth) const
 {
    int edge, ipt, nint, n_drawn;
@@ -92,7 +92,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 \author Vladimir Florinski
 \date 08/30/2019
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 {
    int div, face, edge, iv;
@@ -192,7 +192,7 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 \date 04/15/2020
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::TestConnectivity(int div) const
 try {
 
@@ -281,7 +281,7 @@ catch(const TessError& err) {
 
 The type is one of the folloing: 1 is vertex-vertex, 2 is vertex-edge, 3 is vertex-face, 4 is edge-vertex, 6 is edge-face, 7 is face-vertex, 8 is face-edge,9 is face-face.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintConn(int div, int type) const
 {
    switch(type) {

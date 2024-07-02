@@ -83,7 +83,6 @@ protected:
    using GeodesicSector<verts_per_face>::n_faces;
    using GeodesicSector<verts_per_face>::face_index_sector;
    using GridBlock<verts_per_face>::block_index;
-   using StenciledBlock<verts_per_face>::AssociateMesh;
 
 //! Number of exchange sites
    int exch_site_count[N_NBRTYPES];
@@ -156,8 +155,8 @@ public:
 //! Free all dynamically allocated memory
    void FreeStorage(void);
 
-//! Assign exchange site communicators
-   void ImportExchangeSites(NeighborType ntype, std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_in);
+//! Assign exchange site objects
+   void ImportExchangeSites(NeighborType ntype, std::vector<ExchangeSite<ConservedVariables>*> exch_sites_in);
 
 //! Return the size of the buffer (in units of ConservedVariables)
    int GetBufferSize(NeighborType ntype) const {return buf_volume[ntype];};

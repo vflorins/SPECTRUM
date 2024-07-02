@@ -276,7 +276,7 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 \param comms  A global array of communicators
 */
 template <int verts_per_face>
-void BufferedBlock<verts_per_face>::ImportExchangeSites(NeighborType ntype, std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_in)
+void BufferedBlock<verts_per_face>::ImportExchangeSites(NeighborType ntype, std::vector<ExchangeSite<ConservedVariables>*> exch_sites_in)
 {
    exch_sites[ntype] = exch_sites_in;
 };
@@ -497,5 +497,8 @@ void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
 
 
 };
+
+template class BufferedBlock<3>;
+template class BufferedBlock<4>;
 
 };

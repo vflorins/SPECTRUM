@@ -83,7 +83,7 @@ TERR_TYPE BuildReverse(int n_nodes1, int n_nbrs1, int n_sing1, int n_nbrs1s, int
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SphericalTesselation<poly_type, max_division>::SphericalTesselation(void)
                                              : Polyhedron<poly_type>()
 {
@@ -95,7 +95,7 @@ SphericalTesselation<poly_type, max_division>::SphericalTesselation(void)
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SphericalTesselation<poly_type, max_division>::~SphericalTesselation()
 {
    FreeStorage();
@@ -105,7 +105,7 @@ SphericalTesselation<poly_type, max_division>::~SphericalTesselation()
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 {
 // Number of elements at division 0
@@ -173,7 +173,7 @@ void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 \author Vladimir Florinski
 \date 08/30/2019
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::ComputeAll(void)
 try {
    for(auto div = 0; div <= max_division; div++) {
@@ -197,7 +197,7 @@ catch(const TessError& err) {
 \author Vladimir Florinski
 \date 07/23/2019
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FreeStorage(void)
 {
 // Free memory used for vertex coordinates
@@ -227,7 +227,7 @@ void SphericalTesselation<poly_type, max_division>::FreeStorage(void)
 \date 04/13/2020
 \param[in] div Division (daughter)
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 {
 // May only be called for division 1 or higher.
@@ -412,7 +412,7 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 \date 04/13/2020
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::AddEdges(int div)
 {
    static const std::string callerID = "AddEdges";
@@ -446,7 +446,7 @@ void SphericalTesselation<poly_type, max_division>::AddEdges(int div)
 \date 04/13/2020
 \param[in] div Division (daughter)
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 {
 // May only be called for division 1 or higher.
@@ -536,7 +536,7 @@ void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 \date 05/02/2024
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::VertEdgeConn(int div)
 {
    static const std::string callerID = "VertEdgeConn";
@@ -601,7 +601,7 @@ void SphericalTesselation<poly_type, max_division>::VertEdgeConn(int div)
 \date 05/02/2024
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
 {
    static const std::string callerID = "VertFaceConn";
@@ -679,7 +679,7 @@ void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
 \date 08/30/2019
 \param[in] div The division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
 {
    static const std::string callerID = "EdgeFaceConn";
@@ -725,7 +725,7 @@ void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
 \date 04/13/2020
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FaceEdgeConn(int div)
 {
    static const std::string callerID = "EdgeFaceConn";
@@ -752,7 +752,7 @@ void SphericalTesselation<poly_type, max_division>::FaceEdgeConn(int div)
 \date 08/30/2019
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
 {
    static const std::string callerID = "FaceFaceConn";

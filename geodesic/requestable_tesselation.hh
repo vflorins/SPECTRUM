@@ -21,7 +21,7 @@ namespace Spectrum {
 \brief A helper base class extended tesselation class that can generate flat addressing for the elements suitable for sectors
 \author Vladimir Florinski
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 class RequestableTesselation : public SphericalTesselation<poly_type, max_division>
 {
 protected:

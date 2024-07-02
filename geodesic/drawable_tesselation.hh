@@ -21,7 +21,7 @@ namespace Spectrum {
 \brief An extension of SphericalTesselation to generate figures and print debug information
 \author Vladimir Florinski
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 class DrawableTesselation : public SphericalTesselation<poly_type, max_division>
 {
 protected:

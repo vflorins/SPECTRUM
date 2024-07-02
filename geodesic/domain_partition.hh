@@ -97,12 +97,25 @@ SPECTRUM_DEVICE_FUNC inline std::pair<int, int> DistributeEvenly(int n, int m)
 
 This is a base class of a simulation control program. It assembles the mesh out of individual grid blocks and tells the blocks which data operations to perform. Only a single instance per process is permitted.
 */
+template <typename datatype, typename blocktype>
 class DomainPartition
 {
 protected:
 
 //! Whether this is a parallel or a serial run
    bool is_parallel = false;
+
+//! Number of vertices per face
+   static constexpr int verts_per_face = VERTS_PER_FACE;
+
+//! Number of edges meeting at a vertex
+   static constexpr int edges_per_vert = EdgesAtVert<verts_per_face>();
+
+//! Number of participating slabs per site (= number of exchange sites per slab)
+   const int n_slab_parts[N_NBRTYPES] = {2, 1, 2, 1, 2};
+
+//! Number of participating sectors per site
+   const int n_sect_parts[N_NBRTYPES] = {1, 2, 2, edges_per_vert, edges_per_vert};
 
 //! MPI configuration object
    std::shared_ptr<MPI_Config> mpi_config;
@@ -140,14 +153,11 @@ protected:
 //! Ranks of processes owning each block
    int* block_ranks = nullptr;
 
-//! Total number of exchange sites
-   int exch_site_count[N_NBRTYPES];
-
 //! Global array of exchange sites
-   std::vector<ExchangeSite<ConservedVariables>> exch_sites[N_NBRTYPES];
+   std::vector<ExchangeSite<datatype>> exch_sites[N_NBRTYPES];
 
 //! Local simulation blocks 
-   std::vector<BufferedBlock<VERTS_PER_FACE>> blocks_local;
+   std::vector<blocktype> blocks_local;
 
 //! Local exchange sites indices
    std::vector<int> exch_site_idx[N_NBRTYPES];
@@ -187,6 +197,9 @@ public:
 //! Set up the exchange sites
    void SetUpExchangeSites(void);
 
+//! Assign exchange site objects to blocks
+   void ExportExchangeSites(void);
+
 //! Perform the exchange
    void ExchangeAll(void);
 };
@@ -196,7 +209,8 @@ public:
 \param[in] sector Sector index
 \return The global block index
 */
-inline int DomainPartition::GetBlockIndex(int slab, int sector) const
+template <typename datatype, typename blocktype>
+inline int DomainPartition<datatype, blocktype>::GetBlockIndex(int slab, int sector) const
 {
    return slab * n_sectors + sector;
 };
@@ -205,7 +219,8 @@ inline int DomainPartition::GetBlockIndex(int slab, int sector) const
 \param[in] bidx Block index
 \return Slab index
 */
-inline int DomainPartition::GetSlab(int bidx) const
+template <typename datatype, typename blocktype>
+inline int DomainPartition<datatype, blocktype>::GetSlab(int bidx) const
 {
    return bidx / n_slabs;
 };
@@ -214,7 +229,8 @@ inline int DomainPartition::GetSlab(int bidx) const
 \param[in] bidx Block index
 \return Sector index
 */
-inline int DomainPartition::GetSector(int bidx) const
+template <typename datatype, typename blocktype>
+inline int DomainPartition<datatype, blocktype>::GetSector(int bidx) const
 {
    return bidx % n_slabs;
 };
