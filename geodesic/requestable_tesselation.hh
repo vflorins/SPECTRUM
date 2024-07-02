@@ -38,6 +38,7 @@ protected:
    using SphericalTesselation<poly_type, max_division>::ef_con;
    using SphericalTesselation<poly_type, max_division>::fv_con;
    using SphericalTesselation<poly_type, max_division>::fe_con;
+   using SphericalTesselation<poly_type, max_division>::NVertNbrs;
 
 //! Return the smallest possible division for a given face index.
    SPECTRUM_DEVICE_FUNC int GetMinDivision(int face) const;
@@ -63,7 +64,20 @@ public:
    RequestableTesselation(void) = default;
 
 //! Return the edges and vertices of a face and their EF and VF tables
-   void ExchangeSites(int div, int face, int* edges, int* const* ef, int* vertices, int* const* vf) const;
+// TODO retire this function?
+//   void ExchangeSites(int div, int face, int* edges, int* const* ef, int* vertices, int* const* vf) const;
+
+//! Return the edge neighbors of a face
+   int EdgeNeighborsOfFace(int div, int face, int* edges) const;
+
+//! Return the vertex neighbors of a face
+   int VertNeighborsOfFace(int div, int face, int* verts) const;
+
+//! Return the face neighbors of an edge
+   int FaceNeighborsOfEdge(int div, int edge, int* faces) const;
+
+//! Return the face neighbors of a vertex
+   int FaceNeighborsOfVert(int div, int vert, int* faces) const;
 
 //! Return the vertices of a single t-face.
    void FaceVertCoords(int div, int face, GeoVector* v) const;

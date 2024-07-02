@@ -135,7 +135,10 @@ protected:
    int thinner_slab_height;
 
 //! Radii of all slab interfaces
-   double* slab_interfaces;
+   double* slab_interfaces = nullptr;
+
+//! Ranks of processes owning each block
+   int* block_ranks = nullptr;
 
 //! Total number of exchange sites
    int exch_site_count[N_NBRTYPES];

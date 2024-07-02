@@ -158,6 +158,7 @@ SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::Desce
 \param[out] vertices Vertices of this face
 \param[out] vf       VF connectivity for each vertex
 */
+/*
 template <PolyType poly_type, int max_division>
 void RequestableTesselation<poly_type, max_division>::ExchangeSites(int div, int face, int* edges, int* const* ef, int* vertices, int* const* vf) const
 {
@@ -176,6 +177,67 @@ void RequestableTesselation<poly_type, max_division>::ExchangeSites(int div, int
       vertices[iv] = vert;
       memcpy(vf[iv], vf_con[div][vert], edges_per_vert[div] * SZINT);
    };
+};
+*/
+
+/*!
+\author Vladimir Florinski
+\date 07/01/2024
+\param[in]  div   Division
+\param[in]  face  Face index
+\param[out] edges The edges of this face
+\return Number of edge neighbors
+*/
+template <PolyType poly_type, int max_division>
+int RequestableTesselation<poly_type, max_division>::EdgeNeighborsOfFace(int div, int face, int* edges) const
+{
+   memcpy(edges, fe_con[div][face], verts_per_face[div] * SZINT);
+   return verts_per_face[div];
+};
+
+/*!
+\author Vladimir Florinski
+\date 07/01/2024
+\param[in]  div   Division
+\param[in]  face  Face index
+\param[out] verts The vertices of this face
+\return Number of vertex neighbors
+*/
+template <PolyType poly_type, int max_division>
+int RequestableTesselation<poly_type, max_division>::VertNeighborsOfFace(int div, int face, int* verts) const
+{
+   memcpy(verts, fv_con[div][face], verts_per_face[div] * SZINT);
+   return verts_per_face[div];
+};
+
+/*!
+\author Vladimir Florinski
+\date 07/01/2024
+\param[in]  div   Division
+\param[in]  edge  Edge index
+\param[out] faces Two faces that share this edge
+\return Number of face neighbors
+*/
+template <PolyType poly_type, int max_division>
+int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfEdge(int div, int edge, int* faces) const
+{
+   memcpy(faces, ef_con[div][edge], 2 * SZINT);
+   return 2;
+};
+
+/*!
+\author Vladimir Florinski
+\date 07/01/2024
+\param[in]  div   Division
+\param[in]  vert  Vertex index
+\param[out] faces List of faces that share this vertex
+\return Number of face neighbors
+*/
+template <PolyType poly_type, int max_division>
+int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfVert(int div, int vert, int* faces) const
+{
+   memcpy(faces, vf_con[div][vert], NVertNbrs(div, vert) * SZINT);
+   return NVertNbrs(div, vert);
 };
 
 /*!

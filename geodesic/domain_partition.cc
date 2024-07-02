@@ -63,6 +63,8 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
    slab_interfaces[0] = distance_map->GetPhysical(0.0);
    slab_interfaces[n_slabs] = distance_map->GetPhysical(1.0);
 
+   block_ranks = new int[n_blocks];
+
 // Assign blocks in a round-robin fashion. The vector creates copies of an empty template block; the actual memory allocation happens within the vector.
    bidx = 0;
    BufferedBlock<VERTS_PER_FACE> block_templ;
@@ -105,6 +107,7 @@ DomainPartition::DomainPartition(int n_shells, const std::shared_ptr<DistanceBas
 DomainPartition::~DomainPartition()
 {
    delete[] slab_interfaces;
+   delete[] block_ranks;
 };
 
 /*!
@@ -133,7 +136,7 @@ int DomainPartition::LocateBlock(const GeoVector& pos) const
 */
 void DomainPartition::SetUpExchangeSites(void)
 {
-   int site;
+   int sector_width, slab, slab_i, face, edge, vert, is, is_lo, is_hi, sidx, bidx, part;
    NeighborType ntype;
 
 // Figure out the number of sites of each type
@@ -143,26 +146,54 @@ void DomainPartition::SetUpExchangeSites(void)
    exch_site_count[GEONBR_REDGE] =  n_slabs      * tesselation.NVerts(sector_division);
    exch_site_count[GEONBR_VERTX] = (n_slabs + 1) * tesselation.NVerts(sector_division);
 
-// TODO Create the exchange sites
    ExchangeSite<ConservedVariables> exch_site_templ;
-   for(ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
-      for(site = 0; site < exch_site_count[ntype]; site++) {
-         exch_sites[ntype].push_back(exch_site_templ);
 
+// Initialize two buffered blocks, one for thinner slabs and one for thicker slabs.
+   sector_width = Pow2(face_division - sector_division);
+   BufferedBlock<VERTS_PER_FACE> block_temp_thin, block_temp_thick;
+   block_temp_thin .SetDimensions(sector_width, GHOST_WIDTH, thinner_slab_height    , GHOST_HEIGHT, false);
+   block_temp_thick.SetDimensions(sector_width, GHOST_WIDTH, thinner_slab_height + 1, GHOST_HEIGHT, false);
 
+   int n_parts, buf_size;
 
+// Make the arrays large enough for any site
+   int ranks[12], labels[12];
 
+// TFACE
+   sidx = 0;
 
+// The TFACE buffer size does not depend on the slab thickness
+   buf_size = block_temp_thin.GetBufferSize(GEONBR_TFACE);
 
+   for(slab_i = 0; slab_i <= n_slabs; slab_i++) {
+      for(face = 0; face < tesselation.NFaces(sector_division); face++) {
+         exch_sites[GEONBR_TFACE].push_back(exch_site_templ);
 
+// Take care of the boundaries
+         is_lo = (slab_i == n_slabs ? 1 : 0);
+         is_hi = (slab_i == 0       ? 0 : 1);
+         n_parts = is_hi - is_lo + 1;
+         part = 0;
 
-         
-//         exch_sites[ntype].back().SetUpProperties(.....);
+// Loop over participating slabs (either 1 or 2)
+         for(is = is_lo; is <= is_hi; is++) {
+            bidx = (slab_i + is) * tesselation.NFaces(sector_division);
+            labels[part] = bidx;
+            ranks[part] = block_ranks[bidx];
 
-// This is a local site, add it to the list
-         if(exch_sites[ntype].back().site_comm != MPI_COMM_NULL) exch_site_idx[ntype].push_back(site);
+            part++;
+         };
+            
+// Initialize the exchange site and add it to the list if it is local to this process
+         exch_sites[GEONBR_TFACE].back().SetUpProperties(sidx, n_parts, buf_size, ranks, labels, mpi_config);
+         if(exch_sites[GEONBR_TFACE].back().site_comm != MPI_COMM_NULL) exch_site_idx[GEONBR_TFACE].push_back(sidx);
+         sidx++;
       };
-   };
+   };         
+
+// RFACE
+
+
 
 // TODO Generate list of exchange sites for each block
 

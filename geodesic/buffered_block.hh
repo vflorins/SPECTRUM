@@ -159,6 +159,9 @@ public:
 //! Assign exchange site communicators
    void ImportExchangeSites(NeighborType ntype, std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_in);
 
+//! Return the size of the buffer (in units of ConservedVariables)
+   int GetBufferSize(NeighborType ntype) const {return buf_volume[ntype];};
+
 //! Pack ghost regions for exchange
    void PackBuffers(NeighborType ntype);
 
