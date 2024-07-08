@@ -101,13 +101,6 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
    Delete2D(geom_matr_LU);
 
 // Free up stencils
-   for(auto pface = 0; pface < n_faces_withghost; pface++) {
-      if(BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
-         for(auto stencil = 0; stencil < n_stencils; stencil++) {
-            delete[] stencil_zonelist[pface][stencil];
-         };
-      };
-   };
    Delete2D(stencil_zonelist);
 
 // Free up storage for geometric properties
