@@ -94,7 +94,7 @@ const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "do
 \brief A class describing a convex regular polyhedron
 \author Vladimir Florinski
 */
-template <PolyType poly_type>
+template <int poly_type>
 class Polyhedron : public Schlafli
 {
 protected:
@@ -148,7 +148,7 @@ public:
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 {
    Setup();
@@ -169,7 +169,7 @@ SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::~Polyhedron()
 {
    delete[] vlat;
