@@ -83,27 +83,37 @@ void TrajectoryParker::FieldAlignedFrame(void)
 void TrajectoryParker::DiffusionCoeff(void)
 try {
    int i,j;
-   double Kappa, Kperp_tmp, Kpara_tmp, Kappa_tmp, delta = incr_dmax_ratio * _spdata.dmax;
+   double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
+   double delta = incr_dmax_ratio * _spdata.dmax;
    GeoVector pos_tmp;
-   SpatialData spdata_tmp;
-// TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_tmp._mask" should include more fields.
-   spdata_tmp._mask = BACKGROUND_B;
+   SpatialData spdata_forw, spdata_back;
+// TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
+   spdata_forw._mask = BACKGROUND_B;
+   spdata_back._mask = BACKGROUND_B;
 
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor
    Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
    Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
 
-// Loop over dimensions to find derivatives of Kappa
+// Loop over dimensions to find derivatives of Kappa.
+// TODO: check if CommonFields returns a STATE_INVALID flag and revert to forward/backward (1st order) FD.
    divK = gv_zeros;
    for(j = 0; j < 3; j++) {
+// Forward evaluation
       pos_tmp = _pos + delta * cart_unit_vec[j];
-      CommonFields(_t, pos_tmp, spdata_tmp);
-      Kperp_tmp = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_tmp);
-      Kpara_tmp = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_tmp);
+      CommonFields(_t, pos_tmp, _mom, spdata_forw);
+      Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_forw);
+      Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_forw);
+// Backward evaluation
+      delta *= 2.0;
+      pos_tmp[j] -= delta;
+      CommonFields(_t, pos_tmp, _mom, spdata_back);
+      Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_back);
+      Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_back);
       for(i = 0; i < 3; i++) {
-         Kappa = Kperp * (i == j ? 1.0 : 0.0) + (Kpara - Kperp) * _spdata.bhat[j] * _spdata.bhat[i];
-         Kappa_tmp = Kperp_tmp * (i == j ? 1.0 : 0.0) + (Kpara_tmp - Kperp_tmp) * spdata_tmp.bhat[j] * spdata_tmp.bhat[i];
-         divK[i] += (Kappa_tmp - Kappa) / delta;
+         Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * spdata_forw.bhat[j] * spdata_forw.bhat[i];
+         Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * spdata_back.bhat[j] * spdata_back.bhat[i];
+         divK[i] += (Kappa_forw - Kappa_back) / delta;
       };
    };
 }
@@ -152,9 +162,14 @@ void TrajectoryParker::DriftCoeff(void)
 {
 #ifdef TRAJ_PARKER_USE_B_DRIFTS
 // Compute |B|*curl(b/|B|)
-   drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag() ^ _spdata.bhat)) / _spdata.Bmag;
+   drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag ^ _spdata.bhat)) / _spdata.Bmag;
 // Scale by pvc/3q|B| = r_L*v/3
    drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
+// Scale magnitude to an upper limit of v/2 if necessary.
+   if(drift_vel.Norm() > 0.5 * _vel[0]) {
+      drift_vel.Normalize();
+      drift_vel *= 0.5 * _vel[0];
+   };
 // Add bulk flow velocity
    drift_vel += _spdata.Uvec;
 #else

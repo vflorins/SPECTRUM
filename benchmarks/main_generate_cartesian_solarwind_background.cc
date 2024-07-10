@@ -34,6 +34,9 @@ int main(void)
 
 // ========== PARKER SPIRAL ==========
 
+// Initial time
+   container.Insert(0.0);
+
 // Origin
    container.Insert(gv_zeros);
 

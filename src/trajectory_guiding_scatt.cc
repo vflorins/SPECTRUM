@@ -124,7 +124,7 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
 
 // Get diffusion slope and derivative of diffusion slope
    b = sqrt(2.0 * Dmumu);
-   dmu = small * (mu + small < 1.0 ? 1.0 : -1.0);
+   dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
    mom_conv[1] += dmu;
    Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _spdata);
    b1 = (sqrt(2.0 * Dmumu_new) - b) / dmu;
@@ -189,7 +189,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       mom_conv[1] = mu_new;
       Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
 
-      dmu = small * (mom_conv[1] + small < 1.0 ? 1.0 : -1.0);
+      dmu = sp_small * (mom_conv[1] + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] += dmu;
 
       Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
@@ -224,7 +224,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       slope_Dmumu[2] = sqrt(2.0 * Dmumu);
 
 // Compute additional fit term
-      dmu = small * (mu + small < 1.0 ? 1.0 : -1.0);
+      dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] = mu + dmu;
       Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _spdata);
       dfit = (sqrt(2.0 * Dmumu_new) - slope_Dmumu[0]) / dmu;

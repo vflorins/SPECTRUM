@@ -45,16 +45,16 @@ namespace Spectrum {
 #define BITS_LOWERED(value, bits) (!((value) & (bits)))
 
 //! A large number, according to the code
-#define large 1.0E20
+#define sp_large 1.0E20
 
 //! A small number, according to the code
-#define little 1.0E-5
+#define sp_little 1.0E-5
 
 //! A smaller number, according to the code
-#define small 1.0E-8
+#define sp_small 1.0E-8
 
 //! An even smaller number, according to the code
-#define miniscule 1.0E-12
+#define sp_miniscule 1.0E-12
 
 //! A very small number, according to the code
 #define sp_tiny 1.0E-15

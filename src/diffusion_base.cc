@@ -123,15 +123,15 @@ double DiffusionBase::GetComponent(int comp, double t_in, const GeoVector& pos_i
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 10/18/2022
+\date 07/12/2024
 \param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \return Directional derivative
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
 double DiffusionBase::GetDirectionalDerivative(int xyz)
 {
-   double _t_saved, Bmag_saved, derivative;
-   GeoVector _pos_saved, Bvec_saved, Kappa_saved;
+   double _t_saved, Bmag_saved, derivative, _dr, _dt;
+   GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;
 
 // Save diffusion and field values at "current" position
    Kappa_saved = Kappa;
@@ -142,12 +142,30 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
    if(0 <= xyz && xyz <= 2) {
 // Save position, compute increment
       _pos_saved = _pos;
-      _pos += _spdata._dr[xyz] * cart_unit_vec[xyz];
+
 //FIXME: This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough. However, when analytic derivatives are used, "_dr" is not modified after the initial setup, which could result in a bad approximation when "dmax" < "dmax0".
-      _spdata.Bvec += _spdata.gradBvec * (_spdata._dr[xyz] * cart_unit_vec[xyz]);
-      _spdata.Bmag = _spdata.Bvec.Norm();
-      EvaluateDiffusion();
-      derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / _spdata._dr[xyz];
+      _dr = 0.5 * _spdata._dr[xyz];
+      if(_spdata._dr_forw_fail[xyz]) {
+         _pos[xyz] += _dr;
+         _spdata.Bvec += _spdata.gradBvec.row[xyz] * _dr;
+         _spdata.Bmag += _spdata.gradBmag[xyz] * _dr;
+         EvaluateDiffusion();
+         Kappa_forw[comp_eval] = Kappa[comp_eval];
+      }
+      else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      _dr *= 2.0;
+      if(_spdata._dr_back_fail[xyz]) {
+         _pos[xyz] -= _dr;
+         _spdata.Bvec -= _spdata.gradBvec.row[xyz] * _dr;
+         _spdata.Bmag -= _spdata.gradBmag[xyz] * _dr;
+         EvaluateDiffusion();
+         Kappa_back[comp_eval] = Kappa[comp_eval];
+      }
+      else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      if(_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _dr *= 0.5;
+
+      derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dr;
+
 // Restore position
       _pos = _pos_saved;
    }
@@ -155,15 +173,34 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
    else {
 // Save time, compute increment
       _t_saved = _t;
-      _t += _spdata._dt;
+
 //FIXME: A similar comment as the one in the spatial derivatives applies here for "_dt".
-      _spdata.Bvec += _spdata.dBvecdt * _spdata._dt;
-      _spdata.Bmag = _spdata.Bvec.Norm();
-      EvaluateDiffusion();
-      derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / _spdata._dt;
+      _dt = 0.5 * _spdata._dt;
+      if(_spdata._dt_forw_fail) {
+         _t += _dt;
+         _spdata.Bvec += _spdata.dBvecdt * _dt;
+         _spdata.Bmag += _spdata.dBmagdt * _dt;
+         EvaluateDiffusion();
+         Kappa_forw[comp_eval] = Kappa[comp_eval];
+      }
+      else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      _t += 2.0;
+      if(_spdata._dt_back_fail) {
+         _t -= _dt;
+         _spdata.Bvec -= _spdata.dBvecdt * _dt;
+         _spdata.Bmag -= _spdata.dBmagdt * _dt;
+         EvaluateDiffusion();
+         Kappa_back[comp_eval] = Kappa[comp_eval];
+      }
+      else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      if(_spdata._dt_forw_fail || _spdata._dt_back_fail) _dt *= 0.5;
+
+      derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dt;
+
 // Restore position
       _t = _t_saved;
    };
+
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
    _spdata.Bvec = Bvec_saved;
@@ -189,7 +226,7 @@ double DiffusionBase::GetMuDerivative(void)
    mu_saved = mu;
 
 // Mu derivative (momentum is in (p,mu,phi) coordinates)
-   dmu = small * (mu + small < 1.0 ? 1.0 : -1.0);
+   dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
 #if TRAJ_TYPE != TRAJ_PARKER
    mu += dmu;
    st2 = 1.0 - Sqr(mu);

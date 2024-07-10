@@ -96,6 +96,17 @@ void BackgroundCartesian::EvaluateBackgroundDerivatives(void)
    if(BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) NumericalDerivatives();
 };
 
+#if SERVER_INTERP_ORDER > 0
+/*!
+\author Juan G Alonso Guzman
+\date 06/17/2024
+*/
+void BackgroundCartesian::EvaluateBmag(void)
+{
+// If variables are interpolated, override this function to be empty, and interpolation will happen within "GetVariables".
+};
+#endif
+
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
