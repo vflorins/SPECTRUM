@@ -565,7 +565,7 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
 void DistributionSpectrumKineticEnergyBentPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
    DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot();
-// The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
+// The original power law, regardless of which quantity it represents, is divided by a term to produce the second power law when "kin_energy" >> "T_b".
    this->_weight /= (1.0 + pow(kin_energy / T_b, pow_law_comb));
 };
 
