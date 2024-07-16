@@ -248,7 +248,7 @@ void BackgroundBase::NumericalDerivatives(void)
    _spdata._mask >>= mask_offset;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = LarmorRadius(_mom[0], _spdata.Bmag, specie);
+      r_g = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
       fa_basis.row[2] = _spdata.bhat;
@@ -298,7 +298,7 @@ void BackgroundBase::NumericalDerivatives(void)
    _spdata._mask >>= mask_offset;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie);
+      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), _spdata.dmax / Vel(_mom[0]));
       DirectionalDerivative(3);
    };
 
@@ -404,6 +404,7 @@ void BackgroundBase::StopServerFront(void)
 */
 double BackgroundBase::GetSafeIncr(const GeoVector& dir)
 {
+//FIXME: This is incomplete.
    return incr_dmax_ratio * _spdata.dmax;
 };
 
@@ -426,7 +427,7 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVe
    };
 
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
-   SetState(t_in + t0, pos_in, mom_in);
+   SetState(t_in, pos_in, mom_in);
    EvaluateDmax();
    if(BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 

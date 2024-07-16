@@ -9,8 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "background_vlism_bochum.hh"
 #include <gsl/gsl_sf_ellint.h>
-#include <iostream>
-#include <iomanip>
 
 namespace Spectrum {
 

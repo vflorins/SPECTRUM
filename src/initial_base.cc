@@ -8,8 +8,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "initial_base.hh"
-#include <iostream> // std::cout
-#include <fstream> // std::ifsteam
+#include <iostream>
+#include <fstream>
 
 namespace Spectrum {
 
@@ -103,9 +103,36 @@ GeoVector InitialBase::GetSample(const GeoVector& axis_in)
    axis = UnitVec(axis_in);
    EvaluateInitial();
 
-// Return the internal position or momentum
+// Return the internal position or momentum. Initial time will never be assigned this way.
    if(BITS_RAISED(_status, INITIAL_SPACE)) return _pos;
    else return _mom;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialTime methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2024
+*/
+InitialTime::InitialTime(void)
+           : InitialBase(init_name_time, 0, INITIAL_TIME)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2024
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
+*/
+InitialTime::InitialTime(const InitialTime& other)
+           : InitialBase(other)
+{
+   RAISE_BITS(_status, INITIAL_TIME);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

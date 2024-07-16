@@ -53,6 +53,7 @@ This file contains benchmark tests for SPECTRUM.
    - Trajectory type: fieldline
    - Field type: solarwind
    - Expected result: The trajectory should trace the Parker spiral magnetic field.
+   - Notes: Make sure that "SOLARWIND_CURRENT_SHEET" is  (#)defined as 0 in src/background_solarwind.hh.
 
 - INITIAL CONDITION RECORDS TEST
    - File: main_test_init_cond_records.cc
@@ -65,4 +66,4 @@ This file contains benchmark tests for SPECTRUM.
    - Trajectory type: parker
    - Field type: cartesian
    - Expected result: An initial spectrum given by a power law in differential density should be modulated through a uniformly discretized parker spiral (via a cartesian background). The auxiliary file 'main_postprocess_modulation_cartesian_parker.cc' post-processed the data to differential intensity and outputs it to 'test_modulation_cartesian_TrajectoryParker_spectrum_pp.dat' along with an approximate theoretical solution given by Fisk & Axford (1969). The solutions should match well with perhaps a small discrepancy at low energies but very good agreement at high energies.
-   - Notes: Make sure that "DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE" is (#)defined as 0 in src/distribution_other.hh. In addition, all server units must match spectrum fluid units, and the "SERVER_VAR_INDEX_" for "FLO", "MAG", and "ELE" must be set to 0, 3, and 6, respectively, in src/server_base.hh. Finally, "block_size_cartesian" should be set to (4,4,4) in src/reader_cartesian.hh, and "n_variables_cartesian" must be set to 9 in src/block_cartesian.hh.
+   - Notes: Make sure that "DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE" is (#)defined as 0 in src/distribution_other.hh. In addition, all server units must match spectrum fluid units, and the "SERVER_VAR_INDEX_" for "FLO", "MAG", and "ELE" must be set to 0, 3, and 6, respectively, in src/server_base.hh. Also, "block_size_cartesian" should be set to (4,4,4) in src/reader_cartesian.hh, and "n_variables_cartesian" must be set to 9 in src/block_cartesian.hh. Finally, the line (#)defining "TRAJ_PARKER_USE_B_DRIFTS" must be commented out in src/trajectory_parker.hh.

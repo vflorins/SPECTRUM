@@ -7,7 +7,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "trajectory_lorentz.hh"
-#include <iostream>
 
 namespace Spectrum {
 

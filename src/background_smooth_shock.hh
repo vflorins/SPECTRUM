@@ -13,7 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-
 //! Flag to control smoothness of shock
 #define SMOOTH_SHOCK_ORDER 1
 

@@ -35,7 +35,8 @@ int main(void)
 // ========== PARKER SPIRAL ==========
 
 // Initial time
-   container.Insert(0.0);
+   double t0 = 0.0;
+   container.Insert(t0);
 
 // Origin
    container.Insert(gv_zeros);
@@ -106,7 +107,7 @@ int main(void)
    GeoVector zone_length = (block_length) / block_size; // length of each zone
    GeoVector delta = 0.5 * zone_length; // half-length of each zone
    double t = 0.0; // time at which to output data
-   GeoVector center_min, pos; // position vectors
+   GeoVector center_min, pos, mom; // position vectors
    MultiIndex block_idx, zone_idx; // block and zone indices
 
    std::cerr << "Outputting data file. Progress:     ";
@@ -130,7 +131,7 @@ int main(void)
                   for(iz = 0; iz < block_size[0]; iz++) {
                      zone_idx.i = iz;
                      pos = center_min + zone_idx * zone_length;
-                     background.GetFields(t, pos, spdata);
+                     background.GetFields(t, pos, mom, spdata);
                      for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Uvec[var]), sizeof(double));
                      for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Bvec[var]), sizeof(double));
                      for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Evec[var]), sizeof(double));

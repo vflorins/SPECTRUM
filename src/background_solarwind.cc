@@ -131,12 +131,13 @@ void BackgroundSolarWind::EvaluateBackground(void)
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
-   t_lag = TimeLag(r) - _t;
+   t_lag = TimeLag(r) - (_t - t0);
 // Constant tilt
    tilt_amp = tilt_ang_sw;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Variable tilt
-   tilt_amp += dtilt_ang_sw * cos(2.0 * W0_sw * t_lag);
+   double arg = 2.0 * W0_sw * t_lag;
+   tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
 #endif
 #endif
 #if SOLARWIND_SECTORED_REGION >= 1
@@ -214,7 +215,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
       if(acos(costheta) > M_PI_2 + tilt_amp * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes
-      if(sin(W0_sw * t_lag) < 0.0) _spdata.Bvec *= -1.0;
+      if(sin(W0_sw * t_lag) > 0.0) _spdata.Bvec *= -1.0;
 #endif
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);

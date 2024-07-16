@@ -8,8 +8,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "block_batl.hh"
-#include <iostream>
-#include <iomanip>
 
 namespace Spectrum {
 

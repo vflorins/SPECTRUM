@@ -233,11 +233,16 @@ catch(ExBoundaryError& exception) {
 
 /*!
 \author Vladimir Florinski
-\date 01/04/2024
+\author Juan G Alonso Guzman
+\date 07/01/2024
 */
 void TrajectoryBase::CommonFields(void)
 try {
-   background->GetFields(_t, _pos, ConvertMomentum(), _spdata);
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
+   background->GetFields(icond_t+_t, _pos, ConvertMomentum(), _spdata);
+#else
+   background->GetFields(icond_t-_t, _pos, ConvertMomentum(), _spdata);
+#endif
 }
 
 catch(ExUninitialized& exception) {
@@ -263,7 +268,7 @@ catch(ExServerError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 01/04/2024
+\date 07/01/2024
 \param[in]  t_in   Time at which to compute fields
 \param[in]  pos_in Position at which to compute fields
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
@@ -271,7 +276,11 @@ catch(ExServerError& exception) {
 */
 void TrajectoryBase::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
 try {
-   background->GetFields(t_in, pos_in, mom_in, spdata);
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
+   background->GetFields(icond_t+t_in, pos_in, mom_in, spdata);
+#else
+   background->GetFields(icond_t-t_in, pos_in, mom_in, spdata);
+#endif
 }
 
 catch(ExUninitialized& exception) {
@@ -627,6 +636,7 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    int bnd;
 
    Params::SetSpecie(specie_in);
+// The factor multiplying "charge[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
    q = charge_mass_particle * charge[specie];
    if(background != nullptr) background->SetSpecie(specie);
    if(diffusion != nullptr) diffusion->SetSpecie(specie);
@@ -707,14 +717,21 @@ void TrajectoryBase::AddBoundary(const BoundaryBase& boundary_in, const DataCont
 
 /*!
 \author Vladimir Florinski
-\date 05/27/2022
+\date 07/01/2022
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
 void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
+// Time condition
+   if(BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
+      SetContainer(container_in);
+      container.Reset();
+      container.Read(&icond_t);
+   }
+
 // Spatial condition
-   if(BITS_RAISED(initial_in.GetStatus(), INITIAL_SPACE)) {
+   else if(BITS_RAISED(initial_in.GetStatus(), INITIAL_SPACE)) {
       icond_s = initial_in.Clone();
       icond_s->SetSpecie(specie);
       icond_s->ConnectRNG(rng);
@@ -727,7 +744,7 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
       icond_m->SetSpecie(specie);
       icond_m->ConnectRNG(rng);
       icond_m->SetupObject(container_in);
-   }
+   };
 
    if(IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
@@ -868,21 +885,25 @@ try {
 // Starting time is always zero
    _t = 0.0;
 
-// Get the starting position from the distribution and obtain the fields for that position
+// Get the starting position from the distribution.
    _pos = icond_s->GetSample(gv_ones);
+// Get a momentum sample along an arbitrary axis (bhat is unknown at this step). Only the momentum magnitude is needed for the first call to CommonFields().
+   _mom = icond_m->GetSample(gv_ones);
+
+// Obtain the fields for that position
    _spdata._mask = BACKGROUND_ALL | BACKGROUND_gradALL | BACKGROUND_dALLdt;
    spdata0._mask = BACKGROUND_ALL | BACKGROUND_gradALL | BACKGROUND_dALLdt;
    CommonFields();
 
-// Record the initial spatial data for distribution purposes
+// Record the initial spatial data for distribution purposes.
    spdata0 = _spdata;
 #ifdef RECORD_BMAG_EXTREMA
-// Initialize field extrema
+// Initialize field extrema.
    _spdata.Bmag_min = _spdata.Bmag;
    _spdata.Bmag_max = _spdata.Bmag;
 #endif
 
-// Get the starting momentum from the distribution
+// Get the starting momentum from the distribution along the correct axis (bhat is now determined).
    _mom = icond_m->GetSample(_spdata.bhat);
    _vel = Vel(_mom, specie);
 

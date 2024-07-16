@@ -19,23 +19,26 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Condition is in time
+const uint16_t INITIAL_TIME = 0x0010;
+
 //! Condition is in space
-const uint16_t INITIAL_SPACE = 0x0010;
+const uint16_t INITIAL_SPACE = 0x0020;
 
 //! Condition is in momentum
-const uint16_t INITIAL_MOMENTUM = 0x0020;
+const uint16_t INITIAL_MOMENTUM = 0x0040;
 
 //! Condition is a single point
-const uint16_t INITIAL_POINT = 0x0040;
+const uint16_t INITIAL_POINT = 0x0080;
 
 //! Condition is a curve
-const uint16_t INITIAL_CURVE = 0x0080;
+const uint16_t INITIAL_CURVE = 0x0100;
 
 //! Condition is a surface
-const uint16_t INITIAL_SURFACE = 0x0100;
+const uint16_t INITIAL_SURFACE = 0x0200;
 
 //! Condition is a volume
-const uint16_t INITIAL_VOLUME = 0x0200;
+const uint16_t INITIAL_VOLUME = 0x0400;
 
 //! Clone function pattern
 #define CloneFunctionInitial(T) std::unique_ptr<InitialBase> Clone(void) const override {return std::make_unique<T>();};
@@ -88,11 +91,41 @@ public:
 //! Produce a realization of initial conditions based on an internal distribution function
    GeoVector GetSample(const GeoVector& axis_in);
 
+//! Tell if the class is for time
+   bool IsInitialTime(void) const;
+
 //! Tell if the class is for space coordinate
    bool IsInitialSpace(void) const;
 
 //! Tell if the class is for momentum coordinate
    bool IsInitialMomentum(void) const;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// InitialTime class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the InitialTime class
+const std::string init_name_time = "InitialTime";
+
+/*!
+\brief Initial time condition. This class doubles as the "final" time for backward simulations. This class will not be used in the same way as position or momentum initial conditions, but is included here for completion.
+\author Juan G Alonso Guzman
+
+Parameters: (InitialBase)
+*/
+class InitialTime : public InitialBase {
+
+public:
+
+//! Default constructor
+   InitialTime(void);
+
+//! Copy constructor
+   InitialTime(const InitialTime& other);
+
+//! Clone function
+   CloneFunctionInitial(InitialTime);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,6 +172,16 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialBase inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2024
+\return True if the class describes initial condition in time
+*/
+inline bool InitialBase::IsInitialTime(void) const
+{
+   return BITS_RAISED(_status, INITIAL_TIME);
+};
 
 /*!
 \author Vladimir Florinski

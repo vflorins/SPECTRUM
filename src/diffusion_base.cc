@@ -143,25 +143,25 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save position, compute increment
       _pos_saved = _pos;
 
-//FIXME: This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough. However, when analytic derivatives are used, "_dr" is not modified after the initial setup, which could result in a bad approximation when "dmax" < "dmax0".
+//This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough.
       _dr = 0.5 * _spdata._dr[xyz];
-      if(_spdata._dr_forw_fail[xyz]) {
+      if(_spdata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      else {
          _pos[xyz] += _dr;
          _spdata.Bvec += _spdata.gradBvec.row[xyz] * _dr;
          _spdata.Bmag += _spdata.gradBmag[xyz] * _dr;
          EvaluateDiffusion();
          Kappa_forw[comp_eval] = Kappa[comp_eval];
-      }
-      else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      };
       _dr *= 2.0;
-      if(_spdata._dr_back_fail[xyz]) {
+      if(_spdata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      else {
          _pos[xyz] -= _dr;
          _spdata.Bvec -= _spdata.gradBvec.row[xyz] * _dr;
          _spdata.Bmag -= _spdata.gradBmag[xyz] * _dr;
          EvaluateDiffusion();
          Kappa_back[comp_eval] = Kappa[comp_eval];
-      }
-      else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      };
       if(_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _dr *= 0.5;
 
       derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dr;

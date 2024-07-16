@@ -66,17 +66,11 @@ void TrajectoryGuiding::ModifiedFields(void)
 try {
    double rL, rR;
 
-// Compute derived quantities from vector gradient of Bvec
-   gradBmag = _spdata.gradBmag();
-   curlbhat = (_spdata.curlB() - (gradBmag ^ _spdata.bhat)) / _spdata.Bmag;
-   dBmagdt =  _spdata.dBvecdt * _spdata.bhat;
-   dbhatdt = (_spdata.dBvecdt - (dBmagdt * _spdata.bhat)) / _spdata.Bmag;
-
 // Modified fields
    rL = LarmorRadius(_mom[0], _spdata.Bmag, specie);
    rR = LarmorRadius(_mom[2], _spdata.Bmag, specie);
-   Evec_star = _spdata.Evec - rR * _spdata.Bmag * dbhatdt / c_code - rL * _vel[0] * gradBmag / (2.0 * c_code);
-   Bvec_star = _spdata.Bvec + rR * _spdata.Bmag * curlbhat;
+   Evec_star = _spdata.Evec - rR * _spdata.Bmag * _spdata.dbhatdt() / c_code - rL * _vel[0] * _spdata.gradBmag / (2.0 * c_code);
+   Bvec_star = _spdata.Bvec + rR * _spdata.Bmag * _spdata.curlbhat();
 }
 
 catch(ExFieldError& exception) {
@@ -118,7 +112,7 @@ void TrajectoryGuiding::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
    slope_pos_istage = drift_vel;
 
 #if PPERP_METHOD == 1
-   slope_mom_istage[0] = _mom[0] / 2.0 / _spdata.Bmag * (dBmagdt + drift_vel * gradBmag);
+   slope_mom_istage[0] = 0.5 * _mom[0] / _spdata.Bmag * (_spdata.dBmagdt + drift_vel * _spdata.gradBmag);
 #else
    slope_mom_istage[0] = 0.0;
 #endif
