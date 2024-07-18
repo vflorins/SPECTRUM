@@ -19,7 +19,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "src/server_config.hh"
 
 #include <memory>
-//#include <iostream>
 #ifdef USE_SILO
 #include <silo.h>
 #endif
@@ -27,7 +26,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Number of local coordinate systems in which to evaluate and average numerical derivatives
-#define BACKGROUND_NUM_GRAD_EVALS 8
+#define BACKGROUND_NUM_GRAD_EVALS 1
 
 #ifdef USE_SILO
 
@@ -88,11 +87,14 @@ inline const char* ExFieldError::what(void) const noexcept
 
 The BackgroundXXXXX" classes describe plasma condition (u, E, B, dB/dt, gradB) at an arbitrary location. In the simplest scenario these are computed analytically from a known formula. A more complex situation is when the background is provided externally, typically from a file produced from a numerical simulation. Derived classes may contain an interface to read mesh based output files and calculate field values using interpolation.
 
-Parameters: GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
+Parameters: double t0, GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
 */
 class BackgroundBase : public Params {
 
 protected:
+
+//! Initial time (persistent)
+   double t0;
 
 //! Coordinate system origin (persistent)
    GeoVector r0;

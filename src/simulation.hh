@@ -20,7 +20,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Whether to print the last trajectory
-const bool print_last_trajectory = true;
+const bool print_last_trajectory = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // SimulationWorker (base) class

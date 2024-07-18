@@ -42,7 +42,8 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial time
-   container.Insert(0.0);
+   double t0 = 0.0;
+   container.Insert(t0);
 
 // Origin
    container.Insert(gv_zeros);
@@ -116,7 +117,7 @@ int main(int argc, char** argv)
 // Duration of the trajectory
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
-   double maxtime = 10.0 * drift_period;
+   double maxtime = 1.0 * drift_period;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTimeExpire(), container);

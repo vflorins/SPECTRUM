@@ -45,18 +45,6 @@ protected:
 //! Magnetic moment (transient)
    double mag_mom;
 
-//! Time derivative of |B| (transient)
-   double dBmagdt;
-
-//! Time derivative of b (transient)
-   GeoVector dbhatdt;
-
-//! Gradient of |B| (transient)
-   GeoVector gradBmag;
-
-//! Curl of b (transient)
-   GeoVector curlbhat;
-
 //! Modified electric field (transient)
    GeoVector Evec_star;
 
@@ -122,7 +110,7 @@ public:
 */
 inline GeoVector TrajectoryGuiding::ConvertMomentum(void) const
 {
-   return GeoVector(_mom.Norm(), _mom[2] / _mom.Norm(), 0.0);
+   return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
 };
 
 

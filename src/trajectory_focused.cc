@@ -66,7 +66,7 @@ void TrajectoryFocused::DriftCoeff(void)
    ct2 = Sqr(_mom[1]);
    st2 = 1.0 - ct2;
 // Compute gradient drift
-   drift_vel = 0.5 * st2 * (_spdata.bhat ^ _spdata.gradBmag()) / _spdata.Bmag;
+   drift_vel = 0.5 * st2 * (_spdata.bhat ^ _spdata.gradBmag) / _spdata.Bmag;
 // Add curvature drift. Note that (Bvec * grad)Bvec = [Bvec]^T * [gradBvec].
    drift_vel += ( 0.5 * st2 * _spdata.bhat * (_spdata.Bvec * _spdata.curlB())
                 + ct2 * (_spdata.bhat ^ (_spdata.Bvec * _spdata.gradBvec)) ) / Sqr(_spdata.Bmag);
@@ -101,7 +101,7 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
 {
    GeoMatrix bhatbhat;
    GeoVector cdUvecdt;
-   double divbhat, bhat_cdUvecdt, bhatbhat_gradUvec, divUvec;
+   double bhat_cdUvecdt, bhatbhat_gradUvec;
 
    DriftCoeff();
    slope_pos_istage = drift_vel;
@@ -109,23 +109,19 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
 #ifndef TRAJ_FOCUSED_USE_B_DRIFTS
    st2 = 1.0 - Sqr(_mom[1]);
 #endif
-// Compute div b
-   divbhat = (_spdata.divB() - _spdata.bhat * _spdata.gradBmag()) / _spdata.Bmag;
 // Compute bb : grad U
    bhatbhat.Dyadic(_spdata.bhat);
    bhatbhat_gradUvec = bhatbhat % _spdata.gradUvec;
-// Compute div U
-   divUvec = _spdata.divU();
 // Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
    cdUvecdt = _spdata.dUvecdt + (_spdata.Uvec * _spdata.gradUvec);
    bhat_cdUvecdt = 2.0 * _spdata.bhat * cdUvecdt / _vel[0];
 
    slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 
-                                         - st2 * divUvec - _mom[1] * bhat_cdUvecdt);
+                                         - st2 * _spdata.divU() - _mom[1] * bhat_cdUvecdt);
 
 #if PPERP_METHOD == 1
-   slope_mom_istage[1] = 0.5 * st2 * ( _vel[0] * divbhat - bhat_cdUvecdt 
-                                     + _mom[1] * (divUvec - 3.0 * bhatbhat_gradUvec) );
+   slope_mom_istage[1] = 0.5 * st2 * ( _vel[0] * _spdata.divbhat() - bhat_cdUvecdt 
+                                     + _mom[1] * (_spdata.divU() - 3.0 * bhatbhat_gradUvec) );
 #else
    slope_mom_istage[1] = 0.0;
 #endif

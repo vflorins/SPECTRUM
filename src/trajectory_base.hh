@@ -170,7 +170,7 @@ protected:
 //! Initial length of trajectory containers (persistent)
    unsigned int presize = 1;
 
-//! Particle's charge to mass ratio (persistent)
+//! Particle's charge (persistent)
    double q;
 
 //! Array of distribution objects (persistent)
@@ -190,6 +190,9 @@ protected:
 
 //! Array of momentum boundary condition objects (persistent)
    std::vector <std::unique_ptr <BoundaryBase> > bcond_m;
+
+//! Initial condition in time (persistent)
+   double icond_t = 0.0;
 
 //! Initial condition in space (persistent)
    std::unique_ptr <InitialBase> icond_s = nullptr;
@@ -459,6 +462,7 @@ inline void TrajectoryBase::ConnectDistribution(const std::shared_ptr<Distributi
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 07/27/2022
+\param[in] distro index of which distribution to replace
 */
 inline void TrajectoryBase::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
@@ -468,6 +472,7 @@ inline void TrajectoryBase::ReplaceDistribution(int distro, const std::shared_pt
 /*!
 \author Juan G Alonso Guzman
 \date 07/15/2022
+\param[in] distro index of which distribution to reset
 */
 inline void TrajectoryBase::DisconnectDistribution(int distro)
 {
@@ -533,7 +538,7 @@ inline void TrajectoryBase::StoreLocal(void)
 \date 06/12/2024
 \return Momentum in (p,mu,phi) coordinates
 */
-virtual GeoVector ConvertMomentum(void) const
+inline GeoVector TrajectoryBase::ConvertMomentum(void) const
 {
    return _mom;
 };

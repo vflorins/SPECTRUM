@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "simulation.hh"
 #include "common/print_warn.hh"
 #include <numeric>
+#include <algorithm>
 
 namespace Spectrum {
 
@@ -270,9 +271,11 @@ void SimulationWorker::WorkerStart(void)
 void SimulationWorker::WorkerFinish(void)
 {
 // Print last trajectory
-// TODO possibly pad the number with zeros
    if(print_last_trajectory) {
-      std::string traj_name = "trajectory_rank" + std::to_string(mpi_config->work_comm_rank) + ".lines";
+      std::string rank_str = std::to_string(mpi_config->work_comm_rank);
+      std::string size_str = std::to_string(mpi_config->work_comm_size);
+      rank_str.insert(0, size_str.size() - rank_str.size(), '0');
+      std::string traj_name = "trajectory_rank_" + rank_str + ".lines";
       // trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
       trajectory->PrintCSV(traj_name, false, 1);
       trajectory->InterpretStatus();
@@ -773,10 +776,12 @@ void SimulationMaster::MasterFinish(void)
    PrintMessage(__FILE__, __LINE__, "Simulation completed", mpi_config->is_master);
 
 // Print last trajectory
-// TODO possibly pad the number with zeros
    if(print_last_trajectory && mpi_config->is_worker) {
-      std::string traj_name = "trajectory_rank" + std::to_string(mpi_config->work_comm_rank) + ".lines";
-      trajectory->PrintCSV(traj_name, false);
+      std::string rank_str = std::to_string(mpi_config->work_comm_rank);
+      std::string size_str = std::to_string(mpi_config->work_comm_size);
+      rank_str.insert(0, size_str.size() - rank_str.size(), '0');
+      std::string traj_name = "trajectory_rank_" + rank_str + ".lines";
+      trajectory->PrintCSV(traj_name, false, 1);
       trajectory->InterpretStatus();
    };
 

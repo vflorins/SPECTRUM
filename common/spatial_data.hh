@@ -166,12 +166,15 @@ struct SpatialData {
 
 //! Gradient of bhat
    GeoMatrix gradbhat(void);
+
+//! Time derivative of bhat
+   GeoVector dbhatdt(void);
 };
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 07/11/2024
+\date 07/02/2024
 \param[in] other Structure to copy from
 \return Reference to the object
 */
@@ -295,7 +298,7 @@ inline GeoVector SpatialData::curlE(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 07/11/2024
+\date 07/02/2024
 \return Divergence of bhat
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
@@ -306,7 +309,7 @@ inline double SpatialData::divbhat(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 07/11/2024
+\date 07/02/2024
 \return Curl of bhat
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
@@ -317,7 +320,7 @@ inline GeoVector SpatialData::curlbhat(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 07/11/2024
+\date 07/02/2024
 \return Gradient of bhat
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
@@ -326,6 +329,16 @@ inline GeoMatrix SpatialData::gradbhat(void)
    GeoMatrix mat_tmp;
    mat_tmp.Dyadic(gradBmag, bhat);
    return (gradBvec - mat_tmp) / Bmag;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/02/2024
+\return Time derivative of bhat
+*/
+inline GeoVector SpatialData::dbhatdt(void)
+{
+   return (dBvecdt - (dBmagdt * bhat)) / Bmag;
 };
 
 };

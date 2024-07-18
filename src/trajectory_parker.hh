@@ -13,11 +13,14 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Which stochastic method to use for diffusion, 0 = Euler, 1 = Milstein, 2 = RK2
+//! Which stochastic method to use for diffusion: 0 = Euler, 1 = Milstein, 2 = RK2
 #define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
 
 //! Flag to use gradient and curvature drifts in drift velocity calculation
-#define TRAJ_PARKER_USE_B_DRIFTS
+// #define TRAJ_PARKER_USE_B_DRIFTS
+
+//! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
+#define TRAJ_PARKER_DIVK_METHOD 0
 
 //! Readable name of the TrajectoryParker class
 const std::string traj_name_parker = "TrajectoryParker";

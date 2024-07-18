@@ -7,7 +7,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_smooth_shock.hh"
-#include <iostream>
 
 namespace Spectrum {
 

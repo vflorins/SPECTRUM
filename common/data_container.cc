@@ -241,8 +241,10 @@ void DataContainer::Print(void)
    _param = storage;
 
 // Print the byte decimal representation of the parameters
+   std::cout << std::hex;
+   std::cout << std::setfill('0');
    for(size_t i = 0; i < n_records; i++) {
-      for(uint8_t j = 1; j <= *_param; j++) std::cout << std::setw(4) << _param[j];
+      for(uint8_t j = 1; j <= *_param; j++) std::cout << " " << std::setw(2) << (int)_param[j];
       std::cout << std::endl;
       _param += *_param + 1;
    };
