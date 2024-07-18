@@ -298,7 +298,7 @@ void BackgroundBase::NumericalDerivatives(void)
    _spdata._mask >>= mask_offset;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), _spdata.dmax / Vel(_mom[0]));
+      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), Vel(_mom[0]) / _spdata.dmax);
       DirectionalDerivative(3);
    };
 
