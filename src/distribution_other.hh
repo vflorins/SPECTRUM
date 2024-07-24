@@ -353,8 +353,11 @@ protected:
 //! Bendover energy (persistent)
    double T_b;
 
-//! Original power law minus power law after bend (persistent)
+//! Combined power law in the denominator energy ratio (persistent)
    double pow_law_comb;
+
+//! Factor to control bend smoothness (persistent)
+   double bend_smoothness;
 
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
