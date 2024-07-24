@@ -555,7 +555,8 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
    double pow_law_b;
    this->container.Read(&T_b);
    this->container.Read(&pow_law_b);
-   pow_law_comb = pow_law - pow_law_b;
+   this->container.Read(&bend_smoothness);
+   pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
 };
 
 /*!
@@ -565,8 +566,8 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
 void DistributionSpectrumKineticEnergyBentPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
    DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot();
-// The original power law, regardless of which quantity it represents, is divided by a term to produce the second power law when "kin_energy" >> "T_b".
-   this->_weight /= (1.0 + pow(kin_energy / T_b, pow_law_comb));
+// The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
+   this->_weight /= pow(1.0 + pow(kin_energy / T_b, pow_law_comb), bend_smoothness);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
