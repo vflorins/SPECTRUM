@@ -20,7 +20,7 @@ namespace Spectrum {
 //! Heliospheric current sheet (0: disabled, 1: flat, 2: wavy (Jokipii-Thomas 1981) and static, 3: wavy and time-dependent).
 #define SOLARWIND_CURRENT_SHEET 0
 
-//! Magnetic topology region (0: nowhere, 1: same as HCS, 2: HCS + hollow sphere)
+//! Magnetic topology region (0: nowhere, 1: same as HCS)
 #define SOLARWIND_SECTORED_REGION 0
 
 //! Correction to Parker Spiral, mainly for polar regions (0: none, 1: Smith-Bieber 1991, 2: Zurbuchen et al. 1997, 3: Schwadron-McComas 2003)
@@ -28,6 +28,9 @@ namespace Spectrum {
 
 //! Latitudinal profile for bulk speed (0: constant, 1: linear step, 2: smooth step)
 #define SOLARWIND_SPEED_LATITUDE_PROFILE 0
+
+//! Heliopause radius
+const double hp_rad_sw = 117.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
 
 //! Magnetic axis tilt angle relative to the solar rotation axis
 const double tilt_ang_sw = 40.0 * M_PI / 180.0;
@@ -43,14 +46,9 @@ const double W0_sw = M_2PI / (60.0 * 60.0 * 24.0 * 365.0 * 22.0) / unit_frequenc
 const double stilt_ang_sw = 1.0;
 #endif
 
-#if SOLARWIND_SECTORED_REGION == 2
-//! Radial distance to start sectored region
-const double sectored_radius_sw = 114.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
-#endif
-
 #if SOLARWIND_POLAR_CORRECTION > 0
 //! Differential rotation factor
-const double delta_omega_sw = 0.1;
+const double delta_omega_sw = 0.05;
 #endif
 
 #if SOLARWIND_POLAR_CORRECTION == 2
