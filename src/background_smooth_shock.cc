@@ -141,19 +141,21 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-      _spdata.gradUvec = (ShockTransitionDerivative(ds_shock) / width_shock) * n_shock % (u0 - u1);
+      _spdata.gradUvec.Dyadic(n_shock, u0 - u1);
+      _spdata.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      _spdata.gradBvec = (ShockTransitionDerivative(ds_shock) / width_shock) * n_shock % (B0 - B1);
+      _spdata.gradBvec.Dyadic(n_shock, B0 - B1);
+      _spdata.gradBvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-      _spdata.gradUvec = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) % (u1 - u0);
+      _spdata.dUdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.gradBvec = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) % (b1 - b0);
+      _spdata.dBdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (b1 - b0);
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
       _spdata.dEdt = -((_spdata.dUdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBdt)) / c_code;
