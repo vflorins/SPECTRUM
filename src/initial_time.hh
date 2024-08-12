@@ -21,7 +21,7 @@ namespace Spectrum {
 const std::string init_name_time_fixed = "InitialTimeFixed";
 
 /*!
-\brief Starting points at a fixed position
+\brief Starting points at a fixed time
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), double inittime
@@ -59,7 +59,7 @@ public:
 const std::string init_name_time_interval = "InitialTimeInterval";
 
 /*!
-\brief Uniformly distributed starting points on a line segment
+\brief Uniformly distributed starting times on an interval
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), double starttime, double endtime, int n_intervals
@@ -109,7 +109,7 @@ public:
 const std::string init_name_time_table = "InitialTimeTable";
 
 /*!
-\brief Starting points from a table
+\brief Starting times from a table
 \author Juan G Alonso Guzman
 
 Parameters: (InitialTable)
