@@ -36,7 +36,7 @@ const double hp_rad_sw = 117.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_
 const double tilt_ang_sw = 40.0 * M_PI / 180.0;
 
 #if SOLARWIND_CURRENT_SHEET == 3
-//! Magnetic axis tilt angle relative to the solar rotation axis
+//! Amplitude of variation to magnetic axis tilt angle
 const double dtilt_ang_sw = 35.0 * M_PI / 180.0;
 
 //! Solar cycle frequency
@@ -67,7 +67,7 @@ const double dwp_sw = delta_omega_sw * cos(polar_offset_sw);
 const double fast_slow_ratio_sw = 2.0;
 
 //! Angle to transition between fast and slow
-const double fast_slow_lat_sw = pi_two - 30.0 * M_PI / 180.0 - tilt_ang_sw;
+const double fast_slow_lat_sw = M_PI_2 - 30.0 * M_PI / 180.0 - tilt_ang_sw;
 
 //! Transition speed coefficient
 const double fast_slow_dlat_sw = 20.0;
