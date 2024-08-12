@@ -498,16 +498,16 @@ InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
 void InitialSpaceTable::EvaluateInitial(void)
 {
    if(random) {
-// Generate random integer between 0 and initvec.size() - 1
-      table_counter = rng->GetUniform() * initvec.size();
+// Generate random integer between 0 and initquant.size() - 1
+      table_counter = rng->GetUniform() * initquant.size();
 // Pull position in randomly selected place on the table
-      _pos = initvec[table_counter];
+      _pos = initquant[table_counter];
    }
    else {
 // Pull next position on the table
-      _pos = initvec[table_counter++];
+      _pos = initquant[table_counter++];
 // If all positions have been sampled, reset the counter
-      if(table_counter == initvec.size()) table_counter = 0;
+      if(table_counter == initquant.size()) table_counter = 0;
    };
 };
 

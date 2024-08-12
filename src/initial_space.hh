@@ -320,7 +320,6 @@ public:
    CloneFunctionInitial(InitialSpaceRankineHalfBody);
 };
 
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialSpaceTable class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -334,7 +333,7 @@ const std::string init_name_space_table = "InitialSpaceTable";
 
 Parameters: (InitialTable)
 */
-class InitialSpaceTable : public InitialTable {
+class InitialSpaceTable : public InitialTable<GeoVector> {
 
 protected:
 

@@ -59,7 +59,7 @@ This file contains benchmark tests for SPECTRUM.
    - File: main_test_init_cond_records.cc
    - Trajectory type: focused
    - Field type: uniform
-   - Expected result: The records outputed to the "output_data" folder should contain a list of positions uniformly distributed over a sphere with a radius of 1AU, which corresponds to the initial distribution of particle positions.
+   - Expected result: Two files should be outputed to the "output_data" folder. The first file contains the initial time distribution in seconds, uniform between -5 and 5, binned in 100 bins. The second file contains the initial distribution of particle positions, uniform over a sphere with a radius of 1AU, in the form of a list.
 
 - MODULATION WITH CARTESIAN PARKER SPIRAL
    - File: main_test_modulation_cartesian_parker.cc

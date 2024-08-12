@@ -4,6 +4,7 @@
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
+#include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include <iostream>
@@ -75,6 +76,18 @@ int main(int argc, char** argv)
    simulation->AddBackground(BackgroundSolarWind(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time initial condition
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Initial time
+   double init_t = 0.0;
+   container.Insert(init_t);
+
+   simulation->AddInitial(InitialTimeFixed(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,13 +132,14 @@ int main(int argc, char** argv)
 // Action
    std::vector<int> actions_Sun;
    actions_Sun.push_back(-1);
+   actions_Sun.push_back(-1);
    container.Insert(actions_Sun);
 
 // Origin
    container.Insert(gv_zeros);
 
 // Radius
-   double inner_boundary = 0.05 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double inner_boundary = 0.01 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(inner_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -142,6 +156,7 @@ int main(int argc, char** argv)
 
 // Action
    std::vector<int> actions_outer;
+   actions_outer.push_back(0);
    actions_outer.push_back(0);
    container.Insert(actions_outer);
 
@@ -167,10 +182,11 @@ int main(int argc, char** argv)
 // Action
    std::vector<int> actions_time;
    actions_time.push_back(-1);
+   actions_time.push_back(-1);
    container.Insert(actions_time);
    
 // Max duration of the trajectory
-   double maxtime = 60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
+   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);
@@ -264,6 +280,55 @@ int main(int argc, char** argv)
    simulation->AddDistribution(DistributionSpectrumKineticEnergyPowerLaw(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Distribution 2 (exit time)
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Parameters for distribution
+   container.Clear();
+
+// Number of bins
+   MultiIndex n_bins2(100, 0, 0);
+   container.Insert(n_bins2);
+   
+// Smallest value
+   GeoVector minval2(0.0, 0.0, 0.0);
+   container.Insert(minval2);
+
+// Largest value
+   GeoVector maxval2(maxtime, 0.0, 0.0);
+   container.Insert(maxval2);
+
+// Linear or logarithmic bins
+   MultiIndex log_bins2(0, 0, 0);
+   container.Insert(log_bins2);
+
+// Add outlying events to the end bins
+   MultiIndex bin_outside2(1, 0, 0);
+   container.Insert(bin_outside2);
+
+// Physical units of the distro variable
+   double unit_distro2 = 1.0;
+   container.Insert(unit_distro2);
+
+// Physical units of the bin variable
+   GeoVector unit_val2 = {unit_time_fluid, 1.0, 1.0};
+   container.Insert(unit_val2);
+
+// Keep records
+   bool keep_records2 = false;
+   container.Insert(keep_records2);
+
+// Value for the "hot" condition
+   double val_hot2 = 1.0;
+   container.Insert(val_hot2);
+
+// Value for the "cold" condition
+   double val_cold2 = 0.0;
+   container.Insert(val_cold2);
+
+   simulation->AddDistribution(DistributionTimeUniform(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -279,6 +344,7 @@ int main(int argc, char** argv)
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
    simulation->PrintDistro1D(0, 0, "modulated_gcr_spectrum.dat", true);
+   simulation->PrintDistro1D(1, 0, "time_gcr_trajec.dat", true);
    
    return 0;
 };

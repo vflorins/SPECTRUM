@@ -2,6 +2,7 @@
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
 #include "src/boundary_time.hh"
+#include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include <iostream>
@@ -56,6 +57,26 @@ int main(int argc, char** argv)
    simulation->AddBackground(BackgroundUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time initial condition
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Start time for interval
+   double start_t = -5.0 / unit_time_fluid;
+   container.Insert(start_t);
+
+// End time for interval
+   double end_t = 5.0 / unit_time_fluid;
+   container.Insert(end_t);
+
+// Number of subintervals (0 for random points)
+   int n_intervals = 0;
+   container.Insert(n_intervals);
+
+   simulation->AddInitial(InitialTimeInterval(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -96,68 +117,122 @@ int main(int argc, char** argv)
 // Action
    std::vector<int> actions_time;
    actions_time.push_back(0);
+   actions_time.push_back(0);
    container.Insert(actions_time);
    
 // Duration of the trajectory
-   double maxtime = 0.1;
+   double maxtime = 10.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Distribution
+// Distribution 1 (time)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Parameters for distribution
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins(0, 0, 0);
-   container.Insert(n_bins);
+   MultiIndex n_bins1(100, 0, 0);
+   container.Insert(n_bins1);
    
 // Smallest value
-   GeoVector minval(0.0, 0.0, 0.0);
-   container.Insert(minval);
+   GeoVector minval1(start_t, 0.0, 0.0);
+   container.Insert(minval1);
 
 // Largest value
-   GeoVector maxval(0.0, 0.0, 0.0);
-   container.Insert(maxval);
+   GeoVector maxval1(end_t, 0.0, 0.0);
+   container.Insert(maxval1);
 
 // Linear or logarithmic bins
-   MultiIndex log_bins(0, 0, 0);
-   container.Insert(log_bins);
+   MultiIndex log_bins1(0, 0, 0);
+   container.Insert(log_bins1);
 
 // Add outlying events to the end bins
-   MultiIndex bin_outside(0, 0, 0);
-   container.Insert(bin_outside);
+   MultiIndex bin_outside1(0, 0, 0);
+   container.Insert(bin_outside1);
 
 // Physical units of the distro variable
-   double unit_distro = 1.0;
-   container.Insert(unit_distro);
+   double unit_distro1 = 1.0;
+   container.Insert(unit_distro1);
 
 // Physical units of the bin variable
-   GeoVector unit_val = {1.0, 1.0, 1.0};
-   container.Insert(unit_val);
+   GeoVector unit_val1 = {unit_time_fluid, 1.0, 1.0};
+   container.Insert(unit_val1);
 
 // Don't keep records
-   bool keep_records = true;
-   container.Insert(keep_records);
+   bool keep_records1 = false;
+   container.Insert(keep_records1);
 
 // Value for the "hot" condition
-   double val_hot = 1.0;
-   container.Insert(val_hot);
+   double val_hot1 = 1.0;
+   container.Insert(val_hot1);
 
 // Value for the "cold" condition
-   double val_cold = 0.0;
-   container.Insert(val_cold);
+   double val_cold1 = 0.0;
+   container.Insert(val_cold1);
 
 // Coordinates to use (initial or final)
-   int val_time = 0;
-   container.Insert(val_time);
+   int val_time1 = 0;
+   container.Insert(val_time1);
+
+   simulation->AddDistribution(DistributionTimeUniform(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Distribution 2 (position)
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Parameters for distribution
+   container.Clear();
+
+// Number of bins
+   MultiIndex n_bins2(0, 0, 0);
+   container.Insert(n_bins2);
+   
+// Smallest value
+   GeoVector minval2(0.0, 0.0, 0.0);
+   container.Insert(minval2);
+
+// Largest value
+   GeoVector maxval2(0.0, 0.0, 0.0);
+   container.Insert(maxval2);
+
+// Linear or logarithmic bins
+   MultiIndex log_bins2(0, 0, 0);
+   container.Insert(log_bins2);
+
+// Add outlying events to the end bins
+   MultiIndex bin_outside2(0, 0, 0);
+   container.Insert(bin_outside2);
+
+// Physical units of the distro variable
+   double unit_distro2 = 1.0;
+   container.Insert(unit_distro2);
+
+// Physical units of the bin variable
+   GeoVector unit_val2 = {unit_length_fluid, unit_length_fluid, unit_length_fluid};
+   container.Insert(unit_val2);
+
+// Don't keep records
+   bool keep_records2 = true;
+   container.Insert(keep_records2);
+
+// Value for the "hot" condition
+   double val_hot2 = 1.0;
+   container.Insert(val_hot2);
+
+// Value for the "cold" condition
+   double val_cold2 = 0.0;
+   container.Insert(val_cold2);
+
+// Coordinates to use (initial or final)
+   int val_time2 = 0;
+   container.Insert(val_time2);
 
 // Coordinate representation to use
-   int val_coord = 0;
-   container.Insert(val_coord);
+   int val_coord2 = 0;
+   container.Insert(val_coord2);
 
    simulation->AddDistribution(DistributionPositionUniform(), container);
 
@@ -176,7 +251,8 @@ int main(int argc, char** argv)
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
-   simulation->PrintRecords(0, simulation_files_prefix + "records.dat", true);
+   simulation->PrintDistro1D(0, 0, simulation_files_prefix + "init_time.dat", true);
+   simulation->PrintRecords(1, simulation_files_prefix + "pos_records.dat", false);
 
    if(simulation->IsMaster()) {
       std::cout << std::endl;

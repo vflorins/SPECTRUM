@@ -28,6 +28,8 @@ gcr_modulation_example_SOURCES = gcr_modulation_example.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \

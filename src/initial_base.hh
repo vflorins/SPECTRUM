@@ -88,8 +88,14 @@ public:
 //! Set up the object's persistent class data members (generic)
    void SetupObject(const DataContainer& cont_in);
 
-//! Produce a realization of initial conditions based on an internal distribution function
-   GeoVector GetSample(const GeoVector& axis_in);
+//! Produce a realization of time initial conditions based on an internal distribution function
+   double GetTimeSample(void);
+
+//! Produce a realization of position initial conditions based on an internal distribution function
+   GeoVector GetPosSample(void);
+
+//! Produce a realization of momentum initial conditions based on an internal distribution function
+   GeoVector GetMomSample(const GeoVector& axis_in);
 
 //! Tell if the class is for time
    bool IsInitialTime(void) const;
@@ -102,33 +108,6 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// InitialTime class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the InitialTime class
-const std::string init_name_time = "InitialTime";
-
-/*!
-\brief Initial time condition. This class doubles as the "final" time for backward simulations. This class will not be used in the same way as position or momentum initial conditions, but is included here for completion.
-\author Juan G Alonso Guzman
-
-Parameters: (InitialBase)
-*/
-class InitialTime : public InitialBase {
-
-public:
-
-//! Default constructor
-   InitialTime(void);
-
-//! Copy constructor
-   InitialTime(const InitialTime& other);
-
-//! Clone function
-   CloneFunctionInitial(InitialTime);
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialTable class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -138,15 +117,15 @@ public:
 
 Parameters: (InitialBase), std::string init_file_name, double scale, bool random
 */
-class InitialTable : public InitialBase {
+template <class tableClass> class InitialTable : public InitialBase {
 
 protected:
 
-//! Flag to iterate through initial positions randomly (true) or in sequence (false)
+//! Flag to iterate through initial quantities randomly (true) or in sequence (false)
    bool random;
 
-//! Array with initial positions
-   std::vector <GeoVector> initvec;
+//! Array with initial quantities
+   std::vector <tableClass> initquant;
 
 //! Table entry counter
    int table_counter;
@@ -168,6 +147,9 @@ public:
 //! Clone function
    CloneFunctionInitial(InitialTable);
 };
+
+template class InitialTable<double>;
+template class InitialTable<GeoVector>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialBase inline methods

@@ -659,7 +659,7 @@ void DistributionTemplated<GeoMatrix>::PrintWeight(std::ofstream& distfile, int 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/29/2022
+\date 08/11/2024
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
@@ -671,7 +671,7 @@ void DistributionTemplated<distroClass>::PrintRecords(const std::string& dist_na
    
    distfile << "# Total number of records: " << values_record.size() << std::endl << std::endl;
    for(i = 0; i < values_record.size(); i++) {
-      for(j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j];
+      for(j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j] * (phys_units ? unit_val[j] : 1.0);
       PrintWeight(distfile, i, phys_units);
       distfile << std::endl;
    };

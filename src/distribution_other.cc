@@ -127,7 +127,8 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
 */
 void DistributionTimeUniform::EvaluateValue(void)
 {
-   this->_value[0] = this->_t2;
+   if(val_time == 0) this->_value[0] = this->_t;
+   else this->_value[0] = this->_t2;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

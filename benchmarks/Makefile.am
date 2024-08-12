@@ -31,6 +31,8 @@ main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -82,6 +84,8 @@ main_test_dipole_periods_SOURCES = main_test_dipole_periods.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -143,6 +147,8 @@ main_test_pa_distro_isotrop_SOURCES = main_test_pa_distro_isotrop.cc \
    $(SPBL_SOURCE_DIR)/boundary_space.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -204,6 +210,8 @@ main_test_pa_scatt_SOURCES = main_test_pa_scatt.cc \
    $(SPBL_SOURCE_DIR)/boundary_space.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -263,6 +271,8 @@ main_test_perp_diff_SOURCES = main_test_perp_diff.cc \
    $(SPBL_SOURCE_DIR)/boundary_space.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -320,6 +330,8 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
    $(SPBL_SOURCE_DIR)/boundary_space.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -371,6 +383,8 @@ main_test_turb_waves_SOURCES = main_test_turb_waves.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -422,6 +436,8 @@ main_test_parker_spiral_SOURCES = main_test_parker_spiral.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -479,6 +495,8 @@ main_test_init_cond_records_SOURCES = main_test_init_cond_records.cc \
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \
@@ -540,6 +558,8 @@ main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_p
    $(SPBL_SOURCE_DIR)/boundary_time.hh \
    $(SPBL_SOURCE_DIR)/boundary_base.cc \
    $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
    $(SPBL_SOURCE_DIR)/initial_space.cc \
    $(SPBL_SOURCE_DIR)/initial_space.hh \
    $(SPBL_SOURCE_DIR)/initial_momentum.cc \

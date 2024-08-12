@@ -444,16 +444,16 @@ InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
 void InitialMomentumTable::EvaluateInitial(void)
 {
    if(random) {
-// Generate random integer between 0 and initvec.size() - 1
-      table_counter = rng->GetUniform() * initvec.size();
-// Pull position in randomly selected place on the table
-      _mom = initvec[table_counter];
+// Generate random integer between 0 and initquant.size() - 1
+      table_counter = rng->GetUniform() * initquant.size();
+// Pull momentum in randomly selected place on the table
+      _mom = initquant[table_counter];
    }
    else {
 // Pull next momentum on the table
-      _mom = initvec[table_counter++];
+      _mom = initquant[table_counter++];
 // If all momenta have been sampled, reset the counter
-      if(table_counter == initvec.size()) table_counter = 0;
+      if(table_counter == initquant.size()) table_counter = 0;
    };
 };
 

@@ -153,24 +153,34 @@ void TrajectoryBase::ReverseMomentum(void)
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
-void TrajectoryBase::TimeBoundaryBefore(void)
+void TrajectoryBase::TimeBoundaryProximityCheck(void)
 {
    unsigned int bnd;
-   double delta, delta_next = -sp_large * _spdata.dmax / c_code;
-
-// TODO: can we delete this statement? bactive_t is reset at trajectory start and in HandleBoundaries()
-   bactive_t = -1;
+   double delta, delta_next;
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
+   delta_next = -sp_large * _spdata.dmax / c_code;
+#else
+   delta_next = sp_large * _spdata.dmax / c_code;
+#endif
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
    for(bnd = 0; bnd < bcond_t.size(); bnd++) {
       delta = bcond_t[bnd]->GetDelta();
 
-// This gives the smallest negative value. Note that if two boundaries share a time stamp, only the first one will be processed. The first check is done to skip the event boundaries for which the crossing has already happened.
+// This gives the smallest delta in magnitude. Note that if two boundaries share a time stamp, only the first one will be processed. The first check is done to skip the event boundaries for which the crossing has already happened.
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
       if((delta <= 0.0) && (delta > delta_next)) delta_next = delta;
+#else
+      if((delta >= 0.0) && (delta < delta_next)) delta_next = delta;
+#endif
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-   if(dt + delta_next >= 0.0) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
+   if(dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+#else
+   if(dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+#endif
 };
 
 /*!
@@ -234,15 +244,11 @@ catch(ExBoundaryError& exception) {
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/01/2024
+\date 10/08/2024
 */
 void TrajectoryBase::CommonFields(void)
 try {
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   background->GetFields(icond_t+_t, _pos, ConvertMomentum(), _spdata);
-#else
-   background->GetFields(icond_t-_t, _pos, ConvertMomentum(), _spdata);
-#endif
+   background->GetFields(_t, _pos, ConvertMomentum(), _spdata);
 }
 
 catch(ExUninitialized& exception) {
@@ -268,7 +274,7 @@ catch(ExServerError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 07/01/2024
+\date 10/08/2024
 \param[in]  t_in   Time at which to compute fields
 \param[in]  pos_in Position at which to compute fields
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
@@ -276,11 +282,7 @@ catch(ExServerError& exception) {
 */
 void TrajectoryBase::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
 try {
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   background->GetFields(icond_t+t_in, pos_in, mom_in, spdata);
-#else
-   background->GetFields(icond_t-t_in, pos_in, mom_in, spdata);
-#endif
+   background->GetFields(t_in, pos_in, mom_in, spdata);
 }
 
 catch(ExUninitialized& exception) {
@@ -306,7 +308,7 @@ catch(ExServerError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 07/06/2022
+\date 10/08/2024
 \return True if the domain was exited while computing the RK slopes, or False otherwise
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
@@ -318,12 +320,13 @@ bool TrajectoryBase::RKSlopes(void)
    for(istage = 1; istage < RK_Table.stages; istage++) {
 
 // Advance to the current stage.
-      _t += RK_Table.a[istage] * dt;
       for(islope = 0; islope < istage; islope++) {
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
+         _t += RK_Table.a[istage] * dt;
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
 #else
+         _t -= RK_Table.a[istage] * dt;
          _pos -= dt * RK_Table.b[istage][islope] * slope_pos[islope];
          _mom -= dt * RK_Table.b[istage][islope] * slope_mom[islope];
 #endif
@@ -352,7 +355,7 @@ bool TrajectoryBase::RKSlopes(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 05/06/2022
+\date 10/08/2024
 \return True if adaptive error is unacceptable (> 1), or False otherwise
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
@@ -363,8 +366,12 @@ bool TrajectoryBase::RKStep(void)
    double error = 1.0;
    GeoVector pos_lo;
 
-// For adaptive schemes "pos_lo" is computed with a lower order version (we only use position to test for accuracy).
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    _t += dt;
+#else
+   _t -= dt;
+#endif
+// For adaptive schemes "pos_lo" is computed with a lower order version (we only use position to test for accuracy).
    if(RK_Table.adaptive) pos_lo = _pos;
    for(islope = 0; islope < RK_Table.stages; islope++) {
 
@@ -539,7 +546,7 @@ bool TrajectoryBase::RKAdvance(void)
 // Figure out the physical time step and take into account the adaptive step recommendation. Check if the time step is too to step over the end of the run and adjust if necessary.
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
-   TimeBoundaryBefore();
+   TimeBoundaryProximityCheck();
 
 // Compute the RK slopes. If a trajectory terminated (or is invalid) while computing slopes, exit the function.
    if(RKSlopes()) return true;
@@ -586,7 +593,8 @@ void TrajectoryBase::MomentumCorrection(void)
 
 /*!
 \author Vladimir Florinski
-\date 05/20/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 */
 bool TrajectoryBase::IsSimmulationReady(void) const
 {
@@ -596,6 +604,10 @@ bool TrajectoryBase::IsSimmulationReady(void) const
 // A background object is required
    if(!background) return false;
    else if(BITS_LOWERED(background->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+
+// Time initial condition is required
+   if(!icond_t) return false;
+   else if(BITS_LOWERED(icond_t->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
 // Space initial condition is required
    if(!icond_s) return false;
@@ -628,7 +640,8 @@ bool TrajectoryBase::IsSimmulationReady(void) const
 
 /*!
 \author Vladimir Florinski
-\date 05/27/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 \param[in] specie_in Index of the particle species defined in physics.hh
 */
 void TrajectoryBase::SetSpecie(unsigned int specie_in)
@@ -648,6 +661,7 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->SetSpecie(specie);
    for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->SetSpecie(specie);
 
+   if(icond_t != nullptr) icond_t->SetSpecie(specie);
    if(icond_s != nullptr) icond_s->SetSpecie(specie);
    if(icond_m != nullptr) icond_m->SetSpecie(specie);
 };
@@ -717,7 +731,8 @@ void TrajectoryBase::AddBoundary(const BoundaryBase& boundary_in, const DataCont
 
 /*!
 \author Vladimir Florinski
-\date 07/01/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
@@ -725,9 +740,10 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
 {
 // Time condition
    if(BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
-      SetContainer(container_in);
-      container.Reset();
-      container.Read(&icond_t);
+      icond_t = initial_in.Clone();
+      icond_t->SetSpecie(specie);
+      icond_t->ConnectRNG(rng);
+      icond_t->SetupObject(container_in);
    }
 
 // Spatial condition
@@ -875,20 +891,20 @@ double TrajectoryBase::GetDistance(double t_in) const
 
 /*!
 \author Vladimir Florinski
-\date 02/03/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done is "Advance()" at the beginning of each step.
 */
 void TrajectoryBase::SetStart(void)
 try {
 
-// Starting time is always zero
-   _t = 0.0;
-
-// Get the starting position from the distribution.
-   _pos = icond_s->GetSample(gv_ones);
+// Get the starting time from the initial time distribution
+   _t = icond_t->GetTimeSample();
+// Get the starting position from the initial space distribution.
+   _pos = icond_s->GetPosSample();
 // Get a momentum sample along an arbitrary axis (bhat is unknown at this step). Only the momentum magnitude is needed for the first call to CommonFields().
-   _mom = icond_m->GetSample(gv_ones);
+   _mom = icond_m->GetMomSample(gv_ones);
 
 // Obtain the fields for that position
    _spdata._mask = BACKGROUND_ALL | BACKGROUND_gradALL | BACKGROUND_dALLdt;
@@ -904,7 +920,7 @@ try {
 #endif
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   _mom = icond_m->GetSample(_spdata.bhat);
+   _mom = icond_m->GetMomSample(_spdata.bhat);
    _vel = Vel(_mom, specie);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.

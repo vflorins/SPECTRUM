@@ -82,6 +82,9 @@ class DistributionTimeUniform : public DistributionUniform<double> {
 
 protected:
 
+//! Which coordinates to use for value: 0 initial, 1 final (persistent)
+   int val_time;
+
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
 
