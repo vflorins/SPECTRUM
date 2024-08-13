@@ -535,6 +535,8 @@ main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_p
    $(SPBL_SOURCE_DIR)/trajectory_base.hh \
    $(SPBL_SOURCE_DIR)/background_cartesian.cc \
    $(SPBL_SOURCE_DIR)/background_cartesian.hh \
+   $(SPBL_SOURCE_DIR)/background_server.cc \
+   $(SPBL_SOURCE_DIR)/background_server.hh \
    $(SPBL_SOURCE_DIR)/background_base.cc \
    $(SPBL_SOURCE_DIR)/background_base.hh \
    $(SPBL_SOURCE_DIR)/server_cartesian.cc \
