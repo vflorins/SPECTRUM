@@ -18,7 +18,7 @@ namespace Spectrum {
 //! Readable name of the class
 const std::string bg_name_bochum = "BackgroundVLISMBochum";
 
-//! What function to use within 'get_ampfactor' (0 = none)
+//! What function to use within 'get_ampfactor' (0 = none, 1 = zero, 2 = constant, 3 = scaled)
 #define MOD_TYPE 3
 
 //! Whether to scale relative to s=0 (0) or s=+inf (1)
