@@ -21,7 +21,9 @@ SPECTRUM was designed primarily for devices running popular Linux distros, such 
 To configure the code from a fresh download navigate to the main SPECTRUM directory and execute the following commands in terminal:
 
 `autoreconf`
+
 `automake --add-missing`
+
 `./configure <configure-options>`
 
 The `<configure-options>` are used to specify parameters such as which type of trajectory transport should be simulated or what integration method should be used. Consult the documentation ('SPECTRUM.pdf') for more details.
