@@ -150,11 +150,11 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// InitialSpaceCube class declaration
+// InitialSpaceBox class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceCube class
-const std::string init_name_space_cube = "InitialSpaceCube";
+//! Readable name of the InitialSpaceBox class
+const std::string init_name_space_box = "InitialSpaceBox";
 
 /*!
 \brief Starting points uniformly distributed over the volume of a cube
@@ -162,7 +162,7 @@ const std::string init_name_space_cube = "InitialSpaceCube";
 
 Parameters: (InitialSpaceLine)
 */
-class InitialSpaceCube : public InitialSpaceLine {
+class InitialSpaceBox : public InitialSpaceLine {
 
 protected:
 
@@ -172,13 +172,13 @@ protected:
 public:
 
 //! Default constructor
-   InitialSpaceCube(void);
+   InitialSpaceBox(void);
 
 //! Copy constructor
-   InitialSpaceCube(const InitialSpaceCube& other);
+   InitialSpaceBox(const InitialSpaceBox& other);
 
 //! Clone function
-   CloneFunctionInitial(InitialSpaceCube);
+   CloneFunctionInitial(InitialSpaceBox);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

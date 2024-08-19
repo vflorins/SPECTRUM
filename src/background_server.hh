@@ -13,9 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the class
-const std::string bg_name_server = "BackgroundServer";
-
 /*!
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServer class declaration
@@ -48,22 +45,19 @@ protected:
    void EvaluateBmag(void) override;
 #endif
 
-public:
-
-//! Default constructor
+//! Default constructor (protected, class not designed to be instantiated)
    BackgroundServer(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
    BackgroundServer(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
-//! Copy constructor
+//! Copy constructor (protected, class not designed to be instantiated)
    BackgroundServer(const BackgroundServer& other);
+
+public:
 
 //! Destructor
    ~BackgroundServer() override = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundServer);
 
 //! Signal the backend this client no longer needs its service
    void StopServerFront(void) override;

@@ -132,7 +132,7 @@ int main(int argc, char** argv)
    container.Insert(-cube_size / 2.0 * gv_ones);
    container.Insert( cube_size / 2.0 * gv_ones);
 
-   trajectory->AddInitial(InitialSpaceCube(), container);
+   trajectory->AddInitial(InitialSpaceBox(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition

@@ -17,6 +17,16 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
+\author Juan G Alonso Guzman
+\date 08/19/2024
+*/
+template <class distroClass>
+DistributionUniform<distroClass>::DistributionUniform()
+                                : DistributionTemplated<distroClass>("", 0, STATE_NONE)
+{
+};
+
+/*!
 \author Vladimir Florinski
 \date 06/18/2021
 */

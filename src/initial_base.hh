@@ -133,19 +133,14 @@ protected:
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
 
-public:
-
-//! Default constructor
+//! Default constructor (protected, class not designed to be instantiated)
    InitialTable(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
    InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
-//! Copy constructor
+//! Copy constructor (protected, class not designed to be instantiated)
    InitialTable(const InitialTable& other);
-
-//! Clone function
-   CloneFunctionInitial(InitialTable);
 };
 
 template class InitialTable<double>;

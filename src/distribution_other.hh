@@ -49,16 +49,16 @@ protected:
 //! Weight from a "cold" boundary
    void UniformCold(void);
 
-public:
-
-//! Default constructor (never meant to be used)
-   DistributionUniform(void) = delete;
+//! Default constructor (protected, class not designed to be instantiated)
+   DistributionUniform(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
    DistributionUniform(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
-//! Copy constructor
+//! Copy constructor (protected, class not designed to be instantiated)
    DistributionUniform(const DistributionUniform& other);
+
+public:
 
 //! Destructor
    ~DistributionUniform() override = default;
@@ -274,7 +274,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Flag to define power law spectrum as differential density 0, differential intensity 1, or distribution function 2
-#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 0
+#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 1
 
 //! Readable name of the DistributionSpectrumKineticEnergyPowerLaw class
 const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpectrumKineticEnergyPowerLaw";

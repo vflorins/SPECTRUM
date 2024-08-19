@@ -19,7 +19,7 @@ namespace Spectrum {
 \date 07/19/2023
 */
 BackgroundServer::BackgroundServer(void)
-                : BackgroundBase(bg_name_server, 0, MODEL_STATIC)
+                : BackgroundBase("", 0, STATE_NON)
 {
 };
 
