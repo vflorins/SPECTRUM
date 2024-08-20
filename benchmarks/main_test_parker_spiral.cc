@@ -91,7 +91,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   simulation->AddInitial(InitialTimeFixed(), container);
+   trajectory->AddInitial(InitialTimeFixed(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition

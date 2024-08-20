@@ -222,7 +222,7 @@ void InitialSpaceCircle::EvaluateInitial(void)
 \date 09/16/2022
 */
 InitialSpaceBox::InitialSpaceBox(void)
-                : InitialSpaceLine(init_name_space_cube, 0, INITIAL_SPACE | INITIAL_VOLUME)
+               : InitialSpaceLine(init_name_space_box, 0, INITIAL_SPACE | INITIAL_VOLUME)
 {
 };
 
@@ -234,7 +234,7 @@ InitialSpaceBox::InitialSpaceBox(void)
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
 InitialSpaceBox::InitialSpaceBox(const InitialSpaceBox& other)
-                : InitialSpaceLine(other)
+               : InitialSpaceLine(other)
 {
    LOWER_BITS(_status, INITIAL_CURVE);
    RAISE_BITS(_status, INITIAL_VOLUME);

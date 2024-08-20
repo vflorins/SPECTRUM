@@ -157,7 +157,7 @@ public:
 const std::string init_name_space_box = "InitialSpaceBox";
 
 /*!
-\brief Starting points uniformly distributed over the volume of a cube
+\brief Starting points uniformly distributed over the volume of a box
 \author Vladimir Florinski
 
 Parameters: (InitialSpaceLine)
