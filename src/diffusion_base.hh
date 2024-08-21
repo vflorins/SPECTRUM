@@ -41,9 +41,6 @@ class DiffusionBase : public Params {
 
 protected:
 
-//! Particle's specie (persistent)
-   unsigned int specie = 0;
-
 //! Spatial data (transient)
    SpatialData _spdata;
 
