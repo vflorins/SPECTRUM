@@ -24,27 +24,23 @@ namespace Spectrum {
 const std::string bg_name_cylindrical_obstacle = "BackgroundCylindricalObstacle";
 
 /*!
-\brief Magnetic field of a dipole
+\brief Magnetic field around a cylindrical obstacle
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase), double r_obstacle, double dmax_fraction
-TODO: Implement this class so that the axis of the cylinder can be oriented in any direction, not just along z.
+Parameters: (BackgroundBase), GeoVector axis, double r_obstacle, double dmax_fraction
 */
 class BackgroundCylindricalObstacle : public BackgroundBase {
 
 protected:
 
-//! Radius of cylindrical obstacle (persistent)
-   double r_obstacle;
+//! Axis of the cylinder (persistent)
+   GeoVector axis;
 
-//! Radius of cylindrical obstacle squared (persistent)
-   double r_obstacle2;
+//! Radius of cylindrical obstacle (persistent)
+   double r_cylinder;
 
 //! Maximum fraction of the radial distance per step (persistent)
    double dmax_fraction;
-
-//! Magnitude of magnetic field
-   double B0mag;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
@@ -62,6 +58,9 @@ public:
 
 //! Default constructor
    BackgroundCylindricalObstacle(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BackgroundCylindricalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundCylindricalObstacle(const BackgroundCylindricalObstacle& other);
