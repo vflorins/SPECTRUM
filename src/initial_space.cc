@@ -436,7 +436,6 @@ void InitialSpaceRankineHalfBody::SetupInitial(bool construct)
 
 // Read parameters
    container.Read(origin.Data());
-   container.Read(axis.Data());
    container.Read(&z_nose);
    container.Read(&radius);
 
