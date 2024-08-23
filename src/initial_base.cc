@@ -8,8 +8,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "initial_base.hh"
-#include <iostream>
-#include <fstream>
+#include <iostream> // std::cout
+#include <fstream> // std::ifsteam
 
 namespace Spectrum {
 
@@ -93,46 +93,52 @@ void InitialBase::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 03/25/2021
-\param[in] axis_in Preferred direction
+\author Juan G Alonso Guzman
+\date 08/10/2024
+\return Initial time from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-GeoVector InitialBase::GetSample(const GeoVector& axis_in)
+double InitialBase::GetTimeSample(void)
 {
-// The only possible error is if "axis" is zero, so we don't throw an exception here.
+// Evaluate internal distribution.
+   EvaluateInitial();
+
+// Return the internal time.
+   return _t;
+};
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\date 08/10/2024
+\return Initial position from internal distribution
+\note This is a common routine that the derived classes should not change.
+*/
+GeoVector InitialBase::GetPosSample(void)
+{
+// Evaluate internal distribution.
+   EvaluateInitial();
+
+// Return the internal position.
+   return _pos;
+};
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\date 08/10/2024
+\param[in] axis_in Preferred direction
+\return Initial momentum from internal distribution
+\note This is a common routine that the derived classes should not change.
+*/
+GeoVector InitialBase::GetMomSample(const GeoVector& axis_in)
+{
+// Evaluate internal distribution. The only possible error is if "axis" is zero, so we don't throw an exception here.
    axis = UnitVec(axis_in);
    EvaluateInitial();
 
-// Return the internal position or momentum. Initial time will never be assigned this way.
-   if(BITS_RAISED(_status, INITIAL_SPACE)) return _pos;
-   else return _mom;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// InitialTime methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/01/2024
-*/
-InitialTime::InitialTime(void)
-           : InitialBase(init_name_time, 0, INITIAL_TIME)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/01/2024
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
-*/
-InitialTime::InitialTime(const InitialTime& other)
-           : InitialBase(other)
-{
-   RAISE_BITS(_status, INITIAL_TIME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+// Return the internal momentum.
+   return _mom;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,8 +149,9 @@ InitialTime::InitialTime(const InitialTime& other)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-InitialTable::InitialTable(void)
-            : InitialBase("", 0, INITIAL_POINT)
+template <class tableClass>
+InitialTable<tableClass>::InitialTable(void)
+                        : InitialBase("", 0, INITIAL_POINT)
 {
 };
 
@@ -155,8 +162,9 @@ InitialTable::InitialTable(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-InitialTable::InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-            : InitialBase(name_in, specie_in, status_in)
+template <class tableClass>
+InitialTable<tableClass>::InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                        : InitialBase(name_in, specie_in, status_in)
 {
 };
 
@@ -167,8 +175,9 @@ InitialTable::InitialTable(const std::string& name_in, unsigned int specie_in, u
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialTable::InitialTable(const InitialTable& other)
-            : InitialBase(other)
+template <class tableClass>
+InitialTable<tableClass>::InitialTable(const InitialTable& other)
+                        : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_POINT);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
@@ -181,13 +190,14 @@ InitialTable::InitialTable(const InitialTable& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialTable::SetupInitial(bool construct)
+template <class tableClass>
+void InitialTable<tableClass>::SetupInitial(bool construct)
 {
    std::string init_file_name, coord_type;
    std::ifstream init_file;
    int i, size;
    double scale;
-   GeoVector entry;
+   tableClass entry;
 
 // The parent version must be called explicitly if not constructing
    if(!construct) InitialBase::SetupInitial(false);
@@ -195,35 +205,33 @@ void InitialTable::SetupInitial(bool construct)
    container.Read(&scale);
    container.Read(&random);
 
-// Input initial positions from file
+// Input initial quantities from file
    init_file.open(init_file_name.c_str());
 
    init_file >> coord_type;
    init_file >> size;
 #ifdef GEO_DEBUG
-   if(coord_type == "RTP") {
-      std::cerr << "Reading initial positions file in spherical coordinates." << std::endl;
+   if(coord_type == "S") {
+      std::cerr << "Reading initial times from file." << std::endl;
+   }
+   else if(coord_type == "RTP") {
+      std::cerr << "Reading initial vectors file in spherical coordinates." << std::endl;
    }
    else if(coord_type == "XYZ") {
-      std::cerr << "Reading initial positions file in cartesian coordinates." << std::endl;
+      std::cerr << "Reading initial vectors file in cartesian coordinates." << std::endl;
    }
    else {
-      std::cerr << "Reading initial positions file in unrecognized coordinate type. "
-                << "Defaulting to cartesian coordinates." << std::endl;
+      std::cerr << "Reading file of unrecognized initial quantities. "
+                << "Defaulting to scalars." << std::endl;
    };
 #endif
 
-   initvec.resize(size);
+   initquant.resize(size);
    for(i = 0; i < size; i++) {
-      init_file >> entry[0];
-      init_file >> entry[1];
-      init_file >> entry[2];
-      if(coord_type == "RTP") {
-         entry[0] *= scale;
-         entry.RTP_XYZ();
-      }
-      else entry = entry * scale;
-      initvec[i] = entry;
+      init_file >> entry;
+// The redundant conversion to GeoVector type is necessary due to the templated nature of this class.
+      if(coord_type == "RTP") GeoVector(entry).RTP_XYZ();
+      initquant[i] = entry * scale;
    };
    init_file.close();
 

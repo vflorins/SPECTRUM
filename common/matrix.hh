@@ -14,6 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Size of this class
 #define SZGM sizeof(GeoMatrix)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

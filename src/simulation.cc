@@ -252,7 +252,11 @@ void SimulationWorker::WorkerStart(void)
 // Reset quantities
    for(int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
    jobsdone = 0;
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    shortest_sim_time = 1.0E300;
+#else
+   shortest_sim_time = -1.0E300;
+#endif
    longest_sim_time = 0.0;
    elapsed_time = 0.0;
 
@@ -307,8 +311,13 @@ void SimulationWorker::WorkerDuties(void)
          trajectory->SetStart();
          trajectory->Integrate();
          traj_elapsed_time = trajectory->ElapsedTime();
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
          if(shortest_sim_time > traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
          if(longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
+#else
+         if(shortest_sim_time < traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
+         if(longest_sim_time > traj_elapsed_time) longest_sim_time = traj_elapsed_time;
+#endif
          traj_count++;
       }
       catch(std::exception& exception) {
@@ -650,7 +659,7 @@ void SimulationMaster::DecrementTrajectoryCount(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 09/14/2022
+\date 08/11/2024
 \param[in] cpu which cpu from which to receive data
 */
 void SimulationMaster::RecvDataFromWorker(int cpu)
@@ -687,15 +696,20 @@ void SimulationMaster::RecvDataFromWorker(int cpu)
 // Receive min/max simulated time data and process
    MPI_Recv(&shortest_sim_time_cpu, 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
    MPI_Recv(&longest_sim_time_cpu , 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    if(shortest_sim_time_cpu < shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
    if(longest_sim_time_cpu > longest_sim_time) longest_sim_time = longest_sim_time_cpu;
+#else
+   if(shortest_sim_time_cpu > shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
+   if(longest_sim_time_cpu < longest_sim_time) longest_sim_time = longest_sim_time_cpu;
+#endif
    MPI_Recv(&elapsed_time, 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
    time_spent_processing[cpu] += elapsed_time;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/28/2021
+\date 08/11/2024
 */
 void SimulationMaster::MasterStart(void)
 {
@@ -719,7 +733,11 @@ void SimulationMaster::MasterStart(void)
 // Restore distros if requested by user
       if(restore_distros[distro]) local_distros[distro]->Restore(distro_file_name + std::to_string(distro) + ".out");
    };
+#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    shortest_sim_time = 1.0E300;
+#else
+   shortest_sim_time = -1.0E300;
+#endif
    longest_sim_time = 0.0;
    elapsed_time = 0.0;
 

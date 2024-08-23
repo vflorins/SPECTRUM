@@ -11,15 +11,17 @@ long_batch_size=1000
 short_batch_size=100
 
 # Flags to select which tests to run
+# VISUAL TESTS
 dipole_visual_test=false
+turb_waves_test=false
+parker_spiral_test=false
+init_cond_record_test=false
+# QUANTITATIVE TESTS
 dipole_drifts_test=false
 pa_distro_iso_test=false
 pa_scatt_test=false
 perp_diff_test=false
 full_diff_test=false
-turb_waves_test=false
-parker_sprial_test=false
-init_cond_record_test=false
 modulation_cartesian_parker_spiral=false
 
 # Function to go up one directory and configure code
@@ -79,6 +81,30 @@ then
 fi
 report_if_failed $? "DIPOLE FIELD VISUALIZATION"
 
+# TURBULENCE VIA SUPERPOSITION OF WAVES
+if $turb_waves_test
+then
+	configure SERIAL FIELDLINE FORWARD 29 SELF
+	make_and_run main_test_turb_waves 1
+fi
+report_if_failed $? "TURBULENCE VIA SUPERPOSITION OF WAVES"
+
+# PARKER SPIRAL SOLAR WIND
+if $parker_spiral_test
+then
+	configure SERIAL FIELDLINE FORWARD 29 SELF
+	make_and_run main_test_parker_spiral 1
+fi
+report_if_failed $? "PARKER SPIRAL SOLAR WIND"
+
+# INITIAL CONDITION RECORDS TEST
+if $init_cond_record_test
+then	
+	configure PARALLEL FOCUSED FORWARD 29 SELF
+	make_and_run main_test_init_cond_records $n_cpus $short_sim $short_batch_size
+fi
+report_if_failed $? "INITIAL CONDITION RECORDS TEST"
+
 # DIPOLE FIELD DRIFT PERIODS
 if $dipole_drifts_test
 then	
@@ -118,30 +144,6 @@ then
 	make_and_run main_test_full_diff $n_cpus $long_sim $long_batch_size
 fi
 report_if_failed $? "FULL (PERP+PARA) DIFFUSION"
-
-# TURBULENCE VIA SUPERPOSITION OF WAVES
-if $turb_waves_test
-then
-	configure SERIAL FIELDLINE FORWARD 29 SELF
-	make_and_run main_test_turb_waves 1
-fi
-report_if_failed $? "TURBULENCE VIA SUPERPOSITION OF WAVES"
-
-# PARKER SPIRAL SOLAR WIND
-if $parker_sprial_test
-then
-	configure SERIAL FIELDLINE FORWARD 29 SELF
-	make_and_run main_test_parker_spiral 1
-fi
-report_if_failed $? "PARKER SPIRAL SOLAR WIND"
-
-# INITIAL CONDITION RECORDS TEST
-if $init_cond_record_test
-then	
-	configure PARALLEL FOCUSED FORWARD 29 SELF
-	make_and_run main_test_init_cond_records $n_cpus $short_sim $short_batch_size
-fi
-report_if_failed $? "INITIAL CONDITION RECORDS TEST"
 
 # MODULATION WITH CARTESIAN PARKER SPIRAL
 if $modulation_cartesian_parker_spiral

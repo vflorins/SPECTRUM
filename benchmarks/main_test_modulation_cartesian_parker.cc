@@ -4,6 +4,7 @@
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
+#include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include <iostream>
@@ -55,6 +56,18 @@ int main(int argc, char** argv)
 
    std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
    simulation->AddBackground(BackgroundCartesian(), container, fname_pattern);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time initial condition
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Initial time
+   double init_t = 0.0;
+   container.Insert(init_t);
+
+   simulation->AddInitial(InitialTimeFixed(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -151,7 +164,7 @@ int main(int argc, char** argv)
    container.Insert(actions_time);
    
 // Max duration of the trajectory
-   double maxtime = 60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
+   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);

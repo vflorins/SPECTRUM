@@ -1,6 +1,6 @@
 /*!
 \file background_batl.cc
-\brief Implements a background class using data from BATL adaptive mesh
+\brief Implements a background class using data from BATL adaptive mesh on distributed memory
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 

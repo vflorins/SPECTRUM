@@ -45,22 +45,23 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 */
 double BackgroundSmoothShock::ShockTransition(double x)
 {
+   double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
    if(x < -0.5) return 0.0;
    else if(x > 0.5) return 1.0;
-   else return x;
+   else return y;
 #elif SMOOTH_SHOCK_ORDER == 1 // differentiable
    if(x < -0.5) return 0.0;
    else if(x > 0.5) return 1.0;
-   else return Sqr(x) * (3.0 - 2.0 * x);
+   else return Sqr(y) * (3.0 - 2.0 * y);
 #elif SMOOTH_SHOCK_ORDER == 2 // twice differentiable
    if(x < -0.5) return 0.0;
    else if(x > 0.5) return 1.0;
-   else return Cube(x) * (10.0 - 15.0 * x + 6.0 * Sqr(x));
+   else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
 #elif SMOOTH_SHOCK_ORDER == 3 // thrice differentiable
    if(x < -0.5) return 0.0;
    else if(x > 0.5) return 1.0;
-   else return Sqr(Sqr(x)) * (35.0 - 84.0 * x + 70.0 * Sqr(x) - 20.0 * Cube(x));
+   else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
 #else // smooth
    return 0.5 * (1.0 + tanh(tanh_width_factor * x));
 #endif
@@ -74,22 +75,23 @@ double BackgroundSmoothShock::ShockTransition(double x)
 */
 double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 {
+   double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0
    if(x < -0.5) return 0.0;
-   else if(x > 0.5) return 1.0;
+   else if(x > 0.5) return 0.0;
    else return 1.0;
 #elif SMOOTH_SHOCK_ORDER == 1
    if(x < -0.5) return 0.0;
-   else if(x > 0.5) return 1.0;
-   else return 6.0 * x * (1.0 - x);
+   else if(x > 0.5) return 0.0;
+   else return 6.0 * y * (1.0 - y);
 #elif SMOOTH_SHOCK_ORDER == 2
    if(x < -0.5) return 0.0;
-   else if(x > 0.5) return 1.0;
-   else return 30.0 * Sqr(x) * (1.0 - 2.0 * x + Sqr(x));
+   else if(x > 0.5) return 0.0;
+   else return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
 #elif SMOOTH_SHOCK_ORDER == 3
    if(x < -0.5) return 0.0;
-   else if(x > 0.5) return 1.0;
-   else return 140.0 * Cube(x) * (1.0 - 3.0 * x + 3.0 * Sqr(x) - 1.0 * Cube(x));
+   else if(x > 0.5) return 0.0;
+   else return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
 #else
    return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
 #endif
@@ -139,19 +141,21 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-//TODO: complete
+      _spdata.gradUvec.Dyadic(n_shock, u0 - u1);
+      _spdata.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-//TODO: complete
+      _spdata.gradBvec.Dyadic(n_shock, B0 - B1);
+      _spdata.gradBvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-// TODO: complete
+      _spdata.dUdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-// TODO: complete
+      _spdata.dBdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (b1 - b0);
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
       _spdata.dEdt = -((_spdata.dUdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBdt)) / c_code;

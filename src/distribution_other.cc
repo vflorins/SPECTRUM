@@ -17,6 +17,16 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
+\author Juan G Alonso Guzman
+\date 08/19/2024
+*/
+template <class distroClass>
+DistributionUniform<distroClass>::DistributionUniform()
+                                : DistributionTemplated<distroClass>("", 0, STATE_NONE)
+{
+};
+
+/*!
 \author Vladimir Florinski
 \date 06/18/2021
 */
@@ -127,7 +137,8 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
 */
 void DistributionTimeUniform::EvaluateValue(void)
 {
-   this->_value[0] = this->_t2;
+   if(val_time == 0) this->_value[0] = this->_t;
+   else this->_value[0] = this->_t2;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -555,7 +566,8 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
    double pow_law_b;
    this->container.Read(&T_b);
    this->container.Read(&pow_law_b);
-   pow_law_comb = pow_law - pow_law_b;
+   this->container.Read(&bend_smoothness);
+   pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
 };
 
 /*!
@@ -565,8 +577,8 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
 void DistributionSpectrumKineticEnergyBentPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
    DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot();
-// The original power law, regardless of which quantity it represents, is divided by a term to produce the second power law when "kin_energy" >> "T_b".
-   this->_weight /= (1.0 + pow(kin_energy / T_b, pow_law_comb));
+// The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
+   this->_weight /= pow(1.0 + pow(kin_energy / T_b, pow_law_comb), bend_smoothness);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

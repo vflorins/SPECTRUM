@@ -559,75 +559,6 @@ double DiffusionFullConstant::GetMuDerivative(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionFlowPowerLaw methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Juan G Alonso Guzman
-\author Swati Sharma
-\date 06/03/2024
-*/
-DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(void)
-                     : DiffusionBase(diff_name_flow_power_law, 0, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\author Swati Sharma
-\date 06/03/2024
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
-*/
-DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other)
-                     : DiffusionBase(other)
-{
-   RAISE_BITS(_status, STATE_NONE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\author Swati Sharma
-\date 06/03/2024
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kappa0);
-   container.Read(&U0);
-   container.Read(&pow_law_U);
-   container.Read(&kap_rat);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\author Swati Sharma
-\date 06/03/2024
-*/
-void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
-{
-   if((comp_eval == 2)) return;
-   Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U);
-   Kappa[0] = kap_rat * Kappa[1];
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 06/03/2024
-\return double       Derivative in mu
-*/
-double DiffusionFlowPowerLaw::GetMuDerivative(void)
-{
-   return 0.0;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionMomentumPowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -705,73 +636,6 @@ double DiffusionMomentumPowerLaw::GetMuDerivative(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionKineticEnergyRadialDistancePowerLaw methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/18/2023
-*/
-DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(void)
-                                            : DiffusionBase(diff_name_kinetic_energy_radial_distance_power_law, 0, DIFF_NOBACKGROUND)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/09/2022
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
-*/
-DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
-                                            : DiffusionBase(other)
-{
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/18/2023
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kap0);
-   container.Read(&T0);
-   container.Read(&r0);
-   container.Read(&pow_law_T);
-   container.Read(&pow_law_r);
-   container.Read(&kap_rat);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/18/2023
-*/
-void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
-{
-   if((comp_eval == 2)) return;
-   Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
-   Kappa[0] = kap_rat * Kappa[1];
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/13/2024
-\return double       Derivative in mu
-*/
-double DiffusionKineticEnergyRadialDistancePowerLaw::GetMuDerivative(void)
-{
-   return 0.0;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionRigidityMagneticFieldPowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -835,6 +699,73 @@ void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 double DiffusionRigidityMagneticFieldPowerLaw::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionKineticEnergyRadialDistancePowerLaw methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/18/2023
+*/
+DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(void)
+                                            : DiffusionBase(diff_name_kinetic_energy_radial_distance_power_law, 0, DIFF_NOBACKGROUND)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/09/2022
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
+                                            : DiffusionBase(other)
+{
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/18/2023
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kap0);
+   container.Read(&T0);
+   container.Read(&r0);
+   container.Read(&pow_law_T);
+   container.Read(&pow_law_r);
+   container.Read(&kap_rat);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 08/18/2023
+*/
+void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
+{
+   if((comp_eval == 2)) return;
+   Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/13/2024
+\return double       Derivative in mu
+*/
+double DiffusionKineticEnergyRadialDistancePowerLaw::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -922,6 +853,75 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 double DiffusionStraussEtAl2013::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionFlowPowerLaw methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+*/
+DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(void)
+                     : DiffusionBase(diff_name_flow_power_law, 0, STATE_NONE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other)
+                     : DiffusionBase(other)
+{
+   RAISE_BITS(_status, STATE_NONE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(&kappa0);
+   container.Read(&U0);
+   container.Read(&pow_law_U);
+   container.Read(&kap_rat);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\author Swati Sharma
+\date 06/03/2024
+*/
+void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
+{
+   if((comp_eval == 2)) return;
+   Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U);
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/03/2024
+\return double       Derivative in mu
+*/
+double DiffusionFlowPowerLaw::GetMuDerivative(void)
 {
    return 0.0;
 };

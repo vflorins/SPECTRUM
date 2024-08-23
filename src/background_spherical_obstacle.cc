@@ -25,6 +25,15 @@ BackgroundSphericalObstacle::BackgroundSphericalObstacle(void)
 
 /*!
 \author Juan G Alonso Guzman
+\date 08/20/2024
+*/
+BackgroundSphericalObstacle::BackgroundSphericalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                           : BackgroundBase(name_in, specie_in, status_in)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 03/25/2022
 \param[in] other Object to initialize from
 
@@ -48,9 +57,9 @@ void BackgroundSphericalObstacle::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
-   container.Read(&r_obstacle);
+   container.Read(&r_sphere);
+   M = 0.5 * B0 * Cube(r_sphere);
    container.Read(&dmax_fraction);
-   M = B0 * Cube(r_obstacle);
 };
 
 /*!
@@ -61,9 +70,10 @@ void BackgroundSphericalObstacle::EvaluateBackground(void)
 {
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
+
    if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      if(posprimenorm < r_obstacle) _spdata.Bvec = gv_zeros;
+      if(posprimenorm < r_sphere) _spdata.Bvec = gv_zeros;
       else {
          double r2 = Sqr(posprimenorm);
          double r5 = Cube(posprimenorm) * r2;
@@ -71,7 +81,7 @@ void BackgroundSphericalObstacle::EvaluateBackground(void)
       };
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
-   if(posprimenorm < r_obstacle) _spdata.region = 0.0;
+   if(posprimenorm < r_sphere) _spdata.region = 0.0;
    else _spdata.region = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -86,9 +96,10 @@ void BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(void)
 #if SPHERICAL_OBSTACLE_DERIVATIVE_METHOD == 0
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
+
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      if(posprimenorm < r_obstacle) _spdata.gradBvec = gm_zeros;
+      if(posprimenorm < r_sphere) _spdata.gradBvec = gm_zeros;
       else {
          double r2 = Sqr(posprimenorm);
          double r5 = Cube(posprimenorm) * r2;
@@ -98,8 +109,8 @@ void BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(void)
          rm.Dyadic(posprime,M);
          rr.Dyadic(posprime);
 
-// TODO change the second call to Dyadic to Transpose
-      _spdata.gradBvec = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
+         _spdata.gradBvec = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
+         _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
       };
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;

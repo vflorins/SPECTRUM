@@ -214,15 +214,15 @@ void InitialSpaceCircle::EvaluateInitial(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// InitialSpaceCube methods
+// InitialSpaceBox methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
 \date 09/16/2022
 */
-InitialSpaceCube::InitialSpaceCube(void)
-                : InitialSpaceLine(init_name_space_cube, 0, INITIAL_SPACE | INITIAL_VOLUME)
+InitialSpaceBox::InitialSpaceBox(void)
+               : InitialSpaceLine(init_name_space_box, 0, INITIAL_SPACE | INITIAL_VOLUME)
 {
 };
 
@@ -233,8 +233,8 @@ InitialSpaceCube::InitialSpaceCube(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialSpaceCube::InitialSpaceCube(const InitialSpaceCube& other)
-                : InitialSpaceLine(other)
+InitialSpaceBox::InitialSpaceBox(const InitialSpaceBox& other)
+               : InitialSpaceLine(other)
 {
    LOWER_BITS(_status, INITIAL_CURVE);
    RAISE_BITS(_status, INITIAL_VOLUME);
@@ -245,7 +245,7 @@ InitialSpaceCube::InitialSpaceCube(const InitialSpaceCube& other)
 \author Vladimir Florinski
 \date 09/16/2022
 */
-void InitialSpaceCube::EvaluateInitial(void)
+void InitialSpaceBox::EvaluateInitial(void)
 {
    for(auto xyz = 0; xyz < 3; xyz++) _pos[xyz] = startpos[xyz] + (endpos[xyz] - startpos[xyz]) * rng->GetUniform();
 };
@@ -436,7 +436,6 @@ void InitialSpaceRankineHalfBody::SetupInitial(bool construct)
 
 // Read parameters
    container.Read(origin.Data());
-   container.Read(axis.Data());
    container.Read(&z_nose);
    container.Read(&radius);
 
@@ -498,16 +497,16 @@ InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
 void InitialSpaceTable::EvaluateInitial(void)
 {
    if(random) {
-// Generate random integer between 0 and initvec.size() - 1
-      table_counter = rng->GetUniform() * initvec.size();
+// Generate random integer between 0 and initquant.size() - 1
+      table_counter = rng->GetUniform() * initquant.size();
 // Pull position in randomly selected place on the table
-      _pos = initvec[table_counter];
+      _pos = initquant[table_counter];
    }
    else {
 // Pull next position on the table
-      _pos = initvec[table_counter++];
+      _pos = initquant[table_counter++];
 // If all positions have been sampled, reset the counter
-      if(table_counter == initvec.size()) table_counter = 0;
+      if(table_counter == initquant.size()) table_counter = 0;
    };
 };
 

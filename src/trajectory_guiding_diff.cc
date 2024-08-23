@@ -333,7 +333,7 @@ bool TrajectoryGuidingDiff::Advance(void)
 
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
-   TimeBoundaryBefore();
+   TimeBoundaryProximityCheck();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Compute the RK slopes.

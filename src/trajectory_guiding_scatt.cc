@@ -278,7 +278,7 @@ bool TrajectoryGuidingScatt::Advance(void)
    TrajectoryGuiding::PhysicalStep();
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
-   TimeBoundaryBefore();
+   TimeBoundaryProximityCheck();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // First half of stochastic pitch angle contribution and advection term

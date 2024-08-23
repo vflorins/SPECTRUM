@@ -2,6 +2,7 @@
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
 #include "src/boundary_momentum.hh"
+#include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include "src/traj_config.hh"
@@ -79,6 +80,18 @@ int main(int argc, char** argv)
    container.Insert(dmax_fraction);
 
    trajectory->AddBackground(BackgroundSolarWind(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time initial condition
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Initial time
+   double init_t = 0.0;
+   container.Insert(init_t);
+
+   trajectory->AddInitial(InitialTimeFixed(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition

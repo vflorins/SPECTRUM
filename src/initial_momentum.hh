@@ -280,7 +280,7 @@ const std::string init_name_momentum_table = "InitialMomentumTable";
 
 Parameters: (InitialTable)
 */
-class InitialMomentumTable : public InitialTable {
+class InitialMomentumTable : public InitialTable<GeoVector> {
 
 protected:
 

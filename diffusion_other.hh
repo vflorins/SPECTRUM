@@ -393,64 +393,6 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionFlowPowerLaw class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionFlowPowerLaw class
-const std::string diff_name_flow_power_law = "DiffusionFlowPowerLaw";
-
-/*!
-\brief Diffusion as a power law of flow velocity magnitude
-\author Juan G Alonso Guzman
-\author Swati Sharma
-
-Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double kap_rat
-*/
-class DiffusionFlowPowerLaw : public DiffusionBase {
-
-protected:
-
-//! Reference diffusion coefficient (persistent)
-   double kappa0;
-
-//! Flow velocity normalization factor (persistent)
-   double U0;
-
-//! Power law slope for flow velocity (persistent)
-   double pow_law_U;
-
-//! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionFlowPowerLaw(void);
-
-//! Copy constructor
-   DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other);
-
-//! Destructor
-   ~DiffusionFlowPowerLaw() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionFlowPowerLaw);
-
-// TODO: Implement directional derivative (only spatial dependence is in magnitude of Uvec)
-//! Compute derivative of diffusion coefficient in position or time
-   // double GetDirectionalDerivative(int xyz) override;
-
-//! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionMomentumPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -501,70 +443,6 @@ public:
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(int xyz) override;
-
-//! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionKineticEnergyRadialDistancePowerLaw class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
-const std::string diff_name_kinetic_energy_radial_distance_power_law = "DiffusionKineticEnergyRadialDistancePowerLaw";
-
-/*!
-\brief Full (perpendicular + parallel) diffusion, kinetic energy and radial distance power law
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-
-Parameters: (DiffusionBase), kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
-*/
-class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
-
-protected:
-
-//! Diffusion coefficient normalization factor (persistent)
-   double kap0;
-
-//! Kinetic Energy normalization factor (persistent)
-   double T0;
-
-//! Radial distance normalization factor (persistent)
-   double r0;
-
-//! Power law slope for kinetic energy (persistent)
-   double pow_law_T;
-
-//! Power law slope for radial distance (persistent)
-   double pow_law_r;
-
-//! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionKineticEnergyRadialDistancePowerLaw(void);
-
-//! Copy constructor
-   DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other);
-
-//! Destructor
-   ~DiffusionKineticEnergyRadialDistancePowerLaw() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
-
-// TODO: Implement directional derivative (only spatial dependence is in radial distance)
-//! Compute derivative of diffusion coefficient in position or time
-   // double GetDirectionalDerivative(int xyz) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -627,6 +505,70 @@ public:
    CloneFunctionDiffusion(DiffusionRigidityMagneticFieldPowerLaw);
 
 // TODO: Implement directional derivative (only spatial dependence is in Bmag)
+//! Compute derivative of diffusion coefficient in position or time
+   // double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionKineticEnergyRadialDistancePowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
+const std::string diff_name_kinetic_energy_radial_distance_power_law = "DiffusionKineticEnergyRadialDistancePowerLaw";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, kinetic energy and radial distance power law
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
+*/
+class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
+
+protected:
+
+//! Diffusion coefficient normalization factor (persistent)
+   double kap0;
+
+//! Kinetic Energy normalization factor (persistent)
+   double T0;
+
+//! Radial distance normalization factor (persistent)
+   double r0;
+
+//! Power law slope for kinetic energy (persistent)
+   double pow_law_T;
+
+//! Power law slope for radial distance (persistent)
+   double pow_law_r;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionKineticEnergyRadialDistancePowerLaw(void);
+
+//! Copy constructor
+   DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other);
+
+//! Destructor
+   ~DiffusionKineticEnergyRadialDistancePowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
+
+// TODO: Implement directional derivative (only spatial dependence is in radial distance)
 //! Compute derivative of diffusion coefficient in position or time
    // double GetDirectionalDerivative(int xyz) override;
 
@@ -710,6 +652,64 @@ public:
 };
 
 typedef DiffusionStraussEtAl2013 DiffusionGuoEtAl2014;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionFlowPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionFlowPowerLaw class
+const std::string diff_name_flow_power_law = "DiffusionFlowPowerLaw";
+
+/*!
+\brief Diffusion as a power law of flow velocity magnitude
+\author Juan G Alonso Guzman
+\author Swati Sharma
+
+Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double kap_rat
+*/
+class DiffusionFlowPowerLaw : public DiffusionBase {
+
+protected:
+
+//! Reference diffusion coefficient (persistent)
+   double kappa0;
+
+//! Flow velocity normalization factor (persistent)
+   double U0;
+
+//! Power law slope for flow velocity (persistent)
+   double pow_law_U;
+
+//! Ratio of perpendicular to parallel diffusion (persistent)
+   double kap_rat;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionFlowPowerLaw(void);
+
+//! Copy constructor
+   DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other);
+
+//! Destructor
+   ~DiffusionFlowPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionFlowPowerLaw);
+
+// TODO: Implement directional derivative (only spatial dependence is in magnitude of Uvec)
+//! Compute derivative of diffusion coefficient in position or time
+   // double GetDirectionalDerivative(int xyz) override;
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
 
 };
 

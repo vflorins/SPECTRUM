@@ -126,8 +126,8 @@ void BackgroundSolarWind::EvaluateBackground(void)
    double fs_theta_sym = acos(costheta);
    if(fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
-// indicator variables: region[0] = heliosphere/LISM; region[1] = unipolar/sectored field
-   _spdata.region[0] = 1.0;
+// indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1)
+   _spdata.region[0] = (r < hp_rad_sw ? 1.0 : -1.0);
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
@@ -139,11 +139,8 @@ void BackgroundSolarWind::EvaluateBackground(void)
    double arg = 2.0 * W0_sw * t_lag;
    tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
 #endif
-#endif
-#if SOLARWIND_SECTORED_REGION >= 1
+#if SOLARWIND_SECTORED_REGION == 1
    if(M_PI_2 - fs_theta_sym < tilt_amp) _spdata.region[1] = 1.0;
-#if SOLARWIND_SECTORED_REGION == 2
-   else if(r > sectored_radius_sw) _spdata.region[1] = 1.0;
 #endif
 #endif
 
@@ -179,11 +176,11 @@ void BackgroundSolarWind::EvaluateBackground(void)
       };
 // Field components
       Br = Br0 * Sqr(r_ref / r);
-      phase = r_mns * w0 / ur;
-      Bp = -Br * phase * sintheta;
+      Bp = -Br * sintheta * r_mns * w0 / ur;
 #if SOLARWIND_POLAR_CORRECTION == 1
-      Bp -= delta_omega_sw * Br * phase;
+      Bp -= Br * delta_omega_sw * r * w0 / ur;
 #elif SOLARWIND_POLAR_CORRECTION == 2
+      phase = r_mns * w0 / ur;
       phase0 = r_mns * w0 / ur0;
       sinphase = sin(phase0);
       cosphase = cos(phase0);

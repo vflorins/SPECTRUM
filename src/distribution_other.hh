@@ -49,16 +49,16 @@ protected:
 //! Weight from a "cold" boundary
    void UniformCold(void);
 
-public:
-
-//! Default constructor (never meant to be used)
-   DistributionUniform(void) = delete;
+//! Default constructor (protected, class not designed to be instantiated)
+   DistributionUniform(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
    DistributionUniform(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
-//! Copy constructor
+//! Copy constructor (protected, class not designed to be instantiated)
    DistributionUniform(const DistributionUniform& other);
+
+public:
 
 //! Destructor
    ~DistributionUniform() override = default;
@@ -81,6 +81,9 @@ Parameters: (DistributionUniform)
 class DistributionTimeUniform : public DistributionUniform<double> {
 
 protected:
+
+//! Which coordinates to use for value: 0 initial, 1 final (persistent)
+   int val_time;
 
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
@@ -271,7 +274,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Flag to define power law spectrum as differential density 0, differential intensity 1, or distribution function 2
-#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 0
+#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 1
 
 //! Readable name of the DistributionSpectrumKineticEnergyPowerLaw class
 const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpectrumKineticEnergyPowerLaw";
@@ -353,8 +356,11 @@ protected:
 //! Bendover energy (persistent)
    double T_b;
 
-//! Original power law minus power law after bend (persistent)
+//! Combined power law in the denominator energy ratio (persistent)
    double pow_law_comb;
+
+//! Factor to control bend smoothness (persistent)
+   double bend_smoothness;
 
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;

@@ -192,7 +192,7 @@ protected:
    std::vector <std::unique_ptr <BoundaryBase> > bcond_m;
 
 //! Initial condition in time (persistent)
-   double icond_t = 0.0;
+   std::unique_ptr <InitialBase> icond_t = nullptr;
 
 //! Initial condition in space (persistent)
    std::unique_ptr <InitialBase> icond_s = nullptr;
@@ -309,7 +309,7 @@ protected:
    virtual void ReverseMomentum(void);
 
 //! Predict whether any time boundaries will be crossed during the currect step
-   void TimeBoundaryBefore(void);
+   void TimeBoundaryProximityCheck(void);
 
 //! Fast test for any spatial boundary overshot
    bool SpaceTerminateCheck(void);

@@ -1,5 +1,6 @@
 #include "src/background_waves.hh"
 #include "src/boundary_time.hh"
+#include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include "src/traj_config.hh"
@@ -109,6 +110,18 @@ int main(int argc, char** argv)
    trajectory->AddBackground(BackgroundWaves(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Time initial condition
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Initial time
+   double init_t = 0.0;
+   container.Insert(init_t);
+
+   trajectory->AddInitial(InitialTimeFixed(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,7 +132,7 @@ int main(int argc, char** argv)
    container.Insert(-cube_size / 2.0 * gv_ones);
    container.Insert( cube_size / 2.0 * gv_ones);
 
-   trajectory->AddInitial(InitialSpaceCube(), container);
+   trajectory->AddInitial(InitialSpaceBox(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition

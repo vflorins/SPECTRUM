@@ -1,6 +1,6 @@
 /*!
 \file background_batl.hh
-\brief Declares a background class using data from BATL adaptive mesh
+\brief Declares a background class using data from BATL adaptive mesh on distributed memory
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 
@@ -23,11 +23,11 @@ const std::string bg_name_batl = "BackgroundBATL";
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief Plasma background interface to the AMR server
+\brief Plasma background interface to a BATL server
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase)
+Parameters: (BackgroundCartesian)
 */
 class BackgroundBATL : public BackgroundCartesian {
 

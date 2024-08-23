@@ -24,17 +24,17 @@ namespace Spectrum {
 const std::string bg_name_spherical_obstacle = "BackgroundSphericalObstacle";
 
 /*!
-\brief Magnetic field of a dipole
+\brief Magnetic field around a spherical obstacle
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase), double r_obstacle, double dmax_fraction
+Parameters: (BackgroundBase), double r_sphere, double dmax_fraction
 */
 class BackgroundSphericalObstacle : public BackgroundBase {
 
 protected:
 
 //! Radius of spherical obstacle (persistent)
-   double r_obstacle;
+   double r_sphere;
 
 //! Dipole moment (persistent)
    GeoVector M;
@@ -58,6 +58,9 @@ public:
 
 //! Default constructor
    BackgroundSphericalObstacle(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   BackgroundSphericalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other);
