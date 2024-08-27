@@ -83,7 +83,7 @@ void DistributionTemplated<GeoMatrix>::ReadUnitDistro(void)
 
 /*!
 \author Vladimir Florinski
-\date 05/03/2022
+\date 08/27/2024
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -107,11 +107,11 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
    container.Read(unit_val.Data());
    container.Read(&keep_records);
 
-// The number of bins in active dimensions cannot be less than two and must be exactly one for each ignorable dimension. Ignorable dimensions must occur at the end of the "_value" vector. If the user specifies 0 as the ignorable dimension, the class will not initialize.
+// The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negqative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addresing possible. Active dimensions are flagged as bits in "dims".
    dims = 0;
    for(ijk = 0; ijk < 3; ijk++) {
-      if(n_bins[ijk] < 1) n_bins[ijk] = 1;
-      else if(n_bins[ijk] > 1) dims++;
+      if(n_bins[ijk] > 0) RAISE_BITS(dims, 1 << ijk);
+      n_bins[ijk] = std::max(n_bins[ijk], 1);
    };
 
 // "limits" and "range" keep the transformed min/max values (linear, log, or possibly other functional forms).
@@ -139,7 +139,7 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 05/04/2022
+\date 08/27/2024
 */
 template <class distroClass>
 void DistributionTemplated<distroClass>::AddEvent(void)
@@ -151,7 +151,7 @@ void DistributionTemplated<distroClass>::AddEvent(void)
    for(ijk = 0; ijk < 3; ijk++) {
 
 // Skip if dimension is ignorable
-      if(n_bins[ijk] == 1) continue;
+      if(BITS_LOWERED(dims, 1 << ijk)) continue;
       bin[ijk] = ((log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk]) / bin_size[ijk];
 
 // Check for outlying events
