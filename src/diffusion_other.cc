@@ -890,7 +890,7 @@ void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 03/12/2024
+\date 08/01/2024
 */
 void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
 {
