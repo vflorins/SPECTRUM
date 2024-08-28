@@ -14,6 +14,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "vectors.hh"
 #include "matrix.hh"
 
+namespace Spectrum {
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Flags for background computation
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -45,8 +47,6 @@ const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
 
 //! Shift between mask blocks
 const int mask_offset = 4;
-
-namespace Spectrum {
 
 /*!
 \brief Simple structure storing physical data defined at a spatial location

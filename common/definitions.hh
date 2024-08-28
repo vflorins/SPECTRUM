@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_DEFINITIONS_HH
 
 #include <cmath>
+#include <complex>
+
 #include "common/gpu_config.hh"
 
 namespace Spectrum {
@@ -422,9 +424,7 @@ SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T 
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline bool QuadraticSolve(T a, T b, T c, T& x1, T& x2)
 {
-   T q;
-
-   q = Sqr(b) - 4.0 * a * c;
+   T q = Sqr(b) - 4.0 * a * c;
    if(q >= 0.0) {
       q = sqrt(q);
       x1 = (-b + q) / (2.0 * a);
@@ -439,9 +439,29 @@ SPECTRUM_DEVICE_FUNC inline bool QuadraticSolve(T a, T b, T c, T& x1, T& x2)
 };
 
 /*!
-\brief Solve a cubic equation (real roots only)
+\brief Solve a quadratic equation
 \author Vladimir Florinski
-\date 08/11/2022
+\date 08/21/2024
+\param[in] a  Coefficient of x^2
+\param[in] b  Coefficient of x^1
+\param[in] c  Coefficient of x^0
+\param[in] x1 First root
+\param[in] x2 Second root
+\return True if the roots are real
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline bool QuadraticSolve(std::complex<T> a, std::complex<T> b, std::complex<T> c, std::complex<T>& x1, std::complex<T>& x2)
+{
+   std::complex<T> q = sqrt(Sqr(b) - 4.0 * a * c);
+   x1 = (-b + q) / (2.0 * a);
+   x2 = (-b - q) / (2.0 * a);
+   return (q.imag() == 0.0);
+};
+
+/*!
+\brief Solve a cubic equation
+\author Vladimir Florinski
+\date 08/21/2024
 \param[in] a  Coefficient of x^3
 \param[in] b  Coefficient of x^2
 \param[in] c  Coefficient of x^1
@@ -478,6 +498,43 @@ SPECTRUM_DEVICE_FUNC inline bool CubicSolve(T a, T b, T c, T d, T& x1, T& x2, T&
       x3 = 0.0;
       return false;
    };
+};
+
+/*!
+\brief Solve a cubic equation (real roots only)
+\author Vladimir Florinski
+\date 08/21/2024
+\param[in] a  Coefficient of x^3
+\param[in] b  Coefficient of x^2
+\param[in] c  Coefficient of x^1
+\param[in] d  Coefficient of x^0
+\param[in] x1 First root
+\param[in] x2 Second root
+\param[in] x2 Third root
+\return True if all roots are real
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline bool CubicSolve(std::complex<T> a, std::complex<T> b, std::complex<T> c, std::complex<T> d,
+                                            std::complex<T>& x1, std::complex<T>& x2, std::complex<T>& x3)
+{
+   std::complex<T> a1, b1, c1, p, q, Q, R, D, theta;
+
+   a1 = b / a;
+   b1 = c / a;
+   c1 = d / a;
+   p = b1 - a1 * a1 / 3.0;
+   q = a1 * b1 / 3.0 - c1 - 2.0 * a1 * a1 * a1 / 27.0;
+   Q = p / 3.0;
+   R = q / 2.0;
+   D = -Q * Q * Q + R * R;
+
+   theta = acos(R / sqrt(-Q * Q * Q));
+   Q = sqrt(-Q);
+   x1 = 2.0 * Q * cos(theta / 3.0) - a1 / 3.0;
+   x2 = 2.0 * Q * cos((theta + 2.0 * M_PI) / 3.0) - a1 / 3.0;
+   x3 = 2.0 * Q * cos((theta + 4.0 * M_PI) / 3.0) - a1 / 3.0;
+
+   return (sqrt(D).imag() == 0);
 };
 
 /*!

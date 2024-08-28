@@ -44,8 +44,8 @@ class DistributionBase : public Params {
 
 protected:
 
-//! Number of dimensions (1-3). To provide a uniform interface all distributions are treated as 3D (persistent)
-   int dims;
+//! Active dimensions as a bitset, gaps are allowed as in "101" or "010" (persistent)
+   uint8_t dims;
 
 //! Number of bins in the distribution (persistent)
    MultiIndex n_bins = MultiIndex(1, 1, 1);
@@ -80,7 +80,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Counts array - all dimensions rolled into one (transient)
-   std::vector <int> counts;
+   std::vector<int> counts;
 
 //! Size of the current bin or its logarithm (transient)
    GeoVector bin_size;

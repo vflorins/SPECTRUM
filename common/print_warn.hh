@@ -16,6 +16,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Comment character
+const char comment_char = '#';
+
 //! Color of error messages (red)
 const std::string err_color = "\033[31m";
 
@@ -63,24 +66,46 @@ inline void PrintMessage(const char* filename, int line, const std::string& mess
 };
 
 /*!
-\brief Returns the number of lines in a file stream
+\brief Skip to the next non comment line
 \author Vladimir Florinski
-\date 07/24/2023
-\param[in] inpfile Input stream
-\return Number of lines in the file
+\date 07/30/2024
+\param[in,out] inpfile Input stream
 */
-inline unsigned int CountLines(std::ifstream& inpfile)
+inline void SkipComments(std::ifstream& inpfile)
 {
-   unsigned int count = 0;
+   if(!inpfile.is_open()) return;
+
+   char first_char;
+
+   do {
+      inpfile >> std::ws;
+      first_char = inpfile.peek();
+      if(first_char == comment_char) inpfile.ignore(line_width, '\n');
+   } while(first_char == comment_char);
+};
+
+/*!
+\brief Returns the number of records in an input file stream
+\author Vladimir Florinski
+\date 07/26/2024
+\param[in] inpfile Input stream
+\return Number of lines in the file not counting the comment lines
+*/
+inline unsigned long CountRecords(std::ifstream& inpfile)
+{
+   if(!inpfile.is_open()) return 0;
+
+   unsigned long count = 0;
    char line[line_width + 1];
 
+   inpfile.seekg(inpfile.beg);
    while(inpfile.peek() != EOF) {
+      inpfile >> std::ws;
       inpfile.getline(line, line_width);
-      count++;
+      if(line[0] != comment_char) count++;
    };
    return count;
 };
-
 
 /*!
 \brief Print a general connectivity table
