@@ -325,7 +325,7 @@ MPI_Request_Info::~MPI_Request_Info()
 {
    delete[] mpi_req;
    delete[] cpu_rank;
-}
+};
 
 #ifdef GEO_DEBUG
 
@@ -378,6 +378,8 @@ void TestMPIConfig(void)
    
    infofile.close();
 };
+
+#endif
 
 };
 
