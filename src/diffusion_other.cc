@@ -619,6 +619,19 @@ void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
 
 /*!
 \author Juan G Alonso Guzman
+\date 09/30/2024
+\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return double       Directional derivative
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+*/
+double DiffusionFlowPowerLaw::GetDirectionalDerivative(int xyz)
+{
+// Note that this doesn't work in regions were the flow is nearly zero.
+   return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 06/03/2024
 \return double       Derivative in mu
 */
