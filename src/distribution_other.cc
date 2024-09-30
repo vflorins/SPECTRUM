@@ -128,6 +128,9 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
    if(!construct) DistributionUniform<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
+   this->container.Read(&val_time);
+
+// Check that ONLY the first dimension is active.
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
@@ -181,6 +184,9 @@ void DistributionPositionUniform::SetupDistribution(bool construct)
 
    this->container.Read(&val_time);
    this->container.Read(&val_coord);
+
+// Check that ALL three dimensions are active.
+   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -235,6 +241,9 @@ void DistributionMomentumUniform::SetupDistribution(bool construct)
 
    this->container.Read(&val_time);
    this->container.Read(&val_coord);
+
+// Check that ALL three dimensions are active.
+   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -330,6 +339,9 @@ void DistributionAnisotropyLISM::SetupDistribution(bool construct)
    this->ActionTable.push_back([this]() {FirstLegendreAnisotropy();});
    this->ActionTable.push_back([this]() {SecondLegendreAnisotropy();});
    this->ActionTable.push_back([this]() {bCrossGradientAnisotropy();});
+
+// Check that ONLY the first two dimensions are active.
+   if(this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -465,6 +477,7 @@ void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct
    this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
    this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawCold();});
 
+// Check that ONLY the first dimension is active.
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
@@ -568,6 +581,9 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
    this->container.Read(&pow_law_b);
    this->container.Read(&bend_smoothness);
    pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
+
+// Check that ONLY the first dimension is active.
+   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -623,6 +639,7 @@ void DistributionPositionCumulativeOrder1::SetupDistribution(bool construct)
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordPosition();});
 
+// Check that ONLY the first dimension is active.
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
@@ -686,6 +703,7 @@ void DistributionPositionCumulativeOrder2::SetupDistribution(bool construct)
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordPosition();});
 
+// Check that ONLY the first dimension is active.
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
@@ -751,6 +769,9 @@ void DistributionLossCone::SetupDistribution(bool construct)
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordLossCone();});
+
+// Check that ALL three dimensions are active.
+   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!

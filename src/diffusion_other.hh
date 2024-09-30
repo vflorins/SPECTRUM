@@ -442,9 +442,8 @@ public:
 //! Clone function
    CloneFunctionDiffusion(DiffusionFlowPowerLaw);
 
-// TODO: Implement directional derivative (only spatial dependence is in magnitude of Uvec)
 //! Compute derivative of diffusion coefficient in position or time
-   // double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;

@@ -174,7 +174,7 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 // Save time, compute increment
       _t_saved = _t;
 
-//FIXME: A similar comment as the one in the spatial derivatives applies here for "_dt".
+//A similar comment as the one in the spatial derivatives applies here for "_dt".
       _dt = 0.5 * _spdata._dt;
       if(_spdata._dt_forw_fail) {
          _t += _dt;
