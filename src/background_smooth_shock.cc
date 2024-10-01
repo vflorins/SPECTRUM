@@ -147,6 +147,7 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
       _spdata.gradBvec.Dyadic(n_shock, B0 - B1);
       _spdata.gradBvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+      _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
