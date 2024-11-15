@@ -106,6 +106,18 @@ struct SimpleArray
 
 //! Compute a result of component-wise modulo division of two simple arrays
    SPECTRUM_DEVICE_FUNC SimpleArray& operator %=(const SimpleArray& other);
+   
+//!Find if the values of arrays are greater then another array   
+  SPECTRUM_DEVICE_FUNC bool operator >(const SimpleArray& other) const;
+   
+//!Find if the values of arrays are less then another array   
+  SPECTRUM_DEVICE_FUNC bool operator <(const SimpleArray& other) const;
+  
+//!Find if the values of arrays are greater then another array   
+  SPECTRUM_DEVICE_FUNC bool operator >=(const SimpleArray& other) const;
+   
+//!Find if the values of arrays are less then another array   
+  SPECTRUM_DEVICE_FUNC bool operator <=(const SimpleArray& other) const;
 
 //! Computes the square of the norm of this simple array
    SPECTRUM_DEVICE_FUNC data_type Norm2(void) const;
@@ -378,6 +390,63 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
    for(auto i = 0; i < n_vars; i++) data[i] %= other.data[i];
    return *this;
 };
+
+/*!
+\author Swati
+\date 07/03/2024
+
+\return true if array value is greater then other array
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline bool SimpleArray<data_type, n_vars>::operator >(const SimpleArray& other) const
+{
+  for (auto i = 0; i < n_vars; ++i) if (data[i] > other.data[i]) return true;
+  return false;
+}
+
+
+/*!
+\author Swati
+\date 07/18/2024
+
+\return true if array value is greater then other array
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline bool SimpleArray<data_type, n_vars>::operator <(const SimpleArray& other) const
+{
+  for (auto i = 0; i < n_vars; ++i) if (data[i] < other.data[i]) return true;
+  return false;
+}
+
+/*!
+\author Swati
+\date 07/03/2024
+
+\return true if array value is greater then other array
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline bool SimpleArray<data_type, n_vars>::operator >=(const SimpleArray& other) const
+{
+  for (auto i = 0; i < n_vars; ++i) if (data[i] >= other.data[i]) return true;
+  return false;
+}
+
+
+/*!
+\author Swati
+\date 07/18/2024
+
+\return true if array value is greater then other array
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline bool SimpleArray<data_type, n_vars>::operator <=(const SimpleArray& other) const
+{
+  for (auto i = 0; i < n_vars; ++i) if (data[i] <= other.data[i]) return true;
+  return false;
+}
+
+
+
 
 /*!
 \author Vladimir Florinski
