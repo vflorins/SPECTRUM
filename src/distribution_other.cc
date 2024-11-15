@@ -202,6 +202,80 @@ void DistributionPositionUniform::EvaluateValue(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionPositionUniformConditional methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Swati Sharma
+\date 08/23/2024
+*/
+DistributionPositionUniformConditional::DistributionPositionUniformConditional(void)
+                           : DistributionUniform<double>(dist_name_momentum_position_uniform, 0, DISTRO_SPACE)
+{
+};
+
+/*!
+\author Swati Sharma
+\date 08/23/2024
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
+*/
+DistributionPositionUniformConditional::DistributionPositionUniformConditional(const DistributionPositionUniformConditional& other)
+                           : DistributionUniform<double>(other)
+{
+   RAISE_BITS(this->_status, DISTRO_SPACE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+};
+
+/*!
+\author Swati Sharma
+\date 08/23/2024
+\param[in] construct Whether called from a copy constructor or separately
+*/
+void DistributionPositionUniformConditional::SetupDistribution(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DistributionUniform<double>::SetupDistribution(false);
+   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+
+   this->container.Read(&val_time);
+   this->container.Read(&val_coord);
+   this->container.Read(momentum_1.Data());
+   this->container.Read(momentum_2.Data());
+
+// Check that ALL three dimensions are active.
+   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+};
+
+/*!
+\author Swati Sharma
+\date 08/23/2024
+*/
+void DistributionPositionUniformConditional::EvaluateValue(void)
+{
+    GeoVector momentum, bhat, position;
+   
+   if(val_time == 0) {
+      position = this-> _pos;
+      momentum = this->_mom;
+   }
+   else {
+      position = this-> _pos2;
+      momentum = this->_mom2;  
+   };
+   
+// Check the condition on momentum before calculating position value
+  if (momentum > momentum_1 && momentum < momentum_2) {
+      if(val_coord == 0) this->_value = position;
+      else this->_value.XYZ_RTP();
+  } else { 
+  this->_value = 5000.0;
+};
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionMomentumUniform methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -284,6 +358,110 @@ void DistributionMomentumUniform::EvaluateValue(void)
    this->_value[2] = 0.0;
 #endif
    };
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionMomentumUniformConditional methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Swati
+\date 06/28/2024
+
+*/
+DistributionMomentumUniformConditional::DistributionMomentumUniformConditional(void)
+                           : DistributionUniform<double>(dist_name_position_momentum_uniform, 0, DISTRO_MOMENTUM)
+{
+};
+
+/*!
+\author Swati
+\date 06/28/2024
+\param[in] other Object to initialize from
+
+A copy constructor should first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
+*/
+DistributionMomentumUniformConditional::DistributionMomentumUniformConditional(const DistributionMomentumUniformConditional& other)
+                           : DistributionUniform<double>(other)
+{
+   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+};
+
+/*!
+\author Swati
+\date 06/28/2024
+\param[in] construct Whether called from a copy constructor or separately
+*/
+void DistributionMomentumUniformConditional::SetupDistribution(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DistributionUniform<double>::SetupDistribution(false);
+   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+
+   this->container.Read(&val_time);
+   this->container.Read(&val_coord);
+   this->container.Read(position_1.Data());
+   this->container.Read(position_2.Data());
+
+// Check that ALL three dimensions are active.
+   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+};
+
+/*!
+\author Swati
+\date 06/28/2024
+
+If val_coord == 0, then "native coordinates" are used, meaning that the momentum vector is left in whatever coordinates are used for trajectory integration.
+If val_coord == 1, then the momentum vector is converted to locally spherical coordinates with B || z. In this case, only the momentum magnitude and pitch angle (if available) are recorded, so the distribution effectively becomes 2D.
+*/
+void DistributionMomentumUniformConditional::EvaluateValue(void)
+{
+   GeoVector momentum, bhat, position;
+   
+   if(val_time == 0) {
+      position = this-> _pos;
+      momentum = this->_mom;
+      bhat = this->_spdata.bhat;
+      
+   }
+   else {
+      position = this-> _pos2;
+      momentum = this->_mom2;
+      bhat = this->_spdata2.bhat;
+  
+   };
+   
+// Check the condition on position before calculating momentum value
+  if (position > position_1 && position < position_2) {
+      if(val_coord == 0) this->_value = momentum;
+      else {
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+// Focused and Parker trajectories are already in locally spherical coordinates
+      this->_value = momentum;
+#elif TRAJ_TYPE == TRAJ_FIELDLINE
+      this->_value[0] = momentum[2];
+      this->_value[1] = 0.0;
+      this->_value[2] = 0.0;
+#elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
+      this->_value[0] = momentum.Norm();
+      this->_value[1] = momentum[2] / this->_value[0];
+      this->_value[2] = 0.0;
+#elif TRAJ_TYPE == TRAJ_LORENTZ
+      this->_value[0] = momentum.Norm();
+      this->_value[1] = momentum * bhat / this->_value[0];
+      this->_value[2] = 0.0;
+#endif
+      };
+  } else {
+        // Case where the position condition is not met
+        //  set the value to zero
+////        this->_value = 0.0; 
+//#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+// Focused and Parker trajectories are already in locally spherical coordinates
+   this->_value = 0.0;
+//#endif
+     }
 };
 
 #if TRAJ_TYPE == TRAJ_LORENTZ
