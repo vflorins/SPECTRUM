@@ -14,10 +14,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Flag to control smoothness of shock
-#define SMOOTH_SHOCK_ORDER 1
+#define SMOOTH_SHOCK_ORDER 4
 
 //! Method for computing derivatives (0: analytical, 1: Numerical)
-#define SMOOTHSHOCK_DERIVATIVE_METHOD 1
+#define SMOOTHSHOCK_DERIVATIVE_METHOD 0
 
 //! Scaling factor to better match shock width when using smooth shock (tanh)
 const double tanh_width_factor = 4.0;
