@@ -152,6 +152,60 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionPositionUniformConditional class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionPositionUniformConditional class
+const std::string dist_name_momentum_position_uniform = "DistributionPositionUniformConditional";
+
+/*!
+\brief A uniform function of the spatial position
+\author Swati Sharma
+
+Type: 3D position
+Parameters: (DistributionUniform), int val_time, int val_coord, momentum_1, momentum_2
+*/
+class DistributionPositionUniformConditional : public DistributionUniform<double> {
+
+protected:
+
+//! Which coordinates to use for value: 0 initial, 1 final (persistent)
+   int val_time;
+
+//! Which coordinate representation to use for value: 0 cartesian, 1 spherical (persisent)
+   int val_coord;
+   
+// initial position for distribution   
+   GeoVector momentum_1;
+    
+// final position for distribution      
+   GeoVector momentum_2; 
+
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Determine the value to be binned from a phase space position and other arguments
+   void EvaluateValue(void) override;
+
+public:
+
+//! Default constructor
+   DistributionPositionUniformConditional(void);
+
+//! Copy constructor
+   DistributionPositionUniformConditional(const DistributionPositionUniformConditional& other);
+
+//! Destructor
+   ~DistributionPositionUniformConditional() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionPositionUniformConditional);
+};
+
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionMomentumUniform class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,6 +248,57 @@ public:
 
 //! Clone function
    CloneFunctionDistribution(DistributionMomentumUniform);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionMomentumUniformConditional class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionMomentumUniformConditional class
+const std::string dist_name_position_momentum_uniform = "DistributionMomentumUniformConditional";
+
+/*!
+\brief A uniform function of the momentum in a specific position range
+\author Swati
+
+Type: 3D momentum
+Parameters: (DistributionUniform), int val_time, int val_coord, position_1, position_2
+*/
+class DistributionMomentumUniformConditional : public DistributionUniform<double> {
+
+protected:
+
+//! Which coordinates to use for value: 0 initial, 1 final (persistent)
+   int val_time;
+
+//! Which coordinate representation to use for value: 0 "native coordinates", 1 locally spherical with B || z (persistent)
+   int val_coord;
+   
+// initial position for distribution   
+   GeoVector position_1;
+    
+// final position for distribution      
+   GeoVector position_2; 
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Determine the value to be binned from a phase space position and other arguments
+   void EvaluateValue(void) override;
+
+public:
+
+//! Default constructor
+   DistributionMomentumUniformConditional(void);
+
+//! Copy constructor
+   DistributionMomentumUniformConditional(const DistributionMomentumUniformConditional& other);
+
+//! Destructor
+   ~DistributionMomentumUniformConditional() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionMomentumUniformConditional);
 };
 
 #if TRAJ_TYPE == TRAJ_LORENTZ
@@ -274,7 +379,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Flag to define power law spectrum as differential density 0, differential intensity 1, or distribution function 2
-#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 1
+#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 0
 
 //! Readable name of the DistributionSpectrumKineticEnergyPowerLaw class
 const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpectrumKineticEnergyPowerLaw";
