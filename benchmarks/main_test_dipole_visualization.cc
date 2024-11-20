@@ -3,8 +3,6 @@
 #include <iostream>
 #include <iomanip>
 
-#define WHICH_TEST 0
-
 using namespace Spectrum;
 
 int main(int argc, char** argv)
