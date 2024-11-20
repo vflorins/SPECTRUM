@@ -1,4 +1,3 @@
-#include "src/server_config.hh"
 #include "src/background_dipole.hh"
 #include <fstream>
 #include <iostream>
