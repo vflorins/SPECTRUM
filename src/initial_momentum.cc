@@ -85,7 +85,7 @@ void InitialMomentumFixed::EvaluateInitial(void)
 // Component parallel to "axis"
    _mom = p0 * mu0 * axis;
 
-// Components normal to "axis". The gyrophase is not uniquily defined, so the component normal to "axis" effectively has a "random" azimuthal angle. However, if a spatial position is not changing and the field is time-independent, then the azimuthal angle is also fixed.
+// Components normal to "axis". The gyrophase is not uniquely defined, so the component normal to "axis" effectively has a "random" azimuthal angle. However, if a spatial position is not changing and the field is time-independent, then the azimuthal angle is also fixed.
    e1 = GetSecondUnitVec(axis);
    e2 = axis ^ e1;
    _mom += p0 * st0 * (cp0 * e1 + sp0 * e2);

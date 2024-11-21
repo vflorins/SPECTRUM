@@ -1,10 +1,7 @@
-#include "src/server_config.hh"
 #include "src/background_dipole.hh"
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-
-#define WHICH_TEST 0
 
 using namespace Spectrum;
 
@@ -15,7 +12,7 @@ int main(int argc, char** argv)
    SpatialData spdata;
    double t = 0.0;
    int i,j,k;
-   GeoVector pos;
+   GeoVector pos, mom = gv_ones;
 
    spdata._mask = BACKGROUND_ALL;
 
@@ -72,7 +69,7 @@ int main(int argc, char** argv)
       pos[0] = -corner + i * dx;
       for(j = 0; j < N; j++) {
          pos[2] = -corner + j * dz;
-         background.GetFields(t, pos, spdata);
+         background.GetFields(t, pos, mom, spdata);
          outfile_x << std::setw(16) << spdata.Bvec[0] * unit_magnetic_fluid;
          outfile_y << std::setw(16) << spdata.Bvec[1] * unit_magnetic_fluid;
          outfile_z << std::setw(16) << spdata.Bvec[2] * unit_magnetic_fluid;

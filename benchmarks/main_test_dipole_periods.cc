@@ -90,10 +90,7 @@ int main(int argc, char** argv)
    container.Clear();
 
    double L = 3.0;
-   double phi = DegToRad(0.1);
-   double the = DegToRad(89.9);
-   // GeoVector start_pos(L*RE, 0.0, 0.0);
-   GeoVector start_pos(L*RE*cos(phi)*sin(the), L*RE*sin(phi)*sin(the), L*RE*cos(the));
+   GeoVector start_pos(L*RE, 0.0, 0.0);
    container.Insert(start_pos);
 
    trajectory->AddInitial(InitialSpaceFixed(), container);
@@ -130,7 +127,7 @@ int main(int argc, char** argv)
 // Duration of the trajectory
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
-   double maxtime = 1.0 * drift_period;
+   double maxtime = 10.0 * drift_period;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTimeExpire(), container);
@@ -173,7 +170,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Normal
-   GeoVector normal_drift(0.0,1.0,0.0);
+   GeoVector normal_drift(1.0,0.0,0.0);
    container.Insert(normal_drift);
 
    trajectory->AddBoundary(BoundaryPlanePass(), container);
