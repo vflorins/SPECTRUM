@@ -19,7 +19,7 @@ namespace Spectrum {
 \date 05/01/2018
 \return Polar angle
 */
-SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void)
+SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void) const
 {
    double theta = atan2(sqrt(Sqr(data[0]) + Sqr(data[1])), data[2]);
    return (theta >= 0.0 ? theta : theta + M_2PI);
@@ -30,7 +30,7 @@ SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void)
 \date 05/01/2018
 \return Azimuthal angle
 */
-SPECTRUM_DEVICE_FUNC double GeoVector::Phi(void)
+SPECTRUM_DEVICE_FUNC double GeoVector::Phi(void) const
 {
    double phi = atan2(data[1], data[0]);
    return (phi >= 0.0 ? phi : phi + M_2PI);
