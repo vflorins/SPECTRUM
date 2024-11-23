@@ -108,10 +108,10 @@ struct GeoVector : public SimpleArray<double, 3>
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Polar angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Theta(void);
+   SPECTRUM_DEVICE_FUNC double Theta(void) const;
 
 //! Azimuthal angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Phi(void);
+   SPECTRUM_DEVICE_FUNC double Phi(void) const;
 
 //! Converts a position vector from r,theta,phi to x,y,z
    SPECTRUM_DEVICE_FUNC void RTP_XYZ(void);
