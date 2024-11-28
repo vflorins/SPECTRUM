@@ -31,9 +31,9 @@ SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, uint32_t mlex)
    double res = 1.0;
 
 // To compute the exponent, all bits except those relevant to the desired vector component are set to zero by applying the mask.
-   for(i = 0; i < (mlex & xbitfield) >> 16; i++) res *= v[0];
-   for(i = 0; i < (mlex & ybitfield) >> 8 ; i++) res *= v[1];
-   for(i = 0; i < (mlex & zbitfield)      ; i++) res *= v[2];
+   for (i = 0; i < (mlex & xbitfield) >> 16; i++) res *= v[0];
+   for (i = 0; i < (mlex & ybitfield) >> 8 ; i++) res *= v[1];
+   for (i = 0; i < (mlex & zbitfield)      ; i++) res *= v[2];
 
    return res;
 };
@@ -51,7 +51,7 @@ SPECTRUM_DEVICE_FUNC double CoordPower3D(double x, uint32_t mlex)
    double res = 1.0;
 
    pl_tot = ((mlex & xbitfield) >> 16) + ((mlex & ybitfield) >> 8) + (mlex & zbitfield);
-   for(i = 0; i < pl_tot; i++) res *= x;
+   for (i = 0; i < pl_tot; i++) res *= x;
    return res;
 };
 
@@ -69,9 +69,9 @@ SPECTRUM_DEVICE_FUNC double CoordPower3D(const GeoVector& v, int l, int m, int n
    int i;
    double res = 1.0;
 
-   for(i = 0; i < l; i++) res *= v[0];
-   for(i = 0; i < m; i++) res *= v[1];
-   for(i = 0; i < n; i++) res *= v[2];
+   for (i = 0; i < l; i++) res *= v[0];
+   for (i = 0; i < m; i++) res *= v[1];
+   for (i = 0; i < n; i++) res *= v[2];
    
    return res;
 };
@@ -89,7 +89,7 @@ SPECTRUM_DEVICE_FUNC double EvalPoly1D(int p, const double* c, double x)
    int i;
    double sum = c[p];
 
-   for(i = p - 1; i >= 0; i--) sum = sum * x + c[i];
+   for (i = p - 1; i >= 0; i--) sum = sum * x + c[i];
    return sum;
 };
 
@@ -110,14 +110,14 @@ SPECTRUM_DEVICE_FUNC double EvalPoly2D(int p, const double* c, double x, double 
 // Precompute powers of y
    double powy[p + 1];
    powy[0] = 1.0;
-   for(i = 1; i <= p; i++) powy[i] = powy[i - 1] * y;
+   for (i = 1; i <= p; i++) powy[i] = powy[i - 1] * y;
 
 // Loop on powers of xy
-   for(j = 1; j <= p; j++) {
+   for (j = 1; j <= p; j++) {
       psum = c[++idx];
 
 // Loop on powers of y
-      for(i = 1; i <= j; i++) psum = psum * x + c[++idx] * powy[i];
+      for (i = 1; i <= j; i++) psum = psum * x + c[++idx] * powy[i];
       sum += psum;
    };
 
@@ -142,18 +142,18 @@ SPECTRUM_DEVICE_FUNC double EvalPoly3D(int p, const double* c, double x, double 
 // Precompute powers of z
    double powz[p + 1];
    powz[0] = 1.0;
-   for(i = 1; i <= p; i++) powz[i] = powz[i - 1] * z;
+   for (i = 1; i <= p; i++) powz[i] = powz[i - 1] * z;
 
 // Loop on powers of xyz
-   for(j = 1; j <= p; j++) {
+   for (j = 1; j <= p; j++) {
       psum = c[++idx];
 
 // Loop on powers of yz
-      for(i = 1; i <= j; i++) {
+      for (i = 1; i <= j; i++) {
          qsum = c[++idx];
 
 // Loop on powers of z
-         for(k = 1; k <= i; k++) qsum = qsum * y + c[++idx] * powz[k];
+         for (k = 1; k <= i; k++) qsum = qsum * y + c[++idx] * powz[k];
          psum = psum * x + qsum;
       };
       sum += psum;
@@ -174,23 +174,23 @@ void PrintMomentTables(void)
    std::cerr << std::setiosflags(std::ios::showbase);
 
    std::cerr << "Printing the binomial coefficients\n";   
-   for(auto n = 0; n <= MONO_DEGREE_HIGH; n++) {
-      for(auto k = 0; k <= n; k++) {
+   for (auto n = 0; n <= MONO_DEGREE_HIGH; n++) {
+      for (auto k = 0; k <= n; k++) {
          std::cerr << std::dec << std::setw(3) << poly.binomial[n][k];
       };
       std::cerr << std::endl;
    };
 
    std::cerr << "\nPrinting the moment numbering table\n";   
-   for(auto idx = 0; idx < poly_table_length; idx++) {
+   for (auto idx = 0; idx < poly_table_length; idx++) {
       std::cerr << std::dec << std::setw(3) << idx;
       std::cerr << std::hex << std::setw(12) << poly.moment_pl[idx] << std::endl;
    };
 
    std::cerr << "\nPrinting the moment lookup table\n";   
-   for(auto k = 0; k <= MONO_DEGREE_HIGH; k++) {
-      for(auto j = 0; j <= MONO_DEGREE_HIGH; j++) {
-         for(auto i = 0; i <= MONO_DEGREE_HIGH; i++) {
+   for (auto k = 0; k <= MONO_DEGREE_HIGH; k++) {
+      for (auto j = 0; j <= MONO_DEGREE_HIGH; j++) {
+         for (auto i = 0; i <= MONO_DEGREE_HIGH; i++) {
             std::cerr << std::dec << std::setw(3) << poly.moment_lu[k][j][i];
          };
          std::cerr << std::endl;

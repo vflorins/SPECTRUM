@@ -58,16 +58,16 @@ struct GeoVector : public SimpleArray<double, 3>
    using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoVector(void) = default;
+   SPECTRUM_DEVICE_FUNC GeoVector(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit GeoVector(double a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr GeoVector(double a);
 
 //! Constructor from an array
    SPECTRUM_DEVICE_FUNC explicit GeoVector(const double* other);
 
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC GeoVector(double x_in, double y_in, double z_in);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(double x_in, double y_in, double z_in);
 
 //! Constructor from the base class
    SPECTRUM_DEVICE_FUNC GeoVector(const SimpleArray<double, 3>& other);
@@ -159,9 +159,9 @@ struct GeoVector : public SimpleArray<double, 3>
 \date 03/10/2024
 \param[in] a Number to be asigned to each index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double a)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double a)
+                                               : SimpleArray(a)
 {
-   data[0] = data[1] = data[2] = a;
 };
 
 /*!
@@ -181,7 +181,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const double* other)
 \param[in] y Second component
 \param[in] z Third component
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double x_in, double y_in, double z_in)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y_in, double z_in)
 {
    data[0] = x_in;
    data[1] = y_in;
@@ -290,61 +290,61 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& o
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a summation with a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] + other.data[0];
-   data[1] = vect_tmp.data[1] + other.data[1];
-   data[2] = vect_tmp.data[2] + other.data[2];
+   data[0] += other.data[0];
+   data[1] += other.data[1];
+   data[2] += other.data[2];
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a subtraction of a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] - other.data[0];
-   data[1] = vect_tmp.data[1] - other.data[1];
-   data[2] = vect_tmp.data[2] - other.data[2];
+   data[0] -= other.data[0];
+   data[1] -= other.data[1];
+   data[2] -= other.data[2];
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise multiplication by a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] * other.data[0];
-   data[1] = vect_tmp.data[1] * other.data[1];
-   data[2] = vect_tmp.data[2] * other.data[2];
+   data[0] *= other.data[0];
+   data[1] *= other.data[1];
+   data[2] *= other.data[2];
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise division by a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] / other.data[0];
-   data[1] = vect_tmp.data[1] / other.data[1];
-   data[2] = vect_tmp.data[2] / other.data[2];
+   data[0] /= other.data[0];
+   data[1] /= other.data[1];
+   data[2] /= other.data[2];
    return *this;
 };
 
@@ -568,8 +568,8 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const G
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Three unit vectors in an array (host only)
-const GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
+//! Three unit vectors in an array
+constexpr GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
 
 };
 

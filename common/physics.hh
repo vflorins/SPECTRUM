@@ -78,11 +78,7 @@ namespace Spectrum {
 #define MAX_FLUIDS 6
 
 //! Polytropic indices
-#ifdef __CUDA_ARCH__
-__device__ const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
-#else
-const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
-#endif
+constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle units used in the code - user configurable. Length and time units are the same as for the fluid.
@@ -117,26 +113,14 @@ enum Specie {
 };
 
 //! Particle masses
-#ifdef __CUDA_ARCH__
-__device__ const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                            4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                                  GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
-#else
-const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                 4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                       GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
-#endif
+constexpr double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                     4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                           GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
 
 //! Particle charges
-#ifdef __CUDA_ARCH__
-__device__ const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                              2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                   -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
-#else
-const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                   2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                        -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
-#endif
+constexpr double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                       2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                            -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion

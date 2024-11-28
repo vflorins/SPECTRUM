@@ -40,7 +40,7 @@ struct MultiIndex : public SimpleArray<int, 3>
    using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC MultiIndex(void) = default;
+   SPECTRUM_DEVICE_FUNC MultiIndex(void) {};
 
 //! Constructor from a single value
    SPECTRUM_DEVICE_FUNC explicit MultiIndex(int a);

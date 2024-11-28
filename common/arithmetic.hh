@@ -10,8 +10,24 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_ARITHMETIC_HH
 
 #include <type_traits>
+#include <complex>
 
 namespace Spectrum {
+
+// Ref: https://gist.github.com/sighingnow/505d3d5c82237741b4a18147b2f84811
+template <template <typename...> typename T, typename U>
+struct is_specialization_of : std::false_type {};
+
+// Ref: https://gist.github.com/sighingnow/505d3d5c82237741b4a18147b2f84811
+template <template <typename...> typename T, typename... Us>
+struct is_specialization_of<T, T<Us...>> : std::true_type {};
+
+/*!
+\brief A template tester for arithmetic type extending it to include std::complex
+\author Vladimir Florinski
+*/
+template<typename T>
+struct is_arithmetic_or_complex : std::disjunction<std::is_arithmetic<T>, is_specialization_of<std::complex, T>> {};
 
 /*!
 \brief Add two objects together
@@ -37,7 +53,7 @@ SPECTRUM_DEVICE_FUNC inline T operator +(const T& left, const T& right)
 \param[in] right Right operand \f$\mathbf{v}\f$
 \return \f$a(1,..,1)+\mathbf{v}\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator +(const T& left, arithm right)
 {
    T retval(left);
@@ -53,7 +69,7 @@ SPECTRUM_DEVICE_FUNC inline T operator +(const T& left, arithm right)
 \param[in] right Right operand \f$a\f$
 \return \f$\mathbf{v}+a(1,..,1)\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator +(arithm left, const T& right)
 {
    T retval(left);
@@ -85,7 +101,7 @@ SPECTRUM_DEVICE_FUNC inline T operator -(const T& left, const T& right)
 \param[in] right Right operand \f$\mathbf{v}\f$
 \return \f$a(1,..,1)-\mathbf{v}\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator -(arithm left, const T& right)
 {
    T retval(left);
@@ -101,7 +117,7 @@ SPECTRUM_DEVICE_FUNC inline T operator -(arithm left, const T& right)
 \param[in] right Right operand \f$a\f$
 \return \f$\mathbf{v}-a(1,..,1)\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator -(const T& left, arithm right)
 {
    T retval(left);
@@ -117,7 +133,7 @@ SPECTRUM_DEVICE_FUNC inline T operator -(const T& left, arithm right)
 \param[in] right Right operand \f$\mathbf{v}\f$
 \return \f$a\mathbf{v}\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator *(arithm left, const T& right)
 {
    T retval(left);
@@ -133,7 +149,7 @@ SPECTRUM_DEVICE_FUNC inline T operator *(arithm left, const T& right)
 \param[in] right Right operand \f$a\f$
 \return \f$a\mathbf{v}\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator *(const T& left, arithm right)
 {
    T retval(left);
@@ -165,7 +181,7 @@ SPECTRUM_DEVICE_FUNC inline T operator /(const T& left, const T& right)
 \param[in] right Right operand \f$a\f$
 \return \f$a^{-1}\mathbf{v}\f$
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator /(const T& left, arithm right)
 {
    T retval(left);
@@ -197,7 +213,7 @@ SPECTRUM_DEVICE_FUNC inline T operator %(const T& left, const T& right)
 \param[in] right Right operand \f$a\f$
 \return First object modulo divided by a number
 */
-template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && std::is_arithmetic<arithm>::value, bool> = true>
+template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
 SPECTRUM_DEVICE_FUNC inline T operator %(const T& left, arithm right)
 {
    T retval(left);

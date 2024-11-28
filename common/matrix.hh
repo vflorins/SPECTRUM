@@ -37,7 +37,7 @@ struct GeoMatrix {
    };
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoMatrix(void) = default;
+   SPECTRUM_DEVICE_FUNC GeoMatrix(void) {};
 
 //! Constructor from row vectors
    SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);

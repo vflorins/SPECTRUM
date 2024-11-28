@@ -58,7 +58,7 @@ SPECTRUM_DEVICE_FUNC void GeoVector::XYZ_RTP(void)
    double r = Norm();
    double theta = acos(data[2] / r);
    double phi = atan2(data[1], data[0]);
-   if(phi < 0.0) phi += M_2PI;
+   if (phi < 0.0) phi += M_2PI;
    data[0] = r;
    data[1] = theta;
    data[2] = phi;
@@ -200,9 +200,9 @@ SPECTRUM_DEVICE_FUNC void GeoVector::ProjectToPlane(int projection, const GeoVec
    cos_dist = fmax(-1.0, fmin(1.0, cos_dist));
 
 // Distance from the center
-   if(projection == 1) rho = tan(acos(cos_dist));
-   else if(projection == 2) rho = sin(acos(cos_dist));
-   else if(projection == 3) rho = acos(cos_dist);
+   if (projection == 1) rho = tan(acos(cos_dist));
+   else if (projection == 2) rho = sin(acos(cos_dist));
+   else if (projection == 3) rho = acos(cos_dist);
    else rho = 0.0;
 
 // Azimuthal angle cosine is the same for all projections.
@@ -211,7 +211,7 @@ SPECTRUM_DEVICE_FUNC void GeoVector::ProjectToPlane(int projection, const GeoVec
    eta = rho * sqrt(fmax(0.0, 1.0 - Sqr(cp)));
 
 // The vector product of center and North gives the West direction. The triple product is negative if v points East.
-   if(*this * (normal ^ north) < 0.0) eta = -eta;
+   if (*this * (normal ^ north) < 0.0) eta = -eta;
 };
 
 /*!
@@ -228,15 +228,15 @@ SPECTRUM_DEVICE_FUNC bool GeoVector::InsideWedge(int n_verts, const GeoVector* v
    GeoVector edge_norm;
 
 // Check the sign of the projection of "v" onto planes through each vector pair. This relies on CC ordering of the vertices.
-   for(auto iv = 0; iv < n_verts; iv++) {
+   for (auto iv = 0; iv < n_verts; iv++) {
       edge_norm = verts[iv] ^ verts[(iv + 1) % n_verts];
       scp = *this * edge_norm;
-      if(tol > 0.0) {
-         if((scp < 0.0) && (scp < -tol)) return false;
+      if (tol > 0.0) {
+         if ((scp < 0.0) && (scp < -tol)) return false;
       }
       else {
-         if(scp < 0.0) return false;
-         else if(scp < -tol) return false;
+         if (scp < 0.0) return false;
+         else if (scp < -tol) return false;
       };
    };
    return true;
@@ -255,8 +255,7 @@ SPECTRUM_DEVICE_FUNC bool GeoVector::InsideWedge(int n_verts, const GeoVector* v
 */
 SPECTRUM_DEVICE_FUNC GeoVector Bisect(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   GeoVector sum = vect_l + vect_r;
-   return sum.Normalize();
+   return UnitVec(vect_l + vect_r);
 };
 
 /*!
@@ -282,8 +281,7 @@ SPECTRUM_DEVICE_FUNC double TriangleArea(const GeoVector& vect_l, const GeoVecto
 */
 SPECTRUM_DEVICE_FUNC GeoVector PlaneNormal(const GeoVector& vect_l, const GeoVector& vect_m, const GeoVector& vect_r)
 {
-   GeoVector n = (vect_m - vect_l) ^ (vect_r - vect_l);
-   return n.Normalize();
+   return UnitVec((vect_m - vect_l) ^ (vect_r - vect_l));
 };
 
 /*!
@@ -309,8 +307,7 @@ SPECTRUM_DEVICE_FUNC GeoVector TriangleCenter(const GeoVector& vect_l, const Geo
 */
 SPECTRUM_DEVICE_FUNC GeoVector CircumCenter(const GeoVector& vect_l, const GeoVector& vect_m, const GeoVector& vect_r)
 {
-   GeoVector n = (vect_m - vect_l) ^ (vect_r - vect_l);
-   n.Normalize();
+   GeoVector n = UnitVec((vect_m - vect_l) ^ (vect_r - vect_l));
    return (n * vect_l) * n;
 };
 
@@ -326,10 +323,8 @@ The function returns the unit vector in the v1-v2 plane that makes an angle with
 */
 SPECTRUM_DEVICE_FUNC GeoVector DivideAngle(const GeoVector& vect_l, const GeoVector& vect_r, double frac)
 {
-   double theta, costheta;
-
-   costheta = vect_l * vect_r;
-   theta = acos(costheta);
+   double costheta = vect_l * vect_r;
+   double theta = acos(costheta);
    return (sin((1.0 - frac) * theta) * vect_l + sin(frac * theta) * vect_r) / sqrt(1.0 - Sqr(costheta));
 };
 
@@ -372,18 +367,18 @@ SPECTRUM_DEVICE_FUNC void TriangleMoments(const GeoVector v[3], double& C0, doub
    C0 = TriangleArea(v[0], v[1], v[2]);
 
 // First order moments
-   for(i = 0; i < 3; i++) {
+   for (i = 0; i < 3; i++) {
       C1[i] = 0.0;
-      for(p = 0; p < 3; p++) {
+      for (p = 0; p < 3; p++) {
          C1[i] += C0 / 3.0 * v[p][i];
       };
    };
 
 // Second order moments
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) {
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
          C2[i][j] = 9.0 * C1[i] * C1[j] / Sqr(C0);
-         for(p = 0; p < 3; p++) {
+         for (p = 0; p < 3; p++) {
             C2[i][j] += v[p][i] * v[p][j];
          };
          C2[i][j] *= C0 / 12.0;
@@ -391,12 +386,12 @@ SPECTRUM_DEVICE_FUNC void TriangleMoments(const GeoVector v[3], double& C0, doub
    };
 
 // Third order moments
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) {
-         for(k = 0; k < 3; k++) {
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+         for (k = 0; k < 3; k++) {
             C3[i][j][k] = -27.0 * C1[i] * C1[j] * C1[k] / Cube(C0)
                + 18.0 / Sqr(C0) * (C1[i] * C2[j][k] + C1[j] * C2[i][k] + C1[k] * C2[i][j]);
-            for(p = 0; p < 3; p++) {
+            for (p = 0; p < 3; p++) {
                C3[i][j][k] += v[p][i] * v[p][j] * v[p][k];
             };
             C3[i][j][k] *= C0 / 30.0;
@@ -405,15 +400,15 @@ SPECTRUM_DEVICE_FUNC void TriangleMoments(const GeoVector v[3], double& C0, doub
    };
 
 // Fourth order moments
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) {
-         for(k = 0; k < 3; k++) {
-            for(l = 0; l < 3; l++) {
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+         for (k = 0; k < 3; k++) {
+            for (l = 0; l < 3; l++) {
                C4[i][j][k][l] = -81.0 * C1[i] * C1[j] * C1[k] * C1[l] / Quad(C0)
                   + 18.0 / Cube(C0) * (C1[i] * C1[j] * C2[k][l] + C1[i] * C1[k] * C2[j][l]
                                      + C1[i] * C1[l] * C2[j][k] + C1[j] * C1[k] * C2[i][l]
                                      + C1[j] * C1[l] * C2[i][k] + C1[k] * C1[l] * C2[i][j]);
-               for(p = 0; p < 3; p++) {
+               for (p = 0; p < 3; p++) {
                   C4[i][j][k][l] += v[p][i] * v[p][j] * v[p][k] * v[p][l];
                };
                C4[i][j][k][l] *= C0 / 30.0;
@@ -540,9 +535,7 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& first)
 */
 SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   GeoVector normal;
-   normal = vect_r - ((vect_l * vect_r) / vect_l.Norm2()) * vect_l;
-   return normal.Normalize();
+   return UnitVec(vect_r - ((vect_l * vect_r) / vect_l.Norm2()) * vect_l);
 };
 
 };

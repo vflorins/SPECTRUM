@@ -75,9 +75,9 @@ SPECTRUM_DEVICE_FUNC inline Polynomial::Polynomial(void)
 */
 SPECTRUM_DEVICE_FUNC inline int Polynomial::DOF(int dim, int poly_deg) const
 {
-   if(dim == 1) return poly_deg + 1;
-   else if(dim == 2) return (poly_deg + 1) * (poly_deg + 2) / 2;
-   else if(dim == 3) return (poly_deg + 1) * (poly_deg + 2) * (poly_deg + 3) / 6;
+   if (dim == 1) return poly_deg + 1;
+   else if (dim == 2) return (poly_deg + 1) * (poly_deg + 2) / 2;
+   else if (dim == 3) return (poly_deg + 1) * (poly_deg + 2) * (poly_deg + 3) / 6;
 };
 
 /*!
@@ -87,19 +87,19 @@ SPECTRUM_DEVICE_FUNC inline int Polynomial::DOF(int dim, int poly_deg) const
 SPECTRUM_DEVICE_FUNC inline constexpr void Polynomial::Setup(void)
 {
 // Compute the binomial coefficients
-   for(auto n = 0; n <= MONO_DEGREE_HIGH; n++) {
+   for (auto n = 0; n <= MONO_DEGREE_HIGH; n++) {
       binomial[n][0] = 1;
       binomial[n][n] = 1;
-      for(auto k = 1; k < n; k++) {
+      for (auto k = 1; k < n; k++) {
          binomial[n][k] = binomial[n - 1][k - 1] + binomial[n - 1][k];
       };
    };
 
 // Build the moment numbering table
    int midx = 0;
-   for(auto pow_hi = 0; pow_hi <= MONO_DEGREE_HIGH; pow_hi++) {
-      for(auto i = pow_hi; i >= 0; i--) {
-         for(auto j = pow_hi - i ; j >= 0; j--) {
+   for (auto pow_hi = 0; pow_hi <= MONO_DEGREE_HIGH; pow_hi++) {
+      for (auto i = pow_hi; i >= 0; i--) {
+         for (auto j = pow_hi - i ; j >= 0; j--) {
             moment_pl[midx++] = i * (1 << 16) + j * (1 << 8) + pow_hi - i - j;
          };
       };
@@ -107,9 +107,9 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polynomial::Setup(void)
 
 // Build the moment lookup table
    uint32_t mlex = 0x0;
-   for(auto k = 0; k <= MONO_DEGREE_HIGH; k++) {
-      for(auto j = 0; j <= MONO_DEGREE_HIGH; j++) {
-         for(auto i = 0; i <= MONO_DEGREE_HIGH; i++) {
+   for (auto k = 0; k <= MONO_DEGREE_HIGH; k++) {
+      for (auto j = 0; j <= MONO_DEGREE_HIGH; j++) {
+         for (auto i = 0; i <= MONO_DEGREE_HIGH; i++) {
             moment_lu[k][j][i] = InList(poly_table_length, moment_pl, mlex);
             mlex += 1 << 16;
          };
