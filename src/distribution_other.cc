@@ -119,7 +119,8 @@ DistributionTimeUniform::DistributionTimeUniform(const DistributionTimeUniform& 
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2022
+\author Juan G Alonso Guzman
+\date 08/11/2024
 \param[in] construct Whether called from a copy constructor or separately
 */
 void DistributionTimeUniform::SetupDistribution(bool construct)
@@ -136,7 +137,8 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2022
+\author Juan G Alonso Guzman
+\date 08/11/2024
 */
 void DistributionTimeUniform::EvaluateValue(void)
 {

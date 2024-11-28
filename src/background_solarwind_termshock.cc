@@ -66,7 +66,13 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 {
    if(r > r_TS) {
+#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
+      if(r > r_TS + w_TS) ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
+#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
       if(r > r_TS + w_TS) ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
+#else
+      if(r > r_TS + w_TS) ur_mod *= s_TS_inv;
+#endif
       else ur_mod *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
    };
 };
@@ -80,7 +86,13 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 double BackgroundSolarWindTermShock::TimeLag(const double r)
 {
    if(r < r_TS) return r / ur0;
-   else return (r_TS + (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
+#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
+   else return (r_TS + s_TS * (Sqr(r) - Sqr(r_TS)) / (2.0 * r_TS)) / ur0;
+#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
+   else return (r_TS + s_TS * (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
+#else
+   else return (r_TS + s_TS * (r - r_TS)) / ur0;
+#endif
 };
 
 /*!

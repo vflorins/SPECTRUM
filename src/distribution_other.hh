@@ -76,7 +76,7 @@ const std::string dist_name_time_uniform = "DistributionTimeUniform";
 \author Juan G Alonso Guzman
 
 Type: 1D time
-Parameters: (DistributionUniform)
+Parameters: (DistributionUniform), int val_time
 */
 class DistributionTimeUniform : public DistributionUniform<double> {
 
