@@ -7,16 +7,14 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
+#include <iomanip>
+#include <iostream>
+
 #include "common/data_container.hh"
 #include "common/spatial_data.hh"
 #include "common/vectors.hh"
 #include "common/matrix.hh"
 #include "common/turb_prop.hh"
-#include "common/mpi_config.hh"
-#include <iomanip>
-#include <iostream>
-#include <cstring>
-#include <memory>
 
 namespace Spectrum {
 
@@ -30,6 +28,16 @@ namespace Spectrum {
 \param[in] other Container to be copied into this one
 */
 DataContainer::DataContainer(const DataContainer& other)
+{
+   operator =(other);
+};
+
+/*!
+\author Vladimir Florinski
+\date 10/16/2024
+\param[in] other Container to be moved into this one
+*/
+DataContainer::DataContainer(DataContainer&& other)
 {
    operator =(other);
 };
@@ -50,8 +58,8 @@ DataContainer::~DataContainer(void)
 */
 DataContainer& DataContainer::operator =(const DataContainer& other)
 {
-// Don't change anything if "other" is empty
-   if(!other.total_size) return *this;
+// Don't change anything if "other" is empty or self
+   if (!other.total_size || (this == &other)) return *this;
 
    delete[] storage;
    n_records = other.n_records;
@@ -63,44 +71,22 @@ DataContainer& DataContainer::operator =(const DataContainer& other)
 
 /*!
 \author Vladimir Florinski
-\date 12/03/2020
+\date 10/16/2024
+\param[in] other Container to be moved into this one
 */
-void DataContainer::Clear(void)
+DataContainer& DataContainer::operator =(DataContainer&& other)
 {
+// Don't change anything if "other" is empty or self
+   if (!other.total_size || (this == &other)) return *this;
+
    delete[] storage;
-   storage = nullptr;
-   n_records = 0;
-   total_size = 0;
-};
-
-/*!
-\author Vladimir Florinski
-\date 12/03/2020
-\return Number of records in the container
-*/
-size_t DataContainer::size(void) const
-{
-   return n_records;
-};
-
-/*!
-\author Vladimir Florinski
-\date 07/27/2022
-\return Number of bytes in the container
-*/
-size_t DataContainer::length(void) const
-{
-   return total_size;
-};
-
-/*!
-\author Vladimir Florinski
-\date 07/27/2022
-\return Pointer to the binary chunk
-*/
-const uint8_t* DataContainer::data(void) const
-{
-   return storage;
+   n_records = other.n_records;
+   total_size = other.total_size;
+   storage = other.storage;
+   other.n_records = 0;
+   other.total_size = 0;
+   other.storage = nullptr;
+   return *this;
 };
 
 /*!
@@ -121,6 +107,18 @@ void DataContainer::resize(size_t n_records_in, size_t total_size_in)
 \author Vladimir Florinski
 \date 12/03/2020
 */
+void DataContainer::Clear(void)
+{
+   delete[] storage;
+   storage = nullptr;
+   n_records = 0;
+   total_size = 0;
+};
+
+/*!
+\author Vladimir Florinski
+\date 12/03/2020
+*/
 void DataContainer::Reset(void)
 {
    _param = storage;
@@ -128,103 +126,115 @@ void DataContainer::Reset(void)
 
 /*!
 \author Vladimir Florinski
-\param[in] data Parameter to insert
 \date 07/27/2022
+\param[in] arg Parameter to insert
 */
-template <typename T> void DataContainer::Insert(T data)
+template <typename T>
+void DataContainer::Insert(const T& arg)
 {
-   uint8_t size = sizeof(data);
+   uint8_t arg_size = sizeof(arg);
 
 // Copy existing arguments into a new memory region
-   uint8_t* params_new = new uint8_t[total_size + size + 1];
-   std::memcpy(params_new, storage, total_size);
-   params_new[total_size] = size;
-   std::memcpy(params_new + total_size + 1, &data, size);
+   uint8_t* storage_new = new uint8_t[total_size + arg_size + 1];
+   std::memcpy(storage_new, storage, total_size);
 
-// Point "storage" to the new memory region
+// Insert the size of the new argument and the argument itself
+   storage_new[total_size] = arg_size;
+   std::memcpy(storage_new + total_size + 1, &arg, arg_size);
+
+// Replace "storage" with "storage_new" and increment the size
    delete[] storage;
-   storage = params_new;
+   storage = storage_new;
    n_records++;
-   total_size += size + 1;
+   total_size += arg_size + 1;
 };
 
 /*!
 \author Vladimir Florinski
-\param[in] data Parameter to insert
-\date 03/22/2023
+\date 07/27/2022
+\param[in] arg Parameter to insert
 */
-template <> void DataContainer::Insert(std::string data)
+template <>
+void DataContainer::Insert(const std::string& arg)
 {
-   uint8_t size = data.size();
+   uint8_t arg_size = arg.size();
 
 // Copy existing arguments into a new memory region
-   uint8_t* params_new = new uint8_t[total_size + size + 1];
-   std::memcpy(params_new, storage, total_size);
-   params_new[total_size] = size;
-   std::memcpy(params_new + total_size + 1, data.data(), size);
+   uint8_t* storage_new = new uint8_t[total_size + arg_size + 1];
+   std::memcpy(storage_new, storage, total_size);
 
-// Point "storage" to the new memory region
+// Insert the size of the new argument and the argument itself
+   storage_new[total_size] = arg_size;
+   std::memcpy(storage_new + total_size + 1, arg.data(), arg_size);
+
+// Replace "storage" with "storage_new" and increment the size
    delete[] storage;
-   storage = params_new;
+   storage = storage_new;
    n_records++;
-   total_size += size + 1;
+   total_size += arg_size + 1;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\param[in] data Parameter to insert
 \date 07/27/2022
+\param[in] arg Parameter to insert
 */
-template <typename T> void DataContainer::Insert(std::vector<T> data)
+template <typename T>
+void DataContainer::Insert(const std::vector<T>& arg)
 {
-   uint8_t size = data.size() * sizeof(T);
+   uint8_t arg_size = arg.size() * sizeof(T);
 
 // Copy existing arguments into a new memory region
-   uint8_t* params_new = new uint8_t[total_size + size + 1];
-   std::memcpy(params_new, storage, total_size);
-   params_new[total_size] = size;
-   std::memcpy(params_new + total_size + 1, data.data(), size);
+   uint8_t* storage_new = new uint8_t[total_size + arg_size + 1];
+   std::memcpy(storage_new, storage, total_size);
+
+// Insert the size of the new argument and the argument itself
+   storage_new[total_size] = arg_size;
+   std::memcpy(storage_new + total_size + 1, arg.data(), arg_size);
 
 // Point "storage" to the new memory region
    delete[] storage;
-   storage = params_new;
+   storage = storage_new;
    n_records++;
-   total_size += size + 1;
+   total_size += arg_size + 1;
 };
 
 /*!
 \author Vladimir Florinski
-\param[out] data_ptr Pointer to the parameter to be read
-\date 07/27/2022
+\date 11/28/2024
+\param[out] arg Parameter to read
 */
-template <typename T> void DataContainer::Read(T* data_ptr)
+template <typename T>
+void DataContainer::Read(T& arg)
 {
-   std::memcpy(data_ptr, _param + 1, *_param);
+   std::memcpy(&arg, _param + 1, *_param);
    _param += *_param + 1;
 };
 
 /*!
 \author Vladimir Florinski
-\param[out] data_ptr Pointer to the parameter to be read
 \date 03/22/2023
+\param[out] arg Parameter to read
 */
-template <> void DataContainer::Read(std::string* data_ptr)
+template <>
+void DataContainer::Read(std::string& arg)
 {
-   data_ptr->assign((char*)(_param + 1), *_param);
+   arg.assign((char*)(_param + 1), *_param);
    _param += *_param + 1;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\param[out] data_ptr Pointer to the parameter to be read
 \date 07/27/2022
+\param[out] arg Parameter to read
 */
-template <typename T> void DataContainer::Read(std::vector<T>* data_ptr)
+template <typename T>
+void DataContainer::Read(std::vector<T>& arg)
 {
-   data_ptr->resize(*_param / sizeof(T));
-   std::memcpy(data_ptr->data(), _param + 1, *_param);
+   arg.resize(*_param / sizeof(T));
+   std::memcpy(arg.data(), _param + 1, *_param);
    _param += *_param + 1;
 };
 
@@ -243,34 +253,35 @@ void DataContainer::Print(void)
 // Print the byte decimal representation of the parameters
    std::cout << std::hex;
    std::cout << std::setfill('0');
-   for(size_t i = 0; i < n_records; i++) {
-      for(uint8_t j = 1; j <= *_param; j++) std::cout << " " << std::setw(2) << (int)_param[j];
+   for (size_t i = 0; i < n_records; i++) {
+      for (uint8_t j = 1; j <= *_param; j++) std::cout << " " << std::setw(2) << (int)_param[j];
       std::cout << std::endl;
       _param += *_param + 1;
    };
 };
 
-template void DataContainer::Insert <bool>(bool data);
-template void DataContainer::Insert <char>(char data);
-template void DataContainer::Insert <int>(int data);
-template void DataContainer::Insert <int>(std::vector<int> data);
-template void DataContainer::Insert <double>(double data);
-template void DataContainer::Insert <double>(std::vector<double> data);
-template void DataContainer::Insert <MultiIndex>(MultiIndex data);
-template void DataContainer::Insert <GeoVector>(GeoVector data);
-template void DataContainer::Insert <GeoMatrix>(GeoMatrix data);
-template void DataContainer::Insert <TurbProp>(TurbProp data);
-template void DataContainer::Insert <std::shared_ptr<MPI_Config>*>(std::shared_ptr<MPI_Config>* data);
-template void DataContainer::Read <char>(char* data_ptr);
-template void DataContainer::Read <bool>(bool* data_ptr);
-template void DataContainer::Read <int>(int* data_ptr);
-template void DataContainer::Read <int>(std::vector<int>* data_ptr);
-template void DataContainer::Read <double>(double* data_ptr);
-template void DataContainer::Read <double>(std::vector<double>* data_ptr);
-template void DataContainer::Read <MultiIndex>(MultiIndex* data_ptr);
-template void DataContainer::Read <GeoVector>(GeoVector* data_ptr);
-template void DataContainer::Read <GeoMatrix>(GeoMatrix* data_ptr);
-template void DataContainer::Read <TurbProp>(TurbProp* data_ptr);
-template void DataContainer::Read <std::shared_ptr<MPI_Config>*>(std::shared_ptr<MPI_Config>** data_ptr);
+template void DataContainer::Insert<bool>(const bool& arg);
+template void DataContainer::Insert<char>(const char& arg);
+template void DataContainer::Insert<int>(const int& arg);
+template void DataContainer::Insert<double>(const double& arg);
+template void DataContainer::Insert<MultiIndex>(const MultiIndex& arg);
+template void DataContainer::Insert<GeoVector>(const GeoVector& arg);
+template void DataContainer::Insert<GeoMatrix>(const GeoMatrix& arg);
+template void DataContainer::Insert<TurbProp>(const TurbProp& arg);
+
+template void DataContainer::Insert<int>(const std::vector<int>& arg);
+template void DataContainer::Insert<double>(const std::vector<double>& arg);
+
+template void DataContainer::Read<char>(char& arg);
+template void DataContainer::Read<bool>(bool& arg);
+template void DataContainer::Read<int>(int& arg);
+template void DataContainer::Read<double>(double& arg);
+template void DataContainer::Read<MultiIndex>(MultiIndex& arg);
+template void DataContainer::Read<GeoVector>(GeoVector& arg);
+template void DataContainer::Read<GeoMatrix>(GeoMatrix& arg);
+template void DataContainer::Read<TurbProp>(TurbProp& arg);
+
+template void DataContainer::Read<int>(std::vector<int>& arg);
+template void DataContainer::Read<double>(std::vector<double>& arg);
 
 };
