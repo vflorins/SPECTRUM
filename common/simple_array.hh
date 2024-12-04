@@ -34,6 +34,7 @@ struct SimpleArray
 
 //! Storage
    union {
+      EmptyStruct _empty;
       data_type data[n_vars];
       struct {
          data_type x, y, z;
@@ -44,11 +45,11 @@ struct SimpleArray
       };
    };
 
-//! Default constructor
-   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) {};
+//! Default constructor - we initialize the "_empty" member to make it constexpr (requires c++20)
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) : _empty() {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val);
 
 //! Constructor from an array
    SPECTRUM_DEVICE_FUNC explicit SimpleArray(const data_type* other);
@@ -72,7 +73,7 @@ struct SimpleArray
    SPECTRUM_DEVICE_FUNC void Store(data_type* other) const;
 
 //! Set all components to the same value
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator =(data_type a);
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator =(data_type a);
 
 //! Assignment operator from an array
    SPECTRUM_DEVICE_FUNC SimpleArray& operator =(const data_type* other);
@@ -136,12 +137,12 @@ struct SimpleArray
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] a Number to be asigned to each component
+\param[in] val Value to be asigned to each component
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(data_type a)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(data_type val)
 {
-   operator =(a);
+   operator =(val);
 };
 
 /*!
@@ -169,13 +170,13 @@ SPECTRUM_DEVICE_FUNC inline void SimpleArray<data_type, n_vars>::Store(data_type
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] a A number to be assigned to all components
+\param[in] val Value to be assigned to each component
 \return Reference to this object
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator =(data_type a)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator =(data_type val)
 {
-   for (auto i = 0; i < n_vars; i++) data[i] = a;
+   for (auto i = 0; i < n_vars; i++) data[i] = val;
    return *this;
 };
 

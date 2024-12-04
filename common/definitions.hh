@@ -16,6 +16,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! An empty structure
+struct EmptyStruct{};
+
 #define LEFT  0
 #define RIGHT 1
 

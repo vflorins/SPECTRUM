@@ -22,21 +22,22 @@ namespace Spectrum {
 #define MAX_RK_STAGES 13
 
 //! Absolute tolerance (used only to avoid divission by zero in computing the relative tolerance)
-const double rk_tol_abs = 1.0E-9;
+constexpr double rk_tol_abs = 1.0E-9;
 
 //! Relative tolerance
-const double rk_tol_rel = 1.0E-9;
+constexpr double rk_tol_rel = 1.0E-9;
 
 //! Safety factor: the step size cannot change by more than this factor during one iteration
-const double rk_safety = 2.0;
+constexpr double rk_safety = 2.0;
 
 //! When computing the new time step, use this factor (should be very close to 1) - this fine adjustment can affect performance
-const double rk_adjust = 0.995;
+constexpr double rk_adjust = 0.995;
 
-template <uint8_t rk_stages> struct ButcherTable {
-
+template <uint8_t rk_stages, uint8_t name_length>
+struct ButcherTable
+{
 //! Readable name
-   std::string name;
+   char name[name_length];
 
 //! Number of stages
    uint8_t stages;
@@ -56,14 +57,11 @@ template <uint8_t rk_stages> struct ButcherTable {
 //! Slope coefficients
    double b[rk_stages][rk_stages];
 
-//! Higher order weigts
+//! Higher order weights
    double v[rk_stages];
 
-//! Lower order weigts
+//! Lower order weights
    double w[rk_stages];
-
-//! Default constructor
-   ButcherTable(void) = delete;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,8 +71,8 @@ template <uint8_t rk_stages> struct ButcherTable {
 //! Euler method (1 E)
 #if RK_INTEGRATOR_TYPE == 0
 
-const uint8_t n_stages = 1;
-const ButcherTable <n_stages> RK_Table = {"Euler first order explicit", n_stages, 1, false, false,
+constexpr uint8_t n_stages = 1;
+constexpr ButcherTable <n_stages, 27> RK_Table = {"Euler first order explicit", n_stages, 1, false, false,
       {0.0},
       {0.0},
       {1.0},
@@ -83,8 +81,8 @@ const ButcherTable <n_stages> RK_Table = {"Euler first order explicit", n_stages
 //! Backward Euler method (1 I)
 #elif RK_INTEGRATOR_TYPE == 1
 
-const uint8_t n_stages = 1;
-const ButcherTable <n_stages> RK_Table = {"Backward Euler first order implicit", n_stages, 1, false, true,
+constexpr uint8_t n_stages = 1;
+constexpr ButcherTable <n_stages, 36> RK_Table = {"Backward Euler first order implicit", n_stages, 1, false, true,
       {1.0},
       {1.0},
       {1.0},
@@ -97,8 +95,8 @@ const ButcherTable <n_stages> RK_Table = {"Backward Euler first order implicit",
 //! Implicit midpoint method (2 I)
 #elif RK_INTEGRATOR_TYPE == 2
 
-const uint8_t n_stages = 1;
-const ButcherTable <n_stages> RK_Table = {"Midpoint second order implicit", n_stages, 2, false, true,
+constexpr uint8_t n_stages = 1;
+constexpr ButcherTable <n_stages, 31> RK_Table = {"Midpoint second order implicit", n_stages, 2, false, true,
       {1.0 / 2.0},
       {1.0 / 2.0},
       {1.0},
@@ -107,8 +105,8 @@ const ButcherTable <n_stages> RK_Table = {"Midpoint second order implicit", n_st
 //! Midpoint method (2 E)
 #elif RK_INTEGRATOR_TYPE == 3
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Midpoint second order explicit", n_stages, 2, false, false,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 31> RK_Table = {"Midpoint second order explicit", n_stages, 2, false, false,
       {0.0, 1.0 / 2.0},
       {{0.0, 0.0},
        {1.0 / 2.0, 0.0}},
@@ -118,8 +116,8 @@ const ButcherTable <n_stages> RK_Table = {"Midpoint second order explicit", n_st
 //! Kraaijevanger-Spijker method (2 I), not convex
 #elif RK_INTEGRATOR_TYPE == 4
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Kraaijevanger-Spijker second order implicit", n_stages, 2, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Kraaijevanger-Spijker second order implicit", n_stages, 2, false, true,
       {1.0 / 2.0, 3.0 / 2.0},
       {{1.0 / 2.0, 0.0},
        {-1.0 / 2.0, 2.0}},
@@ -129,8 +127,8 @@ const ButcherTable <n_stages> RK_Table = {"Kraaijevanger-Spijker second order im
 //! Qin-Zhang method (2 I)
 #elif RK_INTEGRATOR_TYPE == 5
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Qin-Zhang second order implicit", n_stages, 2, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 32> RK_Table = {"Qin-Zhang second order implicit", n_stages, 2, false, true,
       {1.0 / 4.0, 3.0 / 4.0},
       {{1.0 / 4.0, 0.0},
        {1.0 / 2.0, 1.0 / 4.0}},
@@ -140,8 +138,8 @@ const ButcherTable <n_stages> RK_Table = {"Qin-Zhang second order implicit", n_s
 //! Ralston's method (2 E)
 #elif RK_INTEGRATOR_TYPE == 6
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Ralston second order explicit", n_stages, 2, false, false,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 30> RK_Table = {"Ralston second order explicit", n_stages, 2, false, false,
       {0.0, 2.0 / 3.0},
       {{0.0, 0.0},
        {2.0 / 3.0, 0.0}},
@@ -151,8 +149,8 @@ const ButcherTable <n_stages> RK_Table = {"Ralston second order explicit", n_sta
 //! Heun's method (2 E)
 #elif RK_INTEGRATOR_TYPE == 7
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Heun second order explicit", n_stages, 2, false, false,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 27> RK_Table = {"Heun second order explicit", n_stages, 2, false, false,
       {0.0, 1.0},
       {{0.0, 0.0},
        {1.0, 0.0}},
@@ -162,8 +160,8 @@ const ButcherTable <n_stages> RK_Table = {"Heun second order explicit", n_stages
 //! Crank-Nicolson method (2 I)
 #elif RK_INTEGRATOR_TYPE == 8
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Crank-Nicolson second order implicit", n_stages, 2, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 37> RK_Table = {"Crank-Nicolson second order implicit", n_stages, 2, false, true,
       {0.0, 1.0},
       {{0.0, 0.0},
        {1.0 / 2.0, 1.0 / 2.0}},
@@ -173,8 +171,8 @@ const ButcherTable <n_stages> RK_Table = {"Crank-Nicolson second order implicit"
 //! Gauss-Legendre (2 I)
 #elif RK_INTEGRATOR_TYPE == 30
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Gauss-Legendre second order implicit", n_stages, 2, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 37> RK_Table = {"Gauss-Legendre second order implicit", n_stages, 2, false, true,
       {1.0 / 2.0 - sqrtthr / 6.0, 1.0 / 2.0 + sqrtthr / 6.0},
       {{1.0 / 4.0, 1.0 / 4.0 - sqrtthr / 6.0},
        {1.0 / 4.0 + sqrtthr / 6.0, 1.0 / 4.0}},
@@ -184,8 +182,8 @@ const ButcherTable <n_stages> RK_Table = {"Gauss-Legendre second order implicit"
 //! Heun-Euler method (2/1 E)
 #elif RK_INTEGRATOR_TYPE == 9
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Heun-Euler second order adaptive explicit", n_stages, 2, true, false,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 42> RK_Table = {"Heun-Euler second order adaptive explicit", n_stages, 2, true, false,
       {0.0, 1.0},
       {{0.0, 0.0},
        {1.0, 0.0}},
@@ -195,8 +193,8 @@ const ButcherTable <n_stages> RK_Table = {"Heun-Euler second order adaptive expl
 //! Lobatto IIIA method (2/1 I)
 #elif RK_INTEGRATOR_TYPE == 10
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIA second order adaptive implicit", n_stages, 2, true, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIA second order adaptive implicit", n_stages, 2, true, true,
       {0.0, 1.0},
       {{0.0, 0.0},
        {1.0 / 2.0, 1.0 / 2.0}},
@@ -206,8 +204,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIA second order adaptive im
 //! Lobatto IIIB method (2/1 I)
 #elif RK_INTEGRATOR_TYPE == 11
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIB second order adaptive implicit", n_stages, 2, true, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIB second order adaptive implicit", n_stages, 2, true, true,
       {1.0 / 2.0, 1.0 / 2.0},
       {{1.0 / 2.0, 0.0},
        {1.0 / 2.0, 0.0}},
@@ -217,8 +215,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIB second order adaptive im
 //! Lobatto IIIC method (2/1 I)
 #elif RK_INTEGRATOR_TYPE == 12
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIC second order adaptive implicit", n_stages, 2, true, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIC second order adaptive implicit", n_stages, 2, true, true,
       {0.0, 1.0},
       {{1.0 / 2.0, -1.0 / 2.0},
        {1.0 / 2.0, 1.0 / 2.0}},
@@ -228,8 +226,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIC second order adaptive im
 //! Fehlberg's method (2/1 E)
 #elif RK_INTEGRATOR_TYPE == 13
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Fehlberg second order adaptive explicit", n_stages, 2, true, false,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 40> RK_Table = {"Fehlberg second order adaptive explicit", n_stages, 2, true, false,
       {0.0, 1.0 / 2.0, 1.0},
       {{0.0, 0.0, 0.0},
        {1.0 / 2.0, 0.0, 0.0},
@@ -244,8 +242,8 @@ const ButcherTable <n_stages> RK_Table = {"Fehlberg second order adaptive explic
 //! Radau IA method (3 I)
 #elif RK_INTEGRATOR_TYPE == 14
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Radau IA third order implicit", n_stages, 3, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 30> RK_Table = {"Radau IA third order implicit", n_stages, 3, false, true,
       {0.0, 2.0 / 3.0},
       {{1.0 / 4.0, -1.0 / 4.0},
        {1.0 / 4.0, 5.0 / 12.0}},
@@ -255,8 +253,8 @@ const ButcherTable <n_stages> RK_Table = {"Radau IA third order implicit", n_sta
 //! Radau IIA method (3 I)
 #elif RK_INTEGRATOR_TYPE == 15
 
-const uint8_t n_stages = 2;
-const ButcherTable <n_stages> RK_Table = {"Radau IIA third order implicit", n_stages, 3, false, true,
+constexpr uint8_t n_stages = 2;
+constexpr ButcherTable <n_stages, 31> RK_Table = {"Radau IIA third order implicit", n_stages, 3, false, true,
       {1.0 / 3.0, 1.0},
       {{5.0 / 12.0, -1.0 / 12.0},
        {3.0 / 4.0, 1.0 / 4.0}},
@@ -266,8 +264,8 @@ const ButcherTable <n_stages> RK_Table = {"Radau IIA third order implicit", n_st
 //! Kutta's third-order method (3 E)
 #elif RK_INTEGRATOR_TYPE == 16
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Kutta third order explicit", n_stages, 3, false, false,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 27> RK_Table = {"Kutta third order explicit", n_stages, 3, false, false,
       {0.0, 1.0 / 2.0, 1.0},
       {{0.0, 0.0, 0.0},
        {1.0 / 2.0, 0.0, 0.0},
@@ -278,8 +276,8 @@ const ButcherTable <n_stages> RK_Table = {"Kutta third order explicit", n_stages
 //! Heun's third-order method (3 E)
 #elif RK_INTEGRATOR_TYPE == 17
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Heun third order explicit", n_stages, 3, false, false,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 26> RK_Table = {"Heun third order explicit", n_stages, 3, false, false,
       {0.0, 1.0 / 3.0, 2.0 / 3.0},
       {{0.0, 0.0, 0.0},
        {1.0 / 3.0, 0.0, 0.0},
@@ -290,8 +288,8 @@ const ButcherTable <n_stages> RK_Table = {"Heun third order explicit", n_stages,
 //! Ralston's's third-order method (3 E)
 #elif RK_INTEGRATOR_TYPE == 18
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Ralston third order explicit", n_stages, 3, false, false,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 29> RK_Table = {"Ralston third order explicit", n_stages, 3, false, false,
       {0.0, 1.0 / 2.0, 3.0 / 4.0},
       {{0.0, 0.0, 0.0},
        {1.0 / 2.0, 0.0, 0.0},
@@ -302,8 +300,8 @@ const ButcherTable <n_stages> RK_Table = {"Ralston third order explicit", n_stag
 //! Strong Stability Preserving method (3 E)
 #elif RK_INTEGRATOR_TYPE == 19
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Strong Stability Preserving third order explicit", n_stages, 3, false, false,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 49> RK_Table = {"Strong Stability Preserving third order explicit", n_stages, 3, false, false,
       {0.0, 1.0, 1.0 / 2.0},
       {{0.0, 0.0, 0.0},
        {1.0, 0.0, 0.0},
@@ -314,8 +312,8 @@ const ButcherTable <n_stages> RK_Table = {"Strong Stability Preserving third ord
 //! Implicit Runge-Kutta method (3 I)
 #elif RK_INTEGRATOR_TYPE == 20
 
-const uint8_t n_stages = 4;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta third order implicit", n_stages, 3, false, true,
+constexpr uint8_t n_stages = 4;
+constexpr ButcherTable <n_stages, 33> RK_Table = {"Runge-Kutta third order implicit", n_stages, 3, false, true,
       {1.0 / 2.0, 2.0 / 3.0, 1.0 / 2.0, 1.0},
       {{1.0 / 2.0, 0.0, 0.0, 0.0},
        {1.0 / 6.0, 1.0 / 2.0, 0.0, 0.0},
@@ -328,8 +326,8 @@ const ButcherTable <n_stages> RK_Table = {"Runge-Kutta third order implicit", n_
 //! Bogacki–Shampine method (3/2 E)
 #elif RK_INTEGRATOR_TYPE == 21
 
-const uint8_t n_stages = 4;
-const ButcherTable <n_stages> RK_Table = {"Bogacki–Shampine third order adaptive explicit", n_stages, 3, true, false,
+constexpr uint8_t n_stages = 4;
+constexpr ButcherTable <n_stages, 47> RK_Table = {"Bogacki–Shampine third order adaptive explicit", n_stages, 3, true, false,
       {0.0, 1.0 / 2.0, 3.0 / 4.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0},
        {1.0 / 2.0, 0.0, 0.0, 0.0},
@@ -345,8 +343,8 @@ const ButcherTable <n_stages> RK_Table = {"Bogacki–Shampine third order adapti
 //! Lobatto IIIA fourth-order method (4/3 I)
 #elif RK_INTEGRATOR_TYPE == 22
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIA fourth order adaptive implicit", n_stages, 4, true, true,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIA fourth order adaptive implicit", n_stages, 4, true, true,
       {0.0, 1.0 / 2.0, 1.0},
       {{0.0, 0.0, 0.0},
        {5.0 / 24.0, 1.0 / 3.0, -1.0 / 24.0},
@@ -357,8 +355,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIA fourth order adaptive im
 //! Lobatto IIIB fourth-order method (4/3 I)
 #elif RK_INTEGRATOR_TYPE == 23
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIB fourth order adaptive implicit", n_stages, 4, true, true,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIB fourth order adaptive implicit", n_stages, 4, true, true,
       {0.0, 1.0 / 2.0, 1.0},
       {{1.0 / 6.0, -1.0 / 6.0, 0.0},
        {1.0 / 6.0, 1.0 / 3.0, 0.0},
@@ -369,8 +367,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIB fourth order adaptive im
 //! Lobatto IIIC fourth-order method (4/3 I)
 #elif RK_INTEGRATOR_TYPE == 24
 
-const uint8_t n_stages = 3;
-const ButcherTable <n_stages> RK_Table = {"Lobatto IIIC fourth order adaptive implicit", n_stages, 4, true, true,
+constexpr uint8_t n_stages = 3;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Lobatto IIIC fourth order adaptive implicit", n_stages, 4, true, true,
       {0.0, 1.0 / 2.0, 1.0},
       {{1.0 / 6.0, -1.0 / 3.0, 1.0 / 6.0},
        {1.0 / 6.0, 5.0 / 12.0, -1.0 / 12.0},
@@ -381,8 +379,8 @@ const ButcherTable <n_stages> RK_Table = {"Lobatto IIIC fourth order adaptive im
 //! Classic Runge-Kutta method (4 E)
 #elif RK_INTEGRATOR_TYPE == 25
 
-const uint8_t n_stages = 4;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta fourth order explicit", n_stages, 4, false, false,
+constexpr uint8_t n_stages = 4;
+constexpr ButcherTable <n_stages, 34> RK_Table = {"Runge-Kutta fourth order explicit", n_stages, 4, false, false,
       {0.0, 1.0 / 2.0, 1.0 / 2.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0},
        {1.0 / 2.0, 0.0, 0.0, 0.0},
@@ -394,8 +392,8 @@ const ButcherTable <n_stages> RK_Table = {"Runge-Kutta fourth order explicit", n
 //! Kutta's 3/8 rule (4 E)
 #elif RK_INTEGRATOR_TYPE == 26
 
-const uint8_t n_stages = 4;
-const ButcherTable <n_stages> RK_Table = {"Kutta 3/8 fourth order explicit", n_stages, 4, false, false,
+constexpr uint8_t n_stages = 4;
+constexpr ButcherTable <n_stages, 32> RK_Table = {"Kutta 3/8 fourth order explicit", n_stages, 4, false, false,
       {0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0},
        {1.0 / 3.0, 0.0, 0.0, 0.0},
@@ -411,8 +409,8 @@ const ButcherTable <n_stages> RK_Table = {"Kutta 3/8 fourth order explicit", n_s
 //! Runge-Kutta-Fehlberg method (5/4 E)
 #elif RK_INTEGRATOR_TYPE == 27
 
-const uint8_t n_stages = 6;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg fifth order explicit", n_stages, 5, true, false,
+constexpr uint8_t n_stages = 6;
+constexpr ButcherTable <n_stages, 42> RK_Table = {"Runge-Kutta-Fehlberg fifth order explicit", n_stages, 5, true, false,
       {0.0, 1.0 / 4.0, 3.0 / 8.0, 12.0 / 13.0, 1.0, 1.0 / 2.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {1.0 / 4.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -426,8 +424,8 @@ const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg fifth order expl
 //! Cash-Karp method (5/4 E)
 #elif RK_INTEGRATOR_TYPE == 28
 
-const uint8_t n_stages = 6;
-const ButcherTable <n_stages> RK_Table = {"Cash-Karp fifth order explicit", n_stages, 5, true, false,
+constexpr uint8_t n_stages = 6;
+constexpr ButcherTable <n_stages, 31> RK_Table = {"Cash-Karp fifth order explicit", n_stages, 5, true, false,
       {0.0, 1.0 / 5.0, 3.0 / 10.0, 3.0 / 5.0, 1.0, 7.0 / 8.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {1.0 / 5.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -441,8 +439,8 @@ const ButcherTable <n_stages> RK_Table = {"Cash-Karp fifth order explicit", n_st
 //! Dormand-Prince method (5/4 E)
 #elif RK_INTEGRATOR_TYPE == 29
 
-const uint8_t n_stages = 7;
-const ButcherTable <n_stages> RK_Table = {"Dormand-Prince fifth order explicit", n_stages, 5, true, false,
+constexpr uint8_t n_stages = 7;
+constexpr ButcherTable <n_stages, 36> RK_Table = {"Dormand-Prince fifth order explicit", n_stages, 5, true, false,
       {0.0, 1.0 / 5.0, 3.0 / 10.0, 4.0 / 5.0, 8.0 / 9.0, 1.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {1.0 / 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -461,8 +459,8 @@ const ButcherTable <n_stages> RK_Table = {"Dormand-Prince fifth order explicit",
 //! Runge-Kutta-Fehlberg method (6/5 E)
 #elif RK_INTEGRATOR_TYPE == 30
 
-const uint8_t n_stages = 8;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg sixth order explicit", n_stages, 6, true, false,
+constexpr uint8_t n_stages = 8;
+constexpr ButcherTable <n_stages, 42> RK_Table = {"Runge-Kutta-Fehlberg sixth order explicit", n_stages, 6, true, false,
       {0.0, 1.0 / 6.0, 4.0 / 15.0, 2.0 / 3.0, 4.0 / 5.0, 1.0, 0.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {1.0 / 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -482,8 +480,8 @@ const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg sixth order expl
 //! Runge-Kutta-Fehlberg method (7/6 E)
 #elif RK_INTEGRATOR_TYPE == 31
 
-const uint8_t n_stages = 10;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg seventh order explicit", n_stages, 7, true, false,
+constexpr uint8_t n_stages = 10;
+constexpr ButcherTable <n_stages, 44> RK_Table = {"Runge-Kutta-Fehlberg seventh order explicit", n_stages, 7, true, false,
       {0.0, 2.0 / 33.0, 4.0 / 33.0, 2.0 / 11.0, 1.0 / 2.0, 2.0 / 3.0, 6.0 / 7.0, 1.0, 0.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {2.0 / 33.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -505,8 +503,8 @@ const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg seventh order ex
 //! Runge-Kutta-Fehlberg method (8/7 E)
 #elif RK_INTEGRATOR_TYPE == 32
 
-const uint8_t n_stages = 13;
-const ButcherTable <n_stages> RK_Table = {"Runge-Kutta-Fehlberg eighth order explicit", n_stages, 7, true, false,
+constexpr uint8_t n_stages = 13;
+constexpr ButcherTable <n_stages, 43> RK_Table = {"Runge-Kutta-Fehlberg eighth order explicit", n_stages, 7, true, false,
       {0.0, 2.0 / 27.0, 1.0 / 9.0, 1.0 / 6.0, 5.0 / 12.0, 1.0 / 2.0, 5.0 / 6.0, 1.0 / 6.0, 2.0 / 3.0, 1.0 / 3.0, 1.0, 0.0, 1.0},
       {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
        {2.0 / 27.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},

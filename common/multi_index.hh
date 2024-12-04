@@ -16,12 +16,6 @@ namespace Spectrum {
 //! Size of this class (should be 12)
 #define SZMI sizeof(MultiIndex)
 
-//! A multi-index with zero components
-#define mi_zeros MultiIndex(0, 0, 0)
-
-//! A multi-index with unit components
-#define mi_ones MultiIndex(1, 1, 1)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // MultiIndex class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +43,7 @@ struct MultiIndex : public SimpleArray<int, 3>
    SPECTRUM_DEVICE_FUNC explicit MultiIndex(const int* other);
 
 //! Constructor from indices
-   SPECTRUM_DEVICE_FUNC MultiIndex(int i_in, int j_in, int k_in);
+   SPECTRUM_DEVICE_FUNC constexpr MultiIndex(int i_in, int j_in, int k_in);
 
 //! Constructor from the base class
    SPECTRUM_DEVICE_FUNC MultiIndex(const SimpleArray<int, 3>& other);
@@ -98,7 +92,7 @@ struct MultiIndex : public SimpleArray<int, 3>
 */
 SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int a)
 {
-   data[0] = data[1] = data[2] = a;
+   i = j = k = a;
 };
 
 /*!
@@ -118,11 +112,11 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const int* other)
 \param[in] j_in Second index
 \param[in] k_in Third index
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int i_in, int j_in, int k_in)
+SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(int i_in, int j_in, int k_in)
 {
-   data[0] = i_in;
-   data[1] = j_in;
-   data[2] = k_in;
+   i = i_in;
+   j = j_in;
+   k = k_in;
 };
 
 /*!
@@ -143,7 +137,7 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const SimpleArray<int, 3>& ot
 */
 SPECTRUM_DEVICE_FUNC inline long MultiIndex::LinIdx(const MultiIndex& other) const
 {
-   return data[2] * (data[1] * other.data[0] + other.data[1]) + other.data[2];
+   return k * (j * other.i + other.j) + other.k;
 };
 
 /*!
@@ -152,9 +146,7 @@ SPECTRUM_DEVICE_FUNC inline long MultiIndex::LinIdx(const MultiIndex& other) con
 */
 SPECTRUM_DEVICE_FUNC inline void MultiIndex::Flip(void)
 {
-   int l = data[2];
-   data[2] = data[0];
-   data[0] = l;
+   std::swap(i, k);
 };
 
 /*!
@@ -164,9 +156,9 @@ SPECTRUM_DEVICE_FUNC inline void MultiIndex::Flip(void)
 */
 SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator ++(void)
 {
-   data[0]++;
-   data[1]++;
-   data[2]++;
+   i++;
+   j++;
+   k++;
    return *this;
 };
 
@@ -177,9 +169,9 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator ++(void)
 */
 SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator --(void)
 {
-   data[0]--;
-   data[1]--;
-   data[2]--;
+   i--;
+   j--;
+   k--;
    return *this;
 };
 
@@ -196,7 +188,7 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex& MultiIndex::operator --(void)
 */
 SPECTRUM_DEVICE_FUNC inline bool operator >(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] > right.data[0]) && (left.data[1] > right.data[1]) && (left.data[2] > right.data[2]));
+   return ((left.i > right.i) && (left.j > right.j) && (left.k > right.k));
 };
 
 /*!
@@ -208,7 +200,7 @@ SPECTRUM_DEVICE_FUNC inline bool operator >(const MultiIndex& left, const MultiI
 */
 SPECTRUM_DEVICE_FUNC inline bool operator <(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] < right.data[0]) && (left.data[1] < right.data[1]) && (left.data[2] < right.data[2]));
+   return ((left.i < right.i) && (left.j < right.j) && (left.k < right.k));
 };
 
 /*!
@@ -220,7 +212,7 @@ SPECTRUM_DEVICE_FUNC inline bool operator <(const MultiIndex& left, const MultiI
 */
 SPECTRUM_DEVICE_FUNC inline bool operator >=(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] >= right.data[0]) && (left.data[1] >= right.data[1]) && (left.data[2] >= right.data[2]));
+   return ((left.i >= right.i) && (left.j >= right.j) && (left.k >= right.k));
 };
 
 /*!
@@ -232,7 +224,7 @@ SPECTRUM_DEVICE_FUNC inline bool operator >=(const MultiIndex& left, const Multi
 */
 SPECTRUM_DEVICE_FUNC inline bool operator <=(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] <= right.data[0]) && (left.data[1] <= right.data[1]) && (left.data[2] <= right.data[2]));
+   return ((left.i <= right.i) && (left.j <= right.j) && (left.k <= right.k));
 };
 
 /*!
@@ -244,7 +236,7 @@ SPECTRUM_DEVICE_FUNC inline bool operator <=(const MultiIndex& left, const Multi
 */
 SPECTRUM_DEVICE_FUNC inline bool operator ==(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] == right.data[0]) && (left.data[1] == right.data[1]) && (left.data[2] == right.data[2]));
+   return ((left.i == right.i) && (left.j == right.j) && (left.k == right.k));
 };
 
 /*!
@@ -256,8 +248,14 @@ SPECTRUM_DEVICE_FUNC inline bool operator ==(const MultiIndex& left, const Multi
 */
 SPECTRUM_DEVICE_FUNC inline bool operator !=(const MultiIndex& left, const MultiIndex& right)
 {
-   return ((left.data[0] != right.data[0]) || (left.data[1] != right.data[1]) || (left.data[2] != right.data[2]));
+   return ((left.i != right.i) || (left.j != right.j) || (left.k != right.k));
 };
+
+//! A multi-index with zero components
+constexpr MultiIndex mi_zeros(0, 0, 0);
+
+//! A multi-index with unit components
+constexpr MultiIndex mi_ones(1, 1, 1);
 
 };
 

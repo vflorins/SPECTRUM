@@ -26,7 +26,7 @@ struct is_specialization_of<T, T<Us...>> : std::true_type {};
 \brief A template tester for arithmetic type extending it to include std::complex
 \author Vladimir Florinski
 */
-template<typename T>
+template <typename T>
 struct is_arithmetic_or_complex : std::disjunction<std::is_arithmetic<T>, is_specialization_of<std::complex, T>> {};
 
 /*!

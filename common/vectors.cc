@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void) const
 {
-   double theta = atan2(sqrt(Sqr(data[0]) + Sqr(data[1])), data[2]);
+   double theta = atan2(sqrt(Sqr(x) + Sqr(y)), z);
    return (theta >= 0.0 ? theta : theta + M_2PI);
 };
 
@@ -32,21 +32,20 @@ SPECTRUM_DEVICE_FUNC double GeoVector::Theta(void) const
 */
 SPECTRUM_DEVICE_FUNC double GeoVector::Phi(void) const
 {
-   double phi = atan2(data[1], data[0]);
+   double phi = atan2(y, x);
    return (phi >= 0.0 ? phi : phi + M_2PI);
 };
 
 /*!
 \author Vladimir Florinski
-\date 07/23/2019
+\date 11/28/2024
 */
 SPECTRUM_DEVICE_FUNC void GeoVector::RTP_XYZ(void)
 {
    double xy = data[0] * sin(data[1]);
-   double z =  data[0] * cos(data[1]);
-   data[0] = xy * cos(data[2]);
-   data[1] = xy * sin(data[2]);
-   data[2] = z;
+   x = xy * cos(data[2]);
+   y = xy * sin(data[2]);
+   z = data[0] * cos(data[1]);
 };
 
 /*!
@@ -56,8 +55,8 @@ SPECTRUM_DEVICE_FUNC void GeoVector::RTP_XYZ(void)
 SPECTRUM_DEVICE_FUNC void GeoVector::XYZ_RTP(void)
 {
    double r = Norm();
-   double theta = acos(data[2] / r);
-   double phi = atan2(data[1], data[0]);
+   double theta = acos(z / r);
+   double phi = atan2(y, x);
    if (phi < 0.0) phi += M_2PI;
    data[0] = r;
    data[1] = theta;
@@ -142,9 +141,9 @@ SPECTRUM_DEVICE_FUNC void GeoVector::SubtractParallel(const GeoVector& axis)
 SPECTRUM_DEVICE_FUNC void GeoVector::ChangeToBasis(const GeoVector* basis)
 {
    GeoVector vect_dif;
-   vect_dif[0] = data[0] * basis[0].data[0] + data[1] * basis[0].data[1] + data[2] * basis[0].data[2];
-   vect_dif[1] = data[0] * basis[1].data[0] + data[1] * basis[1].data[1] + data[2] * basis[1].data[2];
-   vect_dif[2] = data[0] * basis[2].data[0] + data[1] * basis[2].data[1] + data[2] * basis[2].data[2];
+   vect_dif.x = x * basis[0].x + y * basis[0].y + z * basis[0].z;
+   vect_dif.y = x * basis[1].x + y * basis[1].y + z * basis[1].z;
+   vect_dif.z = x * basis[2].x + y * basis[2].y + z * basis[2].z;
    std::memcpy(data, vect_dif.data, 3 * SZDBL);
 };
 
@@ -156,9 +155,9 @@ SPECTRUM_DEVICE_FUNC void GeoVector::ChangeToBasis(const GeoVector* basis)
 SPECTRUM_DEVICE_FUNC void GeoVector::ChangeToBasis2(const GeoVector* basis)
 {
    GeoVector vect_dif;
-   vect_dif[0] = data[0] * Sqr(basis[0].data[0]) + data[1] * Sqr(basis[0].data[1]) + data[2] * Sqr(basis[0].data[2]);
-   vect_dif[1] = data[0] * Sqr(basis[1].data[0]) + data[1] * Sqr(basis[1].data[1]) + data[2] * Sqr(basis[1].data[2]);
-   vect_dif[2] = data[0] * Sqr(basis[2].data[0]) + data[1] * Sqr(basis[2].data[1]) + data[2] * Sqr(basis[2].data[2]);
+   vect_dif.x = x * Sqr(basis[0].x) + y * Sqr(basis[0].y) + z * Sqr(basis[0].z);
+   vect_dif.y = x * Sqr(basis[1].x) + y * Sqr(basis[1].y) + z * Sqr(basis[1].z);
+   vect_dif.z = x * Sqr(basis[2].x) + y * Sqr(basis[2].y) + z * Sqr(basis[2].z);
    std::memcpy(data, vect_dif.data, 3 * SZDBL);
 };
 
@@ -170,9 +169,9 @@ SPECTRUM_DEVICE_FUNC void GeoVector::ChangeToBasis2(const GeoVector* basis)
 SPECTRUM_DEVICE_FUNC void GeoVector::ChangeFromBasis(const GeoVector* basis)
 {
    GeoVector vect_std;
-   vect_std[0] = data[0] * basis[0].data[0] + data[1] * basis[1].data[0] + data[2] * basis[2].data[0];
-   vect_std[1] = data[0] * basis[0].data[1] + data[1] * basis[1].data[1] + data[2] * basis[2].data[1];
-   vect_std[2] = data[0] * basis[0].data[2] + data[1] * basis[1].data[2] + data[2] * basis[2].data[2];
+   vect_std.x = x * basis[0].x + y * basis[1].x + z * basis[2].x;
+   vect_std.y = x * basis[0].y + y * basis[1].y + z * basis[2].y;
+   vect_std.z = x * basis[0].z + y * basis[1].z + z * basis[2].z;
    std::memcpy(data, vect_std.data, 3 * SZDBL);
 };
 
