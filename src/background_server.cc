@@ -58,14 +58,10 @@ void BackgroundServer::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
-
-   std::shared_ptr<MPI_Config>* mpi_config_ptr;
-   container.Read(&mpi_config_ptr);
    
 #ifdef NEED_SERVER
-   if((*mpi_config_ptr)->is_worker) {
+   if(MPI_Config::is_worker) {
       server_front = std::make_unique<ServerFrontType>();
-      server_front->ConnectMPIConfig(*mpi_config_ptr);
       server_front->ServerStart();
    };
 #endif

@@ -105,7 +105,7 @@ protected:
 //! Reference magnetic field (persistent)
    GeoVector B0;
 
-//! Distance reference value (persistent)
+//! Distance reference value, how far the trajectory is allowed to move in one step (persistent)
    double dmax0;
 
 //! Spatial data object (transient)

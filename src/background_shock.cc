@@ -59,11 +59,11 @@ void BackgroundShock::SetupBackground(bool construct)
    if(!construct) BackgroundBase::SetupBackground(false);
 
 // Unpack parameters
-   container.Read(r0_shock.Data());
-   container.Read(n_shock.Data());
-   container.Read(&v_shock);
-   container.Read(u1.Data());
-   container.Read(B1.Data());
+   container.Read(r0_shock);
+   container.Read(n_shock);
+   container.Read(v_shock);
+   container.Read(u1);
+   container.Read(B1);
 
 // Normalize n_shock
    n_shock.Normalize();

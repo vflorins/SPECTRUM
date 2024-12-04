@@ -55,13 +55,13 @@ void BackgroundWaves::SetupBackground(bool construct)
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
 
-// Build the field-aliogned coordinate system
+// Build the field-aligned coordinate system
    basis_b.AxisymmetricBasis(B0);
 
 // Two auxilliary coordinate systems are used here. The first is the B-frame, where e_3 is parallel to B, e_1 is an arbitrary vector normal to e_3, and e_2=e_3^e_1. The second is the K-frame, where e_3 is parallel to k, e_2 is parallel to B^k, and e_1=e_2^e_3. The fluctuating field lies in the K-plane to satisfy the divergence-free condition. The end result is the matrix "basis" that performs a transformation from the K-fram to the global frame.
    shortest_wave = dmax0 * sp_large;
    for(t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
-      container.Read(&properties);
+      container.Read(properties);
       dlnk = log(properties.kmax / properties.kmin) / (properties.n_waves - 1.0);
       n_waves[t_type] = properties.n_waves;
       shortest_wave = fmin(M_2PI / properties.kmax, shortest_wave);

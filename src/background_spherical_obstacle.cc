@@ -57,9 +57,9 @@ void BackgroundSphericalObstacle::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
-   container.Read(&r_sphere);
+   container.Read(r_sphere);
    M = 0.5 * B0 * Cube(r_sphere);
-   container.Read(&dmax_fraction);
+   container.Read(dmax_fraction);
 };
 
 /*!
