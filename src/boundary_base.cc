@@ -47,7 +47,7 @@ BoundaryBase::BoundaryBase(const BoundaryBase& other)
             : Params(other)
 {
 // Params' constructor resets all flags
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -74,8 +74,8 @@ void BoundaryBase::SetupBoundary(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
-   container.Read(&max_crossings);
-   container.Read(&actions);
+   container.Read(max_crossings);
+   container.Read(actions);
    RAISE_BITS(_status, STATE_SETUP_COMPLETE);
    LOWER_BITS(_status, STATE_INVALID);
    LOWER_BITS(_status, BOUNDARY_TERMINAL);
@@ -104,7 +104,7 @@ void BoundaryBase::EvaluateBoundary(void)
 */
 void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();
    };
@@ -114,10 +114,10 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
    bhat = bhat_in;
    region = region_in;
    EvaluateBoundary();
-   if(BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
+   if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
 
 // Change the "BOUNDARY_CROSSED" flag if needed
-   if(_delta * _delta_old < 0.0) RAISE_BITS(_status, BOUNDARY_CROSSED);
+   if (_delta * _delta_old < 0.0) RAISE_BITS(_status, BOUNDARY_CROSSED);
    else LOWER_BITS(_status, BOUNDARY_CROSSED);
 };
 
@@ -132,14 +132,14 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
 */
 void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();
    };
 
 // Erase all crossing records and the crossing count
    _crossings_left = max_crossings;
-   if(_crossings_left == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (_crossings_left == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
    else LOWER_BITS(_status, BOUNDARY_TERMINAL);
    _cross_t.clear();
 
@@ -148,11 +148,11 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
    bhat = bhat_in;
    region = region_in;
    EvaluateBoundary();
-   if(BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
+   if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
    _delta_old = _delta;
 
 // The initial point may be right on the boundary, so the code will not be able to determine whether a crossing occurred. For this resaon "_delta_old" is set to a small negative value. This will work for an _external_ boundary, which is the most common case. TODO 
-   if(_delta_old == 0.0) _delta_old = -sp_tiny * delta_scale;
+   if (_delta_old == 0.0) _delta_old = -sp_tiny * delta_scale;
    LOWER_BITS(_status, BOUNDARY_CROSSED);
 };
    
@@ -162,24 +162,24 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
 */
 void BoundaryBase::RecordBoundary(void)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();
    };
 
 // This is the only place where crossings are recorded. The flag "BOUNDARY_CROSSED" is temporary, and must be now lowered (the event, if it occurred, is now considered to have passed).
    LOWER_BITS(_status, BOUNDARY_CROSSED);
-   if(_delta * _delta_old < 0.0) {
+   if (_delta * _delta_old < 0.0) {
       _crossings_left--;
       _cross_t.push_back(_t);
 
 // For a recurrent boundary, we want "_delta_old" to always be negative, so an update doesn't happen on a change of sign of "_delta"
-      if(BITS_RAISED(_status, BOUNDARY_RECURRENT)) EvaluateBoundary();
+      if (BITS_RAISED(_status, BOUNDARY_RECURRENT)) EvaluateBoundary();
       else _delta_old = _delta;
    }
    else _delta_old = _delta;
 
-   if(_crossings_left == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (_crossings_left == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
    else LOWER_BITS(_status, BOUNDARY_TERMINAL);
 };
 

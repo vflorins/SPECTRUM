@@ -45,7 +45,7 @@ BoundaryPlane::BoundaryPlane(const BoundaryPlane& other)
              : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -58,9 +58,9 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryPlane::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(origin.Data());
-   container.Read(norm.Data());
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(origin);
+   container.Read(norm);
    norm.Normalize();
 };
 
@@ -107,7 +107,7 @@ BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(const BoundaryPlaneAbsorb& other)
                    : BoundaryPlane(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -121,7 +121,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryPlaneAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryPlane::SetupBoundary(false);
+   if (!construct) BoundaryPlane::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -147,7 +147,7 @@ BoundaryPlaneReflect::BoundaryPlaneReflect(const BoundaryPlaneReflect& other)
                     : BoundaryPlane(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -160,8 +160,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryPlaneReflect::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryPlane::SetupBoundary(false);
-   if(max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (!construct) BoundaryPlane::SetupBoundary(false);
+   if (max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ BoundaryPlanePass::BoundaryPlanePass(void)
 BoundaryPlanePass::BoundaryPlanePass(const BoundaryPlanePass& other)
                  : BoundaryPlane(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -198,8 +198,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryPlanePass::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryPlane::SetupBoundary(false);
-   if(max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (!construct) BoundaryPlane::SetupBoundary(false);
+   if (max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ BoundaryBox::BoundaryBox(const BoundaryBox& other)
            : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -249,13 +249,15 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryBox::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(corners[0].Data());
-   container.Read(normals[0].Data());
-   container.Read(normals[1].Data());
-   container.Read(normals[2].Data());
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(corners[0]);
+   container.Read(normals[0]);
+   container.Read(normals[1]);
+   container.Read(normals[2]);
+
 // The vectors in the array "normals" are initially given by user as any three edges defining the box, which means their magnitudes are relevant for computing the corner opposite to the one given as an input.
    corners[1] = corners[0] + normals[0] + normals[1] + normals[2];
+
 // After computing the corner opposite to the one given as an input, the edge vectors are normalized to serve as the normal vectors of the sides to which they are each perpendicular.
    normals[0].Normalize();
    normals[1].Normalize();
@@ -280,14 +282,15 @@ void BoundaryBox::EvaluateBoundary(void)
 
    double delta_tmp;
    _delta = -sp_large;
-   for(int s = 0; s < 3; s++) {
+
+   for (auto s = 0; s < 3; s++) {
       delta_tmp = -(_pos - corners[0]) * normals[s];
-      if(delta_tmp > _delta) {
+      if (delta_tmp > _delta) {
          _delta = delta_tmp;
          _normal = -normals[s];
       };
       delta_tmp = (_pos - corners[1]) * normals[s];
-      if(delta_tmp > _delta) {
+      if (delta_tmp > _delta) {
          _delta = delta_tmp;
          _normal = normals[s];
       };
@@ -316,7 +319,7 @@ BoundaryBoxReflect::BoundaryBoxReflect(const BoundaryBoxReflect& other)
                   : BoundaryBox(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -329,8 +332,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryBoxReflect::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBox::SetupBoundary(false);
-   if(max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (!construct) BoundaryBox::SetupBoundary(false);
+   if (max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -367,7 +370,7 @@ BoundarySphere::BoundarySphere(const BoundarySphere& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -380,9 +383,9 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundarySphere::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(origin.Data());
-   container.Read(&radius);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(origin);
+   container.Read(radius);
 };
 
 /*!
@@ -430,7 +433,7 @@ BoundarySphereAbsorb::BoundarySphereAbsorb(const BoundarySphereAbsorb& other)
                     : BoundarySphere(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -444,7 +447,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundarySphereAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundarySphere::SetupBoundary(false);
+   if (!construct) BoundarySphere::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -470,7 +473,7 @@ BoundarySphereReflect::BoundarySphereReflect(const BoundarySphereReflect& other)
                      : BoundarySphere(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -483,8 +486,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundarySphereReflect::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundarySphere::SetupBoundary(false);
-   if(max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+   if (!construct) BoundarySphere::SetupBoundary(false);
+   if (max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -521,7 +524,7 @@ BoundaryRankine::BoundaryRankine(const BoundaryRankine& other)
                : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -534,10 +537,10 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryRankine::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(origin.Data());
-   container.Read(axis.Data());
-   container.Read(&z_nose);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(origin);
+   container.Read(axis);
+   container.Read(z_nose);
 };
 
 /*!
@@ -577,7 +580,7 @@ BoundaryRankineAbsorb::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
                      : BoundaryRankine(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -591,7 +594,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryRankineAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryRankine::SetupBoundary(false);
+   if (!construct) BoundaryRankine::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -629,7 +632,7 @@ BoundaryCylinder::BoundaryCylinder(const BoundaryCylinder& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -642,10 +645,10 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryCylinder::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(origin.Data());
-   container.Read(fa_basis[2].Data());
-   container.Read(&radius);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(origin);
+   container.Read(fa_basis[2]);
+   container.Read(radius);
 
 // Find cylinder reference frame where z || symmetry axis
    fa_basis[2].Normalize();
@@ -703,7 +706,7 @@ BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(const BoundaryCylinderAbsorb& oth
                       : BoundaryCylinder(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -717,7 +720,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryCylinderAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryCylinder::SetupBoundary(false);
+   if (!construct) BoundaryCylinder::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -755,7 +758,7 @@ BoundaryRegion::BoundaryRegion(const BoundaryRegion& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -768,9 +771,9 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryRegion::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(&region_ind);
-   container.Read(&region_val);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(region_ind);
+   container.Read(region_val);
 };
 
 /*!
@@ -792,6 +795,7 @@ void BoundaryRegion::EvaluateBoundary(void)
 //
 
    _delta = region[region_ind] - region_val;
+
 //"_normal" is impossible to predict for an arbitrary geometry. This means that reflections across this type of boundary are unreliable.
    _normal = gv_zeros;
 };
@@ -819,7 +823,7 @@ BoundaryRegionAbsorb::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
                     : BoundaryRegion(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -833,7 +837,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryRegionAbsorb::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryRegion::SetupBoundary(false);
+   if (!construct) BoundaryRegion::SetupBoundary(false);
    max_crossings = 1;
 };
 

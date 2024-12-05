@@ -47,7 +47,7 @@ DiffusionBase::DiffusionBase(const DiffusionBase& other)
              : Params(other)
 {
 // Params' constructor resets all flags
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -138,14 +138,16 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
    Bvec_saved = _spdata.Bvec;
    Bmag_saved = _spdata.Bmag;
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial derivatives
-   if(0 <= xyz && xyz <= 2) {
+   if ((0 <= xyz) && (xyz <= 2)) {
+
 // Save position, compute increment
       _pos_saved = _pos;
 
-//This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough.
+// This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough.
       _dr = 0.5 * _spdata._dr[xyz];
-      if(_spdata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      if (_spdata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
       else {
          _pos[xyz] += _dr;
          _spdata.Bvec += _spdata.gradBvec.row[xyz] * _dr;
@@ -153,8 +155,9 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
          EvaluateDiffusion();
          Kappa_forw[comp_eval] = Kappa[comp_eval];
       };
+
       _dr *= 2.0;
-      if(_spdata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      if (_spdata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
       else {
          _pos[xyz] -= _dr;
          _spdata.Bvec -= _spdata.gradBvec.row[xyz] * _dr;
@@ -162,21 +165,24 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
          EvaluateDiffusion();
          Kappa_back[comp_eval] = Kappa[comp_eval];
       };
-      if(_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _dr *= 0.5;
 
+      if (_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _dr *= 0.5;
       derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dr;
 
 // Restore position
       _pos = _pos_saved;
    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time derivatives
    else {
+
 // Save time, compute increment
       _t_saved = _t;
 
 //A similar comment as the one in the spatial derivatives applies here for "_dt".
       _dt = 0.5 * _spdata._dt;
-      if(_spdata._dt_forw_fail) {
+      if (_spdata._dt_forw_fail) {
          _t += _dt;
          _spdata.Bvec += _spdata.dBvecdt * _dt;
          _spdata.Bmag += _spdata.dBmagdt * _dt;
@@ -184,8 +190,9 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
          Kappa_forw[comp_eval] = Kappa[comp_eval];
       }
       else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+
       _t += 2.0;
-      if(_spdata._dt_back_fail) {
+      if (_spdata._dt_back_fail) {
          _t -= _dt;
          _spdata.Bvec -= _spdata.dBvecdt * _dt;
          _spdata.Bmag -= _spdata.dBmagdt * _dt;
@@ -193,11 +200,11 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
          Kappa_back[comp_eval] = Kappa[comp_eval];
       }
       else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
-      if(_spdata._dt_forw_fail || _spdata._dt_back_fail) _dt *= 0.5;
 
+      if (_spdata._dt_forw_fail || _spdata._dt_back_fail) _dt *= 0.5;
       derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dt;
 
-// Restore position
+// Restore time
       _t = _t_saved;
    };
 
@@ -231,6 +238,7 @@ double DiffusionBase::GetMuDerivative(void)
    mu += dmu;
    st2 = 1.0 - Sqr(mu);
 #endif
+
    EvaluateDiffusion();
    derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / dmu;
 

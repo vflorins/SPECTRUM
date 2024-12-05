@@ -46,7 +46,7 @@ BoundaryTime::BoundaryTime(const BoundaryTime& other)
             : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_TIME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -59,8 +59,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryTime::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(&timemark);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(timemark);
 };
 
 /*!
@@ -97,7 +97,7 @@ BoundaryTimeExpire::BoundaryTimeExpire(const BoundaryTimeExpire& other)
                   : BoundaryTime(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -111,7 +111,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryTimeExpire::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryTime::SetupBoundary(false);
+   if (!construct) BoundaryTime::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -139,7 +139,7 @@ A copy constructor should first first call the Params' version to copy the data 
 BoundaryTimePass::BoundaryTimePass(const BoundaryTimePass& other)
                 : BoundaryTime(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = -1;
 };
 
@@ -153,7 +153,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryTimePass::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryTime::SetupBoundary(false);
+   if (!construct) BoundaryTime::SetupBoundary(false);
    max_crossings = -1;
 };
 
@@ -181,7 +181,7 @@ BoundaryTimeRecurrent::BoundaryTimeRecurrent(const BoundaryTimeRecurrent& other)
                      : BoundaryTime(other)
 {
    RAISE_BITS(_status, BOUNDARY_RECURRENT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -194,7 +194,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryTimeRecurrent::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryTime::SetupBoundary(false);
+   if (!construct) BoundaryTime::SetupBoundary(false);
 };
 
 /*!

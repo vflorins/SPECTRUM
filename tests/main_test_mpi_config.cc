@@ -7,12 +7,15 @@
 
 using namespace Spectrum;
 
+// Create an instance of the class to initialize all MPI objects
+void InitializeMPI(int argc, char** argv)
+{
+   static MPI_Config mpi_config(argc, argv);
+};
+
 int main(int argc, char** argv)
 {
-// Create an instance of the class to initialize all MPI objects
-   MPI_Config mpi_config(argc, argv);
-
-// From this point on the code that includes "mpi_config.hh" can access all data members of the "MPI_Config" type without referring to any instance
+   InitializeMPI(argc, argv);
    TestMPIConfig();
 };
 

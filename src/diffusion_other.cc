@@ -38,7 +38,7 @@ DiffusionIsotropicConstant::DiffusionIsotropicConstant(const DiffusionIsotropicC
                           : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -51,8 +51,8 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionIsotropicConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&D0);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(D0);
 };
 
 /*!
@@ -61,7 +61,7 @@ void DiffusionIsotropicConstant::SetupDiffusion(bool construct)
 */
 void DiffusionIsotropicConstant::EvaluateDiffusion(void)
 {
-   if((comp_eval == 0) || (comp_eval == 1)) return;
+   if ((comp_eval == 0) || (comp_eval == 1)) return;
    Kappa[2] = D0 * (1.0 - Sqr(mu));
 };
 
@@ -115,7 +115,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DiffusionQLTConstant::DiffusionQLTConstant(const DiffusionQLTConstant& other)
                     : DiffusionBase(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -128,10 +128,10 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionQLTConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&A2A);
-   container.Read(&l_max);
-   container.Read(&ps_index);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(A2A);
+   container.Read(l_max);
+   container.Read(ps_index);
    k_min = M_2PI / l_max;
    ps_minus = ps_index - 1.0;
 };
@@ -142,7 +142,7 @@ void DiffusionQLTConstant::SetupDiffusion(bool construct)
 */
 void DiffusionQLTConstant::EvaluateDiffusion(void)
 {
-   if((comp_eval == 0) || (comp_eval == 1)) return;
+   if ((comp_eval == 0) || (comp_eval == 1)) return;
    Kappa[2] = 0.25 * M_PI * ps_minus * fabs(Omega) * st2 * pow(vmag * k_min * fabs(mu / Omega), ps_minus) * A2A;
 };
 
@@ -185,7 +185,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DiffusionWNLTConstant::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
                      : DiffusionQLTConstant(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -198,9 +198,9 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionWNLTConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionQLTConstant::SetupDiffusion(false);
-   container.Read(&A2T);
-   container.Read(&A2L);
+   if (!construct) DiffusionQLTConstant::SetupDiffusion(false);
+   container.Read(A2T);
+   container.Read(A2L);
    ps_plus = ps_index + 1.0;
 };
 
@@ -210,7 +210,7 @@ void DiffusionWNLTConstant::SetupDiffusion(bool construct)
 */
 void DiffusionWNLTConstant::EvaluateDiffusion(void)
 {
-   if(comp_eval == 1) return;
+   if (comp_eval == 1) return;
    double CT, CL, xi1, xi2, F21, DT1, DT2;
 
 // Kappa[0] is required for Kappa[2]
@@ -218,7 +218,7 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
    CL = 0.125 * Sqr(vmag * st2 / Omega) * A2L;
    Kappa[0] = vmag * sqrt(CT + CL);
 
-   if(comp_eval == 0) return;
+   if (comp_eval == 0) return;
 
 // Hypergeometric function may crash if the last argument is close to 1
    DiffusionQLTConstant::EvaluateDiffusion();
@@ -227,7 +227,7 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
    return;
 #endif
 
-   if(A2T > sp_tiny) {
+   if (A2T > sp_tiny) {
       xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
       F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
       DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
@@ -261,7 +261,7 @@ A copy constructor should first first call the Params' version to copy the data 
 DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& other)
                       : DiffusionWNLTConstant(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -275,10 +275,10 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionWNLTConstant::SetupDiffusion(false);
-   container.Read(&l_max_HP);
-   container.Read(&z_nose);
-   container.Read(&z_sheath);
+   if (!construct) DiffusionWNLTConstant::SetupDiffusion(false);
+   container.Read(l_max_HP);
+   container.Read(z_nose);
+   container.Read(z_sheath);
    k_min_ref = k_min;
    A2A_ref = A2A;
    A2T_ref = A2T;
@@ -294,14 +294,15 @@ void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
 */
 void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
 {
-   if(comp_eval == 1) return;
+   if (comp_eval == 1) return;
    double z0, r0, k_ratio;
 
 // Find distance to nose for Rankine half body which the particle is presently on
    r0 = _pos.Norm();
    z0 = sqrt(0.5 * r0 * (r0 + _pos[2]));
+
 // Constant k_min beyond z_sheath
-   if(z0 > z_sheath) {
+   if (z0 > z_sheath) {
       k_min = k_min_ref;
       A2A = A2A_ref;
       A2T = A2T_ref;
@@ -348,7 +349,7 @@ DiffusionParaConstant::DiffusionParaConstant(const DiffusionParaConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -362,8 +363,8 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionParaConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&D0);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(D0);
 };
 
 /*!
@@ -373,7 +374,7 @@ void DiffusionParaConstant::SetupDiffusion(bool construct)
 */
 void DiffusionParaConstant::EvaluateDiffusion(void)
 {
-   if((comp_eval == 0) || (comp_eval == 2)) return;
+   if ((comp_eval == 0) || (comp_eval == 2)) return;
    Kappa[1] = D0;
 };
 
@@ -426,7 +427,7 @@ DiffusionPerpConstant::DiffusionPerpConstant(const DiffusionPerpConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -440,8 +441,8 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionPerpConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&D0);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(D0);
 };
 
 /*!
@@ -451,7 +452,7 @@ void DiffusionPerpConstant::SetupDiffusion(bool construct)
 */
 void DiffusionPerpConstant::EvaluateDiffusion(void)
 {
-   if((comp_eval == 1) || (comp_eval == 2)) return;
+   if ((comp_eval == 1) || (comp_eval == 2)) return;
    Kappa[0] = D0;
 };
 
@@ -504,7 +505,7 @@ DiffusionFullConstant::DiffusionFullConstant(const DiffusionFullConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -518,9 +519,9 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionFullConstant::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&Dperp);
-   container.Read(&Dpara);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(Dperp);
+   container.Read(Dpara);
 };
 
 /*!
@@ -530,7 +531,7 @@ void DiffusionFullConstant::SetupDiffusion(bool construct)
 */
 void DiffusionFullConstant::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if (comp_eval == 2) return;
    Kappa[0] = Dperp;
    Kappa[1] = Dpara;
 };
@@ -584,7 +585,7 @@ DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -598,11 +599,11 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kappa0);
-   container.Read(&U0);
-   container.Read(&pow_law_U);
-   container.Read(&kap_rat);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(kappa0);
+   container.Read(U0);
+   container.Read(pow_law_U);
+   container.Read(kap_rat);
 };
 
 /*!
@@ -612,7 +613,7 @@ void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
 */
 void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if (comp_eval == 2) return;
    Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U);
    Kappa[0] = kap_rat * Kappa[1];
 };
@@ -664,7 +665,7 @@ DiffusionMomentumPowerLaw::DiffusionMomentumPowerLaw(const DiffusionMomentumPowe
                          : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -677,11 +678,11 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kappa0);
-   container.Read(&p0);
-   container.Read(&pow_law_p);
-   container.Read(&kap_rat);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(kappa0);
+   container.Read(p0);
+   container.Read(pow_law_p);
+   container.Read(kap_rat);
 };
 
 /*!
@@ -690,7 +691,7 @@ void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
 */
 void DiffusionMomentumPowerLaw::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if ((comp_eval == 2)) return;
    Kappa[1] = kappa0 * pow(_mom[0] / p0, pow_law_p);
    Kappa[0] = kap_rat * Kappa[1];
 };
@@ -741,7 +742,7 @@ DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistan
                                             : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -754,13 +755,13 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&kap0);
-   container.Read(&T0);
-   container.Read(&r0);
-   container.Read(&pow_law_T);
-   container.Read(&pow_law_r);
-   container.Read(&kap_rat);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(kap0);
+   container.Read(T0);
+   container.Read(r0);
+   container.Read(pow_law_T);
+   container.Read(pow_law_r);
+   container.Read(kap_rat);
 };
 
 /*!
@@ -769,7 +770,7 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct
 */
 void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if (comp_eval == 2) return;
    Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
    Kappa[0] = kap_rat * Kappa[1];
 };
@@ -808,7 +809,7 @@ DiffusionRigidityMagneticFieldPowerLaw::DiffusionRigidityMagneticFieldPowerLaw(c
                                       : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -821,13 +822,13 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&lam0);
-   container.Read(&R0);
-   container.Read(&B0);
-   container.Read(&pow_law_R);
-   container.Read(&pow_law_B);
-   container.Read(&kap_rat);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(lam0);
+   container.Read(R0);
+   container.Read(B0);
+   container.Read(pow_law_R);
+   container.Read(pow_law_B);
+   container.Read(kap_rat);
 };
 
 /*!
@@ -836,7 +837,8 @@ void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 */
 void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if (comp_eval == 2) return;
+
 // The 300.0 the "magic" factor for rigidity calculations.
    Kappa[1] = (lam0 * vmag / 3.0) * pow(300.0 * Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
@@ -876,7 +878,7 @@ DiffusionStraussEtAl2013::DiffusionStraussEtAl2013(const DiffusionStraussEtAl201
                         : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -889,16 +891,16 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(&LISM_idx);
-   container.Read(&lam_in);
-   container.Read(&lam_out);
-   container.Read(&R0);
-   container.Read(&B0);
-   container.Read(&kap_rat_in);
-   container.Read(&kap_rat_out);
-   container.Read(&Bmix_idx);
-   container.Read(&kap_rat_red);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(LISM_idx);
+   container.Read(lam_in);
+   container.Read(lam_out);
+   container.Read(R0);
+   container.Read(B0);
+   container.Read(kap_rat_in);
+   container.Read(kap_rat_out);
+   container.Read(Bmix_idx);
+   container.Read(kap_rat_red);
 };
 
 /*!
@@ -907,23 +909,25 @@ void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
 */
 void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
 {
-   if((comp_eval == 2)) return;
+   if (comp_eval == 2) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
-   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
-   if(LISM_idx < 0) LISM_ind = 0.0;
+//   LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
+   if (LISM_idx < 0) LISM_ind = 0.0;
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
+
 // The 300.0 the "magic" factor for rigidity calculations.
    double rig = 300.0 * Rigidity(_mom[0], specie);
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _spdata.Bmag);
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
-   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
-   if(Bmix_idx < 0) Bmix_ind = 1.0;
+//   Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
+   if (Bmix_idx < 0) Bmix_ind = 1.0;
    Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
    double kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
+
 // Reduction factor based on lack of magnetic mixing (i.e. unipolar regions)
    kap_rat *= Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red;
    Kappa[0] = kap_rat * Kappa[1];
