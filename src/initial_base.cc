@@ -50,7 +50,7 @@ InitialBase::InitialBase(const InitialBase& other)
            : Params(other)
 {
 // Params' constructor sets the state to "STATE_NONE"
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -180,7 +180,7 @@ InitialTable<tableClass>::InitialTable(const InitialTable& other)
                         : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -200,37 +200,40 @@ void InitialTable<tableClass>::SetupInitial(bool construct)
    tableClass entry;
 
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&init_file_name);
-   container.Read(&scale);
-   container.Read(&random);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(init_file_name);
+   container.Read(scale);
+   container.Read(random);
 
 // Input initial quantities from file
    init_file.open(init_file_name.c_str());
 
    init_file >> coord_type;
    init_file >> size;
+
 #ifdef GEO_DEBUG
-   if(coord_type == "S") {
+
+   if (coord_type == "S") {
       std::cerr << "Reading initial times from file." << std::endl;
    }
-   else if(coord_type == "RTP") {
+   else if (coord_type == "RTP") {
       std::cerr << "Reading initial vectors file in spherical coordinates." << std::endl;
    }
-   else if(coord_type == "XYZ") {
+   else if (coord_type == "XYZ") {
       std::cerr << "Reading initial vectors file in cartesian coordinates." << std::endl;
    }
    else {
       std::cerr << "Reading file of unrecognized initial quantities. "
                 << "Defaulting to scalars." << std::endl;
    };
+
 #endif
 
    initquant.resize(size);
-   for(i = 0; i < size; i++) {
+   for (i = 0; i < size; i++) {
       init_file >> entry;
 // The redundant conversion to GeoVector type is necessary due to the templated nature of this class.
-      if(coord_type == "RTP") GeoVector(entry).RTP_XYZ();
+      if (coord_type == "RTP") GeoVector(entry).RTP_XYZ();
       initquant[i] = entry * scale;
    };
    init_file.close();

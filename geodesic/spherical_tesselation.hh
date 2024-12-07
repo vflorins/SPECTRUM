@@ -105,8 +105,8 @@ inline TessError::TessError(const std::string& caller, int division, TERR_TYPE e
 */
 inline void TessError::PrintErrors(void) const
 {
-   for(auto ierr = 0; ierr < N_TESS_ERRORS; ierr++) {
-      if(err & tess_errors[ierr]) {
+   for (auto ierr = 0; ierr < N_TESS_ERRORS; ierr++) {
+      if (err & tess_errors[ierr]) {
          std::cerr << "Tesselation::" << cid << ": " << tess_error_msg[ierr] << " at division " << div << ", line " << lin << "\n";
       };
    };
@@ -122,7 +122,7 @@ inline void TessError::PrintErrors(void) const
 
 Tesselation is a partitioning of the surface of a sphere into spherical polygons. This class defines data structures to store corrdinates and methods to compute mesh connectivity.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 class SphericalTesselation : public Polyhedron<poly_type>
 {
 protected:
@@ -248,13 +248,13 @@ public:
    ~SphericalTesselation();
 
 //! Return number of vertices in a given division.
-   SPECTRUM_DEVICE_FUNC int NVerts(int div) const;
+   SPECTRUM_DEVICE_FUNC auto NVerts(int div) const {return nverts[div];};
 
 //! Return number of edges in a given division.
-   SPECTRUM_DEVICE_FUNC int NEdges(int div) const;
+   SPECTRUM_DEVICE_FUNC auto NEdges(int div) const {return nedges[div];};
 
 //! Return number of faces in a given division.
-   SPECTRUM_DEVICE_FUNC int NFaces(int div) const;
+   SPECTRUM_DEVICE_FUNC auto NFaces(int div) const {return nfaces[div];};
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -268,15 +268,15 @@ v\param[in] div  Division
 \\param[in] vert Vertex
 return Number of neighbor vertices (same as edges and faces)
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NVertNbrs(int div, int vert) const
 {
-   if(poly_type == POLY_DODECAHEDRON) {
-      if(!div) return edges_per_vert[0];
-      else if((vert >= nverts[0]) && (vert < nverts[0] + nfaces[0])) return verts_per_face[0];
+   if (poly_type == POLY_DODECAHEDRON) {
+      if (!div) return edges_per_vert[0];
+      else if ((vert >= nverts[0]) && (vert < nverts[0] + nfaces[0])) return verts_per_face[0];
       else return edges_per_vert[div];
    }
-   else if(vert < nverts[0]) return edges_per_vert[0];
+   else if (vert < nverts[0]) return edges_per_vert[0];
    else return edges_per_vert[div];
 };
 
@@ -289,11 +289,11 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::N
 \param[in] rot  Amount of rotation in the CC direction
 \return Another vertex that belongs to "face"
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::VertCC(int div, int face, int vert, int rot) const
 {
    auto iv = InList(verts_per_face[div], fv_con[div][face], vert);
-   if(iv == -1) return -1;
+   if (iv == -1) return -1;
    else return fv_con[div][face][(iv + rot + verts_per_face[div]) % verts_per_face[div]];
 };
 
@@ -306,11 +306,11 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::V
 \param[in] rot  Amount of rotation in the CC direction
 \return Another edge that belongs to "face"
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::EdgeCC(int div, int face, int edge, int rot) const
 {
    auto ie = InList(verts_per_face[div], fe_con[div][face], edge);
-   if(ie == -1) return -1;
+   if (ie == -1) return -1;
    else return fe_con[div][face][(ie + rot + verts_per_face[div]) % verts_per_face[div]];
 };
 
@@ -323,7 +323,7 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::E
 \param[out] face1 First  common face (-1 if vertices are not connected)
 \param[out] face2 Second common face (-1 if vertices are not connected)
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline void SphericalTesselation<poly_type, max_division>::Match2vf(int div, int vert1, int vert2, int& face1, int& face2) const
 {
    bool found_two = false;
@@ -331,10 +331,10 @@ SPECTRUM_DEVICE_FUNC inline void SphericalTesselation<poly_type, max_division>::
    face1 = face2 = -1;
 
 // If "vert1" is the same as "vert2", this will pick the first two faces that share this vertex.
-   while((it1 < NVertNbrs(div, vert1)) && !found_two) {
+   while ((it1 < NVertNbrs(div, vert1)) && !found_two) {
       face3 = vf_con[div][vert1][it1];
-      if(InList(NVertNbrs(div, vert2), vf_con[div][vert2], face3) != -1) {
-         if(face1 == -1) face1 = face3;
+      if (InList(NVertNbrs(div, vert2), vf_con[div][vert2], face3) != -1) {
+         if (face1 == -1) face1 = face3;
          else {
             face2 = face3;
             found_two = true;
@@ -352,56 +352,20 @@ SPECTRUM_DEVICE_FUNC inline void SphericalTesselation<poly_type, max_division>::
 \param[in] vert2 Second vertex
 \return Edge connecting "vert1" and "vert2" (-1 if vertices are not connected)
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::Match2ve(int div, int vert1, int vert2) const
 {
    bool found_one = false;
    int edge, ie1 = 0;
 
 // If "vert1" is the same as "vert2", this will pick its first edge.
-   while((ie1 < NVertNbrs(div, vert1)) && !found_one) {
+   while ((ie1 < NVertNbrs(div, vert1)) && !found_one) {
       edge = ve_con[div][vert1][ie1];
-      if(InList(NVertNbrs(div, vert2), ve_con[div][vert2], edge) != -1) return edge;
+      if (InList(NVertNbrs(div, vert2), ve_con[div][vert2], edge) != -1) return edge;
       ie1++;
    };
 
    return -1;
-};
-
-/*!
-\author Vladimir Florinski
-\date 08/30/2019
-\param[in] div Division
-\return Vertex count
-*/
-template <PolyType poly_type, int max_division>
-SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NVerts(int div) const
-{
-   return nverts[div];
-};
-
-/*!
-\author Vladimir Florinski
-\date 08/30/2019
-\param[in] div Division
-\return Edge count
-*/
-template <PolyType poly_type, int max_division>
-SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NEdges(int div) const
-{
-   return nedges[div];
-};
-
-/*!
-\author Vladimir Florinski
-\date 08/30/2019
-\param[in] div Division
-\return Face count
-*/
-template <PolyType poly_type, int max_division>
-SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NFaces(int div) const
-{
-   return nfaces[div];
 };
 
 };

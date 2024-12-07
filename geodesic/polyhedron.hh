@@ -45,7 +45,7 @@ struct Schlafli
 \param[in] p_in Number of vertices of each face
 \param[in] q_in Number of edges that meet at each vertex
 */
-SPECTRUM_DEVICE_FUNC constexpr inline Schlafli::Schlafli(int p_in, int q_in)
+SPECTRUM_DEVICE_FUNC inline constexpr Schlafli::Schlafli(int p_in, int q_in)
                                               : p(p_in),
                                                 q(q_in)
 {};
@@ -55,7 +55,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline Schlafli::Schlafli(int p_in, int q_in)
 \date 01/05/2024
 \return Number of vertices
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NVerts(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NVerts(void) const
 {
    return 4 * p / (4 - (p - 2) * (q - 2));
 };
@@ -65,7 +65,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NVerts(void) const
 \date 01/05/2024
 \return Number of edges
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NEdges(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NEdges(void) const
 {
    return 2 * p * q / (4 - (p - 2) * (q - 2));
 };
@@ -75,15 +75,19 @@ SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NEdges(void) const
 \date 01/05/2024
 \return Number of faces
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NFaces(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NFaces(void) const
 {
    return 4 * q / (4 - (p - 2) * (q - 2));
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Enumerates the Platonic solids
-enum PolyType {POLY_TETRAHEDRON, POLY_HEXAHEDRON, POLY_OCTAHEDRON, POLY_DODECAHEDRON, POLY_ICOSAHEDRON};
+//! Platonic solids
+#define POLY_TETRAHEDRON    4
+#define POLY_HEXAHEDRON     6
+#define POLY_OCTAHEDRON     8
+#define POLY_DODECAHEDRON  12
+#define POLY_ICOSAHEDRON   20
 
 //! Human readable names (host only)
 const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "dodecahedron", "icosahedron"};
@@ -94,7 +98,7 @@ const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "do
 \brief A class describing a convex regular polyhedron
 \author Vladimir Florinski
 */
-template <PolyType poly_type>
+template <int poly_type>
 class Polyhedron : public Schlafli
 {
 protected:
@@ -148,7 +152,7 @@ public:
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 {
    Setup();
@@ -169,7 +173,7 @@ SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::~Polyhedron()
 {
    delete[] vlat;

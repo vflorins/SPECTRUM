@@ -14,6 +14,18 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 /*!
+\brief Number of edges at a vertex in an infinite tesselation
+\author Vladimir Florinski
+\date 07/02/2024
+\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
+*/
+template <int verts_per_face>
+static constexpr int EdgesAtVert(void)
+{
+   return 2 * verts_per_face / (verts_per_face - 2);
+};
+
+/*!
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
 */
@@ -23,7 +35,7 @@ class PolygonalAddressing
 protected:
 
 //! Number of edges meeting at a vertex
-   static constexpr int edges_per_vert = (2 * verts_per_face) / (verts_per_face - 2);
+   static constexpr int edges_per_vert = EdgesAtVert<verts_per_face>();
 
 //! Rotational symmetry
    static constexpr int cardinal_directions = edges_per_vert / 2;
@@ -80,8 +92,8 @@ public:
 //! Default constructor
    SPECTRUM_DEVICE_FUNC PolygonalAddressing(void);
 
-//! Destructor
-   SPECTRUM_DEVICE_FUNC ~PolygonalAddressing() = default;
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other);
 };
 
 /*!
@@ -96,7 +108,18 @@ SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddres
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 06/21/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other)
+                                                               : PolygonalAddressing<verts_per_face>()
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of edges in a sector whose side is "len"
 */
@@ -108,7 +131,7 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::EdgeCount(i
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of faces in a sector whose side is "len"
 */
@@ -120,7 +143,7 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::FaceCount(i
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of vertices in a sector whose side is "len"
 */

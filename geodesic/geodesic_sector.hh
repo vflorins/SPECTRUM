@@ -69,7 +69,7 @@ protected:
    using PolygonalAddressing<verts_per_face>::VertCount;
 
 //! Length of a side of the sector (in edges)
-   int side_length;
+   int side_length = -1;
 
 //! Length of a side with ghost cells
    int total_length;
@@ -160,13 +160,13 @@ protected:
 //! Maximum value of the vertex j-index for the given vertex i-index
    SPECTRUM_DEVICE_FUNC int MaxVertJ(int len, int i) const;
 
-//! Maximum value of the vertex j-index for the given i-index for a sub-block
+//! Maximum value of the vertex j-index for the given vertex i-index for a sub-block
    SPECTRUM_DEVICE_FUNC int MaxVertJ(std::pair<int, int> base_vertex, int len, int i) const;
 
-//! Maximum value of the face j-index for the given i-index
+//! Maximum value of the face j-index for the given face i-index
    SPECTRUM_DEVICE_FUNC int MaxFaceJ(int len, int i) const;
 
-//! Maximum value of the face j-index for the given i-index for a sub-block
+//! Maximum value of the face j-index for the given face i-index for a sub-block
    SPECTRUM_DEVICE_FUNC int MaxFaceJ(std::pair<int, int> base_vertex, int len, int i) const;
 
 //! Determine whether a vertex is a corner of a sub-block
@@ -176,37 +176,37 @@ protected:
    SPECTRUM_DEVICE_FUNC int SideLine(std::pair<int, int> base_vertex, int len, int i, int j) const;
 
 //! Determine whether a vertex is on the line extending a side of the sector's interior
-   SPECTRUM_DEVICE_FUNC int SideLine_Int(int i, int j) const;
+   SPECTRUM_DEVICE_FUNC int SideLineOfSector(int i, int j) const;
 
 //! Determine whether a vertex is on the boundary of a sub-block
    SPECTRUM_DEVICE_FUNC int BoundaryVert(std::pair<int, int> base_vertex, int len, int i, int j) const;
 
 //! Determine whether a vertex is on the boundary of the sector's interior
-   SPECTRUM_DEVICE_FUNC int BoundaryVert_Int(int i, int j) const;
+   SPECTRUM_DEVICE_FUNC int BoundaryVertOfSector(int i, int j) const;
 
 //! Determine whether an edge is on the boundary of a sub-block
    SPECTRUM_DEVICE_FUNC int BoundaryEdge(std::pair<int, int> base_vertex, int len, int etype, int i, int j) const;
 
 //! Determine whether an edge is on the boundary of the sector's interior
-   SPECTRUM_DEVICE_FUNC int BoundaryEdge_Int(int etype, int i, int j) const;
+   SPECTRUM_DEVICE_FUNC int BoundaryEdgeOfSector(int etype, int i, int j) const;
 
 //! Determine whether a vertex belongs to a sub-block
    SPECTRUM_DEVICE_FUNC bool IsInteriorVert(std::pair<int, int> base_vertex, int len, int i, int j) const;
 
 //! Determine whether a vertex belongs to the sector's interior (possibly on the boundary)
-   SPECTRUM_DEVICE_FUNC bool IsInteriorVert_Int(int i, int j) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorVertOfSector(int i, int j) const;
 
 //! Determine whether an edge belongs to a sub-block
    SPECTRUM_DEVICE_FUNC bool IsInteriorEdge(std::pair<int, int> base_vertex, int len, int etype, int i, int j) const;
 
 //! Determine whether an edge is in the sector interior's (possibly on the boundary)
-   SPECTRUM_DEVICE_FUNC bool IsInteriorEdge_Int(int etype, int i, int j) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorEdgeOfSector(int etype, int i, int j) const;
 
 //! Determine whether a face belongs to a sub-block
    SPECTRUM_DEVICE_FUNC bool IsInteriorFace(std::pair<int, int> base_vertex, int len, int i, int j) const;
 
 //! Determine whether a face is in the sector's interior
-   SPECTRUM_DEVICE_FUNC bool IsInteriorFace_Int(int i, int j) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorFaceOfSector(int i, int j) const;
 
 //! Check if the vertex is outside the mesh (TAS only)
    SPECTRUM_DEVICE_FUNC bool IsClippedVert(int i, int j) const;
@@ -251,6 +251,9 @@ public:
 //! Default constructor
    SPECTRUM_DEVICE_FUNC GeodesicSector(void) = default;
 
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC GeodesicSector(const GeodesicSector& other);
+
 //! Constructor with arguments
    SPECTRUM_DEVICE_FUNC GeodesicSector(int width, int wghost);
 
@@ -258,7 +261,7 @@ public:
    SPECTRUM_DEVICE_FUNC ~GeodesicSector();
 
 //! Allocate memory and set up connectivity between mesh elements
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int width, int wghost);
+   SPECTRUM_DEVICE_FUNC void SetDimensions(int width, int wghost, bool construct);
 
 //! Free all dynamically allocated memory
    SPECTRUM_DEVICE_FUNC void FreeStorage(void);
@@ -358,7 +361,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<4>::MaxVertJ(std::pair<int, int> 
 template <>
 SPECTRUM_DEVICE_FUNC inline int GeodesicSector<3>::MaxFaceJ(int len, int i) const
 {
-   return 2 * i;
+   return square_fill * i;
 };
 
 /*!
@@ -385,7 +388,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<4>::MaxFaceJ(int len, int i) cons
 template <>
 SPECTRUM_DEVICE_FUNC inline int GeodesicSector<3>::MaxFaceJ(std::pair<int, int> base_vertex, int len, int i) const
 {
-   return 2 * (base_vertex.second - base_vertex.first + i);
+   return square_fill * (base_vertex.second - base_vertex.first + i);
 };
 
 /*!
@@ -414,14 +417,14 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<4>::MaxFaceJ(std::pair<int, int> 
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::CornerVert(std::pair<int, int> base_vertex, int len, int i, int j) const
 {
-   if(i == base_vertex.first) {
-      if(j == base_vertex.second) return 0;
-      else if(j == MaxVertJ(base_vertex, len, i)) return 3;
+   if (i == base_vertex.first) {
+      if (j == base_vertex.second) return 0;
+      else if (j == MaxVertJ(base_vertex, len, i)) return 3;
       else return -1;
    }
-   else if(i == base_vertex.first + len) {
-      if(j == base_vertex.second) return 1;
-      else if(j == MaxVertJ(base_vertex, len, i)) return 2;
+   else if (i == base_vertex.first + len) {
+      if (j == base_vertex.second) return 1;
+      else if (j == MaxVertJ(base_vertex, len, i)) return 2;
       else return -1;
    }
    else return -1;
@@ -457,10 +460,10 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::SideLine(std::pa
 //             2           1                 3         1
 //            2             1                3         1
 
-   if     ((j == j0) && (i != i1)) return 0;
-   else if((i == i1) && (j != j2)) return 1;
-   else if((j == j2) && (i != i3)) return 2;
-   else if((verts_per_face == 4) && (i == i3)) return 3;
+   if      ((j == j0) && (i != i1)) return 0;
+   else if ((i == i1) && (j != j2)) return 1;
+   else if ((j == j2) && (i != i3)) return 2;
+   else if ((verts_per_face == 4) && (i == i3)) return 3;
    else return -1;
 };
 
@@ -472,7 +475,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::SideLine(std::pa
 \return Side number (-1 if not on the side line)
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::SideLine_Int(int i, int j) const
+SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::SideLineOfSector(int i, int j) const
 {
    return SideLine(std::make_pair(square_fill * ghost_width, ghost_width), side_length, i, j);
 };
@@ -491,12 +494,12 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryVert(std
 {
    int side = SideLine(base_vertex, len, i, j);
 
-   if(side % 2) {
-   if((j >= base_vertex.second) && (j <= MaxVertJ(base_vertex, len, i))) return side;
+   if (side % 2) {
+   if ((j >= base_vertex.second) && (j <= MaxVertJ(base_vertex, len, i))) return side;
       else return -1;
    }
    else {
-      if((i >= base_vertex.first) && (i <= base_vertex.first + len)) return side;
+      if ((i >= base_vertex.first) && (i <= base_vertex.first + len)) return side;
       else return -1;
    };
 };
@@ -509,7 +512,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryVert(std
 \return Side number (-1 if not on the boundary)
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryVert_Int(int i, int j) const
+SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryVertOfSector(int i, int j) const
 {
    return BoundaryVert(std::make_pair(square_fill * ghost_width, ghost_width), side_length, i, j);
 };
@@ -534,14 +537,14 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryEdge(std
    int corner[2];
 
 // Both vertices lie on the same side of the sub-block. This also covers the case when neither vertex does.
-   if(side[0] == side[1]) return side[0];
+   if (side[0] == side[1]) return side[0];
 
 // If the vertices are on different sides, check the corner status. Return the side of the vertex that is not in the corner.
-   else if((side[0] != -1) && (side[1] != -1)) {
+   else if ((side[0] != -1) && (side[1] != -1)) {
       corner[0] = CornerVert(base_vertex, len, ii[0], jj[0]);
       corner[1] = CornerVert(base_vertex, len, ii[1], jj[1]);
-      if(corner[0] != -1) return side[1];
-      else if(corner[1] != -1) return side[0];
+      if (corner[0] != -1) return side[1];
+      else if (corner[1] != -1) return side[0];
       else return -1;
    }         
    else return -1;
@@ -556,7 +559,7 @@ SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryEdge(std
 \return Side number (-1 if not on the boundary)
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryEdge_Int(int etype, int i, int j) const
+SPECTRUM_DEVICE_FUNC inline int GeodesicSector<verts_per_face>::BoundaryEdgeOfSector(int etype, int i, int j) const
 {
    return BoundaryEdge(std::make_pair(square_fill * ghost_width, ghost_width), side_length, etype, i, j);
 };
@@ -585,7 +588,7 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorVert(
 \return True if the vertex belongs to the sector's interior
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorVert_Int(int i, int j) const
+SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorVertOfSector(int i, int j) const
 {
    return IsInteriorVert(std::make_pair(square_fill * ghost_width, ghost_width), side_length, i, j);
 };
@@ -616,7 +619,7 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorEdge(
 \return True if the edge is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorEdge_Int(int etype, int i, int j) const
+SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorEdgeOfSector(int etype, int i, int j) const
 {
    return IsInteriorEdge(std::make_pair(square_fill * ghost_width, ghost_width), side_length, etype, i, j);
 };
@@ -645,7 +648,7 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorFace(
 \return True if the face is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorFace_Int(int i, int j) const
+SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorFaceOfSector(int i, int j) const
 {
    return IsInteriorFace(std::make_pair(square_fill * ghost_width, ghost_width), side_length, i, j);
 };
@@ -660,14 +663,12 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsInteriorFace_
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsClippedVert(int i, int j) const
 {
-   if((i < 0) || (i > total_length) || (j < 0) || (j > MaxVertJ(total_length, i))) return true;
+   if ((i < 0) || (i > total_length) || (j < 0) || (j > MaxVertJ(total_length, i))) return true;
+   if (verts_per_face != 3) return false;
 
-   if(verts_per_face == 3) {
-      if(IsInteriorVert(std::make_pair(0, 0), ghost_width - 1, i, j)) return true;
-      if(IsInteriorVert(std::make_pair(total_length - ghost_width + 1, 0), ghost_width - 1, i, j)) return true;
-      if(IsInteriorVert(std::make_pair(total_length - ghost_width + 1, MaxVertJ(total_length, total_length - ghost_width + 1)),
-                        ghost_width - 1, i, j)) return true;
-   };
+   if (IsInteriorVert(std::make_pair(0, 0), ghost_width - 1, i, j)) return true;
+   if (IsInteriorVert(std::make_pair(total_length - ghost_width + 1, 0), ghost_width - 1, i, j)) return true;
+   if (IsInteriorVert(std::make_pair(total_length - ghost_width + 1, MaxVertJ(total_length, total_length - ghost_width + 1)), ghost_width - 1, i, j)) return true;
 
    return false;
 };
@@ -683,28 +684,23 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsClippedVert(i
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsClippedEdge(int etype, int i, int j) const
 {
-   if((i < 0) || (i > total_length + edge_dimax[etype])
-   || (j < 0) || (j > MaxVertJ(total_length, i) + edge_djmax[etype])) return true;
+   if ((i < 0) || (i > total_length + edge_dimax[etype]) || (j < 0) || (j > MaxVertJ(total_length, i) + edge_djmax[etype])) return true;
+   if (verts_per_face != 3) return false;
 
-   if(verts_per_face == 3) {
-      if(etype == 0) {
-         if(IsInteriorEdge(std::make_pair(0, 0), ghost_width, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width, 0), ghost_width, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width + 1, MaxVertJ(total_length, total_length - ghost_width + 1)),
-                           ghost_width - 1, etype, i, j)) return true;
-      }
-      else if(etype == 1) {
-         if(IsInteriorEdge(std::make_pair(0, 0), ghost_width - 1, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width, 0), ghost_width, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)),
-                           ghost_width, etype, i, j)) return true;
-      }
-      else if(etype == 2) {
-         if(IsInteriorEdge(std::make_pair(0, 0), ghost_width, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width + 1, 0), ghost_width - 1, etype, i, j)) return true;
-         if(IsInteriorEdge(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)),
-                           ghost_width, etype, i, j)) return true;
-      };
+   if (etype == 0) {
+      if (IsInteriorEdge(std::make_pair(0, 0), ghost_width, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width, 0), ghost_width, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width + 1, MaxVertJ(total_length, total_length - ghost_width + 1)), ghost_width - 1, etype, i, j)) return true;
+   }
+   else if (etype == 1) {
+      if (IsInteriorEdge(std::make_pair(0, 0), ghost_width - 1, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width, 0), ghost_width, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)), ghost_width, etype, i, j)) return true;
+   }
+   else if (etype == 2) {
+      if (IsInteriorEdge(std::make_pair(0, 0), ghost_width, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width + 1, 0), ghost_width - 1, etype, i, j)) return true;
+      if (IsInteriorEdge(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)), ghost_width, etype, i, j)) return true;
    };
 
    return false;
@@ -720,14 +716,12 @@ SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsClippedEdge(i
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline bool GeodesicSector<verts_per_face>::IsClippedFace(int i, int j) const
 {
-   if((i < 0) || (i > total_length - 1) || (j < 0) || (j > MaxFaceJ(total_length, i))) return true;
+   if ((i < 0) || (i > total_length - 1) || (j < 0) || (j > MaxFaceJ(total_length, i))) return true;
+   if (verts_per_face != 3) return false;
 
-   if(verts_per_face == 3) {
-      if(IsInteriorFace(std::make_pair(0, 0), ghost_width, i, j)) return true;
-      if(IsInteriorFace(std::make_pair(total_length - ghost_width, 0), ghost_width, i, j)) return true;
-      if(IsInteriorFace(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)),
-                        ghost_width, i, j)) return true;
-   };
+   if (IsInteriorFace(std::make_pair(0, 0), ghost_width, i, j)) return true;
+   if (IsInteriorFace(std::make_pair(total_length - ghost_width, 0), ghost_width, i, j)) return true;
+   if (IsInteriorFace(std::make_pair(total_length - ghost_width, MaxVertJ(total_length, total_length - ghost_width)), ghost_width, i, j)) return true;
 
    return false;
 };

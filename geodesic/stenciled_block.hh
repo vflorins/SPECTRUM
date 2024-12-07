@@ -58,11 +58,11 @@ protected:
 //! A local Polynomial object
    Polynomial poly;
 
-//! Number of stenciled faces
-   int n_faces_stenciled;
-
 //! The total number of stencils
    static constexpr int n_stencils = 1 + 2 * verts_per_face;
+
+//! Number of stenciled faces
+   int n_faces_stenciled;
 
 //! Number of zones in each stencil, _excluding_ the principal
    int zones_per_stencil[n_stencils];
@@ -89,10 +89,10 @@ protected:
    void MarkStenciledArea(void);
 
 //! Determine whether a zone is in the block's interior - ijk version
-   bool IsInteriorZone_Int(int i, int j, int k) const;
+   bool IsInteriorZoneOfBlock(int i, int j, int k) const;
 
 //! Determine whether a zone is in the block's interior - face+k version
-   bool IsInteriorZone_Int(int face, int k) const;
+   bool IsInteriorZoneOfBlock(int face, int k) const;
 
 //! Compute the geometry matrix for one stencil of a single face
    void ComputeOneMatrix(int pface, int stencil);
@@ -108,6 +108,9 @@ public:
 //! Default constructor
    StenciledBlock(void) = default;
 
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC StenciledBlock(const StenciledBlock& other);
+
 //! Constructor with arguments
    StenciledBlock(int width, int wghost, int height, int hghost);
 
@@ -121,8 +124,8 @@ public:
    void FreeStorage(void);
 
 //! Set up the dimensions and geometry of the mesh
-   void AssociateMesh(int index, double ximin, double ximax, const bool* corners, const bool* borders, const GeoVector* vcart,
-                       std::shared_ptr<DistanceBase> dist_map_in);
+   void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                      const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in);
 
 #ifdef GEO_DEBUG
 
@@ -145,9 +148,9 @@ public:
 \return True if the zone is interior to the block
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool StenciledBlock<verts_per_face>::IsInteriorZone_Int(int i, int j, int k) const
+SPECTRUM_DEVICE_FUNC inline bool StenciledBlock<verts_per_face>::IsInteriorZoneOfBlock(int i, int j, int k) const
 {
-   return (k >= ghost_height) && (k <= n_shells_withghost - ghost_height - 1) && GeodesicSector<verts_per_face>::IsInteriorFace_Int(i, j);
+   return SphericalSlab::IsInteriorShellOfSlab(k) && GeodesicSector<verts_per_face>::IsInteriorFaceOfSector(i, j);
 };
 
 /*!
@@ -158,9 +161,9 @@ SPECTRUM_DEVICE_FUNC inline bool StenciledBlock<verts_per_face>::IsInteriorZone_
 \return True if the zone is interior to the block
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool StenciledBlock<verts_per_face>::IsInteriorZone_Int(int face, int k) const
+SPECTRUM_DEVICE_FUNC inline bool StenciledBlock<verts_per_face>::IsInteriorZoneOfBlock(int face, int k) const
 {
-   return (k >= ghost_height) && (k <= n_shells_withghost - ghost_height - 1) && GridBlock<verts_per_face>::IsInteriorFace_Int(face);
+   return SphericalSlab::IsInteriorShellOfSlab(k) && GridBlock<verts_per_face>::IsInteriorFaceOfSector(face);
 };
 
 };

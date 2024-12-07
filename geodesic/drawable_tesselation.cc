@@ -24,14 +24,14 @@ namespace Spectrum {
 
 The output is a series of curves that when visualized on an XY plot represent the great circle arcs that are edges of the tesselation.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool opaque, double rot_z, double rot_x, bool smooth) const
 {
    int edge, ipt, nint, n_drawn;
    double ddist;
 
 // A drawing would be too busy for division values greated than 6
-   if(div > 6) {
+   if (div > 6) {
       std::cerr << "Tesselation: Division too high for a plot\n";
       return;
    };
@@ -43,12 +43,12 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
    double csrx = cos(rot_x);
 
 // Number of segments used to draw each arc
-   if(smooth) nint = Pow2(6 - div);
+   if (smooth) nint = Pow2(6 - div);
    else nint = 1;
 
    GeoVector v, v1, v2, v3;
    std::ofstream meshfile;
-   meshfile.open(("mesh_" + poly_names[poly_type] + "_" + std::to_string(div) + ".out").c_str(), std::ofstream::out);
+   meshfile.open(("mesh_" + std::to_string(poly_type) + "_" + std::to_string(div) + ".out").c_str(), std::ofstream::out);
    meshfile << "# Drawing edges at division " << div << std::endl;
 
 // Loop over edges
@@ -63,7 +63,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 
 // Draw the points to form an edge
       n_drawn = 0;
-      for(ipt = 0; ipt <= nint; ipt++) {
+      for (ipt = 0; ipt <= nint; ipt++) {
 
 // Interior point vectors are linear combinations of "v1" and "v3"
          v = cos(ipt * ddist) * v1 + sin(ipt * ddist) * v3;
@@ -73,7 +73,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
          v.Rotate(gv_nx, snrx, csrx);
 
 // Print the projection on the xz plane
-         if(v[1] < 0.0 || !opaque) {
+         if (v[1] < 0.0 || !opaque) {
             meshfile << std::setw(12) << std::setprecision(5) << v[0]
                      << std::setw(12) << std::setprecision(5) << v[2]
                      << std::endl;
@@ -92,7 +92,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 \author Vladimir Florinski
 \date 08/30/2019
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 {
    int div, face, edge, iv;
@@ -109,7 +109,7 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
    std::cerr << "├─────┼─────────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤\n";
 
 // Compute mesh statistics
-   for(div = 0; div <= max_division; div++) {
+   for (div = 0; div <= max_division; div++) {
 
 // Memory for connectivity arrays
       memtot += 3 * nverts[div] * edges_per_vert[div] * SZINT
@@ -120,8 +120,8 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
       vertex_angle_min = M_2PI;
       vertex_angle_max = 0.0;
       vertex_angle_mean = 0.0;
-      for(face = 0; face < nfaces[div]; face++) {
-         for(iv = 0; iv < verts_per_face[div]; iv++) {
+      for (face = 0; face < nfaces[div]; face++) {
+         for (iv = 0; iv < verts_per_face[div]; iv++) {
             vertex_angle = acos(VertexAngle(vert_cart[fv_con[div][face][iv]],
                                             vert_cart[fv_con[div][face][(iv + 1) % verts_per_face[div]]],
                                             vert_cart[fv_con[div][face][(iv + 2) % verts_per_face[div]]]));
@@ -136,7 +136,7 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
       edge_length_min = M_2PI;
       edge_length_max = 0.0;
       edge_length_mean = 0.0;
-      for(edge = 0; edge < nedges[div]; edge++) {
+      for (edge = 0; edge < nedges[div]; edge++) {
          edge_length = acos(vert_cart[ev_con[div][edge][0]] * vert_cart[ev_con[div][edge][1]]);
          edge_length_min = fmin(edge_length_min, edge_length);
          edge_length_max = fmax(edge_length_max, edge_length);
@@ -148,11 +148,11 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
       face_area_min = M_4PI;
       face_area_max = 0.0;
       face_area_mean = 0.0;
-      for(face = 0; face < nfaces[div]; face++) {
+      for (face = 0; face < nfaces[div]; face++) {
 
 // Divide the polygon into triangles and sum up their partial areas
          face_area = 0.0;
-         for(iv = 2; iv < verts_per_face[div]; iv++) {
+         for (iv = 2; iv < verts_per_face[div]; iv++) {
             face_area += SphTriArea(vert_cart[fv_con[div][face][0]], vert_cart[fv_con[div][face][iv - 1]], vert_cart[fv_con[div][face][iv]]);
          };
          face_area_min = fmin(face_area_min, face_area);
@@ -192,77 +192,77 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 \date 04/15/2020
 \param[in] div Division
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::TestConnectivity(int div) const
 try {
 
    static const std::string callerID = "TestConnectivity";
-   if((div < 0) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
+   if ((div < 0) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
    int vert, vert1, edge, edge1, face, face1, face2, face3, iv, iv1, ie, it;
 
-   for(vert = 0; vert < nverts[div]; vert++) {
+   for (vert = 0; vert < nverts[div]; vert++) {
 
 // Check whether "vert" is in the vertex neighbor's ("vert1") VV.
-      for(iv = 0; iv < NVertNbrs(div, vert); iv++) {
+      for (iv = 0; iv < NVertNbrs(div, vert); iv++) {
          vert1 = vv_con[div][vert][iv];
-         if((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
          iv1 = InList(NVertNbrs(div, vert1), vv_con[div][vert1], vert);
-         if(iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if (iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
       };
 
 // Check whether "vert" is in the edge neighbor's ("edge") EV and whether the other vertex of "edge" is the same as VV of "vert" with the same neighbor index.
-      for(ie = 0; ie < NVertNbrs(div, vert); ie++) {
+      for (ie = 0; ie < NVertNbrs(div, vert); ie++) {
          edge = ve_con[div][vert][ie];
-         if((edge < 0) || (edge >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((edge < 0) || (edge >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
          iv1 = InList(2, ev_con[div][edge], vert);
-         if(iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if (iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          vert1 = ev_con[div][edge][(iv1 + 1) % 2];
-         if((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(vert1 != vv_con[div][vert][ie]) TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (vert1 != vv_con[div][vert][ie]) TessError(callerID, div, TESERR_MISMT, __LINE__);
       };
 
 // Check whether "vert" is in the face neighbor's ("face") FV and whether the next vertex of "face" is the same the previous vertex in VV of "vert".
-      for(it = 0; it < NVertNbrs(div, vert); it++) {
+      for (it = 0; it < NVertNbrs(div, vert); it++) {
          face = vf_con[div][vert][it];
-         if((face < 0) || (face >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((face < 0) || (face >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
          iv1 = InList(verts_per_face[div], fv_con[div][face], vert);
-         if(iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if (iv1 == -1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          vert1 = fv_con[div][face][(iv1 + 1) % verts_per_face[div]];
-         if((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(vert1 != vv_con[div][vert][(it - 1 + NVertNbrs(div, vert)) % NVertNbrs(div, vert)]) TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (vert1 != vv_con[div][vert][(it - 1 + NVertNbrs(div, vert)) % NVertNbrs(div, vert)]) TessError(callerID, div, TESERR_MISMT, __LINE__);
       };
 
 // Check whether face neighbors of "vert" are in the right place in their edge neighbor's EF, whether edge neighbors of "vert" are in the right place in the face neighbor's FE, and whether face neighbors of "vert" are in the right place in the face neighbor's FF.
-      for(ie = 0; ie < NVertNbrs(div, vert); ie++) {
+      for (ie = 0; ie < NVertNbrs(div, vert); ie++) {
          edge = ve_con[div][vert][ie];
          iv = InList(2, ev_con[div][edge], vert);
          face1 = vf_con[div][vert][ie];
          face2 = vf_con[div][vert][(ie + 1) % NVertNbrs(div, vert)];
-         if(ef_con[div][edge][0] != (iv ? face1 : face2)) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
-         if(ef_con[div][edge][1] != (iv ? face2 : face1)) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if (ef_con[div][edge][0] != (iv ? face1 : face2)) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if (ef_con[div][edge][1] != (iv ? face2 : face1)) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          iv = InList(verts_per_face[div], fv_con[div][face1], vert);
          edge1 = fe_con[div][face1][(iv - 1 + verts_per_face[div]) % verts_per_face[div]];
-         if((edge1 < 0) || (edge1 >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(edge1 != edge) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((edge1 < 0) || (edge1 >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (edge1 != edge) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          face3 = ff_con[div][face1][(iv - 1 + verts_per_face[div]) % verts_per_face[div]];
-         if((face3 < 0) || (face3 >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(face3 != face2) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((face3 < 0) || (face3 >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (face3 != face2) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          iv = InList(verts_per_face[div], fv_con[div][face2], vert);
          edge1 = fe_con[div][face2][iv];
-         if((edge1 < 0) || (edge1 >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(edge1 != edge) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((edge1 < 0) || (edge1 >= nedges[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (edge1 != edge) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
          face3 = ff_con[div][face2][iv];
-         if((face3 < 0) || (face3 >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-         if(face3 != face1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
+         if ((face3 < 0) || (face3 >= nfaces[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if (face3 != face1) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
       };
    };
    std::cerr << "Connectivity test successful\n";
@@ -281,48 +281,48 @@ catch(const TessError& err) {
 
 The type is one of the folloing: 1 is vertex-vertex, 2 is vertex-edge, 3 is vertex-face, 4 is edge-vertex, 6 is edge-face, 7 is face-vertex, 8 is face-edge,9 is face-face.
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintConn(int div, int type) const
 {
-   switch(type) {
+   switch (type) {
 
    case 1:
-      std::cerr << "Printing vert-vert connectivity at level " << div << std::endl;
+      std::cerr << "Printing vert-vert connectivity at division " << div << std::endl;
       PrintConnectivity(nverts[div], edges_per_vert[div], 0, vv_con[div]);
       break;
 
    case 2:
-      std::cerr << "Printing vert-edge connectivity at level " << div << std::endl;
+      std::cerr << "Printing vert-edge connectivity at division " << div << std::endl;
       PrintConnectivity(nverts[div], edges_per_vert[div], 0, ve_con[div]);
       break;
 
    case 3:
-      std::cerr << "Printing vert-face connectivity at level " << div << std::endl;
+      std::cerr << "Printing vert-face connectivity at division " << div << std::endl;
       PrintConnectivity(nverts[div], edges_per_vert[div], 0, vf_con[div]);
       break;
 
    case 4:
-      std::cerr << "Printing edge-vert connectivity at level " << div << std::endl;
+      std::cerr << "Printing edge-vert connectivity at division " << div << std::endl;
       PrintConnectivity(nedges[div], 2, 0, ev_con[div]);
       break;
 
    case 6:
-      std::cerr << "Printing edge-face connectivity at level " << div << std::endl;
+      std::cerr << "Printing edge-face connectivity at division " << div << std::endl;
       PrintConnectivity(nedges[div], 2, 0, ef_con[div]);
       break;
 
    case 7:
-      std::cerr << "Printing face-vert connectivity at level " << div << std::endl;
+      std::cerr << "Printing face-vert connectivity at division " << div << std::endl;
       PrintConnectivity(nfaces[div], verts_per_face[div], 0, fv_con[div]);
       break;
 
    case 8:
-      std::cerr << "Printing face-edge connectivity at level " << div << std::endl;
+      std::cerr << "Printing face-edge connectivity at division " << div << std::endl;
       PrintConnectivity(nfaces[div], verts_per_face[div], 0, fe_con[div]);
       break;
 
    case 9:
-      std::cerr << "Printing face-face connectivity at level " << div << std::endl;
+      std::cerr << "Printing face-face connectivity at division " << div << std::endl;
       PrintConnectivity(nfaces[div], verts_per_face[div], 0, ff_con[div]);
       break;
    };
@@ -335,5 +335,11 @@ template class DrawableTesselation<POLY_HEXAHEDRON, 3>;
 template class DrawableTesselation<POLY_OCTAHEDRON, 3>;
 template class DrawableTesselation<POLY_DODECAHEDRON, 3>;
 template class DrawableTesselation<POLY_ICOSAHEDRON, 3>;
+
+template class DrawableTesselation<POLY_HEXAHEDRON, 5>;
+template class DrawableTesselation<POLY_ICOSAHEDRON, 5>;
+
+template class DrawableTesselation<POLY_HEXAHEDRON, 6>;
+template class DrawableTesselation<POLY_ICOSAHEDRON, 6>;
 
 };

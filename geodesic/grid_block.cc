@@ -30,6 +30,25 @@ SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(void)
 
 /*!
 \author Vladimir Florinski
+\date 06/28/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
+                                              : GeodesicSector<verts_per_face>(static_cast<GeodesicSector<verts_per_face>>(other)),
+                                                SphericalSlab(static_cast<SphericalSlab>(other))
+{
+   Setup();
+   if (other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
+   if (other.mesh_associated) {
+      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map);
+   };
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/08/2024
 \param[in] width  Length of the side, without ghost cells
 \param[in] wgohst Width of the ghost cell layer outside the sector
@@ -68,15 +87,18 @@ template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
 {
 // Call base methods
-   if(!construct) {
-      GeodesicSector<verts_per_face>::SetDimensions(width, wghost);
-      SphericalSlab::SetDimensions(height, hghost);
+   if (!construct) {
+      GeodesicSector<verts_per_face>::SetDimensions(width, wghost, false);
+      SphericalSlab::SetDimensions(height, hghost, false);
    };
 
-// Allocate duplicate element lists (used for singular corners). We use continuous storage so that the corners are stored in sequence and can be addressed as a single array.
+// Free up storage (not that of the base class) because this could be a repeat call
+   FreeStorage();
+
+// Allocate duplicate element lists (used for singular corners). We use contiguous storage so that the corners are stored in sequence and can be addressed as a single array.
    dup_vert[0] = Create2D<int>(verts_per_face * (ghost_width + 1), 2);
    dup_edge[0] = Create2D<int>(verts_per_face * ghost_width, 2);
-   for(auto corner = 1; corner < verts_per_face; corner++) {
+   for (auto corner = 1; corner < verts_per_face; corner++) {
       dup_vert[corner] = dup_vert[corner - 1] + ghost_width + 1;
       dup_edge[corner] = dup_edge[corner - 1] + ghost_width;
    };
@@ -141,8 +163,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
 
 /*!
 \author Vladimir Florinski
-\date 05/08/2024
-\param[in] index       Unique ID of this block in the mesh
+\date 06/21/2024
 \param[in] ximin       Smallest reference distance of the block (without ghost)
 \param[in] ximax       Largest reference distance of the block (without ghost)
 \param[in] corners     Corner type, true for singular corners
@@ -151,16 +172,18 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
 \param[in] dist_map_in Radial map function 
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(int index, double ximin, double ximax, const bool* corners,
-                                                               const bool* borders, const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
+SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
 {
+// The dimensions were not set, cannot proceed.
+   if (side_length == -1) return;
+
    int k, iv;
-   block_index = index;
 
 // Copy border information and correct connectivity at singular corners
    memcpy(corner_type, corners, verts_per_face * sizeof(bool));
    n_singular = 0;
-   for(iv = 0; iv < verts_per_face; iv++) {
+   for (iv = 0; iv < verts_per_face; iv++) {
       if(corners[iv]) n_singular++;
    };
    memcpy(border_type, borders, 2 * sizeof(bool));
@@ -175,7 +198,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(int index, do
    dxi = (ximax - ximin) / n_shells;
 
 // Compute the interface coordinates using the supplied distance map
-   for(k = 0; k <= n_shells_withghost; k++) {
+   for (k = 0; k <= n_shells_withghost; k++) {
       xi_in[k] = ximin + (k - ghost_height) * dxi;
       r_in[k] = dist_map->GetPhysical(xi_in[k]);
       r2_in[k] = Sqr(r_in[k]);
@@ -183,7 +206,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(int index, do
    };
 
 // Compute the midpoints and shell widths
-   for(k = 0; k < n_shells_withghost; k++) {
+   for (k = 0; k < n_shells_withghost; k++) {
       dr[k] = r_in[k + 1] - r_in[k];
       r_mp[k] = (r_in[k + 1] + r_in[k]) / 2.0;
    };
@@ -192,23 +215,184 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(int index, do
    Rmin = dist_map->GetPhysical(0.0);
    Rmax = dist_map->GetPhysical(1.0);
    LogRmax_Rmin = log(Rmax / Rmin);
-   for(k = 0; k <= n_shells_withghost; k++) {
+   for (k = 0; k <= n_shells_withghost; k++) {
       rp_in[k] = Rmin * pow(Rmax / Rmin, xi_in[k]);
    };
 
 // Compute the EC shell widths
-   for(k = 0; k < n_shells_withghost; k++) {
+   for (k = 0; k < n_shells_withghost; k++) {
       drp[k] = rp_in[k + 1] - rp_in[k];
    };
    drp_ratio = drp[0] / rp_in[0];
 
 // Copy vertex coordinates
    memcpy(block_vert_cart, vcart, n_verts_withghost * sizeof(GeoVector));
+   mesh_associated = true;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // GridBlock protected methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Vladimir Florinski
+\date 05/08/2024
+*/
+template <>
+SPECTRUM_DEVICE_FUNC void GridBlock<3>::Setup(void)
+{
+//          2          2---------1          1          1---------0          0          0---------2
+//         / \          \       /          / \          \       /          / \          \       / 
+//        /   \          \     /          /   \          \     /          /   \          \     /  
+//       /     \          \   /          /     \          \   /          /     \          \   /   
+//      /       \          \ /          /       \          \ /          /       \          \ /    
+//     0---------1          0          2---------0          2          1---------2          1     
+//
+//        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
+
+   corner_rotation[0] = 3; corner_rotation[1] = 5; corner_rotation[2] = 1;
+
+// The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
+//       |     i=      |     j=
+//  ---------------------------------
+//  ir*  | [rot][0][0] | [rot][1][0]
+//   +
+//  jr*  | [rot][0][1] | [rot][1][1]
+//
+   rotated_verts[0][0][0] =  1; rotated_verts[0][0][1] =  0; rotated_verts[0][1][0] =  0; rotated_verts[0][1][1] =  1;
+   rotated_verts[1][0][0] =  1; rotated_verts[1][0][1] = -1; rotated_verts[1][1][0] =  1; rotated_verts[1][1][1] =  0;
+   rotated_verts[2][0][0] =  0; rotated_verts[2][0][1] = -1; rotated_verts[2][1][0] =  1; rotated_verts[2][1][1] = -1;
+   rotated_verts[3][0][0] = -1; rotated_verts[3][0][1] =  0; rotated_verts[3][1][0] =  0; rotated_verts[3][1][1] = -1;
+   rotated_verts[4][0][0] = -1; rotated_verts[4][0][1] =  1; rotated_verts[4][1][0] = -1; rotated_verts[4][1][1] =  0;
+   rotated_verts[5][0][0] =  0; rotated_verts[5][0][1] =  1; rotated_verts[5][1][0] = -1; rotated_verts[5][1][1] =  1;
+
+   rotated_shift[0][0][0] =  0; rotated_shift[0][0][1] =  0;
+   rotated_shift[0][1][0] =  0; rotated_shift[0][1][1] =  0;
+   rotated_shift[0][2][0] =  0; rotated_shift[0][2][1] =  0;
+   rotated_shift[1][0][0] =  0; rotated_shift[1][0][1] =  0;
+   rotated_shift[1][1][0] = -1; rotated_shift[1][1][1] =  0;
+   rotated_shift[1][2][0] =  0; rotated_shift[1][2][1] =  0;
+   rotated_shift[2][0][0] =  0; rotated_shift[2][0][1] =  0;
+   rotated_shift[2][1][0] = -1; rotated_shift[2][1][1] = -1;
+   rotated_shift[2][2][0] = -1; rotated_shift[2][2][1] =  0;
+   rotated_shift[3][0][0] = -1; rotated_shift[3][0][1] =  0;
+   rotated_shift[3][1][0] =  0; rotated_shift[3][1][1] = -1;
+   rotated_shift[3][2][0] = -1; rotated_shift[3][2][1] = -1;
+   rotated_shift[4][0][0] = -1; rotated_shift[4][0][1] = -1;
+   rotated_shift[4][1][0] =  0; rotated_shift[4][1][1] =  0;
+   rotated_shift[4][2][0] =  0; rotated_shift[4][2][1] = -1;
+   rotated_shift[5][0][0] =  0; rotated_shift[5][0][1] = -1;
+   rotated_shift[5][1][0] =  0; rotated_shift[5][1][1] =  0;
+   rotated_shift[5][2][0] =  0; rotated_shift[5][2][1] =  0;
+
+// The storage pattern is i(ir, jr_even, jr_odd), j(ir, jr_even, jr_odd). Use the table to calculate global i and j.
+//       |              i=              |              j=
+//  -------------------------------------------------------------------
+//  ir*  | [rot][0][0]                  | [rot][1][0]
+//   +
+//  jr*  | [rot][0][1+jr%square_fill]   | [rot][1][1+jr%square_fill]
+
+   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][0][2] =  0;
+   rotated_faces[0][1][0] =  0; rotated_faces[0][1][1] =  1; rotated_faces[0][1][2] =  1;
+   rotated_faces[1][0][0] =  1; rotated_faces[1][0][1] = -1; rotated_faces[1][0][2] =  0;
+   rotated_faces[1][1][0] =  2; rotated_faces[1][1][1] = -1; rotated_faces[1][1][2] =  1;
+   rotated_faces[2][0][0] =  0; rotated_faces[2][0][1] =  0; rotated_faces[2][0][2] = -1;
+   rotated_faces[2][1][0] =  2; rotated_faces[2][1][1] = -1; rotated_faces[2][1][2] = -1;
+   rotated_faces[3][0][0] = -1; rotated_faces[3][0][1] =  0; rotated_faces[3][0][2] =  0;
+   rotated_faces[3][1][0] =  0; rotated_faces[3][1][1] = -1; rotated_faces[3][1][2] = -1;
+   rotated_faces[4][0][0] = -1; rotated_faces[4][0][1] =  1; rotated_faces[4][0][2] =  0;
+   rotated_faces[4][1][0] = -2; rotated_faces[4][1][1] =  1; rotated_faces[4][1][2] = -1;
+   rotated_faces[5][0][0] =  0; rotated_faces[5][0][1] =  0; rotated_faces[5][0][2] =  1;
+   rotated_faces[5][1][0] = -2; rotated_faces[5][1][1] =  1; rotated_faces[5][1][2] =  1;
+
+//                 5
+//               . . .     
+//             .   .   .   
+//           .     .     . 
+//          1-------------2
+//          |      4      |
+//          |     . .     |
+//          |   .     .   |
+//          | .         . |
+//          0-------------3
+
+#ifdef USE_SILO
+
+   silo_zonetype = DB_ZONETYPE_PRISM;
+   zv_silo[0][0] = 0; zv_silo[0][1] = 0; zv_silo[1][0] = 1; zv_silo[1][1] = 0; zv_silo[2][0] = 1; zv_silo[2][1] = 1;
+   zv_silo[3][0] = 0; zv_silo[3][1] = 1; zv_silo[4][0] = 0; zv_silo[4][1] = 2; zv_silo[5][0] = 1; zv_silo[5][1] = 2;
+
+#endif
+
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/08/2024
+*/
+template <>
+SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
+{
+//     3---------2     2---------1     1---------0     0---------3
+//     |         |     |         |     |         |     |         |
+//     |         |     |         |     |         |     |         |
+//     |         |     |         |     |         |     |         |
+//     0---------1     3---------0     2---------3     1---------2
+//
+//        rot=0           rot=1           rot=2           rot=3
+
+   corner_rotation[0] = 2; corner_rotation[1] = 3; corner_rotation[2] = 0; corner_rotation[3] = 1;
+
+// The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
+//       |     i=      |     j=
+//  ---------------------------------
+//  ir*  | [rot][0][0] | [rot][1][0]
+//   +
+//  jr*  | [rot][0][1] | [rot][1][1]
+//
+   rotated_verts[0][0][0] =  1; rotated_verts[0][0][1] =  0; rotated_verts[0][1][0] =  0; rotated_verts[0][1][1] =  1;
+   rotated_verts[1][0][0] =  0; rotated_verts[1][0][1] = -1; rotated_verts[1][1][0] =  1; rotated_verts[1][1][1] =  0;
+   rotated_verts[2][0][0] = -1; rotated_verts[2][0][1] =  0; rotated_verts[2][1][0] =  0; rotated_verts[2][1][1] = -1;
+   rotated_verts[3][0][0] =  0; rotated_verts[3][0][1] =  1; rotated_verts[3][1][0] = -1; rotated_verts[3][1][1] =  0;
+
+   rotated_shift[0][0][0] =  0; rotated_shift[0][0][1] =  0; rotated_shift[0][1][0] =  0; rotated_shift[0][1][1] =  0;
+   rotated_shift[1][0][0] =  0; rotated_shift[1][0][1] =  0; rotated_shift[1][1][0] = -1; rotated_shift[1][1][1] =  0;
+   rotated_shift[2][0][0] = -1; rotated_shift[2][0][1] =  0; rotated_shift[2][1][0] =  0; rotated_shift[2][1][1] = -1;
+   rotated_shift[3][0][0] =  0; rotated_shift[3][0][1] = -1; rotated_shift[3][1][0] =  0; rotated_shift[3][1][1] =  0;
+
+// The storage pattern is i(ir, jr_even, jr_odd), j(ir, jr_even, jr_odd). Use the table to calculate global i and j.
+//       |              i=              |              j=
+//  -------------------------------------------------------------------
+//  ir*  | [rot][0][0]                  | [rot][1][0]
+//   +
+//  jr*  | [rot][0][1+jr%square_fill]   | [rot][1][1+jr%square_fill]
+
+   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][1][0] =  0;   rotated_faces[0][1][1] =  1;
+   rotated_faces[1][0][0] =  0; rotated_faces[1][0][1] = -1; rotated_faces[1][1][0] =  1;   rotated_faces[1][1][1] =  0;
+   rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0;   rotated_faces[2][1][1] = -1;
+   rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1;   rotated_faces[3][1][1] =  0;
+
+//               7-------------6
+//             . .           . |
+//           .   .         .   |
+//          4-------------5    |
+//          |    .        |    |
+//          |    3 . . . .|. . 2
+//          |  .          |  .
+//          |.            |.
+//          0-------------1
+
+#ifdef USE_SILO
+
+   silo_zonetype = DB_ZONETYPE_HEX;
+   zv_silo[0][0] = 0; zv_silo[0][1] = 0; zv_silo[1][0] = 0; zv_silo[1][1] = 1;
+   zv_silo[2][0] = 0; zv_silo[2][1] = 2; zv_silo[3][0] = 0; zv_silo[3][1] = 3;
+   zv_silo[4][0] = 1; zv_silo[4][1] = 0; zv_silo[5][0] = 1; zv_silo[5][1] = 1;
+   zv_silo[6][0] = 1; zv_silo[6][1] = 2; zv_silo[7][0] = 1; zv_silo[7][1] = 3;
+
+#endif
+
+};
 
 /*!
 \author Vladimir Florinski
@@ -224,11 +408,11 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
    std::pair base_vert = std::make_pair(0, 0);
 
 // Reset the "dup" arrays
-   for(corner = 0; corner < verts_per_face; corner++) {
-      for(i_rot = 0; i_rot <= ghost_width; i_rot++) {
+   for (corner = 0; corner < verts_per_face; corner++) {
+      for (i_rot = 0; i_rot <= ghost_width; i_rot++) {
          dup_vert[corner][i_rot][0] = -1;
          dup_vert[corner][i_rot][1] = -1;
-         if(i_rot != ghost_width) {
+         if (i_rot != ghost_width) {
             dup_edge[corner][i_rot][0] = -1;
             dup_edge[corner][i_rot][1] = -1;
          };
@@ -240,8 +424,8 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    n_mf = 0;
-   for(corner = 0; corner < verts_per_face; corner++) {
-      if(!corner_type[corner]) continue;
+   for (corner = 0; corner < verts_per_face; corner++) {
+      if (!corner_type[corner]) continue;
 
 // Find the corner vertex and determine the amount of rotation. Calculate the starting vertex.
       CornerCoords(corner, i, j);
@@ -253,8 +437,8 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       j_origin = vert_index_j[vert_origin];
 
 // TODO test if this code works
-      for(i_rot = 0; i_rot <= ghost_width; i_rot++) {
-         for(j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot); j_rot++) {
+      for (i_rot = 0; i_rot <= ghost_width; i_rot++) {
+         for (j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot); j_rot++) {
 
 // Calculate global indices
             i = i_origin + rotated_verts[rot][0][0] * i_rot + rotated_verts[rot][0][1] * j_rot;
@@ -265,20 +449,20 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
             bl_side = BoundaryVert(base_vert, ghost_width, i_rot, j_rot);
             bl_corner = CornerVert(base_vert, ghost_width, i_rot, j_rot);
             dup_found = false;
-            if((bl_side == 0) || (bl_corner == 0) || (bl_corner == 1)) {
+            if ((bl_side == 0) || (bl_corner == 0) || (bl_corner == 1)) {
                dup_vert[corner][i_rot][0] = vert;
                dup_found = true;
             };
-            if((bl_side == verts_per_face - 1) || (bl_corner == verts_per_face - 1) || (bl_corner == 0)) {
+            if ((bl_side == verts_per_face - 1) || (bl_corner == verts_per_face - 1) || (bl_corner == 0)) {
                dup_vert[corner][j_rot][1] = vert;
                dup_found = true;
             }; 
 
 // These are missing vertices
-            if(!dup_found)  {
-               for(iv = 0; iv < edges_per_vert; iv++) vv_local[vert][iv] = -1;
-               for(ie = 0; ie < edges_per_vert; ie++) ve_local[vert][ie] = -1;
-               for(it = 0; it < edges_per_vert; it++) vf_local[vert][it] = -1;
+            if (!dup_found)  {
+               for (iv = 0; iv < edges_per_vert; iv++) vv_local[vert][iv] = -1;
+               for (ie = 0; ie < edges_per_vert; ie++) ve_local[vert][ie] = -1;
+               for (it = 0; it < edges_per_vert; it++) vf_local[vert][it] = -1;
                RAISE_BITS(vert_mask[vert], GEOELM_NEXI);
             }
             else RAISE_BITS(vert_mask[vert], GEOELM_CUTL);
@@ -286,9 +470,9 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       };
 
 // Reset EV and EF of edges inside the cut (interior edges only).
-      for(etype_rot = 0; etype_rot < cardinal_directions; etype_rot++) {
-         for(i_rot = 0; i_rot <= ghost_width + edge_dimax[etype_rot]; i_rot++) {
-            for(j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot) + edge_djmax[etype_rot]; j_rot++) {
+      for (etype_rot = 0; etype_rot < cardinal_directions; etype_rot++) {
+         for (i_rot = 0; i_rot <= ghost_width + edge_dimax[etype_rot]; i_rot++) {
+            for (j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot) + edge_djmax[etype_rot]; j_rot++) {
                
 // Calculate global indices
                etype = (etype_rot + 2 * cardinal_directions - rot) % cardinal_directions;
@@ -296,22 +480,22 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
                j = j_origin + rotated_shift[rot][etype_rot][1] + rotated_verts[rot][1][0] * i_rot + rotated_verts[rot][1][1] * j_rot;
                edge = edge_index_sector[etype][i][j];
 
-// Check if it is a duplicate edge (lies on the cut line). In rotated coordinates, the cut line is side "0" and side "VERTICES_PER_TFACE-1".
+// Check if it is a duplicate edge (lies on the cut line). In rotated coordinates, the cut line is side "0" and side "verts_per_face-1".
                bl_side = BoundaryEdge(base_vert, ghost_width, etype_rot, i_rot, j_rot);
                dup_found = false;
-               if(bl_side == 0) {
+               if (bl_side == 0) {
                   dup_edge[corner][i_rot][0] = edge;
                   dup_found = true;
                };
-               if(bl_side == verts_per_face - 1) {
+               if (bl_side == verts_per_face - 1) {
                   dup_edge[corner][j_rot][1] = edge;
                   dup_found = true;
                };
 
 // These are missing edges
-               if(!dup_found)  {
-                  for(iv = 0; iv < 2; iv++) ev_local[edge][iv] = -1;
-                  for(it = 0; it < 2; it++) ef_local[edge][it] = -1;
+               if (!dup_found)  {
+                  for (iv = 0; iv < 2; iv++) ev_local[edge][iv] = -1;
+                  for (it = 0; it < 2; it++) ef_local[edge][it] = -1;
                   RAISE_BITS(edge_mask[edge], GEOELM_NEXI);
                }
                else RAISE_BITS(edge_mask[edge], GEOELM_CUTL);
@@ -336,7 +520,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       j_origin2 = face_index_j[face_origin];
 
 // Reset FV, FE, and FF of faces inside the cut.
-      for(i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
+      for (i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
          i = i_origin + rotated_faces[rot][0][0] * i_rot;
          j = j_origin + rotated_faces[rot][1][0] * i_rot;
 
@@ -345,13 +529,13 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
          i2 = i_origin2 + rotated_faces[(rot + 1) % edges_per_vert][0][0] * i_rot;
          j2 = j_origin2 + rotated_faces[(rot + 1) % edges_per_vert][1][0] * i_rot;
 
-         for(j_rot = 0; j_rot <= MaxFaceJ(ghost_width, i_rot); j_rot++) {
+         for (j_rot = 0; j_rot <= MaxFaceJ(ghost_width, i_rot); j_rot++) {
             face = face_index_sector[i][j];
             RAISE_BITS(face_mask[face], GEOELM_NEXI);
 
-            for(iv = 0; iv < verts_per_face; iv++) fv_local[face][iv] = -1;
-            for(ie = 0; ie < verts_per_face; ie++) fe_local[face][ie] = -1;
-            for(it = 0; it < verts_per_face; it++) ff_local[face][it] = -1;
+            for (iv = 0; iv < verts_per_face; iv++) fv_local[face][iv] = -1;
+            for (ie = 0; ie < verts_per_face; ie++) fe_local[face][ie] = -1;
+            for (it = 0; it < verts_per_face; it++) ff_local[face][it] = -1;
 
 // Store the replacement faces. The first replacement face is clock-wise, and the second is counter-clockwise from the mising face.
             missing_faces[0][n_mf] = face;
@@ -372,7 +556,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
    };
 
 // Check the number of missing faces
-   if(n_mf != n_singular * FaceCount(ghost_width)) {
+   if (n_mf != n_singular * FaceCount(ghost_width)) {
       PrintError(__FILE__, __LINE__, "Error occurred while computing the missing faces", true);
    };
 
@@ -380,8 +564,8 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 // Second pass: stitch together the cut line, i.e., fix the connectivity for the mesh elements that are on or adjacent to the cut line. Note that there are two addresses for the elements on the cut line ("right" and "left") and the variables defined there should be synchronized to ensure consistency.
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   for(corner = 0; corner < verts_per_face; corner++) {
-      if(!corner_type[corner]) continue;
+   for (corner = 0; corner < verts_per_face; corner++) {
+      if (!corner_type[corner]) continue;
       rot = corner_rotation[corner];
 
 // Determine which vertex neighbors to replace. First compute "iv1", which is the first vertex neighbor of the right vetex to replace. Its complimentary on the left side is iv2=iv1-1.
@@ -389,18 +573,18 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       iv2 = (iv1 + edges_per_vert - 1) % edges_per_vert;
 
 // Fix VV, VE, VF of vertices on the cut line. The limits on this loop are wider by 1 in each direction to acommodate VF.
-      for(i_rot = 1; i_rot <= ghost_width; i_rot++) {
+      for (i_rot = 1; i_rot <= ghost_width; i_rot++) {
          vert1 = dup_vert[corner][i_rot][0];
          vert2 = dup_vert[corner][i_rot][1];
 
 // For QAS 1 VV/VE and 2 VF neighbors are replaced and for TAS 2 VV/VE and 3 VF neighbors are replaced. The limits on this loop are wider by 1 in each direction to acommodate VF.
-         for(iiv = -1; iiv < edges_per_vert / 2; iiv++) {
+         for (iiv = -1; iiv < edges_per_vert / 2; iiv++) {
 
 // Right vertex - index increases
             iv3 = (iv1 + iiv + edges_per_vert) % edges_per_vert;
             iv4 = (iv3 + 1 + edges_per_vert) % edges_per_vert;
-            if(iiv != -1) {
-               if(iiv != edges_per_vert / 2 - 1) {
+            if (iiv != -1) {
+               if (iiv != edges_per_vert / 2 - 1) {
                   vv_local[vert1][iv3] = vv_local[vert2][iv4];
                   ve_local[vert1][iv3] = ve_local[vert2][iv4];
                };
@@ -410,8 +594,8 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 // Left vertex - index decreases
             iv3 = (iv2 - iiv + edges_per_vert) % edges_per_vert;
             iv4 = (iv3 - 1 + edges_per_vert) % edges_per_vert;
-            if(iiv != edges_per_vert / 2 - 1) {
-               if(iiv != -1) {
+            if (iiv != edges_per_vert / 2 - 1) {
+               if (iiv != -1) {
                   vv_local[vert2][iv3] = vv_local[vert1][iv4];
                   ve_local[vert2][iv3] = ve_local[vert1][iv4];
                };
@@ -435,7 +619,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       it2 = (vert1 == ev_local[edge2][0] ? 0 : 1);
 
 // Fix EF, and FF of faces adjacent to the cut line - one element only.
-      for(i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
+      for (i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
          edge1 = dup_edge[corner][i_rot][0];
          edge2 = dup_edge[corner][i_rot][1];
          face1 = ef_local[edge1][it1];
@@ -465,37 +649,37 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
    std::pair<int, int> base_vert = std::make_pair(square_fill * (ghost_width - 1), ghost_width - 1);
 
 // Generate the TAS/QAS to SILO vertex map that includes interior and one layer of ghost vertices
-   for(vert = 0; vert < n_verts_withghost; vert++) vert_to_silo[vert] = -1;
+   for (vert = 0; vert < n_verts_withghost; vert++) vert_to_silo[vert] = -1;
    n_verts_silo = 0;
    imax = total_length - ghost_width + 1;
 
-   for(i = square_fill * ghost_width - 1; i <= imax; i++) {
+   for (i = square_fill * ghost_width - 1; i <= imax; i++) {
       jmax = MaxVertJ(base_vert, total_length - square_fill * ghost_width + 1, i);
-      for(j = ghost_width - 1; j <= jmax; j++) {
+      for (j = ghost_width - 1; j <= jmax; j++) {
          vert = vert_index_sector[i][j];
 
 // Interior vertices always included. This includes the corners.
-         if(IsInteriorVert_Int(vert)) vert_to_silo[vert] = n_verts_silo++;
+         if (IsInteriorVertOfSector(vert)) vert_to_silo[vert] = n_verts_silo++;
 
 // If the vertex belongs to a face that has at least one vertex in the interior, it is included in the list.
          else {
             it = 0;
             include_ghost = false;
-            while(!include_ghost && (it < edges_per_vert)) {
+            while (!include_ghost && (it < edges_per_vert)) {
                face = vf_local[vert][it];
-               if(face != -1) {
+               if (face != -1) {
                   iv = 0;
-                  while(iv < verts_per_face && !IsInteriorVert_Int(fv_local[face][iv])) iv++;
-                  if(iv != verts_per_face) include_ghost = true;
+                  while (iv < verts_per_face && !IsInteriorVertOfSector(fv_local[face][iv])) iv++;
+                  if (iv != verts_per_face) include_ghost = true;
                };
                it++;
             };
 
 // The vertex is part of the SILO ghost layer and eligible to be included in the list. If it is a duplicate vertex (lies on the cut line), it must be only included once.
-            if(include_ghost) {
-               if(BITS_RAISED(vert_mask[vert], GEOELM_CUTL)) {
+            if (include_ghost) {
+               if (BITS_RAISED(vert_mask[vert], GEOELM_CUTL)) {
                   idx_dup = InList(verts_per_face * (ghost_width + 1) * 2, dup_vert[0][0], vert);
-                  if(is_odd(idx_dup)) continue;
+                  if (is_odd(idx_dup)) continue;
                };
                vert_to_silo[vert] = n_verts_silo++;
             };
@@ -506,23 +690,23 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Generate the TAS/QAS to SILO face map that includes interior and one layer of ghost faces
-   for(face = 0; face < n_faces_withghost; face++) face_to_silo[face] = -1;
+   for (face = 0; face < n_faces_withghost; face++) face_to_silo[face] = -1;
    n_faces_silo = 0;
    imax = total_length - ghost_width;
 
-   for(i = square_fill * ghost_width - 1; i <= imax; i++) {
+   for (i = square_fill * ghost_width - 1; i <= imax; i++) {
       jmax = MaxFaceJ(base_vert, total_length - square_fill * ghost_width + 1, i);
-      for(j = square_fill * (ghost_width - 1); j <= jmax; j++) {
+      for (j = square_fill * (ghost_width - 1); j <= jmax; j++) {
          face = face_index_sector[i][j];
 
 // Interior faces always included
-         if(IsInteriorFace_Int(face)) face_to_silo[face] = n_faces_silo++;
+         if (IsInteriorFaceOfSector(face)) face_to_silo[face] = n_faces_silo++;
 
 // If the face has at least one vertex in the interior, it is included in the list.
          else {
             iv = 0;
-            while(iv < verts_per_face && !IsInteriorVert_Int(fv_local[face][iv])) iv++;
-            if(iv != verts_per_face) face_to_silo[face] = n_faces_silo++;
+            while (iv < verts_per_face && !IsInteriorVertOfSector(fv_local[face][iv])) iv++;
+            if (iv != verts_per_face) face_to_silo[face] = n_faces_silo++;
          };
       };
    };
@@ -534,13 +718,13 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
    silo_to_face = new int[n_faces_silo];
 
    vert_silo = 0;
-   for(vert = 0; vert < n_verts_withghost; vert++) {
-      if(vert_to_silo[vert] != -1) silo_to_vert[vert_silo++] = vert;
+   for (vert = 0; vert < n_verts_withghost; vert++) {
+      if (vert_to_silo[vert] != -1) silo_to_vert[vert_silo++] = vert;
    };
 
    face_silo = 0;
-   for(face = 0; face < n_faces_withghost; face++) {
-      if(face_to_silo[face] != -1) silo_to_face[face_silo++] = face;
+   for (face = 0; face < n_faces_withghost; face++) {
+      if (face_to_silo[face] != -1) silo_to_face[face_silo++] = face;
    };
 };
 
@@ -559,11 +743,11 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 // Total number of elements in the block. Notice that ghost cells are not added at the physical domain boundaries (innermost and outermost slabs) as required by SILO and VisIt.
    n_nodes = n_verts_silo * (n_shells + 1);
    n_zones = n_faces_silo * n_shells;
-   if(!border_type[0]) {
+   if (!border_type[0]) {
       n_nodes += n_verts_silo;
       n_zones += n_faces_silo;
    };
-   if(!border_type[1]) {
+   if (!border_type[1]) {
       n_nodes += n_verts_silo;
       n_zones += n_faces_silo;
    };
@@ -571,16 +755,16 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 
 // Arrays of node (vertex) coordinates.
    double* coords[3];
-   for(xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[n_nodes];
+   for (xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[n_nodes];
 
 // Calcutate vertex Cartesian coordinates (with ghost vertices)
    idx1 = 0;
    k1 = (border_type[0] ? ghost_height : ghost_height - 1);
    k2 = (border_type[1] ? n_shells_withghost - ghost_height : n_shells_withghost - ghost_height + 1);
-   for(k = k1; k <= k2; k++) {
-      for(vert_silo = 0; vert_silo < n_verts_silo; vert_silo++) {      
+   for (k = k1; k <= k2; k++) {
+      for (vert_silo = 0; vert_silo < n_verts_silo; vert_silo++) {
          vert = silo_to_vert[vert_silo];
-         for(xyz = 0; xyz < 3; xyz++) {
+         for (xyz = 0; xyz < 3; xyz++) {
             coords[xyz][idx1] = r_in[k] * block_vert_cart[vert][xyz] * (phys_units ? unit_length_fluid : 1.0);
          };
          idx1++;
@@ -606,13 +790,13 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
    k2 = (border_type[1] ? n_shells_withghost - ghost_height - 1 : n_shells_withghost - ghost_height);
 
 // Build vertex lists for each SILO zone
-   for(k = k1; k <= k2; k++) {
-      for(face_silo = 0; face_silo < n_faces_silo; face_silo++) {      
+   for (k = k1; k <= k2; k++) {
+      for (face_silo = 0; face_silo < n_faces_silo; face_silo++) {      
          face = silo_to_face[face_silo];
 
 // Add to the interior zone list.
-         if(IsInteriorShell_Int(k) && IsInteriorFace_Int(face)) {
-            for(ivz = 0; ivz < 2 * verts_per_face; ivz++) {
+         if (IsInteriorShellOfSlab(k) && IsInteriorFaceOfSector(face)) {
+            for (ivz = 0; ivz < 2 * verts_per_face; ivz++) {
                vert = fv_local[face][zv_silo[ivz][1]];
                znodelist[idx1++] = (k - k1 + zv_silo[ivz][0]) * n_verts_silo + vert_to_silo[vert];
             };
@@ -620,13 +804,13 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 
 // Add to the ghost zone list.
          else {
-            for(ivz = 0; ivz < 2 * verts_per_face; ivz++) {
+            for (ivz = 0; ivz < 2 * verts_per_face; ivz++) {
                vert = fv_local[face][zv_silo[ivz][1]];
 
 // Check if the vertex is a duplicate (odd idx_dup), in which case it must be replaced with the primary (idx_dup-1).
-               if(vert_mask[vert] & GEOELM_CUTL) {
+               if (vert_mask[vert] & GEOELM_CUTL) {
                   idx_dup = InList(verts_per_face * (ghost_width + 1) * 2, dup_vert[0][0], vert);
-                  if(is_odd(idx_dup)) vert = dup_vert[0][0][idx_dup - 1];
+                  if (is_odd(idx_dup)) vert = dup_vert[0][0][idx_dup - 1];
                };
                znodelist[idx2++] = (k - k1 + zv_silo[ivz][0]) * n_verts_silo + vert_to_silo[vert];
             };
@@ -646,7 +830,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 // Build the list of external faces of the block if it has a physical boundary.
    bool ext_faces = border_type[0] || border_type[1];
    DBfacelist* fl;
-   if(ext_faces) {
+   if (ext_faces) {
       fl = DBCalcExternalFacelist2(znodelist, n_nodes, 0, n_zones - n_intzones, 0, zshapetype, zshapesize, zshapecnt, 1, NULL, 0);
       err = DBPutFacelist(silofile, facelistname.c_str(), fl->nfaces, 3, fl->nodelist,
                           fl->lnodelist, 0, fl->zoneno, fl->shapesize, fl->shapecnt, fl->nshapes, NULL, NULL, 0);
@@ -657,11 +841,11 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 // Write the unstructured mesh object to the SILO database
    err |= DBPutUcdmesh(silofile, meshname.c_str(), 3, NULL, coords, n_nodes, n_zones, zonelistname.c_str(),
                        ext_faces ? facelistname.c_str() : NULL, DB_DOUBLE, NULL);
-   if(ext_faces) DBFreeFacelist(fl);
+   if (ext_faces) DBFreeFacelist(fl);
 
 // Clean up
    delete[] znodelist;
-   for(xyz = 0; xyz < 3; xyz++) delete[] coords[xyz];
+   for (xyz = 0; xyz < 3; xyz++) delete[] coords[xyz];
    return err;
 };
 
@@ -694,23 +878,23 @@ void GridBlock<verts_per_face>::PrintStats(void) const
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Printing stats for block " << block_index << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
-   std::cerr << "Height:          " << std::setw(6) << n_shells_withghost << " | "
-             << "Interior height: " << std::setw(6) << n_shells  << std::endl;
-   std::cerr << "Width:           " << std::setw(6) << total_length << " | "
-             << "Interior width:  " << std::setw(6) << side_length << std::endl;
-   std::cerr << "Faces:           " << std::setw(6) << n_faces_withghost << " | "
-             << "Interior faces:  " << std::setw(6) << n_faces << std::endl;
-   std::cerr << "Zones:           " << std::setw(6) << n_shells_withghost * n_faces_withghost << " | "
-             << "Interior zones:  " << std::setw(6) << n_shells * n_faces << std::endl;
+   std::cerr << "Height:          " << std::setw(9) << n_shells_withghost << " | "
+             << "Interior height: " << std::setw(9) << n_shells  << std::endl;
+   std::cerr << "Width:           " << std::setw(9) << total_length << " | "
+             << "Interior width:  " << std::setw(9) << side_length << std::endl;
+   std::cerr << "Faces:           " << std::setw(9) << n_faces_withghost << " | "
+             << "Interior faces:  " << std::setw(9) << n_faces << std::endl;
+   std::cerr << "Zones:           " << std::setw(9) << n_shells_withghost * n_faces_withghost << " | "
+             << "Interior zones:  " << std::setw(9) << n_shells * n_faces << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Corners: ";
-   for(auto corner = 0; corner < verts_per_face; corner++) {
-      std::cerr << std::setw(3) << corner_type[corner];
+   for (auto corner = 0; corner < verts_per_face; corner++) {
+      std::cerr << std::setw(5) << corner_type[corner];
    };
    std::cerr << std::endl;
    std::cerr << "Borders: ";
-   for(auto border = 0; border < 2; border++) {
-      std::cerr << std::setw(3) << border_type[border];
+   for (auto border = 0; border < 2; border++) {
+      std::cerr << std::setw(5) << border_type[border];
    };
    std::cerr << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
@@ -746,14 +930,14 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
    GeoVector v, v3, vv[verts_per_face];
 
 // Obtain the coordinates of the vertices for this t-face
-   for(iv = 0; iv < verts_per_face; iv++) vv[iv] = block_vert_cart[fv_local[face][iv]];
+   for (iv = 0; iv < verts_per_face; iv++) vv[iv] = block_vert_cart[fv_local[face][iv]];
 
    std::ofstream zdfile;
    std::string zdname = "zone_drawing_" + std::to_string(block_index) + "_" + std::to_string(k) + "_" + std::to_string(face) + ".out";
    zdfile.open(zdname.c_str(), std::ofstream::out);
 
 // Draw the top t-edges
-   for(ie = 0; ie < verts_per_face; ie++) {
+   for (ie = 0; ie < verts_per_face; ie++) {
    
 // Compute the angle between the points and divide it into equal segments
       ddist = acos(vv[ie] * vv[(ie + 1) % verts_per_face]) / (double)nint;
@@ -761,7 +945,7 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
       v3.Normalize();
 
 // Draw the points to form an edge
-      for(ipt = 0; ipt <= nint; ipt++) {
+      for (ipt = 0; ipt <= nint; ipt++) {
 
 // Interior point vectors are linear combinations of the two vertices
          v = cos(ipt * ddist) * vv[ie] + sin(ipt * ddist) * v3;
@@ -779,7 +963,7 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
    };
 
 // Draw the bottom t-edges
-   for(ie = 0; ie < verts_per_face; ie++) {
+   for (ie = 0; ie < verts_per_face; ie++) {
    
 // Compute the angle between the points and divide it into equal segments
       ddist = acos(vv[ie] * vv[(ie + 1) % verts_per_face]) / (double)nint;
@@ -787,7 +971,7 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
       v3.Normalize();
 
 // Draw the points to form an edge
-      for(ipt = 0; ipt <= nint; ipt++) {
+      for (ipt = 0; ipt <= nint; ipt++) {
 
 // Interior point vectors are linear combinations of the two vertices
          v = cos(ipt * ddist) * vv[ie] + sin(ipt * ddist) * v3;
@@ -805,7 +989,7 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
    };
 
 // Draw the side edges (two points per edge is enough for straight edges)
-   for(iv = 0; iv < verts_per_face; iv++) {
+   for (iv = 0; iv < verts_per_face; iv++) {
       v = vv[iv];
 
 // Rotate the view
