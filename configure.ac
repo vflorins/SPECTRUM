@@ -18,7 +18,7 @@ AC_LANG([C++])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_FC
-CXXFLAGS="$CXXFLAGS -std=c++17"
+CXXFLAGS="$CXXFLAGS -std=c++20"
 FCFLAGS="$FCFLAGS"
 LDFLAGS="$LDFLAGS -L/usr/local/slurm/lib/slurm"
 

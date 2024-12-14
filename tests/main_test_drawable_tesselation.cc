@@ -1,4 +1,4 @@
-// mpicxx -I.. -Wall -Wno-comment -std=c++20 -DGEO_DEBUG -DUSE_SILO -g -O0 -o main_test_drawable_tesselation main_test_drawable_tesselation.cc ../geodesic/spherical_tesselation.cc ../geodesic/drawable_tesselation.cc ../common/vectors.cc
+// g++ -I.. -Wall -Wno-comment -std=c++20 -DGEO_DEBUG -DUSE_SILO -g -O0 -o main_test_drawable_tesselation main_test_drawable_tesselation.cc ../geodesic/spherical_tesselation.cc ../geodesic/drawable_tesselation.cc ../common/vectors.cc
 
 #include "geodesic/drawable_tesselation.hh"
 
