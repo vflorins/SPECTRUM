@@ -19,7 +19,7 @@ namespace Spectrum {
 //! Number of neighbor types
 #define N_NBRTYPES 5
 
-//! Neighbor types (some blocks may be of two or three types at the same time)
+//! Neighbor types
 enum NeighborType {
    GEONBR_TFACE,
    GEONBR_RFACE,
@@ -76,13 +76,21 @@ protected:
    using SphericalSlab::n_shells_withghost;
    using PolygonalAddressing<verts_per_face>::edges_per_vert;
    using PolygonalAddressing<verts_per_face>::square_fill;
+   using PolygonalAddressing<verts_per_face>::cardinal_directions;
    using PolygonalAddressing<verts_per_face>::FaceCount;
    using GeodesicSector<verts_per_face>::n_faces_withghost;
    using GeodesicSector<verts_per_face>::side_length;
+   using GeodesicSector<verts_per_face>::total_length;
    using GeodesicSector<verts_per_face>::ghost_width;
    using GeodesicSector<verts_per_face>::n_faces;
+   using GeodesicSector<verts_per_face>::vert_index_sector;
    using GeodesicSector<verts_per_face>::face_index_sector;
+   using GeodesicSector<verts_per_face>::face_index_i;
+   using GeodesicSector<verts_per_face>::face_index_j;
+   using GeodesicSector<verts_per_face>::vf_local;
    using GridBlock<verts_per_face>::block_index;
+   using GridBlock<verts_per_face>::corner_rotation;
+   using GridBlock<verts_per_face>::rotated_faces;
 
 //! Number of exchange sites
    int exch_site_count[N_NBRTYPES];
@@ -92,9 +100,6 @@ protected:
 
 //! Pointers of exchange sites
    std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites[N_NBRTYPES];
-
-//! Face rotation transformations
-   int face_rotation_matrix[edges_per_vert][2][4];
 
 //! Buffer side length
    int buf_length[N_NBRTYPES];
@@ -120,23 +125,11 @@ protected:
 //! Starting shell indices for each buffer (site, part)
    int** buf_shell_start[N_NBRTYPES];
 
-//! Buffer base vertices
-   int** buf_base_vert[N_NBRTYPES];
-   
-//! Buffer rotations
-   int** buf_rotation[N_NBRTYPES];
-
 //! Maximum value of the vertex j-index for the given vertex i-index for a truncated block
    SPECTRUM_DEVICE_FUNC int MaxVertJ(int len, int height, int i) const;
 
 //! Maximum value of the face j-index for the given face i-index for a truncated block
    SPECTRUM_DEVICE_FUNC int MaxFaceJ(int len, int height, int i) const;
-
-//! Rotate a face into the block TAS/QAS
-   SPECTRUM_DEVICE_FUNC std::pair<int, int> RotateFace(std::pair<int, int> base_vertex, int rot, int irot, int jrot) const;
-
-//! Compute the rotation matrices
-   void ComputeRotationMatrices(void);
 
 //! Generate address maps for the buffers
    void ComputeBufferTranslations(void);
@@ -162,7 +155,7 @@ public:
    void FreeStorage(void);
 
 //! Assign exchange site objects
-   void ImportExchangeSites(NeighborType ntype, std::vector<ExchangeSite<ConservedVariables>*> exch_sites_in);
+   void ImportExchangeSites(NeighborType ntype, const std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>>& exch_sites_in);
 
 //! Return the size of the buffer (in units of ConservedVariables)
    int GetBufferSize(NeighborType ntype) const {return buf_volume[ntype];};
@@ -234,29 +227,6 @@ template <>
 SPECTRUM_DEVICE_FUNC inline int BufferedBlock<4>::MaxFaceJ(int len, int height, int i) const
 {
    return height - 1;
-};
-
-/*!
-\author Vladimir Florinski
-\date 06/18/2024
-\param[in] base_vertex Base vertex of the sub-block
-\param[in] rot         Rotation amount
-\param[in] irot        First rotated coordinate
-\param[in] jrot        Second rotated coordinate
-\return The i,j coordinates in the fixed frame
-*/
-template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline std::pair<int, int> BufferedBlock<verts_per_face>::RotateFace(std::pair<int, int> base_vertex, int rot, int irot, int jrot) const
-{
-   int i, j;
-   i = base_vertex.first + face_rotation_matrix[rot][0][0]
-     + face_rotation_matrix[rot][0][1] * irot + face_rotation_matrix[rot][0][2] * jrot
-     + face_rotation_matrix[rot][0][3] * jrot / square_fill + face_rotation_matrix[rot][0][4] * jrot % square_fill;
-   j = square_fill * base_vertex.second + face_rotation_matrix[rot][1][0]
-     + face_rotation_matrix[rot][1][1] * irot + face_rotation_matrix[rot][1][2] * jrot
-     + face_rotation_matrix[rot][1][3] * jrot / square_fill + face_rotation_matrix[rot][1][4] * jrot % square_fill;
-
-   return std::make_pair(i, j);
 };
 
 };

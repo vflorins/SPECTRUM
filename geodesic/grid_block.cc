@@ -184,7 +184,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin,
    memcpy(corner_type, corners, verts_per_face * sizeof(bool));
    n_singular = 0;
    for (iv = 0; iv < verts_per_face; iv++) {
-      if(corners[iv]) n_singular++;
+      if (corners[iv]) n_singular++;
    };
    memcpy(border_type, borders, 2 * sizeof(bool));
    FixSingularCorners();
@@ -250,6 +250,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<3>::Setup(void)
 //
 //        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
 
+// Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 3; corner_rotation[1] = 5; corner_rotation[2] = 1;
 
 // The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
@@ -341,6 +342,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
 //
 //        rot=0           rot=1           rot=2           rot=3
 
+// Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 2; corner_rotation[1] = 3; corner_rotation[2] = 0; corner_rotation[3] = 1;
 
 // The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
@@ -367,10 +369,10 @@ SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
 //   +
 //  jr*  | [rot][0][1+jr%square_fill]   | [rot][1][1+jr%square_fill]
 
-   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][1][0] =  0;   rotated_faces[0][1][1] =  1;
-   rotated_faces[1][0][0] =  0; rotated_faces[1][0][1] = -1; rotated_faces[1][1][0] =  1;   rotated_faces[1][1][1] =  0;
-   rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0;   rotated_faces[2][1][1] = -1;
-   rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1;   rotated_faces[3][1][1] =  0;
+   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][1][0] =  0; rotated_faces[0][1][1] =  1;
+   rotated_faces[1][0][0] =  0; rotated_faces[1][0][1] = -1; rotated_faces[1][1][0] =  1; rotated_faces[1][1][1] =  0;
+   rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0; rotated_faces[2][1][1] = -1;
+   rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1; rotated_faces[3][1][1] =  0;
 
 //               7-------------6
 //             . .           . |
@@ -401,15 +403,15 @@ SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 {
-   int i, j, i1, j1, i2, j2, etype, i_rot, j_rot, etype_rot, i_origin, j_origin, i_origin1, j_origin1, i_origin2, j_origin2;
-   int iv, iv1, iv2, iv3, iv4, ie, it, it1, it2, iiv;
-   int vert, vert1, vert2, edge, edge1, edge2, face, face1, face2, rot, vert_origin, face_origin, corner, bl_side, bl_corner, n_mf;
+   int i, j, i1, j1, i2, j2, etype, i_origin, j_origin, i_origin1, j_origin1, i_origin2, j_origin2;
+   int iv, iv1, iv2, iv3, iv4, ie, it, it1, it2;
+   int vert, vert1, vert2, edge, edge1, edge2, face, face1, face2, rot, vert_origin, face_origin, bl_side, bl_corner, n_mf;
    bool dup_found;
    std::pair base_vert = std::make_pair(0, 0);
 
 // Reset the "dup" arrays
-   for (corner = 0; corner < verts_per_face; corner++) {
-      for (i_rot = 0; i_rot <= ghost_width; i_rot++) {
+   for (auto corner = 0; corner < verts_per_face; corner++) {
+      for (auto i_rot = 0; i_rot <= ghost_width; i_rot++) {
          dup_vert[corner][i_rot][0] = -1;
          dup_vert[corner][i_rot][1] = -1;
          if (i_rot != ghost_width) {
@@ -424,23 +426,19 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    n_mf = 0;
-   for (corner = 0; corner < verts_per_face; corner++) {
+   for (auto corner = 0; corner < verts_per_face; corner++) {
       if (!corner_type[corner]) continue;
 
 // Find the corner vertex and determine the amount of rotation. Calculate the starting vertex.
-      CornerCoords(corner, i, j);
+      CornerCoords(corner, i_origin, j_origin);
+      vert_origin = vert_index_sector[i_origin][j_origin];
       rot = corner_rotation[corner];
-      vert_origin = vert_index_sector[i][j];
 
 // Reset VV, VE, and VF of vertices inside the cut and build the lists of duplicate vertices
-      i_origin = vert_index_i[vert_origin];
-      j_origin = vert_index_j[vert_origin];
+      for (auto i_rot = 0; i_rot <= ghost_width; i_rot++) {
+         for (auto j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot); j_rot++) {
 
-// TODO test if this code works
-      for (i_rot = 0; i_rot <= ghost_width; i_rot++) {
-         for (j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot); j_rot++) {
-
-// Calculate global indices
+// Calculate global index of the vertex
             i = i_origin + rotated_verts[rot][0][0] * i_rot + rotated_verts[rot][0][1] * j_rot;
             j = j_origin + rotated_verts[rot][1][0] * i_rot + rotated_verts[rot][1][1] * j_rot;
             vert = vert_index_sector[i][j];
@@ -470,11 +468,11 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       };
 
 // Reset EV and EF of edges inside the cut (interior edges only).
-      for (etype_rot = 0; etype_rot < cardinal_directions; etype_rot++) {
-         for (i_rot = 0; i_rot <= ghost_width + edge_dimax[etype_rot]; i_rot++) {
-            for (j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot) + edge_djmax[etype_rot]; j_rot++) {
+      for (auto etype_rot = 0; etype_rot < cardinal_directions; etype_rot++) {
+         for (auto i_rot = 0; i_rot <= ghost_width + edge_dimax[etype_rot]; i_rot++) {
+            for (auto j_rot = 0; j_rot <= MaxVertJ(ghost_width, i_rot) + edge_djmax[etype_rot]; j_rot++) {
                
-// Calculate global indices
+// Calculate global index of the edge
                etype = (etype_rot + 2 * cardinal_directions - rot) % cardinal_directions;
                i = i_origin + rotated_shift[rot][etype_rot][0] + rotated_verts[rot][0][0] * i_rot + rotated_verts[rot][0][1] * j_rot;
                j = j_origin + rotated_shift[rot][etype_rot][1] + rotated_verts[rot][1][0] * i_rot + rotated_verts[rot][1][1] * j_rot;
@@ -503,13 +501,12 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
          };
       };
 
-// The starting face inside the cut ("it") is inferred from the starting vertex and rotation.
-      it = (rot + edges_per_vert / 2) % edges_per_vert;
-      face_origin = vf_local[vert_origin][it];
+// Starting face inside the cut
+      face_origin = vf_local[vert_origin][corner * square_fill];
       i_origin = face_index_i[face_origin];
       j_origin = face_index_j[face_origin];
 
-// Starting replacement faces in the two boundary blocks on each side of the cut
+// Starting replacement faces in the two boundary sub-blocks on each side of the cut
       it = (rot - 1 + edges_per_vert / 2) % edges_per_vert;
       face_origin = vf_local[vert_origin][it];
       i_origin1 = face_index_i[face_origin];
@@ -520,7 +517,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       j_origin2 = face_index_j[face_origin];
 
 // Reset FV, FE, and FF of faces inside the cut.
-      for (i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
+      for (auto i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
          i = i_origin + rotated_faces[rot][0][0] * i_rot;
          j = j_origin + rotated_faces[rot][1][0] * i_rot;
 
@@ -529,7 +526,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
          i2 = i_origin2 + rotated_faces[(rot + 1) % edges_per_vert][0][0] * i_rot;
          j2 = j_origin2 + rotated_faces[(rot + 1) % edges_per_vert][1][0] * i_rot;
 
-         for (j_rot = 0; j_rot <= MaxFaceJ(ghost_width, i_rot); j_rot++) {
+         for (auto j_rot = 0; j_rot <= MaxFaceJ(ghost_width, i_rot); j_rot++) {
             face = face_index_sector[i][j];
             RAISE_BITS(face_mask[face], GEOELM_NEXI);
 
@@ -564,7 +561,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
 // Second pass: stitch together the cut line, i.e., fix the connectivity for the mesh elements that are on or adjacent to the cut line. Note that there are two addresses for the elements on the cut line ("right" and "left") and the variables defined there should be synchronized to ensure consistency.
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   for (corner = 0; corner < verts_per_face; corner++) {
+   for (auto corner = 0; corner < verts_per_face; corner++) {
       if (!corner_type[corner]) continue;
       rot = corner_rotation[corner];
 
@@ -573,12 +570,12 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       iv2 = (iv1 + edges_per_vert - 1) % edges_per_vert;
 
 // Fix VV, VE, VF of vertices on the cut line. The limits on this loop are wider by 1 in each direction to acommodate VF.
-      for (i_rot = 1; i_rot <= ghost_width; i_rot++) {
+      for (auto i_rot = 1; i_rot <= ghost_width; i_rot++) {
          vert1 = dup_vert[corner][i_rot][0];
          vert2 = dup_vert[corner][i_rot][1];
 
 // For QAS 1 VV/VE and 2 VF neighbors are replaced and for TAS 2 VV/VE and 3 VF neighbors are replaced. The limits on this loop are wider by 1 in each direction to acommodate VF.
-         for (iiv = -1; iiv < edges_per_vert / 2; iiv++) {
+         for (auto iiv = -1; iiv < edges_per_vert / 2; iiv++) {
 
 // Right vertex - index increases
             iv3 = (iv1 + iiv + edges_per_vert) % edges_per_vert;
@@ -619,7 +616,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
       it2 = (vert1 == ev_local[edge2][0] ? 0 : 1);
 
 // Fix EF, and FF of faces adjacent to the cut line - one element only.
-      for (i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
+      for (auto i_rot = 0; i_rot <= ghost_width - 1; i_rot++) {
          edge1 = dup_edge[corner][i_rot][0];
          edge2 = dup_edge[corner][i_rot][1];
          face1 = ef_local[edge1][it1];
@@ -644,7 +641,7 @@ Grid blocks are saved as individual mesh objects. A visualizer (VisIt) must be a
 template <int verts_per_face>
 void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
 {
-   int i, j, iv, it, vert, vert_silo, face, face_silo, idx_dup, imax, jmax;
+   int iv, it, vert, vert_silo, face, face_silo, idx_dup, imax, jmax;
    bool include_ghost;
    std::pair<int, int> base_vert = std::make_pair(square_fill * (ghost_width - 1), ghost_width - 1);
 
@@ -653,9 +650,9 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
    n_verts_silo = 0;
    imax = total_length - ghost_width + 1;
 
-   for (i = square_fill * ghost_width - 1; i <= imax; i++) {
+   for (auto i = square_fill * ghost_width - 1; i <= imax; i++) {
       jmax = MaxVertJ(base_vert, total_length - square_fill * ghost_width + 1, i);
-      for (j = ghost_width - 1; j <= jmax; j++) {
+      for (auto j = ghost_width - 1; j <= jmax; j++) {
          vert = vert_index_sector[i][j];
 
 // Interior vertices always included. This includes the corners.
@@ -694,9 +691,9 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
    n_faces_silo = 0;
    imax = total_length - ghost_width;
 
-   for (i = square_fill * ghost_width - 1; i <= imax; i++) {
+   for (auto i = square_fill * ghost_width - 1; i <= imax; i++) {
       jmax = MaxFaceJ(base_vert, total_length - square_fill * ghost_width + 1, i);
-      for (j = square_fill * (ghost_width - 1); j <= jmax; j++) {
+      for (auto j = square_fill * (ghost_width - 1); j <= jmax; j++) {
          face = face_index_sector[i][j];
 
 // Interior faces always included

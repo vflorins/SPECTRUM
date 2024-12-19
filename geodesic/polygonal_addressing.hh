@@ -28,6 +28,8 @@ static constexpr int EdgesAtVert(void)
 /*!
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
+
+This class's role is to fill out the bootstrap arrays ("vert_vert", "vert_ende", etc.) that are used later in the "GeodesicSector" class to generate the connectivity arrays ("vv_local", "ve_local", etc.) The bootstrap arrays have minimum utility beyond that, and it is recommended that they are not used in classes derived from "GeodesicSector".
 */
 template <int verts_per_face>
 class PolygonalAddressing

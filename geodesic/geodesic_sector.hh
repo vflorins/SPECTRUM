@@ -44,7 +44,7 @@ namespace Spectrum {
 \brief A class describing sectors in the mesh
 \author Vladimir Florinski
 
-This is a base class for grid blocks that provides access to the sector numbering schemes for the faces, edges, and vertices and the mesh connectivity lists. There is no concept of radial distance yet. The numbering schemes are called Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS).
+This is a base class for grid blocks that provides access to the sector numbering schemes for the faces, edges, and vertices and the mesh connectivity lists. The numbering schemes are called Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS) corresponding to "verts_per_face" equal to 3 and 4, respectively. This class has no concept of coordinates and no possibility of singular corners (those are added in the "GridBlock" class).
 */
 template <int verts_per_face>
 class GeodesicSector : public PolygonalAddressing<verts_per_face>
