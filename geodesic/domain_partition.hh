@@ -156,7 +156,7 @@ protected:
    int* block_ranks = nullptr;
 
 //! Global array of exchange sites
-   std::vector<ExchangeSite<datatype>> exch_sites[N_NBRTYPES];
+   std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites[N_NBRTYPES];
 
 //! Local simulation blocks 
    std::vector<blocktype> blocks_local;

@@ -24,18 +24,20 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// Example:
+// Example (n_parts=4):
 //          -------------------------               
-//          |           |           |     ranks_in:   11,  10,  11,  12 - in participating order
-//          | part: 2   | part: 3   |
-//          | rank: 11  | rank: 12  |     site_comm: 0->11, 1->10, 2->12
-//          |           |           |     
-//          ------------+------------     sendcounts: 2, 1, 1 (x buf_size)
+//          |  part 2   |  part 3   |     ranks_in:   11,  10,  11,  15
+//          |           |           |     labels_in: 381, 167, 254, 118
+//          | rank: 11  | rank: 15  |
+//          | bidx: 254 | bidx: 118 |     site_comm ranks: 11->0, 10->1, 15->2
+//          ------------+------------
+//          |  part 0   |  part 1   |     sendcounts: 2, 1, 1 (x buf_size)
 //          |           |           |     sdispls:    0, 2, 3 (x buf_size)
-//          | part: 0   | part: 1   |
-//          | rank: 11  | rank: 10  |     buffer_entry_map: 0->0, 1->2, 2->1, 3->3
-//          |           |           |
-//          -------------------------
+//          | rank: 11  | rank: 10  |
+//          | bidx: 381 | bidx: 167 |     buffer_entry: 0->0, 1->2, 2->1, 3->3
+//          -------------------------                      ^           ^
+//                                                         |           |
+//                                                         ------------- contiguous
 
 /*!
 \brief A class representing an MPI exchange site
@@ -83,8 +85,7 @@ struct ExchangeSite
    ~ExchangeSite();
 
 //! Import lists of ranks and part labels
-   void SetUpProperties(int index_in, int n_parts_in, int buf_size_in, const int* ranks_in,
-                        const int* labels_in, const std::shared_ptr<MPI_Config> mpi_config_in);
+   void SetUpProperties(int index_in, int n_parts_in, int buf_size_in, const int* ranks_in, const int* labels_in);
 
 //! Perform the exchange
    void Exchange(void);
@@ -98,13 +99,11 @@ struct ExchangeSite
 \param[in] buf_size   Size of a single buffer in units of "datatype"
 \param[in] ranks_in   List of ranks (with possible repeats)
 \param[in] labels_in  List of labels
-\param[in] mpi_config MPI configuration object
 */
 template <typename datatype>
-inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in, int buf_size, const int* ranks_in,
-                                                    const int* labels_in, const std::shared_ptr<MPI_Config> mpi_config)
+inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in, int buf_size, const int* ranks_in, const int* labels_in)
 {
-   int part, rank, newrank;
+   int newrank;
    std::vector<int> unique_ranks;
    std::vector<std::vector<int>> part_lists;
    std::vector<int>::iterator it;
@@ -113,7 +112,7 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
    n_parts = n_parts_in;
 
 // Generate a list of unique ranks
-   for (part = 0; part < n_parts; part++) {
+   for (auto part = 0; part < n_parts; part++) {
       newrank = ranks_in[part];
 
 // Generate the "parts_per_rank" table
@@ -132,9 +131,9 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
 
 // Create the site communicator. Every process must call "MPI_Comm_create", even if not in the group, so the code will not deadlock.
    MPI_Group parent_group, site_group;
-   MPI_Comm_group(mpi_config->glob_comm, &parent_group);
+   MPI_Comm_group(MPI_Config::glob_comm, &parent_group);
    MPI_Group_incl(parent_group, unique_ranks.size(), unique_ranks.data(), &site_group);
-   MPI_Comm_create(mpi_config->glob_comm, site_group, &site_comm);
+   MPI_Comm_create(MPI_Config::glob_comm, site_group, &site_comm);
    MPI_Group_free(&site_group);
    MPI_Group_free(&parent_group);
 
@@ -154,22 +153,22 @@ inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in
    MPI_Comm_size(site_comm, &site_comm_size);
    sendcounts = new int[site_comm_size];
    sdispls = new int[site_comm_size];
-   for (rank = 0; rank < site_comm_size; rank++) {
+   for (auto rank = 0; rank < site_comm_size; rank++) {
       sendcounts[rank] = part_lists[rank].size() * buf_size;
       sdispls[rank] = (rank == 0 ? 0 : sdispls[rank - 1]) + sendcounts[rank - 1];
    };
 
 // Create map to pointers in buffer space
-   int ppr, idx = 0;
-   for (rank = 0; rank < site_comm_size; rank++) {
-      for (ppr = 0; ppr < part_lists[rank].size(); ppr++) {
+   int idx = 0;
+   for (auto rank = 0; rank < site_comm_size; rank++) {
+      for (auto ppr = 0; ppr < part_lists[rank].size(); ppr++) {
          buffer_entry.insert(std::make_pair(part_lists[rank][ppr], &buffer[buf_size * idx]));
          idx++;
       };
    };
 
 // Create a map to find a part based on the label
-   for (part = 0; part < n_parts; part++) {
+   for (auto part = 0; part < n_parts; part++) {
       part_lookup.insert(std::make_pair(labels_in[part], part));
    };
 };
@@ -210,60 +209,58 @@ inline void ExchangeSite<datatype>::Exchange(void)
 \brief Test the functionality of this class
 \author Vladimir Florinski
 \date 06/26/2024
-\param[in] mpi_config MPI configuraton object
 \param[in] test_rank  Process rank that will do the testing
 */
-inline void TestExchange(const std::shared_ptr<MPI_Config> mpi_config, int test_rank)
+inline void TestExchange(int test_rank)
 {
    const int n_parts = 8;
    const int buf_size = 1;
-   int part;
    int ranks[n_parts];
    int labels[n_parts];
 
-   if ((test_rank < 0) || (test_rank >= mpi_config->glob_comm_size)) return;
+   if ((test_rank < 0) || (test_rank >= MPI_Config::glob_comm_size)) return;
 
-   if (test_rank == mpi_config->glob_comm_rank) {
+   if (test_rank == MPI_Config::glob_comm_rank) {
       std::cerr << "Testing exchange for rank " << test_rank << " (exchage has " << n_parts << " parts)\n";
    };
 
 // Generate a test topology (some processes will not be in it)
    srand48(382667);
-   for (part = 0; part < n_parts; part++) {
+   for (auto part = 0; part < n_parts; part++) {
 
 // Pick ranks at random - this would typically create a few duplicate entries, which is good for testing.
-      ranks[part] = drand48() * mpi_config->glob_comm_size;
+      ranks[part] = drand48() * MPI_Config::glob_comm_size;
 
 // Make labels complimentary to parts
       labels[part] = n_parts - part - 1;
-      if (test_rank == mpi_config->glob_comm_rank) {
+      if (test_rank == MPI_Config::glob_comm_rank) {
          std::cerr << "Part" << std::setw(3) << part << "   Rank" << std::setw(3) << ranks[part] << "   Label" << std::setw(3) << labels[part] << std::endl;
       };
    };
-   if (test_rank == mpi_config->glob_comm_rank) std::cerr << std::endl;
+   if (test_rank == MPI_Config::glob_comm_rank) std::cerr << std::endl;
 
 // Create and set up an instance of ExchangeSite
    ExchangeSite<int> exch_site;
-   exch_site.SetUpProperties(0, n_parts, buf_size, ranks, labels, mpi_config);
+   exch_site.SetUpProperties(0, n_parts, buf_size, ranks, labels);
 
 // Fill the buffers with test data - can only do that on the ranks that own the respective part
    if (exch_site.site_comm != MPI_COMM_NULL) {
-      for (part = 0; part < n_parts; part++) {
-         if (mpi_config->glob_comm_rank == ranks[part]) *exch_site.buffer_entry[part] = part;
+      for (auto part = 0; part < n_parts; part++) {
+         if (MPI_Config::glob_comm_rank == ranks[part]) *exch_site.buffer_entry[part] = part;
          else *exch_site.buffer_entry[part] = -1;
       };
    }
-   else if (test_rank == mpi_config->glob_comm_rank) {
+   else if (test_rank == MPI_Config::glob_comm_rank) {
       std::cerr << "Process not in the site communicator\n";
    };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Test part lookup from label
-   if ((test_rank == mpi_config->glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
+   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
       std::cerr << "Part lookup test for this rank:\n";
-      for (part = 0; part < exch_site.n_parts; part++) {
-         if (mpi_config->glob_comm_rank == ranks[part]) {
+      for (auto part = 0; part < exch_site.n_parts; part++) {
+         if (MPI_Config::glob_comm_rank == ranks[part]) {
             std::cerr << "Label" << std::setw(3) << labels[part] << "   Part" << std::setw(3) << exch_site.part_lookup[labels[part]] << std::endl;
          };
       };
@@ -271,9 +268,9 @@ inline void TestExchange(const std::shared_ptr<MPI_Config> mpi_config, int test_
    };
 
 // Print buffers before the exchange
-   if ((test_rank == mpi_config->glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
+   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
       std::cerr << "Buffer before exchange:\n";
-      for (part = 0; part < exch_site.n_parts; part++) {
+      for (auto part = 0; part < exch_site.n_parts; part++) {
          std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *exch_site.buffer_entry[part] << std::endl;
       };
       std::cerr << std::endl;
@@ -283,9 +280,9 @@ inline void TestExchange(const std::shared_ptr<MPI_Config> mpi_config, int test_
    exch_site.Exchange();
 
 // Print buffers after the exchange
-   if ((test_rank == mpi_config->glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
+   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
       std::cerr << "Buffer after exchange:\n";
-      for (part = 0; part < exch_site.n_parts; part++) {
+      for (auto part = 0; part < exch_site.n_parts; part++) {
          std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *exch_site.buffer_entry[part] << std::endl;
       };
       std::cerr << std::endl;
