@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_COMPLEX_VECTORS_HH
 
 #include "common/simple_array.hh"
+#include "common/vectors.hh"
 #include "common/print_warn.hh"
 
 namespace Spectrum {
@@ -25,19 +26,22 @@ namespace Spectrum {
 struct ComplexVector : public SimpleArray<std::complex<double>, 3>
 {
 //! Default constructor
-   constexpr ComplexVector(void) {};
+   SPECTRUM_DEVICE_FUNC ComplexVector(void) {};
 
 //! Constructor from a single value
-   explicit constexpr ComplexVector(std::complex<double> a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr ComplexVector(std::complex<double> val);
 
 //! Constructor from components
-   constexpr ComplexVector(std::complex<double> x_in, std::complex<double> y_in, std::complex<double> z_in);
+   SPECTRUM_DEVICE_FUNC constexpr ComplexVector(std::complex<double> x_in, std::complex<double> y_in, std::complex<double> z_in);
+
+//! Constructor from a GeoVector
+   SPECTRUM_DEVICE_FUNC ComplexVector(const GeoVector& other);
 
 //! Computes the norm of this vector
-   std::complex<double> Norm(void) const;
+   SPECTRUM_DEVICE_FUNC double Norm(void) const;
 
 //! Vector-multiply this by another vector
-   ComplexVector& operator ^=(const ComplexVector& other);
+   SPECTRUM_DEVICE_FUNC ComplexVector& operator ^=(const ComplexVector& other);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,22 +50,22 @@ struct ComplexVector : public SimpleArray<std::complex<double>, 3>
 
 /*!
 \author Vladimir Florinski
-\date 11/23/2024
-\param[in] a Number to be asigned to each index
+\date 12/09/2024
+\param[in] val Value to be asigned to each component
 */
-inline constexpr ComplexVector::ComplexVector(std::complex<double> a)
-                              : SimpleArray(a)
+SPECTRUM_DEVICE_FUNC inline constexpr ComplexVector::ComplexVector(std::complex<double> val)
+                                                   : SimpleArray(val)
 {
 };
 
 /*!
 \author Vladimir Florinski
-\date 11/22/2024
-\param[in] x First component
-\param[in] y Second component
-\param[in] z Third component
+\date 12/09/2024
+\param[in] x_in First component
+\param[in] y_in Second component
+\param[in] z_in Third component
 */
-inline constexpr ComplexVector::ComplexVector(std::complex<double> x_in, std::complex<double> y_in, std::complex<double> z_in)
+SPECTRUM_DEVICE_FUNC inline constexpr ComplexVector::ComplexVector(std::complex<double> x_in, std::complex<double> y_in, std::complex<double> z_in)
 {
    x = x_in;
    y = y_in;
@@ -70,12 +74,24 @@ inline constexpr ComplexVector::ComplexVector(std::complex<double> x_in, std::co
 
 /*!
 \author Vladimir Florinski
+\date 12/06/2024
+\param[in] other Object to initialize from
+*/
+SPECTRUM_DEVICE_FUNC inline ComplexVector::ComplexVector(const GeoVector& other)
+{
+   x = other.x;
+   y = other.y;
+   z = other.z;
+};
+
+/*!
+\author Vladimir Florinski
 \date 11/22/2024
 \return \f$|v|\f$
 */
-inline std::complex<double> ComplexVector::Norm(void) const
+SPECTRUM_DEVICE_FUNC inline double ComplexVector::Norm(void) const
 {
-   return sqrt(Sqr(x) + Sqr(y) + Sqr(z));
+   return sqrt(std::norm(x) + std::norm(y) + std::norm(z));
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,43 +99,60 @@ inline std::complex<double> ComplexVector::Norm(void) const
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief Return a scalar product of two vectors
+\brief Multiply a real vector by a complex number (as left operand)
 \author Vladimir Florinski
-\date 11/22/2024
-\param[in] vect_l Left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r Right operand \f$\mathbf{v}_2\f$
+\date 12/09/2024
+\param[in] a      Left operand \f$a\f$
+\param[in] vect_r Right operand \f$\mathbf{v}\f$
+\return \f$a\mathbf{v}\f$
+*/
+SPECTRUM_DEVICE_FUNC inline ComplexVector operator *(std::complex<double> a, const GeoVector& vect_r)
+{
+   ComplexVector retval(vect_r);
+   retval[0] *= a;
+   retval[1] *= a;
+   retval[2] *= a;
+   return retval;
+};
+
+/*!
+\brief Return a scalar product of two complex vectors
+\author Vladimir Florinski
+\date 12/09/2024
+\param[in] cvec_l Left operand \f$\mathbf{v}_1\f$
+\param[in] cvec_r Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
 */
-inline std::complex<double> operator *(const ComplexVector& vect_l, const ComplexVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline std::complex<double> operator *(const ComplexVector& cvec_l, const ComplexVector& cvec_r)
 {
-   return vect_l.ScalarProd(vect_r);
+   return cvec_l.ScalarProd(cvec_r);
 };
 
 /*!
-\brief Compute a vector product of two vectors
+\brief Compute a vector product of two complex vectors
 \author Vladimir Florinski
-\date 11/22/2024
-\param[in] vect_l Left operand \f$\mathbf{v}_1\f$
-\param[in] vect_r Right operand \f$\mathbf{v}_2\f$
+\date 12/09/2024
+\param[in] cvec_l Left operand \f$\mathbf{v}_1\f$
+\param[in] cvec_r Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
 */
-inline ComplexVector operator ^(const ComplexVector& vect_l, const ComplexVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline ComplexVector operator ^(const ComplexVector& cvec_l, const ComplexVector& cvec_r)
 {
-   ComplexVector vect_tmp;
-   vect_tmp.x = vect_l.y * vect_r.z - vect_l.z * vect_r.y;
-   vect_tmp.y = vect_l.z * vect_r.x - vect_l.x * vect_r.z;
-   vect_tmp.z = vect_l.x * vect_r.y - vect_l.y * vect_r.x;
-   return vect_tmp;
+   ComplexVector retval;
+   retval.x = cvec_l.y * cvec_r.z - cvec_l.z * cvec_r.y;
+   retval.y = cvec_l.z * cvec_r.x - cvec_l.x * cvec_r.z;
+   retval.z = cvec_l.x * cvec_r.y - cvec_l.y * cvec_r.x;
+   return retval;
 };
 
 /*!
-\brief Compute a vector product of two vectors
+\brief Compute a null vector of a rank-deficient matrix
 \author Vladimir Florinski
-\date 11/23/2024
+\date 12/09/2024
 \param[in] M Three row vectors representing the matrix
 \return Null vector of the matrix
 */
-inline ComplexVector NullVector(const ComplexVector M[3])
+SPECTRUM_DEVICE_FUNC inline ComplexVector NullVector(const ComplexVector M[3])
 {
    std::complex<double> m1, m2;
    ComplexVector null_vec(0.0, 0.0, 0.0);
@@ -128,16 +161,11 @@ inline ComplexVector NullVector(const ComplexVector M[3])
    m1 = M[1][1] - M[1][0] * M[0][1] / M[0][0];
    m2 = M[1][2] - M[1][0] * M[0][2] / M[0][0];
 
-// Test if the matrix is indeed rank deficient
-   if (std::abs(M[2][2] - M[2][1] * m2 / m1) > sp_miniscule) PrintError(__FILE__, __LINE__, "Matrix not rank deficient", true);
-
 // Compute the null vector
-   else {
-      null_vec[2] = 1.0;
-      null_vec[1] = -m2 / m1;
-      null_vec[0] = -(M[0][2] + M[0][1] * null_vec[1]) / M[0][0];
-      null_vec /= null_vec.Norm();
-   };
+   null_vec[2] = 1.0;
+   null_vec[1] = -m2 / m1;
+   null_vec[0] = -(M[0][2] + M[0][1] * null_vec[1]) / M[0][0];
+   null_vec /= null_vec.Norm();
 
    return null_vec;
 };

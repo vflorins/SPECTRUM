@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_BUFFERED_BLOCK
-#define SPECTRUM_BUFFERED_BLOCK
+#ifndef SPECTRUM_BUFFERED_BLOCK_HH
+#define SPECTRUM_BUFFERED_BLOCK_HH
 
 #include "geodesic/stenciled_block.hh"
 #include "fluid/variables.hh"
@@ -117,13 +117,16 @@ protected:
    int buf_volume[N_NBRTYPES];
 
 //! Conserved variables storage
-   ConservedVariables** cons_vars;
+   ConservedVariables** cons_vars = nullptr;
 
 //! Translation tables for each buffer (site, part, face)
-   int*** buf_face_translation[N_NBRTYPES];
+   int*** buf_face_translation[N_NBRTYPES] = {nullptr};
 
-//! Starting shell indices for each buffer (site, part)
-   int** buf_shell_start[N_NBRTYPES];
+//! Starting shell table
+   int buf_shell_tab[4];
+
+//! Starting shell indices for each buffer (site, part), accessed through a pointer
+   int*** buf_shell_start[N_NBRTYPES] = {nullptr};
 
 //! Maximum value of the vertex j-index for the given vertex i-index for a truncated block
    SPECTRUM_DEVICE_FUNC int MaxVertJ(int len, int height, int i) const;
@@ -161,7 +164,7 @@ public:
    int GetBufferSize(NeighborType ntype) const {return buf_volume[ntype];};
 
 //! Pack ghost regions for exchange
-   void PackBuffers(NeighborType ntype);
+   void PackBuffers(NeighborType ntype) const;
 
 //! Assign ghost values after exchange
    void UnPackBuffers(NeighborType ntype);

@@ -18,7 +18,7 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief A helper base class extended tesselation class that can generate flat addressing for the elements suitable for sectors
+\brief A tesselation class with added functionality to find neighbors/children/parents and locate a position
 \author Vladimir Florinski
 */
 template <int poly_type, int max_division>

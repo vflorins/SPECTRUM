@@ -40,7 +40,7 @@ BufferedBlock<verts_per_face>::~BufferedBlock()
 
 /*!
 \author Vladimir Florinski
-\date 05/29/2024
+\date 12/23/2024
 \param[in] width     Length of the side, without ghost cells
 \param[in] wghost    Width of the ghost cell layer outside the sector
 \param[in] height    Hight of the block, without ghost cells
@@ -48,7 +48,7 @@ BufferedBlock<verts_per_face>::~BufferedBlock()
 \param[in] construct Set to true when called from a constructor
 */
 template <int verts_per_face>
-void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hghost, int wghost, bool construct)
+void BufferedBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
 {
 // Call base method
    if (!construct) StenciledBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
@@ -90,7 +90,7 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
    buf_height[GEONBR_REDGE] = buf_height[GEONBR_RFACE];
 
 // Buffer sizes: VERTX
-   buf_area[GEONBR_VERTX] = buf_length[GEONBR_REDGE];
+   buf_length[GEONBR_VERTX] = buf_length[GEONBR_REDGE];
    buf_width[GEONBR_VERTX] = buf_width[GEONBR_REDGE];
    buf_area[GEONBR_VERTX] = buf_area[GEONBR_REDGE];
    buf_height[GEONBR_VERTX] = buf_height[GEONBR_TEDGE];
@@ -111,19 +111,22 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 // TFACE: 2 sites with 2 PPS
 // 1 unique map (1:4)
    buf_face_translation[GEONBR_TFACE] = new int**[exch_site_count[GEONBR_TFACE]];
-   buf_face_translation[GEONBR_TFACE][0] = new int*[default_part_per_site[GEONBR_TFACE]];
-   buf_face_translation[GEONBR_TFACE][0][0] = new int[buf_area[GEONBR_TFACE]];
-   for (auto part = 1; part < default_part_per_site[GEONBR_TFACE]; part++) {
-      buf_face_translation[GEONBR_TFACE][0][part] = buf_face_translation[GEONBR_TFACE][0][0];
-   };
-   for (auto site = 1; site < exch_site_count[GEONBR_TFACE]; site++) {
-      buf_face_translation[GEONBR_TFACE][site] = buf_face_translation[GEONBR_TFACE][0];
+   for (auto site = 0; site < exch_site_count[GEONBR_TFACE] / 2; site++) {
+      buf_face_translation[GEONBR_TFACE][site] = new int*[default_part_per_site[GEONBR_TFACE]];
+      buf_face_translation[GEONBR_TFACE][site + exch_site_count[GEONBR_TFACE] / 2] = buf_face_translation[GEONBR_TFACE][site];
+      for (auto part = 0; part < default_part_per_site[GEONBR_TFACE] / 2; part++) {
+         buf_face_translation[GEONBR_TFACE][site][part] = new int[buf_area[GEONBR_TFACE]];
+         buf_face_translation[GEONBR_TFACE][site][part + default_part_per_site[GEONBR_TFACE] / 2] = buf_face_translation[GEONBR_TFACE][site][part];
+      };
    };
 
 // 4 unique starting shells (1:1)
-   buf_shell_start[GEONBR_TFACE] = new int*[exch_site_count[GEONBR_TFACE]];
+   buf_shell_start[GEONBR_TFACE] = new int**[exch_site_count[GEONBR_TFACE]];
    for (auto site = 0; site < exch_site_count[GEONBR_TFACE]; site++) {
-      buf_shell_start[GEONBR_TFACE][site] = new int[default_part_per_site[GEONBR_TFACE]];
+      buf_shell_start[GEONBR_TFACE][site] = new int*[default_part_per_site[GEONBR_TFACE]];
+      for (auto part = 0; part < default_part_per_site[GEONBR_TFACE]; part++) {
+         buf_shell_start[GEONBR_TFACE][site][part] = buf_shell_tab + site * exch_site_count[GEONBR_TFACE] + part;
+      };
    };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,9 +141,12 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
       };
    };
 
-// 1 unique starting shell (1:6/1:4)
-   buf_shell_start[GEONBR_RFACE] = new int*[exch_site_count[GEONBR_RFACE]];
-   buf_shell_start[GEONBR_RFACE][0] = new int[default_part_per_site[GEONBR_RFACE]];
+// 1 unique starting shell (1:6/1:8)
+   buf_shell_start[GEONBR_RFACE] = new int**[exch_site_count[GEONBR_RFACE]];
+   buf_shell_start[GEONBR_RFACE][0] = new int*[default_part_per_site[GEONBR_RFACE]];
+   for (auto part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
+      buf_shell_start[GEONBR_RFACE][0][part] = buf_shell_tab + 1;
+   };
    for (auto site = 1; site < exch_site_count[GEONBR_RFACE]; site++) {
       buf_shell_start[GEONBR_RFACE][site] = buf_shell_start[GEONBR_RFACE][0];
    };
@@ -148,24 +154,29 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // TEDGE: 6/8 sites with 4 PPS
-// 6/8 unique maps (1:4)
+// 6/8 unique maps (1:4), storage points to RFACE
    buf_face_translation[GEONBR_TEDGE] = new int**[exch_site_count[GEONBR_TEDGE]];
    for (auto site = 0; site < exch_site_count[GEONBR_TEDGE] / 2; site++) {
       buf_face_translation[GEONBR_TEDGE][site] = new int*[default_part_per_site[GEONBR_TEDGE]];
       buf_face_translation[GEONBR_TEDGE][site + exch_site_count[GEONBR_TEDGE] / 2] = buf_face_translation[GEONBR_TEDGE][site];
       for (auto part = 0; part < default_part_per_site[GEONBR_TEDGE] / 2; part++) {
-         buf_face_translation[GEONBR_TEDGE][site][part] = new int[buf_area[GEONBR_TEDGE]];
+         buf_face_translation[GEONBR_TEDGE][site][part] = buf_face_translation[GEONBR_RFACE][site][part];
          buf_face_translation[GEONBR_TEDGE][site][part + default_part_per_site[GEONBR_TEDGE] / 2] = buf_face_translation[GEONBR_TEDGE][site][part];
       };
    };
 
-// 4 unique starting shells (1:6/1:4)
-   buf_shell_start[GEONBR_TEDGE] = new int*[exch_site_count[GEONBR_TEDGE]];
-   buf_shell_start[GEONBR_TEDGE][0] = new int[default_part_per_site[GEONBR_TEDGE]];
-   buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2] = new int[default_part_per_site[GEONBR_TEDGE]];
-   for (auto site = 1; site < exch_site_count[GEONBR_TEDGE] / 2; site++) {
-      buf_shell_start[GEONBR_TEDGE][site] = buf_shell_start[GEONBR_TEDGE][0];
-      buf_shell_start[GEONBR_TEDGE][site + exch_site_count[GEONBR_TEDGE] / 2] = buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2];
+// 4 unique starting shells (1:6/1:8)
+   buf_shell_start[GEONBR_TEDGE] = new int**[exch_site_count[GEONBR_TEDGE]];
+   for (auto site = 0; site < exch_site_count[GEONBR_TEDGE] / verts_per_face; site++) {
+      buf_shell_start[GEONBR_TEDGE][site * verts_per_face] = new int*[default_part_per_site[GEONBR_TEDGE]];
+      for (auto part = 0; part < 2; part++) {
+         for (auto part1 = 0; part1 < default_part_per_site[GEONBR_TEDGE] / 2; part1++) {
+            buf_shell_start[GEONBR_TEDGE][site * verts_per_face][2 * part + part1] = buf_shell_tab + 2 * site + part;
+         };
+      };
+      for (auto site1 = 1; site1 < exch_site_count[GEONBR_TEDGE] / 2; site1++) {
+         buf_shell_start[GEONBR_TEDGE][site * verts_per_face + site1] = buf_shell_start[GEONBR_TEDGE][site * verts_per_face];
+      };         
    };
    
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -181,39 +192,47 @@ void BufferedBlock<verts_per_face>::SetDimensions(int height, int width, int hgh
    };
 
 // 1 unique starting shell (1:18/1:16)
-   buf_shell_start[GEONBR_REDGE] = new int*[exch_site_count[GEONBR_REDGE]];
-   buf_shell_start[GEONBR_REDGE][0] = new int[default_part_per_site[GEONBR_REDGE]];
-   for (auto site = 1; site < exch_site_count[GEONBR_REDGE]; site++) {
+   buf_shell_start[GEONBR_REDGE] = new int**[exch_site_count[GEONBR_REDGE]];
+   buf_shell_start[GEONBR_REDGE][0] = new int*[default_part_per_site[GEONBR_REDGE]];
+   for (auto part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
+      buf_shell_start[GEONBR_REDGE][0][part] = buf_shell_tab + 1;
+   };
+   for (auto site = 1; site < exch_site_count[GEONBR_RFACE]; site++) {
       buf_shell_start[GEONBR_REDGE][site] = buf_shell_start[GEONBR_REDGE][0];
    };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // VERTX: 6/8 sites with 12/8 PPS
-// 18/16 unique maps (1:4)
+// 18/16 unique maps (1:4), storage points to REDGE
    buf_face_translation[GEONBR_VERTX] = new int**[exch_site_count[GEONBR_VERTX]];
    for (auto site = 0; site < exch_site_count[GEONBR_VERTX] / 2; site++) {
       buf_face_translation[GEONBR_VERTX][site] = new int*[default_part_per_site[GEONBR_VERTX]];
       buf_face_translation[GEONBR_VERTX][site + exch_site_count[GEONBR_VERTX] / 2] = buf_face_translation[GEONBR_VERTX][site];
       for (auto part = 0; part < default_part_per_site[GEONBR_VERTX] / 2; part++) {
-         buf_face_translation[GEONBR_VERTX][site][part] = new int[buf_area[GEONBR_VERTX]];
+         buf_face_translation[GEONBR_VERTX][site][part] = buf_face_translation[GEONBR_REDGE][site][part];
          buf_face_translation[GEONBR_VERTX][site][part + default_part_per_site[GEONBR_VERTX] / 2] = buf_face_translation[GEONBR_VERTX][site][part];
       };
    };
 
 // 4 unique starting shells (1:18/1:16)
-   buf_shell_start[GEONBR_VERTX] = new int*[exch_site_count[GEONBR_VERTX]];
-   buf_shell_start[GEONBR_VERTX][0] = new int[default_part_per_site[GEONBR_VERTX]];
-   buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2] = new int[default_part_per_site[GEONBR_VERTX]];
-   for(auto site = 1; site < exch_site_count[GEONBR_VERTX] / 2; site++) {
-      buf_shell_start[GEONBR_VERTX][site] = buf_shell_start[GEONBR_VERTX][0];
-      buf_shell_start[GEONBR_VERTX][site + exch_site_count[GEONBR_VERTX] / 2] = buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2];
+   buf_shell_start[GEONBR_VERTX] = new int**[exch_site_count[GEONBR_VERTX]];
+   for (auto site = 0; site < exch_site_count[GEONBR_VERTX] / verts_per_face; site++) {
+      buf_shell_start[GEONBR_VERTX][site * verts_per_face] = new int*[default_part_per_site[GEONBR_VERTX]];
+      for (auto part = 0; part < 2; part++) {
+         for (auto part1 = 0; part1 < default_part_per_site[GEONBR_VERTX] / 2; part1++) {
+            buf_shell_start[GEONBR_VERTX][site * verts_per_face][2 * part + part1] = buf_shell_tab + 2 * site + part;
+         };
+      };
+      for (auto site1 = 1; site1 < exch_site_count[GEONBR_VERTX] / 2; site1++) {
+         buf_shell_start[GEONBR_VERTX][site * verts_per_face + site1] = buf_shell_start[GEONBR_VERTX][site * verts_per_face];
+      };         
    };
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/18/2024
+\date 12/23/2024
 */
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::FreeStorage(void)
@@ -224,75 +243,92 @@ void BufferedBlock<verts_per_face>::FreeStorage(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // TFACE
-   delete[] buf_face_translation[GEONBR_TFACE][0][0];
-   delete[] buf_face_translation[GEONBR_TFACE][0];
-   delete[] buf_face_translation[GEONBR_TFACE];
-
-   for (auto site = 0; site < exch_site_count[GEONBR_TFACE]; site++) {
-      delete[] buf_shell_start[GEONBR_TFACE][site];
+   if(buf_face_translation[GEONBR_TFACE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_TFACE] / 2; site++) {
+         for (auto part = 0; part < default_part_per_site[GEONBR_TFACE] / 2; part++) {
+            delete[] buf_face_translation[GEONBR_TFACE][site][part];
+         };
+         delete[] buf_face_translation[GEONBR_TFACE][site];
+      };
+      delete[] buf_face_translation[GEONBR_TFACE];
    };
-   delete[] buf_shell_start[GEONBR_TFACE];
+
+   if(buf_shell_start[GEONBR_TFACE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_TFACE]; site++) {
+         delete[] buf_shell_start[GEONBR_TFACE][site];
+      };
+      delete[] buf_shell_start[GEONBR_TFACE];
+   };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // RFACE
-   for (auto site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
-      for (auto part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
-         delete[] buf_face_translation[GEONBR_RFACE][site][part];
+   if(buf_face_translation[GEONBR_RFACE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
+         for (auto part = 0; part < default_part_per_site[GEONBR_RFACE]; part++) {
+            delete[] buf_face_translation[GEONBR_RFACE][site][part];
+         };
+         delete[] buf_face_translation[GEONBR_RFACE][site];
       };
-      delete[] buf_face_translation[GEONBR_RFACE][site];
+      delete[] buf_face_translation[GEONBR_RFACE];
    };
-   delete[] buf_face_translation[GEONBR_RFACE];
 
-   delete[] buf_shell_start[GEONBR_RFACE][0];
-   delete[] buf_shell_start[GEONBR_RFACE];
+   if(buf_shell_start[GEONBR_RFACE] != nullptr) {
+      delete[] buf_shell_start[GEONBR_RFACE][0];
+      delete[] buf_shell_start[GEONBR_RFACE];
+   };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // TEDGE
-   for (auto site = 0; site < exch_site_count[GEONBR_TEDGE] / 2; site++) {
-      for (auto part = 0; part < default_part_per_site[GEONBR_TEDGE] / 2; part++) {
-         delete[] buf_face_translation[GEONBR_TEDGE][site][part];
+   if(buf_face_translation[GEONBR_TEDGE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_TEDGE] / 2; site++) {
+         delete[] buf_face_translation[GEONBR_TEDGE][site];
       };
-      delete[] buf_face_translation[GEONBR_TEDGE][site];
+      delete[] buf_face_translation[GEONBR_TEDGE];
    };
-   delete[] buf_face_translation[GEONBR_TEDGE];
 
-   delete[] buf_shell_start[GEONBR_TEDGE][0];
-   delete[] buf_shell_start[GEONBR_TEDGE][exch_site_count[GEONBR_TEDGE] / 2];
-   delete[] buf_shell_start[GEONBR_TEDGE];
+   if(buf_shell_start[GEONBR_TEDGE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_TEDGE] / verts_per_face; site++) {
+         delete[] buf_shell_start[GEONBR_TEDGE][site * verts_per_face];
+      };
+      delete[] buf_shell_start[GEONBR_TEDGE];
+   };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // REDGE
-   for (auto site = 0; site < exch_site_count[GEONBR_REDGE]; site++) {
-      for (auto part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
-         delete[] buf_face_translation[GEONBR_REDGE][site][part];
+   if(buf_face_translation[GEONBR_REDGE] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_REDGE]; site++) {
+         for (auto part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
+            delete[] buf_face_translation[GEONBR_REDGE][site][part];
+         };
+         delete[] buf_face_translation[GEONBR_REDGE][site];
       };
-      delete[] buf_face_translation[GEONBR_REDGE][site];
+      delete[] buf_face_translation[GEONBR_REDGE];
    };
-   delete[] buf_face_translation[GEONBR_REDGE];
 
-   delete[] buf_shell_start[GEONBR_REDGE][0];
-   delete[] buf_shell_start[GEONBR_REDGE];
+   if(buf_shell_start[GEONBR_REDGE] != nullptr) {
+      delete[] buf_shell_start[GEONBR_REDGE][0];
+      delete[] buf_shell_start[GEONBR_REDGE];
+   };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // VERTX
-   for (auto site = 0; site < exch_site_count[GEONBR_VERTX] / 2; site++) {
-      for (auto part = 0; part < default_part_per_site[GEONBR_VERTX] / 2; part++) {
-         delete[] buf_face_translation[GEONBR_VERTX][site][part];
+   if(buf_face_translation[GEONBR_VERTX] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_VERTX] / 2; site++) {
+         delete[] buf_face_translation[GEONBR_VERTX][site];
       };
-      delete[] buf_face_translation[GEONBR_VERTX][site];
+      delete[] buf_face_translation[GEONBR_VERTX];
    };
-   delete[] buf_face_translation[GEONBR_VERTX];
 
-   delete[] buf_shell_start[GEONBR_VERTX][0];
-   delete[] buf_shell_start[GEONBR_VERTX][exch_site_count[GEONBR_VERTX] / 2];
-   delete[] buf_shell_start[GEONBR_VERTX];
-
-// Call the base class memory deallocator
-   StenciledBlock<verts_per_face>::FreeStorage();
+   if(buf_shell_start[GEONBR_VERTX] != nullptr) {
+      for (auto site = 0; site < exch_site_count[GEONBR_VERTX] / verts_per_face; site++) {
+         delete[] buf_shell_start[GEONBR_VERTX][site * verts_per_face];
+      };
+      delete[] buf_shell_start[GEONBR_VERTX];
+   };
 };
 
 /*!
@@ -319,64 +355,63 @@ void BufferedBlock<verts_per_face>::ImportExchangeSites(NeighborType ntype, cons
 \date 06/27/2024
 \param[in] ntype Neighbor type
 */
-/*
 template <int verts_per_face>
-void BufferedBlock<verts_per_face>::PackBuffers(NeighborType ntype)
+void BufferedBlock<verts_per_face>::PackBuffers(NeighborType ntype) const
 {
-   int site, my_part, shell, face_buf, face;
+   int my_part, face, starting_shell;
    size_t bufidx;
    ConservedVariables* buffer;
 
-   for (site = 0; site < exch_site_count[ntype]; site++) {
+   for (auto site = 0; site < exch_site_count[ntype]; site++) {
       my_part = exch_sites[ntype][site]->part_lookup[block_index];
       buffer = exch_sites[ntype][site]->buffer_entry[my_part];
+      starting_shell = *buf_shell_start[ntype][site][my_part];
       bufidx = 0;
 
-      for (shell = buf_shell_start[ntype][site][my_part]; shell < buf_shell_start[ntype][site][my_part] + buf_height[ntype]; shell++) {
-         for (face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
+      for (auto shell = starting_shell; shell < starting_shell + buf_height[ntype]; shell++) {
+         for (auto face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
             face = buf_face_translation[ntype][site][my_part][face_buf];
             buffer[bufidx++] = cons_vars[shell][face];
          };
       };
-
    };
 };
-*/
 
 /*!
 \author Vladimir Florinski
 \date 06/27/2024
 \param[in] ntype Neighbor type
 */
-/*
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::UnPackBuffers(NeighborType ntype)
 {
-   int site, part, my_part, shell, face_buf, face;
-   long int bufidx;
+   int my_part, face, starting_shell;
+   size_t bufidx;
    ConservedVariables* buffer;
 
-   for(site = 0; site < exch_site_count[ntype]; site++) {
+   for (auto site = 0; site < exch_site_count[ntype]; site++) {
       my_part = exch_sites[ntype][site]->part_lookup[block_index];
-      for(part = 0; part < default_part_per_site[ntype]; part++) {
+
+// TODO check if this works at singular corners
+      for (auto part = 0; part < default_part_per_site[ntype]; part++) {
 
 // The part equal to ours will be skipped
-         if(part == my_part) continue;
+         if (part == my_part) continue;
+
          buffer = exch_sites[ntype][site]->buffer_entry[part];
+         starting_shell = *buf_shell_start[ntype][site][part];
          bufidx = 0;
 
 // Copy each zone in the buffer to its proper place in the block
-         for(shell = buf_shell_start[ntype][site][part]; shell < buf_shell_start[ntype][site][part] + buf_height[ntype]; shell++) {
-            for(face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
+         for (auto shell = starting_shell; shell < starting_shell + buf_height[ntype]; shell++) {
+            for (auto face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
                face = buf_face_translation[ntype][site][part][face_buf];
-               cons_vars[shell][face] = buffers[ntype][site][part][bufidx++];
+               cons_vars[shell][face] = buffer[bufidx++];
             };
          };
-
       };
    };
 };
-*/
 
 #ifdef GEO_DEBUG
 
@@ -390,12 +425,10 @@ void BufferedBlock<verts_per_face>::UnPackBuffers(NeighborType ntype)
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::PrintBufferMap(NeighborType ntype, int site, int part) const
 {
-   for(face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
+   for(auto face_buf = 0; face_buf < buf_area[ntype]; face_buf++) {
       std::cerr << std::setw(6) << face_buf << std::setw(6) << buf_face_translation[ntype][site][part][face_buf] << std::endl;
    };
 };
-
-// TODO introduce an exchange testing routine
 
 #endif
 
@@ -410,12 +443,12 @@ void BufferedBlock<verts_per_face>::PrintBufferMap(NeighborType ntype, int site,
 template <int verts_per_face>
 void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
 {
-   int face, bufidx, i_origin, j_origin, vert_origin, i0, j0, i, j, face_origin, rot, my_part, foreign;
+   int bufidx, i_origin, j_origin, vert_origin, i0, j0, i, j, face_origin, rot, my_part, foreign;
+   std::pair<int, int> origin_arr[exch_site_count[GEONBR_RFACE] * default_part_per_site[GEONBR_RFACE]];
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// TFACE: 2 sites with 2 PPS
-// 1 unique map (1:4)
+// TFACE: 1 unique map
    rot = 0;
    bufidx = 0;
 
@@ -437,42 +470,33 @@ void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
       };
    };   
 
-// 4 unique starting shells (1:1)
-   buf_shell_start[GEONBR_TFACE][0][0] = 0;
-   buf_shell_start[GEONBR_TFACE][0][1] = ghost_height;
-   buf_shell_start[GEONBR_TFACE][1][0] = n_shells_withghost - 2 * ghost_height;
-   buf_shell_start[GEONBR_TFACE][1][1] = n_shells_withghost - ghost_height;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// RFACE: 3/4 sites with 2 PPS
-// 6/8 unique maps (1:1)
-   std::pair<int, int> origin_arr[exch_site_count[GEONBR_RFACE]][default_part_per_site[GEONBR_RFACE]];
+// RFACE/TEDGE: 6/8 unique maps
+   origin_arr[0].first = total_length - (3 - square_fill) * ghost_width;
+   origin_arr[0].second = 2 * ghost_width;
 
-   origin_arr[0][0].first = total_length - (3 - square_fill) * ghost_width;
-   origin_arr[0][0].second = 2 * ghost_width;
+   origin_arr[0 + verts_per_face].first = 2 * ghost_width;
+   origin_arr[0 + verts_per_face].second = 0;
 
-   origin_arr[0][1].first = 2 * ghost_width;
-   origin_arr[0][1].second = 0;
+   origin_arr[1].first = total_length - 2 * ghost_width;
+   origin_arr[1].second = total_length - (square_fill + 1) * ghost_width;
 
-   origin_arr[1][0].first = total_length - 2 * ghost_width;
-   origin_arr[1][0].second = total_length - (square_fill + 1) * ghost_width;
+   origin_arr[1 + verts_per_face].first = total_length;
+   origin_arr[1 + verts_per_face].second = 2 * ghost_width;
 
-   origin_arr[1][1].first = total_length;
-   origin_arr[1][1].second = 2 * ghost_width;
+   origin_arr[2].first = 2 * ghost_width;
+   origin_arr[2].second = (verts_per_face == 3 ? ghost_width : total_length - 2 * ghost_width);
 
-   origin_arr[2][0].first = 2 * ghost_width;
-   origin_arr[2][0].second = (verts_per_face == 3 ? ghost_width : total_length - 2 * ghost_width);
-
-   origin_arr[2][1].first = total_length - 2 * ghost_width;
-   origin_arr[2][1].second = total_length - (square_fill - 1) * ghost_width;
+   origin_arr[2 + verts_per_face].first = total_length - 2 * ghost_width;
+   origin_arr[2 + verts_per_face].second = total_length - (square_fill - 1) * ghost_width;
 
    if (verts_per_face == 4) {
-      origin_arr[3][0].first = 2 * ghost_width;
-      origin_arr[3][0].second = 2 * ghost_width;
+      origin_arr[3].first = 2 * ghost_width;
+      origin_arr[3].second = 2 * ghost_width;
 
-      origin_arr[3][1].first = 0;
-      origin_arr[3][1].second = total_length - 2 * ghost_width;
+      origin_arr[3 + verts_per_face].first = 0;
+      origin_arr[3 + verts_per_face].second = total_length - 2 * ghost_width;
    };
 
    for (auto site = 0; site < exch_site_count[GEONBR_RFACE]; site++) {
@@ -481,13 +505,15 @@ void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
          foreign = (part == my_part ? 0 : 1);
 
 // The base vertices are on the opposite sides of two sub-blocks, and "foreign" selects which side it is.
-         i_origin = origin_arr[site][foreign].first;
-         j_origin = origin_arr[site][foreign].second;
-         rot = (corner_rotation[site] + foreign * cardinal_directions) % edges_per_vert;
+         i_origin = origin_arr[site + foreign * verts_per_face].first;
+         j_origin = origin_arr[site + foreign * verts_per_face].second;
          vert_origin = vert_index_sector[i_origin][j_origin];
+
          face_origin = vf_local[vert_origin][(site * square_fill + foreign * cardinal_directions) % edges_per_vert];
          i0 = face_index_i[face_origin];
          j0 = face_index_j[face_origin];
+
+         rot = (corner_rotation[site] + foreign * cardinal_directions) % edges_per_vert;
 
          bufidx = 0;
          for (auto i_buf = 0; i_buf < buf_length[GEONBR_RFACE]; i_buf++) {
@@ -500,17 +526,54 @@ void BufferedBlock<verts_per_face>::ComputeBufferTranslations(void)
       };
    };
 
-// 1 unique starting shell (1:6/1:4)
-   buf_shell_start[GEONBR_RFACE][0][0] = ghost_height;
-  
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// TEDGE: 6/8 sites with 4 PPS
-// 6/8 unique maps (1:4), same as RFACE - copy
+// REDGE/VERTX: 18/16 unique maps
+   origin_arr[0].first = square_fill * ghost_width;
+   origin_arr[0].second = ghost_width;
 
-// 
+   origin_arr[1].first = total_length - ghost_width;
+   origin_arr[1].second = ghost_width;
 
+   origin_arr[2].first = total_length - ghost_width;
+   origin_arr[2].second = total_length - ghost_width;
 
+   if (verts_per_face == 4) {
+      origin_arr[3].first = square_fill * ghost_width;
+      origin_arr[3].second = total_length - ghost_width;
+   };
+
+   for (auto site = 0; site < exch_site_count[GEONBR_REDGE]; site++) {
+      i_origin = origin_arr[site].first;
+      j_origin = origin_arr[site].second;
+      vert_origin = vert_index_sector[i_origin][j_origin];
+
+      my_part = exch_sites[GEONBR_REDGE][site]->part_lookup[block_index];
+      for (auto part = 0; part < default_part_per_site[GEONBR_REDGE]; part++) {
+         face_origin = vf_local[vert_origin][(part + 3 * cardinal_directions - my_part) % edges_per_vert];
+         i0 = face_index_i[face_origin];
+         j0 = face_index_j[face_origin];
+
+         rot = (part + edges_per_vert - my_part) % edges_per_vert;
+
+         bufidx = 0;
+         for (auto i_buf = 0; i_buf < buf_length[GEONBR_REDGE]; i_buf++) {
+            for(auto j_buf = 0; j_buf <= MaxFaceJ(buf_length[GEONBR_REDGE], buf_width[GEONBR_REDGE], i_buf); j_buf++) {
+               i = i0 + i_buf * rotated_faces[rot][0][0] + j_buf * rotated_faces[rot][0][1 + j_buf % square_fill];
+               j = j0 + i_buf * rotated_faces[rot][1][0] + j_buf * rotated_faces[rot][1][1 + j_buf % square_fill];
+               buf_face_translation[GEONBR_REDGE][site][part][bufidx++] = face_index_sector[i][j];
+            };
+         };   
+      };
+   };
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Starting shells
+   buf_shell_tab[0] = 0;
+   buf_shell_tab[1] = ghost_height;
+   buf_shell_tab[2] = n_shells_withghost - 2 * ghost_height;
+   buf_shell_tab[3] = n_shells_withghost - ghost_height;
 };
 
 template class BufferedBlock<3>;

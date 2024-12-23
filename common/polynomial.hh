@@ -36,13 +36,13 @@ constexpr uint32_t zbitfield = 0xFF;
 struct Polynomial
 {
 //! Assembled Pascal triange
-   static int binomial[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
+   inline static int binomial[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
 
 //! Bitwise encoding of the monomial indices using reverse colexicographical ordering
-   static uint32_t moment_pl[poly_table_length];
+   inline static uint32_t moment_pl[poly_table_length];
 
 //! Inverse moment lookup table
-   static int moment_lu[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
+   inline static int moment_lu[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC Polynomial(void);

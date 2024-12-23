@@ -3,7 +3,7 @@
 # Building from zero:
 # autoreconf
 # automake --add-missing
-# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=SERIAL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=SELF --with-server_interp_order=-1 --with-server_num_gcs=0
+# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=PARALLEL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=BATL --with-server_interp_order=1 --with-server_num_gcs=1
 
 # Init commands
 AC_PREREQ([2.69])
@@ -22,18 +22,8 @@ CXXFLAGS="$CXXFLAGS -std=c++20"
 FCFLAGS="$FCFLAGS"
 LDFLAGS="$LDFLAGS -L/usr/local/slurm/lib/slurm"
 
-# Check for MPI paths
+# MPI option
 AC_ARG_WITH([mpi], [AS_HELP_STRING([--with-mpi=MPI], [use MPI=mpich|openmpi])], [], [])
-PKG_CONFIG_PATH="/usr/lib64/pkgconfig"
-path=$(which mpirun)
-AS_IF([test $? == 0],
-      [path=${path/"bin/mpirun"/"lib/pkgconfig"}
-       AS_IF([test -d $path],
-             [PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$path],
-             [AC_MSG_ERROR([Path to MPI pkgconfig was not found])])],
-      [AC_MSG_ERROR([Path to mpirun was not found])])
-
-# Check MPI library specified by user
 MODULE_NAME=""
 AS_IF([test "x$with_mpi" == "x"],
       [AC_MSG_ERROR([This package cannot be built without MPI])],
@@ -44,8 +34,10 @@ AS_IF([test "x$with_mpi" == "x"],
        CXXFLAGS="$CXXFLAGS -DOMPI_SKIP_MPICXX"],
       [AC_MSG_ERROR([MPI must be either mpich or openmpi])])
 
-# If the path is empty or contains no .pc file, the following will return an error
-export PKG_CONFIG_PATH
+full_path=$(pkg-config --path "$MODULE_NAME")
+AS_IF([test "x$full_path" == "x"],
+      [AC_MSG_ERROR([Path to MPI pkgconfig was not found])])
+export PKG_CONFIG_PATH=$(dirname "$full_path")
 PKG_CHECK_MODULES([MPI], [$MODULE_NAME])
 AS_IF([test "x$MODULE_NAME" != "x"],
       [AC_DEFINE([USE_MPI], [1], [Using MPI])],
@@ -53,10 +45,15 @@ AS_IF([test "x$MODULE_NAME" != "x"],
 
 # Check for GSL
 MODULE_NAME="gsl"
+full_path=$(pkg-config --path "$MODULE_NAME")
+PKG_CONFIG_PATH=$(dirname "$full_path")
 PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
 
-# Check for SILO (not required)
-AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found.])])
+# SILO option
+AC_ARG_ENABLE([silo], [AS_HELP_STRING([--enable-silo], [enable SILO [default=no]])], [], [])
+AS_IF([test "x$enable_silo" == "xyes"],
+      [AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [AC_DEFINE([USE_SILO], [1], [Using SILO])], [AC_MSG_WARN([SILO library was not found.])])],
+      [AC_MSG_NOTICE([SILO is disabled])])
 
 # Check for SLURM (not required)
 AC_SEARCH_LIBS([slurm_get_rem_time], [slurm slurmfull], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])

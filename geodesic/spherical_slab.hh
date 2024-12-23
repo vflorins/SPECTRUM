@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_SPHERICAL_SLAB
-#define SPECTRUM_SPHERICAL_SLAB
+#ifndef SPECTRUM_SPHERICAL_SLAB_HH
+#define SPECTRUM_SPHERICAL_SLAB_HH
 
 #include "common/gpu_config.hh"
 #include "common/print_warn.hh"

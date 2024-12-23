@@ -14,10 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-int Polynomial::binomial[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
-uint32_t Polynomial::moment_pl[poly_table_length];
-int Polynomial::moment_lu[MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1][MONO_DEGREE_HIGH + 1];
-
 /*!
 \author Vladimir Florinski
 \date 07/17/2019
