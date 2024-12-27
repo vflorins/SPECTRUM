@@ -110,7 +110,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
    if(!construct) BackgroundShock::SetupBackground(false);
 
 // Unpack parameters
-   container.Read(&width_shock);
+   container.Read(width_shock);
 };
 
 /*!

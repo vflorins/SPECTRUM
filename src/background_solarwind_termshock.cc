@@ -49,9 +49,9 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundSolarWind::SetupBackground(false);
-   container.Read(&r_TS);
-   container.Read(&w_TS);
-   container.Read(&s_TS);
+   container.Read(r_TS);
+   container.Read(w_TS);
+   container.Read(s_TS);
 
    s_TS_inv = 1.0 / s_TS;
    dmax_TS = dmax_fraction * w_TS;

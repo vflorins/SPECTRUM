@@ -93,18 +93,20 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
       double r5 = Cube(r2);
       r2 *= r2;
       r5 *= r2;
-      double mdotr = M * posprime;
       GeoMatrix mr, rm, rr;
       mr.Dyadic(M,posprime);
       rm.Dyadic(posprime,M);
       rr.Dyadic(posprime);
 
-// TODO change the second call to Dyadic to Transpose
-      _spdata.gradBvec = 3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
+      _spdata.gradBvec = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
+      _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
    };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
+      _spdata.dBvecdt = gv_zeros;
+      _spdata.dBmagdt = 0.0;
+   };
    if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else

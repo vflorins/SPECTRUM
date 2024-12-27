@@ -59,9 +59,9 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
-   container.Read(Omega.Data());
-   container.Read(&r_ref);
-   container.Read(&dmax_fraction);
+   container.Read(Omega));
+   container.Read(r_ref);
+   container.Read(dmax_fraction);
 
 // Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
    w0 = Omega.Norm(); 
