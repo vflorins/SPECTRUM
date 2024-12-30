@@ -16,30 +16,6 @@ namespace Spectrum {
 //! Size of this class (should be 24)
 #define SZGV sizeof(GeoVector)
 
-//! The unit vector in the x direction
-#define gv_nx GeoVector(1.0, 0.0, 0.0)
-
-//! The unit vector in the y direction
-#define gv_ny GeoVector(0.0, 1.0, 0.0)
-
-//! The unit vector in the z direction
-#define gv_nz GeoVector(0.0, 0.0, 1.0)
-
-//! The unit vector in the r direction
-#define gv_nr gv_nx
-
-//! The unit vector in the theta direction
-#define gv_nt gv_ny
-
-//! The unit vector in the phi direction
-#define gv_np gv_nz
-
-//! A vector with zero components
-#define gv_zeros GeoVector(0.0, 0.0, 0.0)
-
-//! A vector with unit components
-#define gv_ones GeoVector(1.0, 1.0, 1.0)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // GeoVector class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -58,16 +34,16 @@ struct GeoVector : public SimpleArray<double, 3>
    using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoVector(void) = default;
+   SPECTRUM_DEVICE_FUNC GeoVector(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit GeoVector(double a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr GeoVector(double val);
 
 //! Constructor from an array
    SPECTRUM_DEVICE_FUNC explicit GeoVector(const double* other);
 
 //! Constructor from components
-   SPECTRUM_DEVICE_FUNC GeoVector(double x_in, double y_in, double z_in);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(double x_in, double y_in, double z_in);
 
 //! Constructor from the base class
    SPECTRUM_DEVICE_FUNC GeoVector(const SimpleArray<double, 3>& other);
@@ -108,10 +84,10 @@ struct GeoVector : public SimpleArray<double, 3>
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Polar angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Theta(void);
+   SPECTRUM_DEVICE_FUNC double Theta(void) const;
 
 //! Azimuthal angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Phi(void);
+   SPECTRUM_DEVICE_FUNC double Phi(void) const;
 
 //! Converts a position vector from r,theta,phi to x,y,z
    SPECTRUM_DEVICE_FUNC void RTP_XYZ(void);
@@ -157,11 +133,11 @@ struct GeoVector : public SimpleArray<double, 3>
 /*!
 \author Vladimir Florinski
 \date 03/10/2024
-\param[in] a Number to be asigned to each index
+\param[in] val Value to be asigned to each component
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double a)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double val)
+                                               : SimpleArray(val)
 {
-   data[0] = data[1] = data[2] = a;
 };
 
 /*!
@@ -177,15 +153,15 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const double* other)
 /*!
 \author Vladimir Florinski
 \date 05/01/2018
-\param[in] x First component
-\param[in] y Second component
-\param[in] z Third component
+\param[in] x_in First component
+\param[in] y_in Second component
+\param[in] z_in Third component
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(double x_in, double y_in, double z_in)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y_in, double z_in)
 {
-   data[0] = x_in;
-   data[1] = y_in;
-   data[2] = z_in;
+   x = x_in;
+   y = y_in;
+   z = z_in;
 };
 
 /*!
@@ -205,9 +181,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const SimpleArray<double, 3>& o
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const MultiIndex& other)
 {
-   data[0] = other.data[0];
-   data[1] = other.data[1];
-   data[2] = other.data[2];
+   x = other.i;
+   y = other.j;
+   z = other.k;
 };
 
 /*!
@@ -219,9 +195,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const MultiIndex& other)
 */
 SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x_out, double& y_out, double& z_out) const
 {
-   x_out = data[0];
-   y_out = data[1];
-   z_out = data[2];
+   x_out = x;
+   y_out = y;
+   z_out = z;
 };
 
 /*!
@@ -231,7 +207,7 @@ SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x_out, double& y_out, 
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
 {
-   return MultiIndex(data[0], data[1], data[2]);
+   return MultiIndex(x, y, z);
 };
 
 /*!
@@ -252,9 +228,9 @@ SPECTRUM_DEVICE_FUNC inline double GeoVector::Norm(void) const
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
 {
    double norm = Norm();
-   data[0] /= norm;
-   data[1] /= norm;
-   data[2] /= norm;
+   x /= norm;
+   y /= norm;
+   z /= norm;
    return *this;
 };
 
@@ -267,9 +243,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
 {
    norm = Norm();
-   data[0] /= norm;
-   data[1] /= norm;
-   data[2] /= norm;
+   x /= norm;
+   y /= norm;
+   z /= norm;
    return *this;
 };
 
@@ -282,69 +258,69 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& other)
 {
    GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[1] * other.data[2] - vect_tmp.data[2] * other.data[1];
-   data[1] = vect_tmp.data[2] * other.data[0] - vect_tmp.data[0] * other.data[2];
-   data[2] = vect_tmp.data[0] * other.data[1] - vect_tmp.data[1] * other.data[0];
+   x = vect_tmp.y * other.z - vect_tmp.z * other.y;
+   y = vect_tmp.z * other.x - vect_tmp.x * other.z;
+   z = vect_tmp.x * other.y - vect_tmp.y * other.x;
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a summation with a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] + other.data[0];
-   data[1] = vect_tmp.data[1] + other.data[1];
-   data[2] = vect_tmp.data[2] + other.data[2];
+   x += other.x;
+   y += other.y;
+   z += other.z;
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a subtraction of a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] - other.data[0];
-   data[1] = vect_tmp.data[1] - other.data[1];
-   data[2] = vect_tmp.data[2] - other.data[2];
+   x -= other.x;
+   y -= other.y;
+   z -= other.z;
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise multiplication by a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] * other.data[0];
-   data[1] = vect_tmp.data[1] * other.data[1];
-   data[2] = vect_tmp.data[2] * other.data[2];
+   x *= other.x;
+   y *= other.y;
+   z *= other.z;
    return *this;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/26/2024
+\author Vladimir Florinski
+\date 10/16/2024
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise division by a multi-index
 */
 SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& other)
 {
-   GeoVector vect_tmp(*this);
-   data[0] = vect_tmp.data[0] / other.data[0];
-   data[1] = vect_tmp.data[1] / other.data[1];
-   data[2] = vect_tmp.data[2] / other.data[2];
+   x /= other.x;
+   y /= other.y;
+   z /= other.z;
    return *this;
 };
 
@@ -568,8 +544,32 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const G
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Three unit vectors in an array (host only)
-const GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
+//! Unit vector in the x direction
+constexpr GeoVector gv_nx(1.0, 0.0, 0.0);
+
+//! Unit vector in the y direction
+constexpr GeoVector gv_ny(0.0, 1.0, 0.0);
+
+//! Unit vector in the z direction
+constexpr GeoVector gv_nz(0.0, 0.0, 1.0);
+
+//! The unit vector in the r direction
+#define gv_nr gv_nx
+
+//! The unit vector in the theta direction
+#define gv_nt gv_ny
+
+//! The unit vector in the phi direction
+#define gv_np gv_nz
+
+//! A vector with zero components
+constexpr GeoVector gv_zeros(0.0, 0.0, 0.0);
+
+//! A vector with unit components
+constexpr GeoVector gv_ones(1.0, 1.0, 1.0);
+
+//! Three unit vectors in an array
+constexpr GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
 
 };
 

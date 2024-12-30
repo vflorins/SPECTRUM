@@ -21,15 +21,15 @@ namespace Spectrum {
 \brief A SphericalTesselation derived class that can generate flat addressing for the elements suitable for sectors
 \author Vladimir Florinski
 */
-template <PolyType poly_type, int max_division>
+template <int poly_type, int max_division>
 class TraversableTesselation : public RequestableTesselation<poly_type, max_division>
 {
    using RequestableTesselation<poly_type, max_division>::verts_per_face;
    using RequestableTesselation<poly_type, max_division>::edges_per_vert;
+   using RequestableTesselation<poly_type, max_division>::nverts;
    using RequestableTesselation<poly_type, max_division>::vf_con;
    using RequestableTesselation<poly_type, max_division>::fv_con;
    using RequestableTesselation<poly_type, max_division>::ff_con;
-   using RequestableTesselation<poly_type, max_division>::NVertNbrs;
    using RequestableTesselation<poly_type, max_division>::VertCC;
    using RequestableTesselation<poly_type, max_division>::IsInside;
 
@@ -56,10 +56,10 @@ class TraversableTesselation<POLY_HEXAHEDRON, max_division> : public Requestable
 {
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::verts_per_face;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::edges_per_vert;
+   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::nverts;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::vf_con;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::fv_con;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::ff_con;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::NVertNbrs;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::VertCC;
    using RequestableTesselation<POLY_HEXAHEDRON, max_division>::IsInside;
 

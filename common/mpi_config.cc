@@ -1,5 +1,5 @@
 /*!
-\file mpi_config.cc
+\file MPI_Config::cc
 \brief Implements classes responsible for creating MPI various communicators and determining hardware configuration, as well as aiding in non-blocking communication
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -11,10 +11,11 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #ifdef USE_MPI
 
-#include "common/definitions.hh"
-#include "common/print_warn.hh"
 #include <algorithm>
 #include <fstream>
+
+#include "common/definitions.hh"
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 
@@ -121,12 +122,14 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // Find number of bosses per socket. This number is forced to be at least 1 and rounded down to be an integer for simplicity.
    n_bosses_per_socket = N_BOSSES_PER_NODE / n_sockets_per_node;
+
 // If there are more sockets than bosses, just pretend N_BOSSES_PER_NODE = n_bosses_per_socket * n_sockets_per_node
-   if(n_bosses_per_socket < 1) {
+   if (n_bosses_per_socket < 1) {
       n_bosses_per_socket = 1;
    }
+
 // If necessary, further split sock_comm for as many bosses as
-   else if(n_bosses_per_socket > 1) {
+   else if (n_bosses_per_socket > 1) {
       MPI_Comm_split(sock_comm, (sock_comm_rank % n_bosses_per_socket), 0, &sock_comm_tmp);
       MPI_Comm_free(&sock_comm);
       sock_comm = sock_comm_tmp;
@@ -153,18 +156,18 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // Post requests on the master to receive global ranks. We know the number of sends (n_nodes), but not which processes will be sending. The answers are received in random order.
    MPI_Request* req_glob_rank;
-   if(is_master) {
+   if (is_master) {
       req_glob_rank = new MPI_Request[n_nodes];
-      for(proc = 0; proc < n_nodes; proc++) {
+      for (proc = 0; proc < n_nodes; proc++) {
          MPI_Irecv(glob_ranks + proc, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, glob_comm, req_glob_rank + proc);
       };
-   }
+   };
 
 // Process 0 on each node sends its global rank to the master (including master to self). At this time it is not known whether process 0 is a boss because a master-boss may not be allowed.
    if(!node_comm_rank) MPI_Send(&glob_comm_rank, 1, MPI_INT, 0, 0, glob_comm);
 
 // Sort the "glob_rank" array and broadcast the sorted array to all processes.
-   if(is_master) {
+   if (is_master) {
       MPI_Waitall(n_nodes, req_glob_rank, MPI_STATUSES_IGNORE);
       delete[] req_glob_rank;
       std::sort(glob_ranks, glob_ranks + n_nodes);
@@ -172,9 +175,9 @@ MPI_Config::MPI_Config(int argc, char** argv)
    MPI_Bcast(glob_ranks, n_nodes, MPI_INT, 0, glob_comm);
 
 // Find the node on process 0 in that node (nodes are numbered based on the place of its rank 0 process in "glob_ranks[]").
-   if(!node_comm_rank) {
+   if (!node_comm_rank) {
       my_node = InList(n_nodes, glob_ranks, glob_comm_rank);
-      if(my_node < 0) PrintError(__FILE__, __LINE__, "Error in determining node order", true);
+      if (my_node < 0) PrintError(__FILE__, __LINE__, "Error in determining node order", true);
    };
 
 // Broadcast the node to all other proceses on the node
@@ -190,8 +193,8 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // If the master cannot be a boss, remove the master from the respective node communicator. On the master "node_comm" will be set to MPI_COMM_NULL.
    MPI_Comm node_comm_tmp;
-   if(!my_node) {
-      if(node_comm_size < 2) {
+   if (!my_node) {
+      if (node_comm_size < 2) {
          PrintError(__FILE__, __LINE__, "Cannot create a boss different from the master with less than 2 processes in the master's node.", is_master);
          PrintError(__FILE__, __LINE__, "Master will also be boss in its own node.", is_master);
       }
@@ -202,7 +205,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
       };
 
 // The size and rank of the node communicator have changed, so we need to update "node_comm_size" and "node_comm_rank". A non-boss master will set these to -1.
-      if(node_comm != MPI_COMM_NULL) {
+      if (node_comm != MPI_COMM_NULL) {
          MPI_Comm_size(node_comm, &node_comm_size);
          MPI_Comm_rank(node_comm, &node_comm_rank);
       }
@@ -219,7 +222,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // Create a boss communicator. The order is the same as the node order, but if the master is separate, the boss ranks will be off by 1. The master is always rank 0 in "boss_comm" even if separate because it has a lower global rank than the boss on its node.
    MPI_Comm_split(glob_comm, ((is_boss || is_master) ? 1 : MPI_UNDEFINED), my_node, &boss_comm);
-   if(boss_comm != MPI_COMM_NULL) {
+   if (boss_comm != MPI_COMM_NULL) {
       MPI_Comm_size(boss_comm, &boss_comm_size);
       MPI_Comm_rank(boss_comm, &boss_comm_rank);
    }
@@ -233,7 +236,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Determine the number of workers and set the worker status. The number could be zero if there is only one process on the node and a boss-worker is not allowed.
-   if(is_boss) {
+   if (is_boss) {
 
 #ifdef ALLOW_BOSS_WORKER
       workers_in_node = node_comm_size;
@@ -245,7 +248,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
       MPI_Bcast(&workers_in_node, 1, MPI_INT, 0, node_comm);
    }
    else {
-      if(node_comm == MPI_COMM_NULL) {
+      if (node_comm == MPI_COMM_NULL) {
          is_worker = false;
          workers_in_node = -1;
       }
@@ -257,7 +260,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // Create a worker communicator that includes the workers and the master. If boss-workers are not allowed, boss processes will be excluded.
    MPI_Comm_split(glob_comm, ((is_master || is_worker) ? 1 : MPI_UNDEFINED), glob_comm_rank, &work_comm);
-   if(work_comm != MPI_COMM_NULL) {
+   if (work_comm != MPI_COMM_NULL) {
       MPI_Comm_size(work_comm, &work_comm_size);
       MPI_Comm_rank(work_comm, &work_comm_rank);
    }
@@ -268,23 +271,23 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 // Post requests on the master to receive worker counts.
    MPI_Request* req_worker_count;
-   if(is_master) {
+   if (is_master) {
       workers_per_node = new int[n_nodes];
       req_worker_count = new MPI_Request[n_nodes];
-      for(proc = 0; proc < n_nodes; proc++) {
+      for (proc = 0; proc < n_nodes; proc++) {
          MPI_Irecv(workers_per_node + proc, 1, MPI_INT, (is_boss ? proc : proc + 1), MPI_ANY_TAG, boss_comm, req_worker_count + proc);
       };
    };
 
 // Each boss sends its number of workers to the master (including master to self if allowed)
-   if(is_boss) MPI_Send(&workers_in_node, 1, MPI_INT, 0, 0, boss_comm);
+   if (is_boss) MPI_Send(&workers_in_node, 1, MPI_INT, 0, 0, boss_comm);
 
 // Wait for worker count to be received, count the total
-   if(is_master) {
+   if (is_master) {
       MPI_Waitall(n_nodes, req_worker_count, MPI_STATUSES_IGNORE);
       delete[] req_worker_count;
       n_workers = 0;
-      for(proc = 0; proc < n_nodes; proc++) n_workers += workers_per_node[proc];
+      for (proc = 0; proc < n_nodes; proc++) n_workers += workers_per_node[proc];
    };
 
 // Broadcast the number of workers to all
@@ -297,10 +300,10 @@ MPI_Config::MPI_Config(int argc, char** argv)
 */
 MPI_Config::~MPI_Config()
 {
-   if(is_master) delete[] workers_per_node;
-   if(work_comm != MPI_COMM_NULL) MPI_Comm_free(&work_comm);
-   if(boss_comm != MPI_COMM_NULL) MPI_Comm_free(&boss_comm);
-   if(node_comm != MPI_COMM_NULL) MPI_Comm_free(&node_comm);
+   if (is_master) delete[] workers_per_node;
+   if (work_comm != MPI_COMM_NULL) MPI_Comm_free(&work_comm);
+   if (boss_comm != MPI_COMM_NULL) MPI_Comm_free(&boss_comm);
+   if (node_comm != MPI_COMM_NULL) MPI_Comm_free(&node_comm);
    MPI_Comm_free(&glob_comm);
 
    MPI_Finalize();
@@ -332,46 +335,44 @@ MPI_Request_Info::~MPI_Request_Info()
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 02/26/2024
+\date 12/02/2024
 */
 void TestMPIConfig(void)
 {
-   MPI_Config mpi_config(0, nullptr);
-
 // Each process prints its config to a different file
-   std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(mpi_config.glob_comm_rank);
+   std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(MPI_Config::glob_comm_rank);
    std::ofstream infofile;
    infofile.open(filename.c_str(), std::ofstream::out);
 
    infofile << "--------------------------------------------------------------------------------\n";
-   infofile << "Size of global communicator: " << mpi_config.glob_comm_size << std::endl;
-   infofile << "Rank in global communicator: " << mpi_config.glob_comm_rank << std::endl;
-   infofile << "Master status: " << (mpi_config.is_master ? "YES" : "NO") << std::endl;
+   infofile << "Size of global communicator: " << MPI_Config::glob_comm_size << std::endl;
+   infofile << "Rank in global communicator: " << MPI_Config::glob_comm_rank << std::endl;
+   infofile << "Master status: " << (MPI_Config::is_master ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   infofile << "Number of nodes: " << mpi_config.n_nodes << std::endl;
-   infofile << "Size of boss communicator: " << mpi_config.boss_comm_size << std::endl;
-   infofile << "Rank in boss communicator: " << mpi_config.boss_comm_rank << std::endl;
-   infofile << "Boss status: " << (mpi_config.is_boss ? "YES" : "NO") << std::endl;
+   infofile << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
+   infofile << "Size of boss communicator: " << MPI_Config::boss_comm_size << std::endl;
+   infofile << "Rank in boss communicator: " << MPI_Config::boss_comm_rank << std::endl;
+   infofile << "Boss status: " << (MPI_Config::is_boss ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   infofile << "This is node: " << mpi_config.my_node << std::endl;
-   infofile << "Size of node communicator: " << mpi_config.node_comm_size << std::endl;
-   infofile << "Rank in node communicator: " << mpi_config.node_comm_rank << std::endl;
-   infofile << "Number of sockets per node: " << mpi_config.n_sockets_per_node << std::endl;
-   infofile << "Number of bosses per socket: " << mpi_config.n_bosses_per_socket << std::endl;
+   infofile << "This is node: " << MPI_Config::my_node << std::endl;
+   infofile << "Size of node communicator: " << MPI_Config::node_comm_size << std::endl;
+   infofile << "Rank in node communicator: " << MPI_Config::node_comm_rank << std::endl;
+   infofile << "Number of sockets per node: " << MPI_Config::n_sockets_per_node << std::endl;
+   infofile << "Number of bosses per socket: " << MPI_Config::n_bosses_per_socket << std::endl;
    infofile << std::endl;
 
-   infofile << "Total number of workers: " << mpi_config.n_workers << std::endl;
-   infofile << "Number of workers in this node: " << mpi_config.workers_in_node << std::endl;
-   infofile << "Size of worker communicator: " << mpi_config.work_comm_size << std::endl;
-   infofile << "Rank in worker communicator: " << mpi_config.work_comm_rank << std::endl;
-   infofile << "Worker status: " << (mpi_config.is_worker ? "YES" : "NO") << std::endl;
+   infofile << "Total number of workers: " << MPI_Config::n_workers << std::endl;
+   infofile << "Number of workers in this node: " << MPI_Config::workers_in_node << std::endl;
+   infofile << "Size of worker communicator: " << MPI_Config::work_comm_size << std::endl;
+   infofile << "Rank in worker communicator: " << MPI_Config::work_comm_rank << std::endl;
+   infofile << "Worker status: " << (MPI_Config::is_worker ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   if(mpi_config.is_master) {
-      for(auto node = 0; node < mpi_config.n_nodes; node++) {
-         infofile << "Number of workers in node " << node << ": " << mpi_config.workers_per_node[node] << std::endl;
+   if(MPI_Config::is_master) {
+      for(auto node = 0; node < MPI_Config::n_nodes; node++) {
+         infofile << "Number of workers in node " << node << ": " << MPI_Config::workers_per_node[node] << std::endl;
       };
    };
    infofile << "--------------------------------------------------------------------------------\n";

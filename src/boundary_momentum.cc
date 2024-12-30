@@ -44,7 +44,7 @@ BoundaryMomentum::BoundaryMomentum(const BoundaryMomentum& other)
                 : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
 };
 
 /*!
@@ -57,8 +57,8 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryMomentum::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(&momentum);
+   if (!construct) BoundaryBase::SetupBoundary(false);
+   container.Read(momentum);
 };
 
 /*!
@@ -98,7 +98,7 @@ BoundaryMomentumInject::BoundaryMomentumInject(const BoundaryMomentumInject& oth
                       : BoundaryMomentum(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = 1;
 };
 
@@ -112,7 +112,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryMomentumInject::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryMomentum::SetupBoundary(false);
+   if (!construct) BoundaryMomentum::SetupBoundary(false);
    max_crossings = 1;
 };
 
@@ -142,7 +142,7 @@ BoundaryMirror::BoundaryMirror(const BoundaryMirror& other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
    RAISE_BITS(_status, BOUNDARY_REFLECT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
    max_crossings = -1;
 };
 
@@ -156,7 +156,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryMirror::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BoundaryBase::SetupBoundary(false);
+   if (!construct) BoundaryBase::SetupBoundary(false);
    max_crossings = -1;
 };
 

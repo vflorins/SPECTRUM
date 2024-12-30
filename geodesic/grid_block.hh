@@ -9,6 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_GRID_BLOCK
 #define SPECTRUM_GRID_BLOCK
 
+#include "config.h"
+
 #ifdef USE_SILO
 #include <silo.h>
 #endif
@@ -103,6 +105,9 @@ protected:
 
 //! Unique numerical index of the block
    int block_index;
+
+//! Indicates a mesh was associated
+   bool mesh_associated = false;
 
 //! Flag telling whether this block is in the innermost or outermost slab
    bool border_type[2];
@@ -206,10 +211,10 @@ protected:
    SPECTRUM_DEVICE_FUNC void CornerCoords(int corner, int& i, int& j) const;
 
 //! Determine whether a vertex belongs to the sector's interior (including boundary) - vert version
-   SPECTRUM_DEVICE_FUNC bool IsInteriorVert_Int(int vert) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorVertOfSector(int vert) const;
 
 //! Determine whether a face is in the sector's interior - face version
-   SPECTRUM_DEVICE_FUNC bool IsInteriorFace_Int(int face) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorFaceOfSector(int face) const;
 
 //! Calculate the increments for each object type
    SPECTRUM_DEVICE_FUNC void Setup(void);
@@ -221,6 +226,9 @@ public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC GridBlock(void);
+
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC GridBlock(const GridBlock& other);
 
 //! Constructor with arguments
    SPECTRUM_DEVICE_FUNC GridBlock(int width, int wghost, int height, int hghost);
@@ -235,8 +243,14 @@ public:
    SPECTRUM_DEVICE_FUNC void FreeStorage(void);
 
 //! Set up the dimensions and geometry of the mesh
-   SPECTRUM_DEVICE_FUNC void AssociateMesh(int index, double ximin, double ximax, const bool* corners, const bool* borders, const GeoVector* vcart,
-                                           std::shared_ptr<DistanceBase> dist_map_in);
+   SPECTRUM_DEVICE_FUNC void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                           const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in);
+
+//! Assign the block index
+   SPECTRUM_DEVICE_FUNC void SetIndex(int index) {block_index = index;};
+
+//! Retrieve the block index
+   SPECTRUM_DEVICE_FUNC int GetIndex(void) const {return block_index;};
 
 #ifdef USE_SILO
 //! Write the entire block to a SILO database
@@ -265,7 +279,7 @@ public:
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline void GridBlock<verts_per_face>::CornerCoords(int corner, int& i, int& j) const
 {
-   switch(corner) {
+   switch (corner) {
 
    case 0:
       i = square_fill * ghost_width;
@@ -296,10 +310,10 @@ SPECTRUM_DEVICE_FUNC inline void GridBlock<verts_per_face>::CornerCoords(int cor
 \return True if the vertex is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorVert_Int(int vert) const
+SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorVertOfSector(int vert) const
 {
-   if((vert < 0) || (vert >= n_verts_withghost)) return false;
-   else return GeodesicSector<verts_per_face>::IsInteriorVert_Int(vert_index_i[vert], vert_index_j[vert]);
+   if ((vert < 0) || (vert >= n_verts_withghost)) return false;
+   else return GeodesicSector<verts_per_face>::IsInteriorVertOfSector(vert_index_i[vert], vert_index_j[vert]);
 };
 
 /*!
@@ -309,170 +323,10 @@ SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorVert_Int(i
 \return True if the face is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorFace_Int(int face) const
+SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorFaceOfSector(int face) const
 {
-   if((face < 0) || (face >= n_faces_withghost)) return false;
-   else return GeodesicSector<verts_per_face>::IsInteriorFace_Int(face_index_i[face], face_index_j[face]);
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/08/2024
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline void GridBlock<3>::Setup(void)
-{
-//          2          2---------1          1          1---------0          0          0---------2
-//         / \          \       /          / \          \       /          / \          \       / 
-//        /   \          \     /          /   \          \     /          /   \          \     /  
-//       /     \          \   /          /     \          \   /          /     \          \   /   
-//      /       \          \ /          /       \          \ /          /       \          \ /    
-//     0---------1          0          2---------0          2          1---------2          1     
-//
-//        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
-
-   corner_rotation[0] = 3; corner_rotation[1] = 5; corner_rotation[2] = 1;
-
-// The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
-//       |     i=      |     j=
-//  ---------------------------------
-//  ir*  | [rot][0][0] | [rot][1][0]
-//   +
-//  jr*  | [rot][0][1] | [rot][1][1]
-//
-   rotated_verts[0][0][0] =  1; rotated_verts[0][0][1] =  0; rotated_verts[0][1][0] =  0; rotated_verts[0][1][1] =  1;
-   rotated_verts[1][0][0] =  1; rotated_verts[1][0][1] = -1; rotated_verts[1][1][0] =  1; rotated_verts[1][1][1] =  0;
-   rotated_verts[2][0][0] =  0; rotated_verts[2][0][1] = -1; rotated_verts[2][1][0] =  1; rotated_verts[2][1][1] = -1;
-   rotated_verts[3][0][0] = -1; rotated_verts[3][0][1] =  0; rotated_verts[3][1][0] =  0; rotated_verts[3][1][1] = -1;
-   rotated_verts[4][0][0] = -1; rotated_verts[4][0][1] =  1; rotated_verts[4][1][0] = -1; rotated_verts[4][1][1] =  0;
-   rotated_verts[5][0][0] =  0; rotated_verts[5][0][1] =  1; rotated_verts[5][1][0] = -1; rotated_verts[5][1][1] =  1;
-
-   rotated_shift[0][0][0] =  0; rotated_shift[0][0][1] =  0;
-   rotated_shift[0][1][0] =  0; rotated_shift[0][1][1] =  0;
-   rotated_shift[0][2][0] =  0; rotated_shift[0][2][1] =  0;
-   rotated_shift[1][0][0] =  0; rotated_shift[1][0][1] =  0;
-   rotated_shift[1][1][0] = -1; rotated_shift[1][1][1] =  0;
-   rotated_shift[1][2][0] =  0; rotated_shift[1][2][1] =  0;
-   rotated_shift[2][0][0] =  0; rotated_shift[2][0][1] =  0;
-   rotated_shift[2][1][0] = -1; rotated_shift[2][1][1] = -1;
-   rotated_shift[2][2][0] = -1; rotated_shift[2][2][1] =  0;
-   rotated_shift[3][0][0] = -1; rotated_shift[3][0][1] =  0;
-   rotated_shift[3][1][0] =  0; rotated_shift[3][1][1] = -1;
-   rotated_shift[3][2][0] = -1; rotated_shift[3][2][1] = -1;
-   rotated_shift[4][0][0] = -1; rotated_shift[4][0][1] = -1;
-   rotated_shift[4][1][0] =  0; rotated_shift[4][1][1] =  0;
-   rotated_shift[4][2][0] =  0; rotated_shift[4][2][1] = -1;
-   rotated_shift[5][0][0] =  0; rotated_shift[5][0][1] = -1;
-   rotated_shift[5][1][0] =  0; rotated_shift[5][1][1] =  0;
-   rotated_shift[5][2][0] =  0; rotated_shift[5][2][1] =  0;
-
-// The storage pattern is i(ir, jr_even, jr_odd), j(ir, jr_even, jr_odd). Use the table to calculate global i and j.
-//       |              i=              |              j=
-//  -------------------------------------------------------------------
-//  ir*  | [rot][0][0]                  | [rot][1][0]
-//   +
-//  jr*  | [rot][0][1+jr%square_fill]   | [rot][1][1+jr%square_fill]
-
-   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][0][2] =  0;
-   rotated_faces[0][1][0] =  0; rotated_faces[0][1][1] =  1; rotated_faces[0][1][2] =  1;
-   rotated_faces[1][0][0] =  1; rotated_faces[1][0][1] = -1; rotated_faces[1][0][2] =  0;
-   rotated_faces[1][1][0] =  2; rotated_faces[1][1][1] = -1; rotated_faces[1][1][2] =  1;
-   rotated_faces[2][0][0] =  0; rotated_faces[2][0][1] =  0; rotated_faces[2][0][2] = -1;
-   rotated_faces[2][1][0] =  2; rotated_faces[2][1][1] = -1; rotated_faces[2][1][2] = -1;
-   rotated_faces[3][0][0] = -1; rotated_faces[3][0][1] =  0; rotated_faces[3][0][2] =  0;
-   rotated_faces[3][1][0] =  0; rotated_faces[3][1][1] = -1; rotated_faces[3][1][2] = -1;
-   rotated_faces[4][0][0] = -1; rotated_faces[4][0][1] =  1; rotated_faces[4][0][2] =  0;
-   rotated_faces[4][1][0] = -2; rotated_faces[4][1][1] =  1; rotated_faces[4][1][2] = -1;
-   rotated_faces[5][0][0] =  0; rotated_faces[5][0][1] =  0; rotated_faces[5][0][2] =  1;
-   rotated_faces[5][1][0] = -2; rotated_faces[5][1][1] =  1; rotated_faces[5][1][2] =  1;
-
-//                 5
-//               . . .     
-//             .   .   .   
-//           .     .     . 
-//          1-------------2
-//          |      4      |
-//          |     . .     |
-//          |   .     .   |
-//          | .         . |
-//          0-------------3
-
-#ifdef USE_SILO
-
-   silo_zonetype = DB_ZONETYPE_PRISM;
-   zv_silo[0][0] = 0; zv_silo[0][1] = 0; zv_silo[1][0] = 1; zv_silo[1][1] = 0; zv_silo[2][0] = 1; zv_silo[2][1] = 1;
-   zv_silo[3][0] = 0; zv_silo[3][1] = 1; zv_silo[4][0] = 0; zv_silo[4][1] = 2; zv_silo[5][0] = 1; zv_silo[5][1] = 2;
-
-#endif
-
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/08/2024
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline void GridBlock<4>::Setup(void)
-{
-//     3---------2     2---------1     1---------0     0---------3
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     0---------1     3---------0     2---------3     1---------2
-//
-//        rot=0           rot=1           rot=2           rot=3
-
-   corner_rotation[0] = 2; corner_rotation[1] = 3; corner_rotation[2] = 0; corner_rotation[3] = 1;
-
-// The storage pattern is i(ir, jr), j(ir, jr). Use the table to calculate global i and j.
-//       |     i=      |     j=
-//  ---------------------------------
-//  ir*  | [rot][0][0] | [rot][1][0]
-//   +
-//  jr*  | [rot][0][1] | [rot][1][1]
-//
-   rotated_verts[0][0][0] =  1; rotated_verts[0][0][1] =  0; rotated_verts[0][1][0] =  0; rotated_verts[0][1][1] =  1;
-   rotated_verts[1][0][0] =  0; rotated_verts[1][0][1] = -1; rotated_verts[1][1][0] =  1; rotated_verts[1][1][1] =  0;
-   rotated_verts[2][0][0] = -1; rotated_verts[2][0][1] =  0; rotated_verts[2][1][0] =  0; rotated_verts[2][1][1] = -1;
-   rotated_verts[3][0][0] =  0; rotated_verts[3][0][1] =  1; rotated_verts[3][1][0] = -1; rotated_verts[3][1][1] =  0;
-
-   rotated_shift[0][0][0] =  0; rotated_shift[0][0][1] =  0; rotated_shift[0][1][0] =  0; rotated_shift[0][1][1] =  0;
-   rotated_shift[1][0][0] =  0; rotated_shift[1][0][1] =  0; rotated_shift[1][1][0] = -1; rotated_shift[1][1][1] =  0;
-   rotated_shift[2][0][0] = -1; rotated_shift[2][0][1] =  0; rotated_shift[2][1][0] =  0; rotated_shift[2][1][1] = -1;
-   rotated_shift[3][0][0] =  0; rotated_shift[3][0][1] = -1; rotated_shift[3][1][0] =  0; rotated_shift[3][1][1] =  0;
-
-// The storage pattern is i(ir, jr_even, jr_odd), j(ir, jr_even, jr_odd). Use the table to calculate global i and j.
-//       |              i=              |              j=
-//  -------------------------------------------------------------------
-//  ir*  | [rot][0][0]                  | [rot][1][0]
-//   +
-//  jr*  | [rot][0][1+jr%square_fill]   | [rot][1][1+jr%square_fill]
-
-   rotated_faces[0][0][0] =  1; rotated_faces[0][0][1] =  0; rotated_faces[0][1][0] =  0;   rotated_faces[0][1][1] =  1;
-   rotated_faces[1][0][0] =  0; rotated_faces[1][0][1] = -1; rotated_faces[1][1][0] =  1;   rotated_faces[1][1][1] =  0;
-   rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0;   rotated_faces[2][1][1] = -1;
-   rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1;   rotated_faces[3][1][1] =  0;
-
-//               7-------------6
-//             . .           . |
-//           .   .         .   |
-//          4-------------5    |
-//          |    .        |    |
-//          |    3 . . . .|. . 2
-//          |  .          |  .
-//          |.            |.
-//          0-------------1
-
-#ifdef USE_SILO
-
-   silo_zonetype = DB_ZONETYPE_HEX;
-   zv_silo[0][0] = 0; zv_silo[0][1] = 0; zv_silo[1][0] = 0; zv_silo[1][1] = 1;
-   zv_silo[2][0] = 0; zv_silo[2][1] = 2; zv_silo[3][0] = 0; zv_silo[3][1] = 3;
-   zv_silo[4][0] = 1; zv_silo[4][1] = 0; zv_silo[5][0] = 1; zv_silo[5][1] = 1;
-   zv_silo[6][0] = 1; zv_silo[6][1] = 2; zv_silo[7][0] = 1; zv_silo[7][1] = 3;
-
-#endif
-
+   if ((face < 0) || (face >= n_faces_withghost)) return false;
+   else return GeodesicSector<verts_per_face>::IsInteriorFaceOfSector(face_index_i[face], face_index_j[face]);
 };
 
 };

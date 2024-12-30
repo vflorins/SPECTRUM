@@ -26,8 +26,8 @@ namespace Spectrum {
 
 This is a very simple class to store an arbitrary set of parameters to pass to a function. Parameters can be inserted and read sequentially, which is all that is needed to convey the parameters. The largest byte size of a parameter is 256 bytes.
 */
-class DataContainer {
-
+class DataContainer
+{
 private:
 
 //! A pointer into "storage"
@@ -47,46 +47,52 @@ protected:
 public:
 
 //! Default constructor
-   DataContainer(void) = default;
+   DataContainer(void) {};
 
 //! Copy constructor
    DataContainer(const DataContainer& other);
 
+//! Move constructor
+   DataContainer(DataContainer&& other);
+
 //! Destructor
    ~DataContainer(void);
 
-//! Assignment operator
+//! Copy assignment operator
    DataContainer& operator =(const DataContainer& other);
 
-//! Clear the content
-   void Clear(void);
+//! Move assignment operator
+   DataContainer& operator =(DataContainer&& other);
 
-//! Return number of records
-   size_t size(void) const;
-
-//! Get the total size in bytes
-   size_t length(void) const;
-
-//! Return the pointer to the data
-   const uint8_t* data(void) const;
+//! Return pointer to the memory
+   uint8_t* data(void) const {return storage;};
 
 //! Resize the container to import data from a binary chunk
    void resize(size_t n_records_in, size_t total_size_in);
 
+//! Return number of records
+   size_t size(void) const {return n_records;};
+
+//! Get the total size in bytes
+   size_t length(void) const {return total_size;};
+
+//! Clear the content
+   void Clear(void);
+
 //! Set the pointer to the start of the data chunk
    void Reset(void);
 
-//! Copy insertion operation with resizing (generic)
-   template <typename T> void Insert(T data);
+//! Resize and add a new parameter at the end
+   template <typename T> void Insert(const T& arg);
 
-//! Copy insertion operation with resizing for vectors
-   template <typename T> void Insert(std::vector<T> data);
+//! Resize and add a new std::vector parameter at the end
+   template <typename T> void Insert(const std::vector<T>& arg);
 
-//! Read a parameter from the current pointer position (generic)
-   template <typename T> void Read(T* data_ptr);
+//! Read a parameter from the current position given by "_param"
+   template <typename T> void Read(T& arg);
 
-//! Read a parameter from the current pointer position for vectors
-   template <typename T> void Read(std::vector<T>* data_ptr);
+//! Read a std::vector parameter from the current position given by "_param"
+   template <typename T> void Read(std::vector<T>& arg);
 
 //! Print data container info (mainly for debugging purposes)
    void Print(void);

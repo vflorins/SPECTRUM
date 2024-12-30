@@ -31,26 +31,25 @@ namespace Spectrum {
 // Fluid units used in the code - user configurable
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Length, typically 1 AU
+//! Length: 1 au is a good value for the heliosphere
 #define unit_length_fluid GSL_CONST_CGSM_ASTRONOMICAL_UNIT
 
-//! Velocity: Speed of light or 1 km/s are sensible values
-//#define unit_velocity_fluid 1.0E7
-#define unit_velocity_fluid GSL_CONST_CGSM_SPEED_OF_LIGHT
+//! Velocity: 100 km/s is a sensible value; do not use the speed of light because some of the tests will return infinity.
+#define unit_velocity_fluid 1.0E7
 
-//! Time: derived, should be hours/days
+//! Time: derived, should be hours or days
 #define unit_time_fluid (unit_length_fluid / unit_velocity_fluid)
 
 //! Frequency: derived
 #define unit_frequency_fluid (1.0 / unit_time_fluid)
 
-//! Number density: a good number is 1 per cm^3. We can choose a number density unit independently of the length unit because conservation laws are invariant under the transformation rho->a*rho, p->a*p, B^2->a*B^2.
+//! Number density: a good number is 1 per cm^3. We can choose a number density unit independently of the length unit because physical laws are invariant under the transformation rho->a*rho, p->a*p, B^2->a*B^2.
 #define unit_number_density_fluid 1.0
 
-//! Density: derived, should be 1 proton mass per cm^3.
-#define unit_density_fluid (GSL_CONST_CGSM_MASS_PROTON * unit_number_density_fluid)
+//! Density: derived, should be 1 _particle_ mass unit times 1 number density unit
+#define unit_density_fluid (unit_mass_particle * unit_number_density_fluid)
 
-//! Magnetic field: derived, should be uG/mG
+//! Magnetic field: derived, should be uG-mG
 #define unit_magnetic_fluid (unit_velocity_fluid * sqrt(unit_density_fluid))
 
 //! Electric field: derived, should be the same as magnetic field because of cgs-Gaussian unit system
@@ -71,27 +70,23 @@ namespace Spectrum {
 //! Speed of light squared
 #define c2_code (c_code * c_code)
 
-//! Boltzmann constant. Note that for fluids the ideal gas EOS is p=rho*kb*T.
+//! Boltzmann constant. Note that for fluids the ideal gas EOS is p=n*kb*T.
 #define kb_code (GSL_CONST_CGSM_BOLTZMANN / unit_pressure_fluid * unit_temperature_fluid * unit_number_density_fluid)
 
 //! The largest nmumber of fluids (right now only distinguishable by the adiabatic ratio).
 #define MAX_FLUIDS 6
 
 //! Polytropic indices
-#ifdef __CUDA_ARCH__
-__device__ const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
-#else
-const double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
-#endif
+constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle units used in the code - user configurable. Length and time units are the same as for the fluid.
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Electric charge, typically equal to elementary charge
+//! Electric charge: typically equal to elementary charge
 #define unit_charge_particle SPC_CONST_CGSM_ELECTRON_CHARGE
 
-//! Energy, proton rest energy, 1 eV, etc.
+//! Energy: 1 eV or the proton rest energy are reasonable values
 #define unit_energy_particle GSL_CONST_CGSM_ELECTRON_VOLT
 
 //! Momentum: derived, based on the assumption that the particles use the fluid unit for velocity
@@ -117,26 +112,14 @@ enum Specie {
 };
 
 //! Particle masses
-#ifdef __CUDA_ARCH__
-__device__ const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                            4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                                  GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
-#else
-const double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                 4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                       GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
-#endif
+constexpr double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                     4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
+                           GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
 
 //! Particle charges
-#ifdef __CUDA_ARCH__
-__device__ const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                              2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                   -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
-#else
-const double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                   2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                        -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
-#endif
+constexpr double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                       2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                            -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion
@@ -404,6 +387,19 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom, unsigned int isp
    double mmag = mom.Norm();
    double vmag = Vel(mmag, isp);
    return (vmag / mmag) * mom;
+};
+
+/*!
+\brief Calculate particle momentum from velocity
+\author Vladimir Florinski
+\date 12/24/2024
+\param[in] vel Velocity
+\param[in] isp Index of the species
+\return Relativistic momentum
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp = 0)
+{
+   return (RelFactor(vel.Norm()) * mass[isp]) * vel;
 };
 
 /*!

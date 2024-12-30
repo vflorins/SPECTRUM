@@ -37,7 +37,10 @@ struct GeoMatrix {
    };
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoMatrix(void) = default;
+   SPECTRUM_DEVICE_FUNC GeoMatrix(void) {};
+
+//! Constructor from a single value
+   SPECTRUM_DEVICE_FUNC explicit GeoMatrix(double val);
 
 //! Constructor from row vectors
    SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
@@ -60,7 +63,7 @@ struct GeoMatrix {
 //! Access to rows for writing
    SPECTRUM_DEVICE_FUNC GeoVector& operator [](int i);
 
-//! Set all three components to the given value
+//! Set all nine components to the given value
    SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(double val);
 
 //! Transpose this matrix
@@ -123,12 +126,23 @@ struct GeoMatrix {
 
 /*!
 \author Vladimir Florinski
+\date 11/29/2024
+\param[in] a Number to be asigned to each index
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(double val)
+{
+   operator =(val);
+};
+
+/*!
+\author Vladimir Florinski
 \date 11/02/2021
 \param[in] v1 First row
 \param[in] v2 Second row
 \param[in] v3 Third row
 */
-SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3) : row{v1, v2, v3}
+SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3)
+                                     : row{v1, v2, v3}
 {
 };
 

@@ -6,16 +6,30 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_POLYGONAL_ADDRESSING
-#define SPECTRUM_POLYGONAL_ADDRESSING
+#ifndef SPECTRUM_POLYGONAL_ADDRESSING_HH
+#define SPECTRUM_POLYGONAL_ADDRESSING_HH
 
 #include "common/gpu_config.hh"
 
 namespace Spectrum {
 
 /*!
+\brief Number of edges at a vertex in an infinite tesselation
+\author Vladimir Florinski
+\date 07/02/2024
+\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
+*/
+template <int verts_per_face>
+static constexpr int EdgesAtVert(void)
+{
+   return 2 * verts_per_face / (verts_per_face - 2);
+};
+
+/*!
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
+
+This class's role is to fill out the bootstrap arrays ("vert_vert", "vert_ende", etc.) that are used later in the "GeodesicSector" class to generate the connectivity arrays ("vv_local", "ve_local", etc.) The bootstrap arrays have minimum utility beyond that, and it is recommended that they are not used in classes derived from "GeodesicSector".
 */
 template <int verts_per_face>
 class PolygonalAddressing
@@ -23,7 +37,7 @@ class PolygonalAddressing
 protected:
 
 //! Number of edges meeting at a vertex
-   static constexpr int edges_per_vert = (2 * verts_per_face) / (verts_per_face - 2);
+   static constexpr int edges_per_vert = EdgesAtVert<verts_per_face>();
 
 //! Rotational symmetry
    static constexpr int cardinal_directions = edges_per_vert / 2;
@@ -73,15 +87,15 @@ protected:
    SPECTRUM_DEVICE_FUNC int VertCount(int len) const;
 
 //! Calculate the increments for each object type
-   SPECTRUM_DEVICE_FUNC void Setup(void);
+   SPECTRUM_DEVICE_FUNC constexpr void Setup(void);
 
 public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC PolygonalAddressing(void);
 
-//! Destructor
-   SPECTRUM_DEVICE_FUNC ~PolygonalAddressing() = default;
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other);
 };
 
 /*!
@@ -96,7 +110,18 @@ SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddres
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 06/21/2024
+\param[in] other Object to initialize from
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other)
+                                                               : PolygonalAddressing<verts_per_face>()
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of edges in a sector whose side is "len"
 */
@@ -108,7 +133,7 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::EdgeCount(i
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of faces in a sector whose side is "len"
 */
@@ -120,7 +145,7 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::FaceCount(i
 
 /*!
 \author Vladimir Florinski
-\date 05/06/2025
+\date 05/06/2024
 \param[in] len Length of a side
 \return Number of vertices in a sector whose side is "len"
 */
@@ -135,22 +160,22 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::VertCount(i
 \date 05/07/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void PolygonalAddressing<3>::Setup(void)
 {
 // Indexing scheme: vertex "V" and edges "T0", "T1", and "T2" have the same i and j coordinates. Face "F" (unshaded) has coordinates (i,2j). Face "S" (shaded) has coordinates (i,2j+1). When obtaining edge and vertex coorindates from face coordinates, divide the second coordinate by two, so both "F" and "S" will point to (i,j).
-//
-//          -----------
+
+/*          -----------
 //           \       / \
 //            T1 S  T2  \
 //             \   /  F  \
 //              \ /       \
 //               *----T0----
 //               V
-
+*/
    edge_dimax[0] = -1; edge_dimax[1] =  0; edge_dimax[2] = -1;
    edge_djmax[0] =  0; edge_djmax[1] = -1; edge_djmax[2] =  0;
 
-//              vertex-vertex                   vertex-edge                    vertex-face
+/*              vertex-vertex                   vertex-edge                    vertex-face
 //
 //               4         3                    -         -     	       -----------
 //                                               \       /      	      / \	/ \
@@ -163,7 +188,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
 //                                                0     1       	     \   /  1  \   /
 //                                               /       \      	      \ /	\ /
 //               0         1                    -         -     	       -----------
-
+*/
    vert_vert[0][0] = -1; vert_vert[0][1] = -1;
    vert_vert[1][0] =  0; vert_vert[1][1] = -1;
    vert_vert[2][0] =  1; vert_vert[2][1] =  0;
@@ -185,7 +210,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
    vert_face[4][0] =  0; vert_face[4][1] =  1;
    vert_face[5][0] = -1; vert_face[5][1] =  0;
 
-//                           edge-vertex                                                 edge-face 
+/*                           edge-vertex                                                 edge-face 
 //
 //             type 0            type 1          type 2             type 0                 type 1                    type 2
 //
@@ -200,7 +225,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
 //                                                                  \   /
 //                                                                   \ /
 //                                                                    -
-
+*/
    edge_vert[0][0][0] =  0; edge_vert[0][0][1] =  0; edge_vert[0][1][0] =  1; edge_vert[0][1][1] =  0;
    edge_vert[1][0][0] =  0; edge_vert[1][0][1] =  0; edge_vert[1][1][0] =  0; edge_vert[1][1][1] =  1;
    edge_vert[2][0][0] =  1; edge_vert[2][0][1] =  1; edge_vert[2][1][0] =  0; edge_vert[2][1][1] =  0;
@@ -209,7 +234,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
    edge_face[1][0][0] = -1; edge_face[1][0][1] =  0; edge_face[1][1][0] =  0; edge_face[1][1][1] =  1;
    edge_face[2][0][0] =  0; edge_face[2][0][1] =  0; edge_face[2][1][0] =  0; edge_face[2][1][1] =  1;
 
-//               face-vertex                      face-edge                                  face-face
+/*               face-vertex                      face-edge                                  face-face
 //
 //               2     1---------0               -     -----0-----          ---------------------          -
 //              / \     \       /               / \     \       /            \       / \       /          / \
@@ -222,7 +247,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
 //                                                                                  \   /          /  1  \   /  2  \
 //                                                                                   \ /          /       \ /       \
 //                                                                                    -          ---------------------
-//
+*/
 // Unshaded faces are element [0] and shaded faces are element [1]. The correct set is chosen based on (j % 2).
 
    face_vert[0][0][0] =  0; face_vert[0][0][1] =  0;
@@ -252,21 +277,21 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<3>::Setup(void)
 \date 05/07/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<4>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void PolygonalAddressing<4>::Setup(void)
 {
 // Indexing scheme: vertex "V", edges "T0" and "T1", and face "F" have the same i and j coordinates.
-//
-//          -----------
+
+/*          -----------
 //          |         |
 //          T1   F    |
 //          |         |
 //          *----T0----
 //          V
-
+*/
    edge_dimax[0] = -1; edge_dimax[1] =  0;
    edge_djmax[0] =  0; edge_djmax[1] = -1;
 
-//              vertex-vertex                   vertex-edge                    vertex-face
+/*              vertex-vertex                   vertex-edge                    vertex-face
 //
 //                    2                              -                   ---------------------
 //                                                   |                   |         |         |
@@ -277,7 +302,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<4>::Setup(void)
 //                                                   0                   |    0    |    1    |
 //                                                   |                   |         |         |
 //                    0                              -                   ---------------------
-
+*/
    vert_vert[0][0] =  0; vert_vert[0][1] = -1;
    vert_vert[1][0] =  1; vert_vert[1][1] =  0;
    vert_vert[2][0] =  0; vert_vert[2][1] =  1;
@@ -293,7 +318,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<4>::Setup(void)
    vert_face[2][0] =  0; vert_face[2][1] =  0;
    vert_face[3][0] = -1; vert_face[3][1] =  0;
 
-//                edge-vertex                               edge-face 
+/*                edge-vertex                               edge-face 
 //
 //                               1          -----------          ---------------------
 //                               |          |         |          |         |         |
@@ -304,14 +329,14 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<4>::Setup(void)
 //                                          |    1    |
 //                                          |         |
 //                                          -----------
-
+*/
    edge_vert[0][0][0] =  0; edge_vert[0][0][1] =  0; edge_vert[0][1][0] =  1; edge_vert[0][1][1] =  0;
    edge_vert[1][0][0] =  0; edge_vert[1][0][1] =  0; edge_vert[1][1][0] =  0; edge_vert[1][1][1] =  1;
 
    edge_face[0][0][0] =  0; edge_face[0][0][1] =  0; edge_face[0][1][0] =  0; edge_face[0][1][1] = -1;
    edge_face[1][0][0] = -1; edge_face[1][0][1] =  0; edge_face[1][1][0] =  0; edge_face[1][1][1] =  0;
 
-//          face-vertex           face-edge                      face-face
+/*          face-vertex           face-edge                      face-face
 //
 //                                                              -----------
 //                                                              |         |
@@ -326,7 +351,7 @@ SPECTRUM_DEVICE_FUNC inline void PolygonalAddressing<4>::Setup(void)
 //                                                              |    0    |
 //                                                              |         |
 //                                                              -----------
-
+*/
    face_vert[0][0][0] =  0; face_vert[0][0][1] =  0;
    face_vert[0][1][0] =  1; face_vert[0][1][1] =  0;
    face_vert[0][2][0] =  1; face_vert[0][2][1] =  1;

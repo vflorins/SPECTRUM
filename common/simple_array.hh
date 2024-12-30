@@ -34,6 +34,7 @@ struct SimpleArray
 
 //! Storage
    union {
+      EmptyStruct _empty;
       data_type data[n_vars];
       struct {
          data_type x, y, z;
@@ -44,35 +45,35 @@ struct SimpleArray
       };
    };
 
-//! Default constructor
-   SPECTRUM_DEVICE_FUNC SimpleArray(void) = default;
+//! Default constructor - we initialize the "_empty" member to make it constexpr (requires c++20)
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) : _empty() {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit SimpleArray(data_type a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val);
 
 //! Constructor from an array
    SPECTRUM_DEVICE_FUNC explicit SimpleArray(const data_type* other);
 
 //! Return the number of components
-   SPECTRUM_DEVICE_FUNC int size(void) const;
+   SPECTRUM_DEVICE_FUNC static constexpr int size(void) {return n_vars;};
 
 //! Access to the data for reading
-   SPECTRUM_DEVICE_FUNC const data_type* Data(void) const;
+   SPECTRUM_DEVICE_FUNC const data_type* Data(void) const {return data;};
 
 //! Access to the data for writing
-   SPECTRUM_DEVICE_FUNC data_type* Data(void);
+   SPECTRUM_DEVICE_FUNC data_type* Data(void) {return data;};
 
 //! Access to components for reading
-   SPECTRUM_DEVICE_FUNC const data_type& operator [](int i) const;
+   SPECTRUM_DEVICE_FUNC const data_type& operator [](int i) const {return data[i];};
 
 //! Access to components for writing
-   SPECTRUM_DEVICE_FUNC data_type& operator [](int i);
+   SPECTRUM_DEVICE_FUNC data_type& operator [](int i) {return data[i];};
 
 //! Store the content of the simple array into an array
    SPECTRUM_DEVICE_FUNC void Store(data_type* other) const;
 
 //! Set all components to the same value
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator =(data_type a);
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator =(data_type a);
 
 //! Assignment operator from an array
    SPECTRUM_DEVICE_FUNC SimpleArray& operator =(const data_type* other);
@@ -136,12 +137,12 @@ struct SimpleArray
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] a Number to be asigned to each component
+\param[in] val Value to be asigned to each component
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>::SimpleArray(data_type a)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(data_type val)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] = a;
+   operator =(val);
 };
 
 /*!
@@ -153,63 +154,6 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>::SimpleArray(const data_type* other)
 {
    memcpy(data, other, n_vars * sizeof(data_type));
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/13/2024
-\return Number of components
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline int SimpleArray<data_type, n_vars>::size(void) const
-{
-   return n_vars;
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/07/2024
-\return "data" array
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline const data_type* SimpleArray<data_type, n_vars>::Data(void) const
-{
-   return data;
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/07/2024
-\return "data" array
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline data_type* SimpleArray<data_type, n_vars>::Data(void)
-{
-   return data;
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/07/2024
-\param[in] i Component index
-\return \f$v_i\f$
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline const data_type& SimpleArray<data_type, n_vars>::operator [](int i) const
-{
-   return data[i];
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/07/2024
-\param[in] i Component index
-\return \f$v_i\f$
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline data_type& SimpleArray<data_type, n_vars>::operator [](int i)
-{
-   return data[i];
 };
 
 /*!
@@ -226,13 +170,13 @@ SPECTRUM_DEVICE_FUNC inline void SimpleArray<data_type, n_vars>::Store(data_type
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] a A number to be assigned to all components
+\param[in] val Value to be assigned to each component
 \return Reference to this object
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator =(data_type a)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator =(data_type val)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] = a;
+   for (auto i = 0; i < n_vars; i++) data[i] = val;
    return *this;
 };
 
@@ -258,7 +202,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator +=(data_type a)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] += a;
+   for (auto i = 0; i < n_vars; i++) data[i] += a;
    return *this;
 };
 
@@ -271,7 +215,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator +=(const SimpleArray<data_type, n_vars>& other)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] += other.data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] += other.data[i];
    return *this;
 };
 
@@ -284,7 +228,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator -=(data_type a)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] -= a;
+   for (auto i = 0; i < n_vars; i++) data[i] -= a;
    return *this;
 };
 
@@ -297,7 +241,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator -=(const SimpleArray<data_type, n_vars>& other)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] -= other.data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] -= other.data[i];
    return *this;
 };
 
@@ -310,7 +254,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(data_type a)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] *= a;
+   for (auto i = 0; i < n_vars; i++) data[i] *= a;
    return *this;
 };
 
@@ -323,7 +267,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(const SimpleArray<data_type, n_vars>& other)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] *= other.data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] *= other.data[i];
    return *this;
 };
 
@@ -336,7 +280,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator /=(data_type a)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] /= a;
+   for (auto i = 0; i < n_vars; i++) data[i] /= a;
    return *this;
 };
 
@@ -349,7 +293,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator /=(const SimpleArray& other)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] /= other.data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] /= other.data[i];
    return *this;
 };
 
@@ -362,7 +306,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator %=(data_type a)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] %= a;
+   for (auto i = 0; i < n_vars; i++) data[i] %= a;
    return *this;
 };
 
@@ -375,7 +319,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator %=(const SimpleArray& other)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] %= other.data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] %= other.data[i];
    return *this;
 };
 
@@ -388,7 +332,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Norm2(void) const
 {
    data_type sum = data[0] * data[0];
-   for(auto i = 1; i < n_vars; i++) sum += data[i] * data[i];
+   for (auto i = 1; i < n_vars; i++) sum += data[i] * data[i];
    return sum;
 };
 
@@ -401,7 +345,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Sum(void) const
 {
    data_type sum = data[0];
-   for(auto i = 1; i < n_vars; i++) sum += data[i];
+   for (auto i = 1; i < n_vars; i++) sum += data[i];
    return sum;
 };
 
@@ -414,7 +358,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Prod(void) const
 {
    data_type prod = data[0];
-   for(auto i = 1; i < n_vars; i++) prod *= data[i];
+   for (auto i = 1; i < n_vars; i++) prod *= data[i];
    return prod;
 };
 
@@ -427,7 +371,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Smallest(void) const
 {
    data_type smallest = data[0];
-   for(auto i = 1; i < n_vars; i++) smallest = std::min(smallest, data[i]);
+   for (auto i = 1; i < n_vars; i++) smallest = std::min(smallest, data[i]);
    return smallest;
 };
 
@@ -440,7 +384,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Largest(void) const
 {
    data_type largest = data[0];
-   for(auto i = 1; i < n_vars; i++) largest = std::max(largest, data[i]);
+   for (auto i = 1; i < n_vars; i++) largest = std::max(largest, data[i]);
    return largest;
 };
 
@@ -451,7 +395,7 @@ SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Largest(vo
 template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline void SimpleArray<data_type, n_vars>::Negate(void)
 {
-   for(auto i = 0; i < n_vars; i++) data[i] = -data[i];
+   for (auto i = 0; i < n_vars; i++) data[i] = -data[i];
 };
 
 /*!
@@ -464,7 +408,7 @@ template <typename data_type, int n_vars>
 SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::ScalarProd(const SimpleArray& other) const
 {
    data_type sum = data[0] * other.data[0];
-   for(auto i = 1; i < n_vars; i++) sum += data[i] * other.data[i];
+   for (auto i = 1; i < n_vars; i++) sum += data[i] * other.data[i];
    return sum;
 };
 
@@ -475,31 +419,16 @@ SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::ScalarProd
 \author Vladimir Florinski
 \date 03/10/2024
 \param[in,out] os     Output stream
-\param[in]     sarr_w Simple array to write
+\param[in]     sarr_r Simple array to print
 \return Modified output stream 
 */
 template<typename data_type, int n_vars>
-inline std::ostream& operator <<(std::ostream& os, const SimpleArray<data_type, n_vars>& sarr_w)
+inline std::ostream& operator <<(std::ostream& os, const SimpleArray<data_type, n_vars>& sarr_r)
 {
-   os << "(" << sarr_w[0];
-   for(auto i = 1; i < n_vars; i++) os << ", " << sarr_w[i];
+   os << "(" << sarr_r[0];
+   for (auto i = 1; i < n_vars; i++) os << ", " << sarr_r[i];
    os << ")";
    return os;
-};
-
-/*!
-\brief Stream extraction operator (host only)
-\author Juan G Alonso Guzman
-\date 08/11/2024
-\param[in,out] is     Input stream
-\param[in]     sarr_r Simple array to read
-\return Modified input stream 
-*/
-template<typename data_type, int n_vars>
-inline std::istream& operator >>(std::istream& is, SimpleArray<data_type, n_vars>& sarr_r)
-{
-   for(auto i = 0; i < n_vars; i++) is >> sarr_r[i];
-   return is;
 };
 
 };

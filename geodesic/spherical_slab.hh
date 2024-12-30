@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_SPHEIRCAL_SLAB
-#define SPECTRUM_SPHERICAL_SLAB
+#ifndef SPECTRUM_SPHERICAL_SLAB_HH
+#define SPECTRUM_SPHERICAL_SLAB_HH
 
 #include "common/gpu_config.hh"
 #include "common/print_warn.hh"
@@ -51,16 +51,19 @@ protected:
 //! Number of ghost shells on each side of the slab
    int ghost_height;
 
-//! Determine whether a shell belongs to the interior of a sub-block
+//! Determine whether a shell index falls in a given range
    SPECTRUM_DEVICE_FUNC bool IsInteriorShell(int kstart, int height, int k) const;
 
 //! Determine whether a shell belongs to the interior of the slab
-   SPECTRUM_DEVICE_FUNC bool IsInteriorShell_Int(int k) const;
+   SPECTRUM_DEVICE_FUNC bool IsInteriorShellOfSlab(int k) const;
 
 public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC SphericalSlab(void) = default;
+
+//! Copy constructor
+   SPECTRUM_DEVICE_FUNC SphericalSlab(const SphericalSlab& other);
 
 //! Construtor with parameters
    SPECTRUM_DEVICE_FUNC SphericalSlab(int height, int hghost);
@@ -72,7 +75,17 @@ public:
    SPECTRUM_DEVICE_FUNC int TotalShells(void) const {return n_shells_withghost;};
 
 //! Set the slab dimensions
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost);
+   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/21/2024
+\param[in] other Object to initialize from
+*/
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
+{
+   SetDimensions(other.n_shells, other.ghost_height, true);
 };
 
 /*!
@@ -83,7 +96,7 @@ public:
 */
 SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
 {
-   SetDimensions(height, hghost);
+   SetDimensions(height, hghost, true);
 };
 
 /*!
@@ -92,7 +105,7 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
 \param[in] kstart Starting shell of the sub-block
 \param[in] height Height of the sub-block
 \param[in] k      Shell index
-\return True if the shell is interior to the sub-block
+\return True if the shell is between "kstart" and "kstart+height"
 */
 SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell(int kstart, int height, int k) const
 {
@@ -105,7 +118,7 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell(int kstart, int 
 \param[in] k Shell index
 \return True if the shell is interior to the slab
 */
-SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell_Int(int k) const
+SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShellOfSlab(int k) const
 {
    return (k >= ghost_height) && (k <= n_shells_withghost - 1 - ghost_height);
 };
@@ -113,12 +126,13 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell_Int(int k) const
 /*!
 \author Vladimir Florinski
 \date 02/19/2020
-\param[in] width  Height of the slab, without ghost cells
-\param[in] wgohst Height of the ghost cell layer outside the slab
+\param[in] width     Height of the slab, without ghost cells
+\param[in] wgohst    Height of the ghost cell layer outside the slab
+\param[in] construct Set to true when called from a constructor
 */
-SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost)
+SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
 {
-   if(height < min_block_height || height > max_block_height || hghost < min_ghost_height || hghost > max_ghost_height) {
+   if ((height < min_block_height) || (height > max_block_height) || (hghost < min_ghost_height) || (hghost > max_ghost_height)) {
       PrintError(__FILE__, __LINE__, "Cannot allocate a slab with these dimensions", true);
       return;
    };

@@ -135,22 +135,22 @@ public:
    ~Params() = default;
 
 //! Return the name of the class
-   std::string GetName(void) const;
+   std::string GetName(void) const {return class_name;};
 
 //! Connect to an existing RNG object
-   void ConnectRNG(const std::shared_ptr<RNG> rng_in);
+   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
 
 //! Copy the user-supplied data container into "container"
-   void SetContainer(const DataContainer& cont_in);
+   void SetContainer(const DataContainer& cont_in) {container = cont_in;};
 
 //! Return a copy of the data container
-   DataContainer GetContainer(void) const;
+   DataContainer GetContainer(void) const {return container;};
 
 //! Set the particle specie
-   void SetSpecie(unsigned int specie_in);
+   void SetSpecie(unsigned int specie_in) {specie = specie_in;};
 
 //! Return the particle specie
-   unsigned int GetSpecie(void) const;
+   unsigned int GetSpecie(void) const {return specie;};
 
 //! Set the internal phase space position
    void SetState(double t_in, const GeoVector& pos_in, const GeoVector& mom_in = gv_zeros);
@@ -159,81 +159,7 @@ public:
    void GetState(double& t_out, GeoVector& pos_out, GeoVector& mom_out) const;
 
 //! Return the status
-   uint16_t GetStatus(void) const;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Params inline methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Vladimir Florinski
-\date 11/25/2020
-*/
-inline std::string Params::GetName(void) const
-{
-   return class_name;
-};
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 05/27/2022
-\param[in] rng_in A pointer to an RNG object
-*/
-inline void Params::ConnectRNG(const std::shared_ptr<RNG> rng_in)
-{
-   rng = rng_in;
-};
-
-/*!
-\author Vladimir Florinski
-\date 12/03/2020
-\param[in] cont_in Container with parameters
-*/
-inline void Params::SetContainer(const DataContainer& cont_in)
-{
-   container = cont_in;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 04/28/2021
-\return Params data container
-*/
-inline DataContainer Params::GetContainer(void) const
-{
-   return container;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/24/2022
-\param[in] specie_in Index of the particle species defined in physics.hh
-*/
-inline void Params::SetSpecie(unsigned int specie_in)
-{
-   specie = specie_in;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/24/2022
-\return Index of the particle species defined in physics.hh
-*/
-inline unsigned int Params::GetSpecie(void) const
-{
-   return specie;
-};
-
-/*!
-\author Vladimir Florinski
-\date 11/30/2020
-\return Internal status
-*/
-inline uint16_t Params::GetStatus(void) const
-{
-   return _status;
+   uint16_t GetStatus(void) const {return _status;};
 };
 
 };

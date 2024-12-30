@@ -36,7 +36,7 @@ InitialSpaceFixed::InitialSpaceFixed(const InitialSpaceFixed& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -49,7 +49,7 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
    container.Read(initpos.Data());
 
 // Pre-assign "_pos" so that it never needs to change
@@ -102,7 +102,7 @@ InitialSpaceLine::InitialSpaceLine(const InitialSpaceLine& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_CURVE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -115,14 +115,14 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceLine::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
 
    int n_intervals;
-   container.Read(startpos.Data());
-   container.Read(endpos.Data());
-   container.Read(&n_intervals);
+   container.Read(startpos);
+   container.Read(endpos);
+   container.Read(n_intervals);
 
-   if(n_intervals <= 0) randompos = true;
+   if (n_intervals <= 0) randompos = true;
    else {
       randompos = false;
       increment = (endpos - startpos) / (double)n_intervals;
@@ -136,7 +136,7 @@ void InitialSpaceLine::SetupInitial(bool construct)
 */
 void InitialSpaceLine::EvaluateInitial(void)
 {
-   if(randompos) _pos = startpos + (endpos - startpos) * rng->GetUniform();
+   if (randompos) _pos = startpos + (endpos - startpos) * rng->GetUniform();
    else _pos += increment;
 };
 
@@ -177,7 +177,7 @@ InitialSpaceCircle::InitialSpaceCircle(const InitialSpaceCircle& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_CURVE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -190,13 +190,13 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceCircle::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
 
    GeoVector normal;
    double radius;
-   container.Read(origin.Data());
-   container.Read(normal.Data());
-   container.Read(&radius);
+   container.Read(origin);
+   container.Read(normal);
+   container.Read(radius);
    radius_x = radius * GetSecondUnitVec(normal.Normalize());
    radius_y = normal ^ radius_x;
 };
@@ -238,7 +238,7 @@ InitialSpaceBox::InitialSpaceBox(const InitialSpaceBox& other)
 {
    LOWER_BITS(_status, INITIAL_CURVE);
    RAISE_BITS(_status, INITIAL_VOLUME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -247,7 +247,7 @@ InitialSpaceBox::InitialSpaceBox(const InitialSpaceBox& other)
 */
 void InitialSpaceBox::EvaluateInitial(void)
 {
-   for(auto xyz = 0; xyz < 3; xyz++) _pos[xyz] = startpos[xyz] + (endpos[xyz] - startpos[xyz]) * rng->GetUniform();
+   for (auto xyz = 0; xyz < 3; xyz++) _pos[xyz] = startpos[xyz] + (endpos[xyz] - startpos[xyz]) * rng->GetUniform();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ InitialSpaceSphere::InitialSpaceSphere(const InitialSpaceSphere& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -297,9 +297,9 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceSphere::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(origin.Data());
-   container.Read(&radius);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(origin);
+   container.Read(radius);
 };
 
 /*!
@@ -343,7 +343,7 @@ InitialSpaceSphereSector::InitialSpaceSphereSector(const InitialSpaceSphereSecto
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -357,23 +357,23 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceSphereSector::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialSpaceSphere::SetupInitial(false);
+   if (!construct) InitialSpaceSphere::SetupInitial(false);
 
-   container.Read(&theta1);
-   if(theta1 < 0.0) theta1 = 0.0;
+   container.Read(theta1);
+   if (theta1 < 0.0) theta1 = 0.0;
    costheta1 = cos(theta1);
 
-   container.Read(&theta2);
-   if(theta2 > M_PI) theta2 = M_PI;
-   if(theta2 < theta1) theta2 = theta1;
+   container.Read(theta2);
+   if (theta2 > M_PI) theta2 = M_PI;
+   if (theta2 < theta1) theta2 = theta1;
    costheta2 = cos(theta2);
 
-   container.Read(&phi1);
+   container.Read(phi1);
    // if(phi1 < 0.0) phi1 = 0.0;
 
-   container.Read(&phi2);
-   if(phi2 > M_2PI) phi2 = M_2PI;
-   if(phi2 < phi1) phi2 = phi1;
+   container.Read(phi2);
+   if (phi2 > M_2PI) phi2 = M_2PI;
+   if (phi2 < phi1) phi2 = phi1;
 };
 
 /*!
@@ -418,7 +418,7 @@ InitialSpaceRankineHalfBody::InitialSpaceRankineHalfBody(const InitialSpaceRanki
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -432,12 +432,12 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceRankineHalfBody::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
 
 // Read parameters
-   container.Read(origin.Data());
-   container.Read(&z_nose);
-   container.Read(&radius);
+   container.Read(origin);
+   container.Read(z_nose);
+   container.Read(radius);
 
 // Find limiting cos(theta)
    cos_lim = (2.0 * Sqr(z_nose) - Sqr(radius)) / Sqr(radius);
@@ -487,7 +487,7 @@ InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -496,17 +496,21 @@ InitialSpaceTable::InitialSpaceTable(const InitialSpaceTable& other)
 */
 void InitialSpaceTable::EvaluateInitial(void)
 {
-   if(random) {
+   if (random) {
+
 // Generate random integer between 0 and initquant.size() - 1
       table_counter = rng->GetUniform() * initquant.size();
+
 // Pull position in randomly selected place on the table
       _pos = initquant[table_counter];
    }
    else {
+
 // Pull next position on the table
       _pos = initquant[table_counter++];
+
 // If all positions have been sampled, reset the counter
-      if(table_counter == initquant.size()) table_counter = 0;
+      if (table_counter == initquant.size()) table_counter = 0;
    };
 };
 
@@ -544,7 +548,7 @@ InitialSpaceCylinder::InitialSpaceCylinder(const InitialSpaceCylinder& other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -557,10 +561,10 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceCylinder::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(origin.Data());
-   container.Read(height.Data());
-   container.Read(radius_x.Data());
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(origin);
+   container.Read(height);
+   container.Read(radius_x);
 
    radius_y = UnitVec(height) ^ radius_x;
 };
@@ -604,7 +608,7 @@ InitialSpaceCylinderSector::InitialSpaceCylinderSector(const InitialSpaceCylinde
 {
    RAISE_BITS(_status, INITIAL_SPACE);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -617,12 +621,12 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialSpaceCylinderSector::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialSpaceCylinder::SetupInitial(false);
+   if (!construct) InitialSpaceCylinder::SetupInitial(false);
 
-   container.Read(&phi1);
+   container.Read(phi1);
    // if(phi1 < 0.0) phi1 = 0.0;
 
-   container.Read(&phi2);
+   container.Read(phi2);
    if(phi2 > M_2PI) phi2 = M_2PI;
    if(phi2 < phi1) phi2 = phi1;
 };

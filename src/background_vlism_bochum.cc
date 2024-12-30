@@ -62,7 +62,7 @@ void BackgroundVLISMBochum::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
-   container.Read(&z_nose);
+   container.Read(z_nose);
 
 // Build the new coordinate system with z axis along -u0 and convert the magnetic field to the primed frame.
    eprime[2] = -UnitVec(u0);

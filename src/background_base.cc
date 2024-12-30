@@ -47,7 +47,7 @@ BackgroundBase::BackgroundBase(const BackgroundBase& other)
               : Params(other)
 {
 // Params' constructor resets all flags
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -72,13 +72,14 @@ void BackgroundBase::DirectionalDerivative(int xyz)
    double _t_saved;
    GeoVector _pos_saved;
 
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();
    };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial derivatives
-   if(0 <= xyz && xyz <= 2) {
+   if ((0 <= xyz) && (xyz <= 2)) {
       _spdata._dr_forw_fail[xyz] = false;
       _spdata._dr_back_fail[xyz] = false;
 
@@ -90,21 +91,21 @@ void BackgroundBase::DirectionalDerivative(int xyz)
       _pos += _spdata_tmp._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
-      if(BITS_LOWERED(_status, STATE_INVALID)) {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_LOWERED(_status, STATE_INVALID)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_forw.Bvec = _spdata.Bvec;
             _spdata_forw.Bmag = _spdata.Bvec.Norm();
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
       }
       else {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_forw.Bvec = _spdata_tmp.Bvec;
             _spdata_forw.Bmag = _spdata_tmp.Bmag;
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
          _spdata._dr_forw_fail[xyz] = true;
       };
 
@@ -113,41 +114,41 @@ void BackgroundBase::DirectionalDerivative(int xyz)
       _pos -= _spdata_tmp._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
-      if(BITS_LOWERED(_status, STATE_INVALID)) {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_LOWERED(_status, STATE_INVALID)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_back.Bvec = _spdata.Bvec;
             _spdata_back.Bmag = _spdata.Bvec.Norm();
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
       }
       else {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_back.Bvec = _spdata_tmp.Bvec;
             _spdata_back.Bmag = _spdata_tmp.Bmag;
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
          _spdata._dr_back_fail[xyz] = true;
       };
 
-// If at least one increment failed, half the increment
-      if(_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _spdata_tmp._dr[xyz] *= 0.5;
-// Check if both increments failed, throw error
-      if(_spdata._dr_forw_fail[xyz] && _spdata._dr_back_fail[xyz]) throw ExFieldError();
+// If at least one increment failed, half the increment. If both increments failed, throw an error.
+      if (_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _spdata_tmp._dr[xyz] *= 0.5;
+      if (_spdata._dr_forw_fail[xyz] && _spdata._dr_back_fail[xyz]) throw ExFieldError();
 
 // Restore position
       _pos = _pos_saved;
 
 // Compute spatial derivatives. This calculation gives gradV[i][j] = dV_j / ds^i which is the transpose of the Jacobian.
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.gradUvec[xyz] = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dr[xyz];
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.gradUvec[xyz] = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dr[xyz];
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
          _spdata.gradBvec[xyz] = (_spdata_forw.Bvec - _spdata_back.Bvec) / _spdata_tmp._dr[xyz];
          _spdata.gradBmag[xyz] = (_spdata_forw.Bmag - _spdata_back.Bmag) / _spdata_tmp._dr[xyz];
       };
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.gradEvec[xyz] = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dr[xyz];
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.gradEvec[xyz] = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dr[xyz];
    }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time derivatives
    else {
       _spdata._dt_forw_fail = false;
@@ -161,21 +162,21 @@ void BackgroundBase::DirectionalDerivative(int xyz)
       _t += _spdata_tmp._dt;
       EvaluateBackground();
 
-      if(BITS_LOWERED(_status, STATE_INVALID)) {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_LOWERED(_status, STATE_INVALID)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_forw.Bvec = _spdata.Bvec;
             _spdata_forw.Bmag = _spdata.Bvec.Norm();
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
       }
       else {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_forw.Bvec = _spdata_tmp.Bvec;
             _spdata_forw.Bmag = _spdata_tmp.Bmag;
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
          _spdata._dt_forw_fail = true;
       };
 
@@ -184,39 +185,38 @@ void BackgroundBase::DirectionalDerivative(int xyz)
       _t -= _spdata_tmp._dt;
       EvaluateBackground();
 
-      if(BITS_LOWERED(_status, STATE_INVALID)) {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_LOWERED(_status, STATE_INVALID)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_back.Bvec = _spdata.Bvec;
             _spdata_back.Bmag = _spdata.Bvec.Norm();
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
       }
       else {
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_back.Bvec = _spdata_tmp.Bvec;
             _spdata_back.Bmag = _spdata_tmp.Bmag;
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
          _spdata._dt_back_fail = true;
       };
 
-// If at least one increment failed, half the increment
-      if(_spdata._dt_forw_fail || _spdata._dt_back_fail) _spdata_tmp._dt *= 0.5;
-// Check if both increments failed, throw error
-      if(_spdata._dt_forw_fail && _spdata._dt_back_fail) throw ExFieldError();
+// If at least one increment failed, half the increment. If both increments failed, throw an error.
+      if (_spdata._dt_forw_fail || _spdata._dt_back_fail) _spdata_tmp._dt *= 0.5;
+      if (_spdata._dt_forw_fail && _spdata._dt_back_fail) throw ExFieldError();
 
 // Restore time
       _t = _t_saved;
 
 // Compute time derivatives
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.dUvecdt = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dt;
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.dUvecdt = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dt;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
          _spdata.dBvecdt = (_spdata_forw.Bvec - _spdata_back.Bvec) / _spdata_tmp._dt;
          _spdata.dBmagdt = (_spdata_forw.Bmag - _spdata_back.Bmag) / _spdata_tmp._dt;
       };
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.dEvecdt = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dt;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.dEvecdt = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dt;
    };
 };
 
@@ -232,13 +232,13 @@ void BackgroundBase::NumericalDerivatives(void)
 // Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
 // Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivatives will be wrong
    _spdata_tmp._mask = _spdata._mask;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.Uvec = _spdata.Uvec;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.Uvec = _spdata.Uvec;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
       _spdata_tmp.Bvec = _spdata.Bvec;
       _spdata_tmp.Bmag = _spdata.Bmag;
       _spdata_tmp.bhat = _spdata.bhat;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.Evec = _spdata.Evec;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.Evec = _spdata.Evec;
    _spdata_tmp.region = _spdata.region;
    _spdata_tmp.n_dens = _spdata.n_dens;
    _spdata_tmp.p_ther = _spdata.p_ther;
@@ -246,7 +246,8 @@ void BackgroundBase::NumericalDerivatives(void)
 
 // Spatial derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a gradient.
    _spdata._mask >>= mask_offset;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
+
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
       r_g = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
 
@@ -335,14 +336,14 @@ void BackgroundBase::SetupBackground(bool construct)
    LOWER_BITS(_status, STATE_INVALID);
 
 // Unpack parameters
-   container.Read(&t0);
-   container.Read(r0.Data());
-   container.Read(u0.Data());
-   container.Read(B0.Data());
-   container.Read(&dmax0);
+   container.Read(t0);
+   container.Read(r0);
+   container.Read(u0);
+   container.Read(B0);
+   container.Read(dmax0);
 
 // Initialize "safe" box for derivatives
-   for(int xyz = 0; xyz < 3; xyz++) _spdata._dr[xyz] = incr_dmax_ratio * dmax0;
+   for (auto xyz = 0; xyz < 3; xyz++) _spdata._dr[xyz] = incr_dmax_ratio * dmax0;
    _spdata._dt = incr_dmax_ratio * dmax0 / c_code;
    _spdata.dmax = dmax0;
 };
@@ -421,7 +422,7 @@ double BackgroundBase::GetSafeIncr(const GeoVector& dir)
 void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
 {
 // Check that state setup is complete
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
       throw ExUninitialized();
    };
@@ -429,7 +430,7 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVe
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
    SetState(t_in, pos_in, mom_in);
    EvaluateDmax();
-   if(BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
+   if (BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 
 // The mask is provided by the caller, we need to copy it into our internal fields structure
    _spdata._mask = spdata._mask;

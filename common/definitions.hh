@@ -16,6 +16,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! An empty structure
+struct EmptyStruct{};
+
 #define LEFT  0
 #define RIGHT 1
 
@@ -153,7 +156,7 @@ Reference: http://www.graphics.stanford.edu/~seander/bithacks.htm
 SPECTRUM_DEVICE_FUNC inline int Log2(int n)
 {
    int log2 = 0;
-   while(n >>= 1) log2++;
+   while (n >>= 1) log2++;
    return log2;
 };
 
@@ -235,7 +238,7 @@ SPECTRUM_DEVICE_FUNC inline T** Create2D(int n, int m)
 {
    T** array = new T*[n];
    array[0] = new T[n * m];
-   for(auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
+   for (auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
    return array;
 };
 
@@ -248,7 +251,7 @@ SPECTRUM_DEVICE_FUNC inline T** Create2D(int n, int m)
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline void Delete2D(T** array)
 {
-   if(array) {
+   if (array) {
       delete[] array[0];
       delete[] array;
    };
@@ -269,8 +272,8 @@ SPECTRUM_DEVICE_FUNC inline T*** Create3D(int n, int m, int l)
    T*** array = new T**[n];
    array[0] = new T*[n * m];
    array[0][0] = new T[n * m * l];
-   for(auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
-   for(auto j = 1; j < n * m; j++) array[0][j] = array[0][j - 1] + l;
+   for (auto i = 1; i < n; i++) array[i] = array[i - 1] + m;
+   for (auto j = 1; j < n * m; j++) array[0][j] = array[0][j - 1] + l;
    return array;
 };
 
@@ -283,7 +286,7 @@ SPECTRUM_DEVICE_FUNC inline T*** Create3D(int n, int m, int l)
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline void Delete3D(T*** array)
 {
-   if(array) {
+   if (array) {
       delete[] array[0][0];
       delete[] array[0];
       delete[] array;
@@ -304,12 +307,12 @@ SPECTRUM_DEVICE_FUNC inline T IntPow(T x, int n)
    int i;
    T res = 1.0;
 
-   if(n < 0) {
-      if(x == 0) return -1.0;
-      for(i = 0; i > n; i--) res /= x;
+   if (n < 0) {
+      if (x == 0) return -1.0;
+      for (i = 0; i > n; i--) res /= x;
    }
    else {
-      for(i = 0; i < n; i++) res *= x;
+      for (i = 0; i < n; i++) res *= x;
    };
 
    return res;
@@ -326,8 +329,8 @@ SPECTRUM_DEVICE_FUNC inline T IntPow(T x, int n)
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y)
 {
-   if(x * y <= 0.0) return 0.0;
-   else if(x * x > y * y) return y;
+   if (x * y <= 0.0) return 0.0;
+   else if (x * x > y * y) return y;
    else return x;
 };
 
@@ -347,13 +350,13 @@ SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y, T z)
    absx = std::abs(x);
    absy = std::abs(y);
    absz = std::abs(z);
-   if(x * y <= 0.0) return 0.0;
-   if(absx > absy) {
-      if(absy > absz) return z;
+   if (x * y <= 0.0) return 0.0;
+   if (absx > absy) {
+      if (absy > absz) return z;
       else return y;
    }
    else {
-      if(absx > absz) return z;
+      if (absx > absz) return z;
       else return x;
    };
 };
@@ -371,7 +374,7 @@ template <typename T>
 SPECTRUM_DEVICE_FUNC inline int InList(int size, const T* array, T val)
 {
    int idx = 0;
-   while(idx < size && array[idx] != val) idx++;
+   while (idx < size && array[idx] != val) idx++;
    return (idx == size ? -1 : idx);
 };
 
@@ -389,10 +392,10 @@ SPECTRUM_DEVICE_FUNC inline int InList(int size, const T* array, T val)
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T val, bool limit)
 {
-   if(l2 <= l1) return -1;
-   if(val < array[l1]) return -1;
-   if(val > array[l2]) {
-      if(limit) return l2;
+   if (l2 <= l1) return -1;
+   if (val < array[l1]) return -1;
+   if (val > array[l2]) {
+      if (limit) return l2;
       else return -1;
    };
 
@@ -401,7 +404,7 @@ SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T 
    i3 = l2;
 
 // Bisection algorithm
-   while(i3 - i1 > 1) {
+   while (i3 - i1 > 1) {
       i2 = (i1 + i3) >> 1;
       (val > array[i2] ? i1 : i3) = i2;
    };
@@ -425,7 +428,7 @@ template <typename T>
 SPECTRUM_DEVICE_FUNC inline bool QuadraticSolve(T a, T b, T c, T& x1, T& x2)
 {
    T q = Sqr(b) - 4.0 * a * c;
-   if(q >= 0.0) {
+   if (q >= 0.0) {
       q = sqrt(q);
       x1 = (-b + q) / (2.0 * a);
       x2 = (-b - q) / (2.0 * a);
@@ -484,7 +487,7 @@ SPECTRUM_DEVICE_FUNC inline bool CubicSolve(T a, T b, T c, T d, T& x1, T& x2, T&
    Q = p / 3.0;
    R = q / 2.0;
    D = Q * Q * Q + R * R;
-   if(D <= 0.0) {
+   if (D <= 0.0) {
       theta = acos(R / sqrt(-Q * Q * Q));
       Q = sqrt(-Q);
       x1 = 2.0 * Q * cos(theta / 3.0) - a1 / 3.0;
@@ -549,49 +552,8 @@ template <typename T>
 SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
 {
    int n = x / period;
-   if(x < 0.0) return x - (n - 1) * period;
+   if (x < 0.0) return x - (n - 1) * period;
    else return x - n * period;
-};
-
-/*!
-\brief Distribute a number of tasks among the workers as evenly as possible
-\author Vladimir Florinski
-\date 02/15/2024
-\param[in,out] tasks   Number of tasks to perform
-\param[in,out] workers Number of workers available/required
-\param[out]    tpw     Number of tasks per worker (except the last)
-\param[out]    tplw    Number of tasks for the last worker
-*/
-template <typename T>
-SPECTRUM_DEVICE_FUNC inline void DistributeTasks(T& tasks, T& workers, T& tpw, T& tplw)
-{
-   T excess_tasks;
-
-// Invalid input, but the return must make sense
-   if((tasks <= 0) || (workers <= 0)) {
-      tasks = 0;
-      workers = 0;
-      tpw = tplw = 0;
-   }
-
-// Workers exceed tasks
-   else if(workers >= tasks) {
-      workers = tasks;
-      tpw = tplw = 1;
-   }
-
-// Normal situation
-   else {
-
-// Initial estimate
-      tpw = tasks / workers;
-      if(tasks % workers) tpw++;
-
-// Redundant workers and the last worker load
-      excess_tasks = tpw * workers - tasks;
-      workers -= excess_tasks / tpw;
-      tplw = tpw - excess_tasks % tpw;
-   };
 };
 
 };

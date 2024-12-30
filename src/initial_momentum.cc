@@ -38,7 +38,7 @@ InitialMomentumFixed::InitialMomentumFixed(const InitialMomentumFixed& other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -51,23 +51,27 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialMomentumFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
+
 #if INITIAL_MOM_FIXED_COORD == 0
-   container.Read(initmom.Data());
 
 // Pre-assign "_mom" so that it never needs to change
+   container.Read(initmom);
    _mom = initmom;
+
 #else
+
    double theta0, phi0;
 
-   container.Read(&p0);
-   container.Read(&theta0);
-   container.Read(&phi0);
+   container.Read(p0);
+   container.Read(theta0);
+   container.Read(phi0);
 
    mu0 = cos(theta0);
    st0 = sin(theta0);
    sp0 = sin(phi0);
    cp0 = cos(phi0);
+
 #endif
 };
 
@@ -77,9 +81,9 @@ void InitialMomentumFixed::SetupInitial(bool construct)
 */
 void InitialMomentumFixed::EvaluateInitial(void)
 {
-#if INITIAL_MOM_FIXED_COORD == 0
-// Nothing to do - the value of "_mom" was assigned in "Setupinitial()"
-#else
+// Nothing to do for FIXED_COORD - the value of "_mom" was assigned in "Setupinitial()"
+#if INITIAL_MOM_FIXED_COORD != 0
+
    GeoVector e1, e2;
 
 // Component parallel to "axis"
@@ -89,6 +93,7 @@ void InitialMomentumFixed::EvaluateInitial(void)
    e1 = GetSecondUnitVec(axis);
    e2 = axis ^ e1;
    _mom += p0 * st0 * (cp0 * e1 + sp0 * e2);
+
 #endif
 };
 
@@ -121,7 +126,7 @@ InitialMomentumBeam::InitialMomentumBeam(const InitialMomentumBeam& other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -134,8 +139,8 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialMomentumBeam::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&p0);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(p0);
 
 #if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    _mom = GeoVector(0.0, 0.0, p0);
@@ -150,9 +155,8 @@ void InitialMomentumBeam::SetupInitial(bool construct)
 */
 void InitialMomentumBeam::EvaluateInitial(void)
 {
-#if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT) || (TRAJ_TYPE == TRAJ_FOCUSED)
-// Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
-#elif (TRAJ_TYPE == TRAJ_LORENTZ)
+// For non-Lorentz trajectories the value of "_mom" is assigned in "SetupInitial()"
+#if (TRAJ_TYPE == TRAJ_LORENTZ)
    _mom = p0 * axis;
 #endif
 };
@@ -186,7 +190,7 @@ InitialMomentumRing::InitialMomentumRing(const InitialMomentumRing& other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_CURVE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -201,9 +205,9 @@ void InitialMomentumRing::SetupInitial(bool construct)
    double theta0;
 
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&p0);
-   container.Read(&theta0);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(p0);
+   container.Read(theta0);
 
    mu0 = cos(theta0);
    st0 = sin(theta0);
@@ -266,7 +270,7 @@ InitialMomentumShell::InitialMomentumShell(const InitialMomentumShell& other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_SURFACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -279,8 +283,8 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialMomentumShell::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&p0);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(p0);
 
 #if TRAJ_TYPE == TRAJ_PARKER
    _mom = GeoVector(p0, 0.0, 0.0);
@@ -346,7 +350,7 @@ InitialMomentumThickShell::InitialMomentumThickShell(const InitialMomentumThickS
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_VOLUME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -359,12 +363,12 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialMomentumThickShell::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&p1);
-   container.Read(&p2);
-   container.Read(&log_bias);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(p1);
+   container.Read(p2);
+   container.Read(log_bias);
 
-   if(log_bias) {
+   if (log_bias) {
       p1 = log10(p1);
       p2 = log10(p2);
    };
@@ -378,7 +382,7 @@ void InitialMomentumThickShell::EvaluateInitial(void)
 {
    double p;
 
-   if(log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
+   if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
    
 #if TRAJ_TYPE == TRAJ_PARKER
@@ -434,7 +438,7 @@ InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -443,17 +447,21 @@ InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
 */
 void InitialMomentumTable::EvaluateInitial(void)
 {
-   if(random) {
+   if (random) {
+
 // Generate random integer between 0 and initquant.size() - 1
       table_counter = rng->GetUniform() * initquant.size();
+
 // Pull momentum in randomly selected place on the table
       _mom = initquant[table_counter];
    }
    else {
+
 // Pull next momentum on the table
       _mom = initquant[table_counter++];
+
 // If all momenta have been sampled, reset the counter
-      if(table_counter == initquant.size()) table_counter = 0;
+      if (table_counter == initquant.size()) table_counter = 0;
    };
 };
 
@@ -482,7 +490,7 @@ InitialMomentumMaxwell::InitialMomentumMaxwell(const InitialMomentumMaxwell& oth
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
    RAISE_BITS(_status, INITIAL_VOLUME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -495,10 +503,10 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialMomentumMaxwell::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&p0);
-   container.Read(&dp_para);
-   container.Read(&dp_perp);
+   if (!construct) InitialBase::SetupInitial(false);
+   container.Read(p0);
+   container.Read(dp_para);
+   container.Read(dp_perp);
 
 // The RNG calculation is based on a standard deviation, which is smaller than the thermal speeed by a factor of sqrt(2).
    dp_para /= M_SQRT2;

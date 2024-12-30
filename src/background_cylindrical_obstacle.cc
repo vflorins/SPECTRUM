@@ -58,19 +58,18 @@ void BackgroundCylindricalObstacle::SetupBackground(bool construct)
 // The parent version must be called explicitly if not constructing
    if(!construct) BackgroundBase::SetupBackground(false);
 
-   container.Read(axis.Data());
+   container.Read(axis);
    axis.Normalize();
 
 // "B0" must be normal to the axis
    B0.SubtractParallel(axis);
 
-   container.Read(&r_cylinder);
-   container.Read(&dmax_fraction);
+   container.Read(r_cylinder);
+   container.Read(dmax_fraction);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\author Vladimir Florinski
 \date 08/20/2024
 */
 void BackgroundCylindricalObstacle::EvaluateBackground(void)

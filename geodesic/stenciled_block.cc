@@ -23,12 +23,16 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 05/14/2024
+\date 06/28/2024
+\param[in] other Object to initialize from
 */
 template <int verts_per_face>
-StenciledBlock<verts_per_face>::~StenciledBlock()
+SPECTRUM_DEVICE_FUNC StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
+                                                   : GridBlock<verts_per_face>(static_cast<GridBlock<verts_per_face>>(other))
 {
-   FreeStorage();
+   if (other.side_length != -1) {
+      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
 };
 
 /*!
@@ -48,6 +52,16 @@ StenciledBlock<verts_per_face>::StenciledBlock(int width, int wghost, int height
 
 /*!
 \author Vladimir Florinski
+\date 05/14/2024
+*/
+template <int verts_per_face>
+StenciledBlock<verts_per_face>::~StenciledBlock()
+{
+   FreeStorage();
+};
+
+/*!
+\author Vladimir Florinski
 \date 05/17/2024
 \param[in] width     Length of the side, without ghost cells
 \param[in] wghost    Width of the ghost cell layer outside the sector
@@ -59,7 +73,10 @@ template <int verts_per_face>
 void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
 {
 // Call base method.
-   if(!construct) GridBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
+   if (!construct) GridBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
+
+// Free up storage (not that of the base class) because this could be a repeat call
+   FreeStorage();
 
    face_area = new double[n_faces_withghost];
    face_cmass = new GeoVector[n_faces_withghost];
@@ -84,9 +101,9 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
    Delete2D(geom_matr_LU);
 
 // Free up stencils
-   for(auto pface = 0; pface < n_faces_withghost; pface++) {
-      if(BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
-         for(auto stencil = 0; stencil < n_stencils; stencil++) {
+   for (auto pface = 0; pface < n_faces_withghost; pface++) {
+      if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
+         for (auto stencil = 0; stencil < n_stencils; stencil++) {
             delete[] stencil_zonelist[pface][stencil];
          };
       };
@@ -101,8 +118,7 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
 
 /*!
 \author Vladimir Florinski
-\date 05/20/2024
-\param[in] index       Unique ID of this block in the mesh
+\date 06/21/2024
 \param[in] ximin       Smallest reference distance of the block (without ghost)
 \param[in] ximax       Largest reference distance of the block (without ghost)
 \param[in] corners     Corner type, true for singular corners
@@ -111,16 +127,16 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
 \param[in] dist_map_in Radial map function 
 */
 template <int verts_per_face>
-void StenciledBlock<verts_per_face>::AssociateMesh(int index, double ximin, double ximax, const bool* corners,
-                                                   const bool* borders, const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
+void StenciledBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
 {
-   GridBlock<verts_per_face>::AssociateMesh(index, ximin, ximax, corners, borders, vcart, dist_map_in);
+   GridBlock<verts_per_face>::AssociateMesh(ximin, ximax, corners, borders, vcart, dist_map_in);
    BuildAllStencils();
 
    ComputeMoments();
-   for(auto pface = 0; pface < n_faces_withghost; pface++) {
-      if(BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
-         for(auto stencil = 0; stencil < n_stencils; stencil++) {
+   for (auto pface = 0; pface < n_faces_withghost; pface++) {
+      if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
+         for (auto stencil = 0; stencil < n_stencils; stencil++) {
             ComputeOneMatrix(pface, stencil);
          };
       };
@@ -142,15 +158,15 @@ void StenciledBlock<verts_per_face>::ComputeMoments(void)
    GeoVector cm1, cm2;
 
 // Compute face areas and face centers.
-   for(auto face = 0; face < n_faces_withghost; face++) {
-      if(BITS_RAISED(face_mask[face], GEOELM_NEXI)) {
+   for (auto face = 0; face < n_faces_withghost; face++) {
+      if (BITS_RAISED(face_mask[face], GEOELM_NEXI)) {
          face_area[face] = 0.0;
          face_cmass[face] = gv_zeros;
          continue;
       };
 
 // A triangle and its center of mass. The CM does not lie on the US!
-      if(verts_per_face == 3) {
+      if (verts_per_face == 3) {
          area1 = SphTriArea(block_vert_cart[fv_local[face][0]], block_vert_cart[fv_local[face][1]], block_vert_cart[fv_local[face][2]]);
          area2 = 0.0;
          cm1 = SphTriCenter(block_vert_cart[fv_local[face][0]], block_vert_cart[fv_local[face][1]], block_vert_cart[fv_local[face][2]]);
@@ -158,7 +174,7 @@ void StenciledBlock<verts_per_face>::ComputeMoments(void)
       }
 
 // Two triangles and the common center of mass
-      else if(verts_per_face == 4) {
+      else if (verts_per_face == 4) {
          area1 = SphTriArea(block_vert_cart[fv_local[face][0]], block_vert_cart[fv_local[face][1]], block_vert_cart[fv_local[face][2]]);
          area2 = SphTriArea(block_vert_cart[fv_local[face][2]], block_vert_cart[fv_local[face][3]], block_vert_cart[fv_local[face][0]]);
          cm1 = SphTriCenter(block_vert_cart[fv_local[face][0]], block_vert_cart[fv_local[face][1]], block_vert_cart[fv_local[face][2]]);
@@ -169,8 +185,8 @@ void StenciledBlock<verts_per_face>::ComputeMoments(void)
    };
 
 // Compute edge lengths
-   for(auto edge = 0; edge < n_edges_withghost; edge++) {
-      if(BITS_RAISED(edge_mask[edge], GEOELM_NEXI)) {
+   for (auto edge = 0; edge < n_edges_withghost; edge++) {
+      if (BITS_RAISED(edge_mask[edge], GEOELM_NEXI)) {
          edge_length[edge] = acos(block_vert_cart[ev_local[edge][0]] * block_vert_cart[ev_local[edge][1]]);
       };
    };
@@ -191,20 +207,20 @@ void StenciledBlock<verts_per_face>::MarkStenciledArea(void)
 
 // Mark the interior + one layer of faces
    base_vert = std::make_pair(square_fill * (ghost_width - 1), ghost_width - 1);
-   for(i = square_fill * ghost_width; i <= imax; i++) {
+   for (i = square_fill * ghost_width; i <= imax; i++) {
       jmax = MaxFaceJ(base_vert, total_length - square_fill * ghost_width + 1, i);
-      for(j = square_fill * (ghost_width - 1); j <= jmax; j++) {
+      for (j = square_fill * (ghost_width - 1); j <= jmax; j++) {
          face = face_index_sector[i][j];
          RAISE_BITS(face_mask[face], GEOELM_STEN);
       };
    };
 
 // Clip the small triangles at the SE corner.
-   if(verts_per_face == 3) {
+   if (verts_per_face == 3) {
       base_vert = std::make_pair(total_length - ghost_width - 1, ghost_width - 1);
-      for(i = imax - 1; i <= imax; i++) {
+      for (i = imax - 1; i <= imax; i++) {
          jmax = MaxFaceJ(base_vert, 2, i);
-         for(j = square_fill * (ghost_width - 1); j <= jmax; j++) {
+         for (j = square_fill * (ghost_width - 1); j <= jmax; j++) {
             face = face_index_sector[i][j];
             LOWER_BITS(face_mask[face], GEOELM_STEN);
          };
@@ -212,9 +228,9 @@ void StenciledBlock<verts_per_face>::MarkStenciledArea(void)
 
 // Clip the small triangles at the N corner.
       base_vert = std::make_pair(total_length - ghost_width - 1, MaxVertJ(total_length, total_length - ghost_width - 1) - ghost_width + 1);
-      for(i = imax - 1; i <= imax; i++) {
+      for (i = imax - 1; i <= imax; i++) {
          jmax = MaxFaceJ(base_vert, 2, i);
-         for(j = MaxFaceJ(base_vert, 2, imax - 1); j <= jmax; j++) {
+         for (j = MaxFaceJ(base_vert, 2, imax - 1); j <= jmax; j++) {
             face = face_index_sector[i][j];
             LOWER_BITS(face_mask[face], GEOELM_STEN);
          };
@@ -232,13 +248,13 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
    int ic, nface, face;
 
    zones_per_stencil[0] = verts_per_face + 2;
-   for(auto stencil = 1; stencil < n_stencils; stencil++) zones_per_stencil[stencil] = 4;
+   for (auto stencil = 1; stencil < n_stencils; stencil++) zones_per_stencil[stencil] = 4;
 
 // Storage for stencilsets
    stencil_zonelist = Create2D<int*>(n_faces_withghost, n_stencils);
-   for(auto pface = 0; pface < n_faces_withghost; pface++) {
-      if(BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
-         for(auto stencil = 0; stencil < n_stencils; stencil++) {
+   for (auto pface = 0; pface < n_faces_withghost; pface++) {
+      if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
+         for (auto stencil = 0; stencil < n_stencils; stencil++) {
             stencil_zonelist[pface][stencil] = new int[2 * zones_per_stencil[stencil]];
          };
       };
@@ -259,11 +275,11 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
 //                                                 -----------                                               -------------------------------
 
 // Calculate the zone lists
-   for(auto pface = 0; pface < n_faces_withghost; pface++) {
-      if(BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
+   for (auto pface = 0; pface < n_faces_withghost; pface++) {
+      if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
 
 // Central
-         for(ic = 0; ic < verts_per_face; ic++) {
+         for (ic = 0; ic < verts_per_face; ic++) {
             face = ff_local[pface][ic];
             stencil_zonelist[pface][0][2 * ic] = face; 
             stencil_zonelist[pface][0][2 * ic + 1] = 0;
@@ -274,7 +290,7 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
          stencil_zonelist[pface][0][2 * verts_per_face + 3] = 1;
 
 // Directional
-         for(auto stencil = 1; stencil <= verts_per_face; stencil++) {
+         for (auto stencil = 1; stencil <= verts_per_face; stencil++) {
             nface = ff_local[pface][stencil - 1];
             stencil_zonelist[pface][stencil][0] = stencil_zonelist[pface][stencil + verts_per_face][0] = nface;
             stencil_zonelist[pface][stencil][1] = stencil_zonelist[pface][stencil + verts_per_face][1] = 0;
@@ -307,7 +323,7 @@ void StenciledBlock<verts_per_face>::ComputeOneMatrix(int pface, int stencil)
    geom_matr_A.resize(zones_per_stencil[stencil], 3);
 
 // Generate the geometry matrix. Each row corresponds to one zone in the stencil.
-   for(auto row = 0; row < zones_per_stencil[stencil]; row++) {
+   for (auto row = 0; row < zones_per_stencil[stencil]; row++) {
       face = stencil_zonelist[pface][stencil][2 * row];
       switch(stencil_zonelist[pface][stencil][2 * row + 1]) {
       case -1:
@@ -320,7 +336,7 @@ void StenciledBlock<verts_per_face>::ComputeOneMatrix(int pface, int stencil)
          rp_factor = 1.0;
          break;
       };
-      for(auto col = 0; col < 3; col++) {
+      for (auto col = 0; col < 3; col++) {
          geom_matr_A(row, col) = rp_factor * face_cmass[face][col] - face_cmass[pface][col];
       };
    };
@@ -343,7 +359,7 @@ template <int verts_per_face>
 void StenciledBlock<verts_per_face>::PrintStencilProps(int pface, int stencil) const
 {
    std::cerr << "Printing stencil " << stencil << " for principal face " << pface << std::endl;
-   for(auto row = 0; row < zones_per_stencil[stencil]; row++) {
+   for (auto row = 0; row < zones_per_stencil[stencil]; row++) {
       std::cerr << "face: " << std::setw(5) << stencil_zonelist[pface][stencil][2 * row];
       std::cerr << ", plane: " << std::setw(5) << stencil_zonelist[pface][stencil][2 * row + 1];
       std::cerr << std::endl;
@@ -365,7 +381,7 @@ void StenciledBlock<verts_per_face>:: DrawStencil(int k, int pface, int stencil,
 {
    int k1, face;
 
-   for(auto row = 0; row < zones_per_stencil[stencil]; row++) {
+   for (auto row = 0; row < zones_per_stencil[stencil]; row++) {
       k1 = k + stencil_zonelist[pface][stencil][2 * row + 1];
       face = stencil_zonelist[pface][stencil][2 * row];
       GridBlock<verts_per_face>::DrawZone(k1, face, rot_z, rot_x);

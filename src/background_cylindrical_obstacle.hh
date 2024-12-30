@@ -29,8 +29,8 @@ const std::string bg_name_cylindrical_obstacle = "BackgroundCylindricalObstacle"
 
 Parameters: (BackgroundBase), GeoVector axis, double r_obstacle, double dmax_fraction
 */
-class BackgroundCylindricalObstacle : public BackgroundBase {
-
+class BackgroundCylindricalObstacle : public BackgroundBase
+{
 protected:
 
 //! Axis of the cylinder (persistent)

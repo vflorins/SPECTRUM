@@ -45,7 +45,7 @@ struct Schlafli
 \param[in] p_in Number of vertices of each face
 \param[in] q_in Number of edges that meet at each vertex
 */
-SPECTRUM_DEVICE_FUNC constexpr inline Schlafli::Schlafli(int p_in, int q_in)
+SPECTRUM_DEVICE_FUNC inline constexpr Schlafli::Schlafli(int p_in, int q_in)
                                               : p(p_in),
                                                 q(q_in)
 {};
@@ -55,7 +55,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline Schlafli::Schlafli(int p_in, int q_in)
 \date 01/05/2024
 \return Number of vertices
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NVerts(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NVerts(void) const
 {
    return 4 * p / (4 - (p - 2) * (q - 2));
 };
@@ -65,7 +65,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NVerts(void) const
 \date 01/05/2024
 \return Number of edges
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NEdges(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NEdges(void) const
 {
    return 2 * p * q / (4 - (p - 2) * (q - 2));
 };
@@ -75,15 +75,19 @@ SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NEdges(void) const
 \date 01/05/2024
 \return Number of faces
 */
-SPECTRUM_DEVICE_FUNC constexpr inline int Schlafli::NFaces(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NFaces(void) const
 {
    return 4 * q / (4 - (p - 2) * (q - 2));
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Enumerates the Platonic solids
-enum PolyType {POLY_TETRAHEDRON, POLY_HEXAHEDRON, POLY_OCTAHEDRON, POLY_DODECAHEDRON, POLY_ICOSAHEDRON};
+//! Platonic solids
+#define POLY_TETRAHEDRON    4
+#define POLY_HEXAHEDRON     6
+#define POLY_OCTAHEDRON     8
+#define POLY_DODECAHEDRON  12
+#define POLY_ICOSAHEDRON   20
 
 //! Human readable names (host only)
 const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "dodecahedron", "icosahedron"};
@@ -94,7 +98,7 @@ const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "do
 \brief A class describing a convex regular polyhedron
 \author Vladimir Florinski
 */
-template <PolyType poly_type>
+template <int poly_type>
 class Polyhedron : public Schlafli
 {
 protected:
@@ -127,7 +131,7 @@ protected:
    SPECTRUM_DEVICE_FUNC constexpr void Setup(void);
 
 //! Coordinates of the vertices
-   SPECTRUM_DEVICE_FUNC constexpr void VertexCoords(void);
+   SPECTRUM_DEVICE_FUNC void VertexCoords(void);
 
 //! VV and FV connectivity
    SPECTRUM_DEVICE_FUNC constexpr void SetConnectivity(void);
@@ -148,7 +152,7 @@ public:
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 {
    Setup();
@@ -169,7 +173,7 @@ SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <PolyType poly_type>
+template <int poly_type>
 SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::~Polyhedron()
 {
    delete[] vlat;
@@ -208,7 +212,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::Setup(v
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
 {
    edge_length = 2.0 * sqrt(2.0 / 3.0);
    double poly_ang = asin(1.0 / 3.0);
@@ -225,7 +229,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::VertexC
 \date 01/05/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::SetConnectivity(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::SetConnectivity(void)
 {
    vert_vert[0][0] = 1; vert_vert[0][1] = 2; vert_vert[0][2] = 3;
    vert_vert[1][0] = 0; vert_vert[1][1] = 3; vert_vert[1][2] = 2;
@@ -258,7 +262,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_TETRAHEDRON>::SetConn
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_HEXAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_HEXAHEDRON>::Setup(void)
 {
    p = 4;
    q = 3;
@@ -269,7 +273,7 @@ SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_HEXAHEDRON>::Setup(void)
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_HEXAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_HEXAHEDRON>::VertexCoords(void)
 {
    edge_length = 2.0 / sqrt(3.0);
    double poly_ang = asin(1.0 / sqrt(3.0));
@@ -286,7 +290,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_HEXAHEDRON>::VertexCo
 \date 01/05/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_HEXAHEDRON>::SetConnectivity(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_HEXAHEDRON>::SetConnectivity(void)
 {
    vert_vert[0][0] = 1; vert_vert[0][1] = 3; vert_vert[0][2] = 4;
    vert_vert[1][0] = 2; vert_vert[1][1] = 0; vert_vert[1][2] = 5;
@@ -328,7 +332,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_HEXAHEDRON>::SetConne
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_OCTAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_OCTAHEDRON>::Setup(void)
 {
    p = 3;
    q = 4;
@@ -339,7 +343,7 @@ SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_OCTAHEDRON>::Setup(void)
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_OCTAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_OCTAHEDRON>::VertexCoords(void)
 {
    edge_length = sqrt(2.0);
 
@@ -357,7 +361,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_OCTAHEDRON>::VertexCo
 \date 01/05/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_OCTAHEDRON>::SetConnectivity(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_OCTAHEDRON>::SetConnectivity(void)
 {
    vert_vert[0][0] = 1; vert_vert[0][1] = 2; vert_vert[0][2] = 3; vert_vert[0][3] = 4;
    vert_vert[1][0] = 0; vert_vert[1][1] = 4; vert_vert[1][2] = 5; vert_vert[1][3] = 2;
@@ -429,7 +433,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_OCTAHEDRON>::SetConne
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
 {
    p = 5;
    q = 3;
@@ -440,7 +444,7 @@ SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::VertexCoords(void)
 {
    edge_length = 4.0 / M_SQRT3 / (1.0 + M_SQRT5);
    double poly_ang1 = acos(edge_length * M_SQRT2 / sqrt(5.0 - M_SQRT5));
@@ -462,7 +466,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::Vertex
 \date 01/05/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::SetConnectivity(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_DODECAHEDRON>::SetConnectivity(void)
 {
    vert_vert[ 0][0] =  1; vert_vert[ 0][1] =  4; vert_vert[ 0][2] =  7;
    vert_vert[ 1][0] =  2; vert_vert[ 1][1] =  0; vert_vert[ 1][2] =  9;
@@ -554,7 +558,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_DODECAHEDRON>::SetCon
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_ICOSAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_ICOSAHEDRON>::Setup(void)
 {
    p = 3;
    q = 5;
@@ -565,7 +569,7 @@ SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_ICOSAHEDRON>::Setup(void)
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_ICOSAHEDRON>::VertexCoords(void)
+SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_ICOSAHEDRON>::VertexCoords(void)
 {
    edge_length = 1.0 / sin(0.4 * M_PI);
    double poly_ang = atan(0.5);
@@ -586,7 +590,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_ICOSAHEDRON>::VertexC
 \date 01/05/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC constexpr inline void Polyhedron<POLY_ICOSAHEDRON>::SetConnectivity(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_ICOSAHEDRON>::SetConnectivity(void)
 {
    vert_vert[ 0][0] =  1; vert_vert[ 0][1] =  2; vert_vert[ 0][2] =  3; vert_vert[ 0][3] =  4; vert_vert[ 0][4] =  5;
    vert_vert[ 1][0] =  0; vert_vert[ 1][1] =  5; vert_vert[ 1][2] =  6; vert_vert[ 1][3] =  7; vert_vert[ 1][4] =  2;

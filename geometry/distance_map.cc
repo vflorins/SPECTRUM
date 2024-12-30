@@ -52,7 +52,7 @@ DistanceBase::DistanceBase(const DistanceBase& other)
             : Params(other)
 {
 // Params' constructor sets the state to "STATE_NONE"
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistance(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistance(true);
 };
 
 /*!
@@ -75,8 +75,8 @@ void DistanceBase::SetupDistance(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
-   container.Read(&rmin);
-   container.Read(&rmax);
+   container.Read(rmin);
+   container.Read(rmax);
    
    RAISE_BITS(_status, STATE_SETUP_COMPLETE);
    LOWER_BITS(_status, STATE_INVALID);
@@ -217,7 +217,7 @@ void DistancePowerLaw::SetupDistance(bool construct)
 // The parent version must be called explicitly if not constructing
    if (!construct) DistanceBase::SetupDistance(false);
 
-   container.Read(&powl);
+   container.Read(powl);
    pow_inv = 1.0 / powl;
    ref0 = 1.0 / (pow(rmax / rmin, pow_inv) - 1.0);
    c = powl * rmin / ref0;
@@ -270,9 +270,9 @@ void DistanceLinearExp::SetupDistance(bool construct)
 
    double frac, rmed;
 
-   container.Read(&rmed);
-   container.Read(&frac);
-   container.Read(&logy);
+   container.Read(rmed);
+   container.Read(frac);
+   container.Read(logy);
    
    base = exp(logy);
    C = (rmed / rmin - 1.0 - frac * (rmax / rmin - 1.0)) / (pow(base, frac) - 1.0 - frac * (base - 1.0));
@@ -306,10 +306,19 @@ void DistanceLinearExp::EvaluateDistance(void)
 void PrintDistanceMaps(DistanceBase* dist_map, bool as_phys)
 {
    const double n = 640;
+
+/*
    const double rmin = 30.0;
    const double rmed = 250.0;
    const double rmax = 1000.0;
    const double powl = 2.0;
+   const double frac = 0.4;
+   const double logy = 10.0;
+*/
+   const double rmin = 1.0;
+   const double rmed = 10.0;
+   const double rmax = 100.0;
+   const double powl = 10.0;
    const double frac = 0.4;
    const double logy = 10.0;
 
