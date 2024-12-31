@@ -585,9 +585,9 @@ inline int TrajectoryBase::Mirrorings(void) const
 inline double TrajectoryBase::ElapsedTime(void) const
 {
 #ifdef RECORD_TRAJECTORY
-   return traj_t.back();
+   return traj_t.back() - traj_t.front();
 #else
-   return _t;
+   return _t - traj_t[0];
 #endif
 };
 
