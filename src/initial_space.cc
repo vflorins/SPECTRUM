@@ -50,7 +50,7 @@ void InitialSpaceFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
-   container.Read(initpos.Data());
+   container.Read(initpos);
 
 // Pre-assign "_pos" so that it never needs to change
    _pos = initpos;

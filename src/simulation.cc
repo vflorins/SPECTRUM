@@ -161,11 +161,6 @@ void SimulationWorker::AddBackground(const BackgroundBase& background_in, const 
 {
    DataContainer container_mpi(container_in);
 
-#ifdef NEED_SERVER
-// Smuggle "mpi_config" in the container through trajectory and background to the server frontend.
-   container_mpi.Insert(&mpi_config);
-#endif
-
    trajectory->AddBackground(background_in, container_mpi);
    PrintMessage(__FILE__, __LINE__, "Background object added", mpi_config->is_master);
 };

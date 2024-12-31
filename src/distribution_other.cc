@@ -62,8 +62,8 @@ void DistributionUniform<distroClass>::SetupDistribution(bool construct)
    if(!construct) DistributionTemplated<distroClass>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_hot);
-   this->container.Read(&val_cold);
+   this->container.Read(val_hot);
+   this->container.Read(val_cold);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {UniformHot();});
@@ -129,7 +129,7 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
    if(!construct) DistributionUniform<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
+   this->container.Read(val_time);
 
 // Check that ONLY the first dimension is active.
    if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
@@ -184,8 +184,8 @@ void DistributionPositionUniform::SetupDistribution(bool construct)
    if(!construct) DistributionUniform<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
    if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
@@ -241,8 +241,8 @@ void DistributionMomentumUniform::SetupDistribution(bool construct)
    if(!construct) DistributionUniform<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
    if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
@@ -328,12 +328,12 @@ void DistributionAnisotropyLISM::SetupDistribution(bool construct)
    if(!construct) DistributionTemplated<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(rot_matrix[0].Data());
-   this->container.Read(rot_matrix[1].Data());
-   this->container.Read(rot_matrix[2].Data());
-   this->container.Read(U_LISM.Data());
-   this->container.Read(&mom_pow_law);
-   this->container.Read(grad_perp_dens.Data());
+   this->container.Read(rot_matrix[0]);
+   this->container.Read(rot_matrix[1]);
+   this->container.Read(rot_matrix[2]);
+   this->container.Read(U_LISM);
+   this->container.Read(mom_pow_law);
+   this->container.Read(grad_perp_dens);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {ComptonGettingFactor();});
@@ -470,10 +470,10 @@ void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct
    if(!construct) DistributionTemplated<double>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&J0);
-   this->container.Read(&T0);
-   this->container.Read(&pow_law);
-   this->container.Read(&val_cold);
+   this->container.Read(J0);
+   this->container.Read(T0);
+   this->container.Read(pow_law);
+   this->container.Read(val_cold);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
@@ -579,9 +579,9 @@ void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool const
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
    double pow_law_b;
-   this->container.Read(&T_b);
-   this->container.Read(&pow_law_b);
-   this->container.Read(&bend_smoothness);
+   this->container.Read(T_b);
+   this->container.Read(pow_law_b);
+   this->container.Read(bend_smoothness);
    pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
 
 // Check that ONLY the first dimension is active.
@@ -766,8 +766,8 @@ void DistributionLossCone::SetupDistribution(bool construct)
    if(!construct) DistributionTemplated<GeoVector>::SetupDistribution(false);
    if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordLossCone();});

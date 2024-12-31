@@ -49,7 +49,7 @@ void InitialTimeFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if(!construct) InitialBase::SetupInitial(false);
-   container.Read(&inittime);
+   container.Read(inittime);
 
 // Pre-assign "_t" so that it never needs to change
    _t = inittime;
@@ -117,9 +117,9 @@ void InitialTimeInterval::SetupInitial(bool construct)
    if(!construct) InitialBase::SetupInitial(false);
 
    int n_intervals;
-   container.Read(&starttime);
-   container.Read(&endtime);
-   container.Read(&n_intervals);
+   container.Read(starttime);
+   container.Read(endtime);
+   container.Read(n_intervals);
 
    if(n_intervals <= 0) randomtime = true;
    else {

@@ -64,21 +64,21 @@ template <class distroClass>
 void DistributionTemplated<distroClass>::ReadUnitDistro(void)
 {
 // This template method should only work for <double> because of &
-   container.Read(&unit_distro);
+   container.Read(unit_distro);
 };
 
 // Method specialization for GeoVector
 template <>
 void DistributionTemplated<GeoVector>::ReadUnitDistro(void)
 {
-   container.Read(unit_distro.Data());
+   container.Read(unit_distro);
 };
 
 // Method specialization for GeoMatrix
 template <>
 void DistributionTemplated<GeoMatrix>::ReadUnitDistro(void)
 {
-   container.Read(unit_distro.Data());
+   container.Read(unit_distro);
 };
 
 /*!
@@ -98,14 +98,14 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
 
 // Unpack the parameters. For 1D and 2D distros the arguments are allowed to have junk for the ignorable dimensions.
    container.Reset();
-   container.Read(n_bins.ijk);
-   container.Read(minval.Data());
-   container.Read(maxval.Data());
-   container.Read(log_bins.ijk);
-   container.Read(bin_outside.ijk);
+   container.Read(n_bins);
+   container.Read(minval);
+   container.Read(maxval);
+   container.Read(log_bins);
+   container.Read(bin_outside);
    ReadUnitDistro();
-   container.Read(unit_val.Data());
-   container.Read(&keep_records);
+   container.Read(unit_val);
+   container.Read(keep_records);
 
 // The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addresing possible. Active dimensions are flagged as bits in "dims".
    dims = 0;
