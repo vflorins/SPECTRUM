@@ -3,7 +3,7 @@
 # Building from zero:
 # autoreconf
 # automake --add-missing
-# ./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --enable-silo --with-execution=PARALLEL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=BATL --with-server_interp_order=1 --with-server_num_gcs=1
+# ./configure CXXFLAGS="-O0 -g" --with-mpi=openmpi --enable-silo --with-execution=PARALLEL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=BATL --with-server_interp_order=1 --with-server_num_gcs=1
 
 # Init commands
 AC_PREREQ([2.69])
@@ -34,10 +34,10 @@ AS_IF([test "x$with_mpi" == "x"],
        CXXFLAGS="$CXXFLAGS -DOMPI_SKIP_MPICXX"],
       [AC_MSG_ERROR([MPI must be either mpich or openmpi])])
 
-full_path=$(pkg-config --path "$MODULE_NAME")
+full_path=$(pkg-config --variable=prefix "$MODULE_NAME")
 AS_IF([test "x$full_path" == "x"],
       [AC_MSG_ERROR([Path to MPI pkgconfig was not found])])
-export PKG_CONFIG_PATH=$(dirname "$full_path")
+export PKG_CONFIG_PATH=$full_path
 PKG_CHECK_MODULES([MPI], [$MODULE_NAME])
 AS_IF([test "x$MODULE_NAME" != "x"],
       [AC_DEFINE([USE_MPI], [1], [Using MPI])],
@@ -45,8 +45,8 @@ AS_IF([test "x$MODULE_NAME" != "x"],
 
 # Check for GSL
 MODULE_NAME="gsl"
-full_path=$(pkg-config --path "$MODULE_NAME")
-PKG_CONFIG_PATH=$(dirname "$full_path")
+full_path=$(pkg-config --variable=prefix "$MODULE_NAME")
+PKG_CONFIG_PATH=$full_path
 PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
 
 # SILO option

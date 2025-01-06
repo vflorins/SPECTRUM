@@ -432,6 +432,31 @@ SPECTRUM_DEVICE_FUNC double VertexAngle(const GeoVector& vect_l, const GeoVector
 
 /*!
 \author Vladimir Florinski
+\date 01/08/2025
+\param[in] vect1 first vertex \f$\mathbf{v}_1\f$
+\param[in] vect2 second vertex \f$\mathbf{v}_2\f$
+\return Length of the arc on a unit circle
+*/
+SPECTRUM_DEVICE_FUNC double CircArcLength(const GeoVector& vect1, const GeoVector& vect2)
+{
+   return acos(vect1 * vect2);
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
+\param[in] vect1 first vertex \f$\mathbf{v}_1\f$
+\param[in] vect2 second vertex \f$\mathbf{v}_2\f$
+\return Center of mass of the circular arc
+*/
+SPECTRUM_DEVICE_FUNC GeoVector CircArcCenter(const GeoVector& vect1, const GeoVector& vect2)
+{
+   double arclen = CircArcLength(vect1, vect2);
+   return (2.0 * sin(0.5 * arclen) / arclen) * UnitVec(vect1 + vect2);
+};
+
+/*!
+\author Vladimir Florinski
 \date 01/08/2020
 \param[in] vect1 first vertex \f$\mathbf{v}_1\f$
 \param[in] vect2 second vertex \f$\mathbf{v}_2\f$
