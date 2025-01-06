@@ -242,4 +242,7 @@ void InitialTable<tableClass>::SetupInitial(bool construct)
    table_counter = 0;
 };
 
+template class InitialTable<double>;
+template class InitialTable<GeoVector>;
+
 };
