@@ -274,7 +274,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Flag to define power law spectrum as differential density 0, differential intensity 1, or distribution function 2
-#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 1
+#define DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE 0
 
 //! Readable name of the DistributionSpectrumKineticEnergyPowerLaw class
 const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpectrumKineticEnergyPowerLaw";

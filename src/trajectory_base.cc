@@ -149,7 +149,8 @@ void TrajectoryBase::ReverseMomentum(void)
 
 /*!
 \author Vladimir Florinski
-\date 02/10/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
@@ -231,12 +232,12 @@ try {
    else return false;
 }
 
-catch(ExUninitialized& exception) {
+catch (ExUninitialized& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExBoundaryError& exception) {
+catch (ExBoundaryError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -251,22 +252,22 @@ try {
    background->GetFields(_t, _pos, ConvertMomentum(), _spdata);
 }
 
-catch(ExUninitialized& exception) {
+catch (ExUninitialized& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExCoordinates& exception) {
+catch (ExCoordinates& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExFieldError& exception) {
+catch (ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExServerError& exception) {
+catch (ExServerError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -285,22 +286,22 @@ try {
    background->GetFields(t_in, pos_in, mom_in, spdata);
 }
 
-catch(ExUninitialized& exception) {
+catch (ExUninitialized& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExCoordinates& exception) {
+catch (ExCoordinates& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExFieldError& exception) {
+catch (ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExServerError& exception) {
+catch (ExServerError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -621,6 +622,15 @@ bool TrajectoryBase::IsSimmulationReady(void) const
    if (bcond_t.size() == 0) return false;
    else if (BITS_LOWERED(bcond_t[0]->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
+// Verify that the initial conditions and transport make sense
+   
+
+
+
+
+
+
+
 // A distribution need not be present if we are simulating a single trajectory
    return true;
 };
@@ -646,7 +656,7 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    if (diffusion != nullptr) diffusion->SetSpecie(specie);
 
 // TODO Compare the performance of this "fancy" loop
-//   for(auto bct = bcond_t.begin(); bct != bcond_t.end(); bct++) (*bct)->SetSpecie(specie);
+//   for (auto bct = bcond_t.begin(); bct != bcond_t.end(); bct++) (*bct)->SetSpecie(specie);
 
    for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->SetSpecie(specie);
    for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->SetSpecie(specie);
@@ -753,7 +763,7 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
       icond_m->SetupObject(container_in);
    };
 
-   if(IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
+   if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 #ifdef RECORD_BMAG_EXTREMA
@@ -868,7 +878,7 @@ double TrajectoryBase::GetDistance(double t_in) const
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
    if (pt >= 0) {
-      for(ipt = 0; ipt < pt; ipt++) length += (traj_pos[ipt + 1] - traj_pos[ipt]).Norm();
+      for (ipt = 0; ipt < pt; ipt++) length += (traj_pos[ipt + 1] - traj_pos[ipt]).Norm();
       pos_final = weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
       length += (pos_final - traj_pos[pt]).Norm();
    };
@@ -947,12 +957,12 @@ try {
    ResetAllBoundaries();
 }
 
-catch(ExUninitialized& exception) {
+catch (ExUninitialized& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
 
-catch(ExFieldError& exception) {
+catch (ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -1070,14 +1080,14 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
          mom_mag = traj_mom[pt].Norm();
          vm_ratio = Vel(mom_mag, specie) / mom_mag;
 
-         if(output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
-         if(output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
+         if (output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
+         if (output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
          trajfile << std::endl;
       };
    }
@@ -1087,14 +1097,14 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
          vel_t = GetVelocity(t_out);
          engkin_t = GetEnergy(t_out);
 
-         if(output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
-         if(output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
-         if(output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if(output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
+         if (output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
+         if (output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
+         if (output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
+         if (output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
          trajfile << std::endl;
 
          t_out += dt_out;
@@ -1152,9 +1162,9 @@ void TrajectoryBase::InterpretStatus(void) const
 
 // These three states correspond to an absorbing boundary leading to a termination. The status is preserved and can be checked after a trajectory completion.
    else if (BITS_RAISED(_status, TRAJ_FINISH)) {
-      if(BITS_RAISED(_status, TRAJ_TIME_CROSSED)) std::cerr << "time expired\n";
-      else if(BITS_RAISED(_status, TRAJ_MOMENTUM_CROSSED)) std::cerr << "momentum boundary crossed\n";
-      else if(BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED)) std::cerr << "spatial boundary crossed\n";
+      if (BITS_RAISED(_status, TRAJ_TIME_CROSSED)) std::cerr << "time expired\n";
+      else if (BITS_RAISED(_status, TRAJ_MOMENTUM_CROSSED)) std::cerr << "momentum boundary crossed\n";
+      else if (BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED)) std::cerr << "spatial boundary crossed\n";
    }
    else std::cerr << "in progress\n";
 };

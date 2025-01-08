@@ -19,16 +19,6 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 10/25/2022
-\param[in] mpi_config_in A pointer to an MPI_Config object
-*/
-void ServerBase::ConnectMPIConfig(const std::shared_ptr<MPI_Config> mpi_config_in)
-{
-   mpi_config = mpi_config_in;
-};
-
-/*!
-\author Vladimir Florinski
 \date 10/27/2022
 */
 void ServerBase::ServerStart(void)
@@ -42,7 +32,7 @@ void ServerBase::ServerStart(void)
    MPI_Get_address(&_inquiry.type, &inquiry_displ[0]);
    MPI_Get_address(&_inquiry.node, &inquiry_displ[1]);
    MPI_Get_address(&_inquiry.pos , &inquiry_displ[2]);
-   for(auto i = 2; i >= 0; i--) inquiry_displ[i] -= inquiry_displ[0];
+   for (auto i = 2; i >= 0; i--) inquiry_displ[i] -= inquiry_displ[0];
 
 // Commit the type
    MPI_Type_create_struct(3, inquiry_lengths, inquiry_displ, inquiry_types, &MPIInquiryType);
@@ -87,7 +77,7 @@ void ServerBaseFront::ServerStart(void)
 */
 void ServerBaseFront::ServerFinish(void)
 {
-   MPI_Send(nullptr, 0, MPI_BYTE, 0, tag_stopserve, mpi_config->node_comm);
+   MPI_Send(nullptr, 0, MPI_BYTE, 0, tag_stopserve, MPI_Config::node_comm);
    ServerBase::ServerFinish();
 };
 
@@ -143,32 +133,32 @@ void ServerBaseBack::ServerStart(void)
    ServerBase::ServerStart();
 
 // Indices of processes returned by "Testsome"
-   index_needblock   = new int[mpi_config->node_comm_size];
-   index_needstencil = new int[mpi_config->node_comm_size];
-   index_needvars    = new int[mpi_config->node_comm_size];
-   index_stopserve   = new int[mpi_config->node_comm_size];
+   index_needblock   = new int[MPI_Config::node_comm_size];
+   index_needstencil = new int[MPI_Config::node_comm_size];
+   index_needvars    = new int[MPI_Config::node_comm_size];
+   index_stopserve   = new int[MPI_Config::node_comm_size];
 
 // Request arrays
-   req_needblock   = new MPI_Request[mpi_config->node_comm_size];
-   req_needstencil = new MPI_Request[mpi_config->node_comm_size];
-   req_needvars    = new MPI_Request[mpi_config->node_comm_size];
-   req_stopserve   = new MPI_Request[mpi_config->node_comm_size];
+   req_needblock   = new MPI_Request[MPI_Config::node_comm_size];
+   req_needstencil = new MPI_Request[MPI_Config::node_comm_size];
+   req_needvars    = new MPI_Request[MPI_Config::node_comm_size];
+   req_stopserve   = new MPI_Request[MPI_Config::node_comm_size];
 
 // Message buffers
-   buf_needblock   = new Inquiry[mpi_config->node_comm_size];
-   buf_needstencil = new Inquiry[mpi_config->node_comm_size];
-   buf_needvars    = new Inquiry[mpi_config->node_comm_size];
+   buf_needblock   = new Inquiry[MPI_Config::node_comm_size];
+   buf_needstencil = new Inquiry[MPI_Config::node_comm_size];
+   buf_needvars    = new Inquiry[MPI_Config::node_comm_size];
 
 // Post initial receives for all request types
    req_needblock[0] = MPI_REQUEST_NULL;
    req_needstencil[0] = MPI_REQUEST_NULL;
    req_needvars[0] = MPI_REQUEST_NULL;
    req_stopserve[0] = MPI_REQUEST_NULL;
-   for(int cpu = 1; cpu < mpi_config->node_comm_size; cpu++) {
-      MPI_Irecv(&buf_needblock[cpu], 1, MPIInquiryType, cpu, tag_needblock, mpi_config->node_comm, &req_needblock[cpu]);
-      MPI_Irecv(&buf_needstencil[cpu], 1, MPIInquiryType, cpu, tag_needstencil, mpi_config->node_comm, &req_needstencil[cpu]);
-      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, mpi_config->node_comm, &req_needvars[cpu]);
-      MPI_Irecv(nullptr, 0, MPI_BYTE, cpu, tag_stopserve, mpi_config->node_comm, &req_stopserve[cpu]);
+   for (int cpu = 1; cpu < MPI_Config::node_comm_size; cpu++) {
+      MPI_Irecv(&buf_needblock[cpu], 1, MPIInquiryType, cpu, tag_needblock, MPI_Config::node_comm, &req_needblock[cpu]);
+      MPI_Irecv(&buf_needstencil[cpu], 1, MPIInquiryType, cpu, tag_needstencil, MPI_Config::node_comm, &req_needstencil[cpu]);
+      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, MPI_Config::node_comm, &req_needvars[cpu]);
+      MPI_Irecv(nullptr, 0, MPI_BYTE, cpu, tag_stopserve, MPI_Config::node_comm, &req_stopserve[cpu]);
    };
 };
 

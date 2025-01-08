@@ -276,7 +276,7 @@ int main(int argc, char** argv)
    simulation->MainLoop();
    simulation->PrintDistro1D(0, 0, simulation_files_prefix + "spectrum.dat", true);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "MODULATION CARTESIAN PARKER SPIRAL" << std::endl;
       std::cout << "=========================================================" << std::endl;

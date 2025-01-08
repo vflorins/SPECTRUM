@@ -10,7 +10,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "simulation.hh"
 #include "common/print_warn.hh"
 #include <numeric>
-#include <algorithm>
 
 namespace Spectrum {
 
@@ -23,27 +22,26 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 06/09/2022
 */
-SimulationWorker::SimulationWorker(std::shared_ptr<MPI_Config> mpi_config_in)
+SimulationWorker::SimulationWorker(void)
 {
 // Analyze our parallel setup and determine if this is a serial or parallel run.
-   mpi_config = mpi_config_in;
-   if(mpi_config->n_workers < 1) {
-      PrintError(__FILE__, __LINE__, "No worker processes available", mpi_config->is_master);
+   if (MPI_Config::n_workers < 1) {
+      PrintError(__FILE__, __LINE__, "No worker processes available", MPI_Config::is_master);
       is_parallel = false;
    }
    else is_parallel = true;
 
 // Some ambiguity exists for "n_workers" equal to 1 because there can be a separate master, which counts as a parallel run.
-#ifdef ALLOW_MASTER_BOSS 
+#ifdef ALLOW_MASTER_BOSS
 #ifdef ALLOW_BOSS_WORKER
-   if(mpi_config->n_workers == 1) is_parallel = false;
+   if (MPI_Config::n_workers == 1) is_parallel = false;
 #endif
 #endif
 
 // Create a common RNG object
-   rng = std::make_shared<RNG>(time(NULL) + mpi_config->glob_comm_rank);
+   rng = std::make_shared<RNG>(time(NULL) + MPI_Config::glob_comm_rank);
 #ifdef GEO_DEBUG
-   std::cerr << "process " << mpi_config->glob_comm_rank << " random seed = " << time(NULL) + mpi_config->glob_comm_rank << std::endl;
+   std::cerr << "process " << MPI_Config::glob_comm_rank << " random seed = " << time(NULL) + MPI_Config::glob_comm_rank << std::endl;
 #endif
 
 // Create a unique trajectory object based on the user preference stored in "traj_config.hh".
@@ -74,28 +72,6 @@ void SimulationWorker::SetTasks(int n_traj_in, int batch_size_in, int max_traj_p
 };
 
 /*!
-\author Vladimir Florinski
-\date 09/30/2022
-\return True if this process is the master
-*/
-bool SimulationWorker::IsMaster(void)
-{
-   return mpi_config->is_master;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/11/2023
-\param[out] work_comm_size_out work_comm_size
-\return work_comm_rank 
-*/
-int SimulationWorker::GetWorkCommRankSize(int& work_comm_size_out)
-{
-   work_comm_size_out = mpi_config->work_comm_size;
-   return mpi_config->work_comm_rank;
-};
-
-/*!
 \author Juan G Alonso Guzman
 \date 10/27/2022
 \return name of trajectory type
@@ -106,31 +82,21 @@ std::string SimulationWorker::GetTrajectoryName(void) const
 };
 
 /*!
-\author Juan G Alonso Guzman
-\date 04/28/2021
-\return Number of batches processed by this worker
-*/
-int SimulationWorker::GetJobsDone(void) const
-{
-   return jobsdone;
-};
-
-/*!
 \author Vladimir Florinski
 \date 05/27/2022
 \param[in] specie_in Index of the particle species defined in physics.hh
 */
 void SimulationWorker::SetSpecie(unsigned int specie_in)
 {
-   if((specie_in < 0) || (specie_in >= MAX_PARTICLE_SPECIES)) {
-      PrintError(__FILE__, __LINE__, "Invalid particle specie", mpi_config->is_master);
+   if ((specie_in < 0) || (specie_in >= MAX_PARTICLE_SPECIES)) {
+      PrintError(__FILE__, __LINE__, "Invalid particle specie", MPI_Config::is_master);
       return;
    };
 
 // The "trajectory" object will set the specie for its sub-classes
    specie = specie_in;
    trajectory->SetSpecie(specie_in);
-   PrintMessage(__FILE__, __LINE__, "Particle specie added", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Particle specie added", MPI_Config::is_master);
 };
 
 /*!
@@ -146,7 +112,7 @@ void SimulationWorker::AddDistribution(const DistributionBase& distribution_in, 
    local_distros.back()->SetSpecie(specie);
    local_distros.back()->SetupObject(container_in);
    trajectory->ConnectDistribution(local_distros.back());
-   PrintMessage(__FILE__, __LINE__, "Distribution object added", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
 };
 
 /*!
@@ -159,10 +125,8 @@ void SimulationWorker::AddDistribution(const DistributionBase& distribution_in, 
 */
 void SimulationWorker::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
 {
-   DataContainer container_mpi(container_in);
-
-   trajectory->AddBackground(background_in, container_mpi);
-   PrintMessage(__FILE__, __LINE__, "Background object added", mpi_config->is_master);
+   trajectory->AddBackground(background_in, container_in);
+   PrintMessage(__FILE__, __LINE__, "Background object added", MPI_Config::is_master);
 };
 
 /*!
@@ -175,7 +139,7 @@ void SimulationWorker::AddBackground(const BackgroundBase& background_in, const 
 void SimulationWorker::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
    trajectory->AddBoundary(boundary_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Boundary condition added", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
 };
 
 /*!
@@ -187,7 +151,7 @@ void SimulationWorker::AddBoundary(const BoundaryBase& boundary_in, const DataCo
 void SimulationWorker::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
    trajectory->AddInitial(initial_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Initial condition added", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
 };
 
 /*!
@@ -199,7 +163,7 @@ void SimulationWorker::AddInitial(const InitialBase& initial_in, const DataConta
 void SimulationWorker::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    trajectory->AddDiffusion(diffusion_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Diffusion model added", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
 };
 
 /*!
@@ -213,29 +177,29 @@ void SimulationWorker::SendDataToMaster(void)
    void * distro_addr, * w_records_addr;
 
 // Send distribution data to master and reset distribution
-   for(int distro = 0; distro < local_distros.size(); distro++) {
-      MPI_Send(local_distros[distro]->GetCountsAddress(), local_distros[distro]->NBins().Prod(), MPI_INT, 0, tag_distrdata, mpi_config->work_comm);
+   for (int distro = 0; distro < local_distros.size(); distro++) {
+      MPI_Send(local_distros[distro]->GetCountsAddress(), local_distros[distro]->NBins().Prod(), MPI_INT, 0, tag_distrdata, MPI_Config::work_comm);
       distro_addr = local_distros[distro]->GetDistroAddress(distro_size);
-      MPI_Send(distro_addr, distro_size * local_distros[distro]->NBins().Prod(), MPI_BYTE, 0, tag_distrdata, mpi_config->work_comm);
+      MPI_Send(distro_addr, distro_size * local_distros[distro]->NBins().Prod(), MPI_BYTE, 0, tag_distrdata, MPI_Config::work_comm);
       n_events_local = local_distros[distro]->NEvents();
-      MPI_Send(&n_events_local, 1, MPI_INT, 0, tag_distrdata, mpi_config->work_comm);
+      MPI_Send(&n_events_local, 1, MPI_INT, 0, tag_distrdata, MPI_Config::work_comm);
       local_distros[distro]->ResetDistribution();
 
 // Send records if they are being kept
-      if(local_distros[distro]->GetKeepRecords()) {
+      if (local_distros[distro]->GetKeepRecords()) {
          n_records_local = local_distros[distro]->NRecords();
-         MPI_Send(&n_records_local, 1, MPI_INT, 0, tag_distrdata, mpi_config->work_comm);
-         MPI_Send(local_distros[distro]->GetValuesRecordAddress(), 3*n_records_local, MPI_DOUBLE, 0, tag_distrdata, mpi_config->work_comm);
+         MPI_Send(&n_records_local, 1, MPI_INT, 0, tag_distrdata, MPI_Config::work_comm);
+         MPI_Send(local_distros[distro]->GetValuesRecordAddress(), 3*n_records_local, MPI_DOUBLE, 0, tag_distrdata, MPI_Config::work_comm);
          w_records_addr = local_distros[distro]->GetWeightsRecordAddress(w_records_size);
-         MPI_Send(w_records_addr, w_records_size * n_records_local, MPI_BYTE, 0, tag_distrdata, mpi_config->work_comm);
+         MPI_Send(w_records_addr, w_records_size * n_records_local, MPI_BYTE, 0, tag_distrdata, MPI_Config::work_comm);
          local_distros[distro]->ResetRecords();
       };
    };
 
 // Send min/max time data to master (no need to reset)
-   MPI_Send(&shortest_sim_time, 1, MPI_DOUBLE, 0, tag_distrdata, mpi_config->work_comm);
-   MPI_Send(&longest_sim_time , 1, MPI_DOUBLE, 0, tag_distrdata, mpi_config->work_comm);
-   MPI_Send(&elapsed_time     , 1, MPI_DOUBLE, 0, tag_distrdata, mpi_config->work_comm);
+   MPI_Send(&shortest_sim_time, 1, MPI_DOUBLE, 0, tag_distrdata, MPI_Config::work_comm);
+   MPI_Send(&longest_sim_time , 1, MPI_DOUBLE, 0, tag_distrdata, MPI_Config::work_comm);
+   MPI_Send(&elapsed_time     , 1, MPI_DOUBLE, 0, tag_distrdata, MPI_Config::work_comm);
 };
 
 /*!
@@ -245,7 +209,7 @@ void SimulationWorker::SendDataToMaster(void)
 void SimulationWorker::WorkerStart(void)
 {
 // Reset quantities
-   for(int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
+   for (int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
    jobsdone = 0;
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    shortest_sim_time = 1.0E300;
@@ -256,10 +220,10 @@ void SimulationWorker::WorkerStart(void)
    elapsed_time = 0.0;
 
 // Signal the master (with an empty message) that this CPU is available and receive confirmation to do more work.
-   if(is_parallel) {
-      MPI_Send(NULL, 0, MPI_INT, 0, tag_cpuavail, mpi_config->work_comm);
+   if (is_parallel) {
+      MPI_Send(NULL, 0, MPI_INT, 0, tag_cpuavail, MPI_Config::work_comm);
       SendDataToMaster();
-      MPI_Recv(&current_batch_size, 1, MPI_INT, 0, tag_needmore_MW, mpi_config->work_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(&current_batch_size, 1, MPI_INT, 0, tag_needmore_MW, MPI_Config::work_comm, MPI_STATUS_IGNORE);
    };
 };
 
@@ -271,11 +235,11 @@ void SimulationWorker::WorkerFinish(void)
 {
 // Print last trajectory
    if(print_last_trajectory) {
-      std::string rank_str = std::to_string(mpi_config->work_comm_rank);
-      std::string size_str = std::to_string(mpi_config->work_comm_size);
+      std::string rank_str = std::to_string(MPI_Config::work_comm_rank);
+      std::string size_str = std::to_string(MPI_Config::work_comm_size);
       rank_str.insert(0, size_str.size() - rank_str.size(), '0');
       std::string traj_name = "trajectory_rank_" + rank_str + ".lines";
-      // trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
+//      trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
       trajectory->PrintCSV(traj_name, false, 1);
       trajectory->InterpretStatus();
    };
@@ -286,7 +250,7 @@ void SimulationWorker::WorkerFinish(void)
 
 // Print status message that worker left simulation
 #ifdef GEO_DEBUG
-   std::cerr << "Worker with rank " << mpi_config->work_comm_rank << " exited simulation." << std::endl;
+   std::cerr << "Worker with rank " << MPI_Config::work_comm_rank << " exited simulation." << std::endl;
 #endif
 };
 
@@ -301,7 +265,7 @@ void SimulationWorker::WorkerDuties(void)
    int traj_count = 0;
    double traj_elapsed_time, batch_elapsed_time;
    auto start = std::chrono::system_clock::now();
-   while(traj_count < current_batch_size) {
+   while (traj_count < current_batch_size) {
       try {
          trajectory->SetStart();
          trajectory->Integrate();
@@ -315,8 +279,8 @@ void SimulationWorker::WorkerDuties(void)
 #endif
          traj_count++;
       }
-      catch(std::exception& exception) {
-         std::cerr << "Trajectory discarded by worker with rank " << mpi_config->work_comm_rank
+      catch (std::exception& exception) {
+         std::cerr << "Trajectory discarded by worker with rank " << MPI_Config::work_comm_rank
                    << ": " << exception.what() << std::endl;
       }
    };
@@ -324,17 +288,17 @@ void SimulationWorker::WorkerDuties(void)
    batch_elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
 // Process batch time depending on whether the code is parallel or not
-   if(is_parallel) elapsed_time = batch_elapsed_time;
+   if (is_parallel) elapsed_time = batch_elapsed_time;
    else elapsed_time += batch_elapsed_time;
 
 // Increment counter of jobs done by this process
    jobsdone++;
 
 // Signal master that this CPU is available to do work, send batch data, and receive confirmation that more data is needed
-   if(is_parallel) {
-      MPI_Send(NULL, 0, MPI_INT, 0, tag_cpuavail, mpi_config->work_comm);
+   if (is_parallel) {
+      MPI_Send(NULL, 0, MPI_INT, 0, tag_cpuavail, MPI_Config::work_comm);
       SendDataToMaster();
-      MPI_Recv(&current_batch_size, 1, MPI_INT, 0, tag_needmore_MW, mpi_config->work_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(&current_batch_size, 1, MPI_INT, 0, tag_needmore_MW, MPI_Config::work_comm, MPI_STATUS_IGNORE);
    };
 };
 
@@ -345,7 +309,7 @@ void SimulationWorker::WorkerDuties(void)
 void SimulationWorker::MainLoop(void)
 {
    WorkerStart();
-   while(current_batch_size) WorkerDuties();
+   while (current_batch_size) WorkerDuties();
    WorkerFinish();
 };
 
@@ -404,10 +368,9 @@ void SimulationWorker::PrintRecords(int distro, const std::string& file_name, bo
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 06/08/2022
-\param[in] mpi_config_in MPI config object
 */
-SimulationBoss::SimulationBoss(std::shared_ptr<MPI_Config> mpi_config_in)
-              : SimulationWorker(mpi_config_in)
+SimulationBoss::SimulationBoss(void)
+              : SimulationWorker()
 {
 };
 
@@ -424,7 +387,6 @@ void SimulationBoss::AddBackground(const BackgroundBase& background_in, const Da
 // Create a unique server backend object based on the user preference stored in "server_config.hh".
 #ifdef NEED_SERVER
    server_back = std::make_unique<ServerBackType>(fname_pattern_in);
-   server_back->ConnectMPIConfig(mpi_config);
 #endif
 
 // This is required if the boss is also a worker
@@ -440,11 +402,11 @@ void SimulationBoss::BossStart(void)
 {
 // Set the number of workers that are initially active in our node and start the server backend
 #ifdef NEED_SERVER
-   active_local_workers = mpi_config->workers_in_node;
+   active_local_workers = MPI_Config::workers_in_node;
    server_back->ServerStart();
 #else
 // Signal the master that this CPU is available to do work if boss is worker
-   if(mpi_config->is_worker) WorkerStart();
+   if (MPI_Config::is_worker) WorkerStart();
 #endif
 };
 
@@ -460,12 +422,12 @@ void SimulationBoss::BossFinish(void)
 
 // Print status message that boss left simulation
 #ifdef GEO_DEBUG
-   std::cerr << "Boss with rank " << mpi_config->boss_comm_rank << " exited simulation." << std::endl;
+   std::cerr << "Boss with rank " << MPI_Config::boss_comm_rank << " exited simulation." << std::endl;
 #endif
 
 #else
 // Report partial cumulatives if boss is worker
-   if(mpi_config->is_worker) WorkerFinish();
+   if (MPI_Config::is_worker) WorkerFinish();
 #endif
 };
 
@@ -493,7 +455,7 @@ void SimulationBoss::MainLoop(void)
 #ifdef NEED_SERVER
    while(active_local_workers) BossDuties();
 #else
-   if(mpi_config->is_worker) {
+   if (MPI_Config::is_worker) {
       while(current_batch_size) WorkerDuties();
    };
 #endif
@@ -508,19 +470,18 @@ void SimulationBoss::MainLoop(void)
 /*!
 \author Juan G Alonso Guzman
 \date 04/28/2021
-\param[in] mpi_config_in MPI config object
 */
-SimulationMaster::SimulationMaster(std::shared_ptr<MPI_Config> mpi_config_in)
-                : SimulationBoss(mpi_config_in)
+SimulationMaster::SimulationMaster(void)
+                : SimulationBoss()
 {
 // If simulation is parallel, initialize batches assigned array and cpu available requests array
-   if(is_parallel) {
-      trajectories_assigned.assign(mpi_config->work_comm_size, 0);
-      time_spent_processing.assign(mpi_config->work_comm_size, 0.0);
-      worker_processing.assign(mpi_config->work_comm_size, 0);
+   if (is_parallel) {
+      trajectories_assigned.assign(MPI_Config::work_comm_size, 0);
+      time_spent_processing.assign(MPI_Config::work_comm_size, 0.0);
+      worker_processing.assign(MPI_Config::work_comm_size, 0);
 
-      req_cpuavail = std::make_unique<MPI_Request_Info>(mpi_config->work_comm_size);
-      for(int cpu = 0; cpu < mpi_config->work_comm_size; cpu++) req_cpuavail->mpi_req[cpu] = MPI_REQUEST_NULL;
+      req_cpuavail = std::make_unique<MPI_Request_Info>(MPI_Config::work_comm_size);
+      for (int cpu = 0; cpu < MPI_Config::work_comm_size; cpu++) req_cpuavail->mpi_req[cpu] = MPI_REQUEST_NULL;
    };
 };
 
@@ -545,9 +506,9 @@ void SimulationMaster::DistroFileName(const std::string& file_name)
 */
 void SimulationMaster::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
 {
-   if(n_traj_in < 0) n_traj_in = 0;
-   if(batch_size_in < 1 || batch_size_in > n_traj_in) batch_size_in = fmin(1, n_traj_in);
-   if(max_traj_per_worker_in * mpi_config->n_workers < n_traj_in) max_traj_per_worker_in = 0;
+   if (n_traj_in < 0) n_traj_in = 0;
+   if ((batch_size_in < 1) || (batch_size_in > n_traj_in)) batch_size_in = fmin(1, n_traj_in);
+   if (max_traj_per_worker_in * MPI_Config::n_workers < n_traj_in) max_traj_per_worker_in = 0;
 
    n_trajectories_total = n_trajectories = n_traj_in;
    current_batch_size = batch_size_in;
@@ -581,11 +542,11 @@ void SimulationMaster::AddDistribution(const DistributionBase& distribution_in, 
 void SimulationMaster::PrintMPICommsInfo(void)
 {
    std::cerr << "========== MPI Communicators Info ==========" << std::endl;
-   std::cerr << "Number of nodes: " << mpi_config->n_nodes << std::endl;
-   std::cerr << "Size of global communicator: " << mpi_config->glob_comm_size << std::endl;
-   std::cerr << "Size of boss communicator: " << mpi_config->boss_comm_size << std::endl;
-   std::cerr << "Size of worker communicator: " << mpi_config->work_comm_size << std::endl;
-   std::cerr << "Total number of workers: " << mpi_config->n_workers << std::endl;
+   std::cerr << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
+   std::cerr << "Size of global communicator: " << MPI_Config::glob_comm_size << std::endl;
+   std::cerr << "Size of boss communicator: " << MPI_Config::boss_comm_size << std::endl;
+   std::cerr << "Size of worker communicator: " << MPI_Config::work_comm_size << std::endl;
+   std::cerr << "Total number of workers: " << MPI_Config::n_workers << std::endl;
 };
 
 /*!
@@ -605,7 +566,7 @@ void SimulationMaster::DecrementTrajectoryCount(void)
    std::cerr << "Trajectories left unassigned: " + std::to_string(n_trajectories) << std::endl;
 #endif
 
-   if(is_parallel) {
+   if (is_parallel) {
       n_trajectories_remaining = n_trajectories + std::accumulate(worker_processing.begin(), worker_processing.end(), 0);
       percentage_work_new = 100 - (100 * n_trajectories_remaining) / n_trajectories_total; 
    }
@@ -613,13 +574,13 @@ void SimulationMaster::DecrementTrajectoryCount(void)
       percentage_work_new = 100 - (100 * n_trajectories) / n_trajectories_total;
    };   
 
-   if(percentage_work_new > percentage_work_done) {
+   if (percentage_work_new > percentage_work_done) {
       percentage_work_done = percentage_work_new;
 
 // Report the percentage of work done
       std::cerr << std::endl;
       std::cerr << "Checkpoint reached: " << percentage_work_done << "% of work completed.\n";
-      if(is_parallel) {
+      if (is_parallel) {
          std::cerr << "Best performing process: "  << *std::max_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
                    << " trajectories\n";
          std::cerr << "Worst performing process: " << *std::min_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
@@ -627,12 +588,12 @@ void SimulationMaster::DecrementTrajectoryCount(void)
       };
 
 // Save the partial distributions
-      for(distro = 0; distro < local_distros.size(); distro++) {
+      for (distro = 0; distro < local_distros.size(); distro++) {
          local_distros[distro]->Dump(distro_file_name + std::to_string(distro) + ".out");
       };
 
 // Estimate the remaining silumation time
-      if(is_parallel) {
+      if (is_parallel) {
 // time_left [s] = n_traj_rem [traj] x total_time_spent_integ [ms] x 0.001 [s/ms] / traj_completed [traj] / n_active_workers
          sim_time_left = n_trajectories_remaining * std::accumulate(time_spent_processing.begin(), time_spent_processing.end(), 0.0) * 0.001
                                                   / (std::accumulate(trajectories_assigned.begin(), trajectories_assigned.end(), 0)
@@ -646,7 +607,7 @@ void SimulationMaster::DecrementTrajectoryCount(void)
 
 // Estimate whether remaining allocated time is enough for the rest of the work
       remaining_alloc_time = workload_manager_handler.GetRemAllocTime();
-      if(remaining_alloc_time == -1) std::cerr << "No workload manager. Unbounded time allocation." << std::endl;
+      if (remaining_alloc_time == -1) std::cerr << "No workload manager. Unbounded time allocation." << std::endl;
       else std::cerr << "Remaining time allocated for simulation: " << std::setw(20) << remaining_alloc_time << " seconds." << std::endl;
       std::cerr << std::endl;
    };
@@ -665,40 +626,40 @@ void SimulationMaster::RecvDataFromWorker(int cpu)
    void * distro_addr, * w_records_addr;
 
 // Receive partial distros and add it to cumulative distros
-   for(int distro = 0; distro < local_distros.size(); distro++) {
+   for (int distro = 0; distro < local_distros.size(); distro++) {
       MPI_Recv(partial_distros[distro]->GetCountsAddress(), partial_distros[distro]->NBins().Prod(),
-               MPI_INT, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+               MPI_INT, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
       distro_addr = partial_distros[distro]->GetDistroAddress(distro_size);
       MPI_Recv(distro_addr, distro_size * partial_distros[distro]->NBins().Prod(),
-               MPI_BYTE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
-      MPI_Recv(&n_events_partial, 1, MPI_INT, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+               MPI_BYTE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(&n_events_partial, 1, MPI_INT, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
       partial_distros[distro]->SetNEvents(n_events_partial);
       *local_distros[distro] += *partial_distros[distro];
 
 // Receive records if they are being kept
-      if(local_distros[distro]->GetKeepRecords()) {
-         MPI_Recv(&n_records_partial , 1, MPI_INT, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+      if (local_distros[distro]->GetKeepRecords()) {
+         MPI_Recv(&n_records_partial , 1, MPI_INT, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
          partial_distros[distro]->SetNRecords(n_records_partial);
          MPI_Recv(partial_distros[distro]->GetValuesRecordAddress(), 3*n_records_partial,
-                  MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+                  MPI_DOUBLE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
          w_records_addr = partial_distros[distro]->GetWeightsRecordAddress(w_records_size);
          MPI_Recv(w_records_addr, w_records_size * n_records_partial,
-                  MPI_BYTE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+                  MPI_BYTE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
          local_distros[distro]->CopyRecords(*partial_distros[distro]);
       };
    };
 
 // Receive min/max simulated time data and process
-   MPI_Recv(&shortest_sim_time_cpu, 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
-   MPI_Recv(&longest_sim_time_cpu , 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+   MPI_Recv(&shortest_sim_time_cpu, 1, MPI_DOUBLE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
+   MPI_Recv(&longest_sim_time_cpu , 1, MPI_DOUBLE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if(shortest_sim_time_cpu < shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
-   if(longest_sim_time_cpu > longest_sim_time) longest_sim_time = longest_sim_time_cpu;
+   if (shortest_sim_time_cpu < shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
+   if (longest_sim_time_cpu > longest_sim_time) longest_sim_time = longest_sim_time_cpu;
 #else
-   if(shortest_sim_time_cpu > shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
-   if(longest_sim_time_cpu < longest_sim_time) longest_sim_time = longest_sim_time_cpu;
+   if (shortest_sim_time_cpu > shortest_sim_time) shortest_sim_time = shortest_sim_time_cpu;
+   if (longest_sim_time_cpu < longest_sim_time) longest_sim_time = longest_sim_time_cpu;
 #endif
-   MPI_Recv(&elapsed_time, 1, MPI_DOUBLE, cpu, tag_distrdata, mpi_config->work_comm, MPI_STATUS_IGNORE);
+   MPI_Recv(&elapsed_time, 1, MPI_DOUBLE, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
    time_spent_processing[cpu] += elapsed_time;
 };
 
@@ -712,7 +673,7 @@ void SimulationMaster::MasterStart(void)
    PrintMPICommsInfo();
 
 // Set the number of workers that are initially active
-   active_workers = mpi_config->n_workers;
+   active_workers = MPI_Config::n_workers;
 
 // Detect workload manager
    workload_manager_handler.DetectManager();
@@ -737,9 +698,9 @@ void SimulationMaster::MasterStart(void)
    elapsed_time = 0.0;
 
 // Post an initial receive for workers to respond with availability
-   if(is_parallel) {
-      for(int cpu = 1; cpu < mpi_config->work_comm_size; cpu++) {
-         MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, mpi_config->work_comm, req_cpuavail->mpi_req + cpu);
+   if (is_parallel) {
+      for (int cpu = 1; cpu < MPI_Config::work_comm_size; cpu++) {
+         MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, MPI_Config::work_comm, req_cpuavail->mpi_req + cpu);
       };
    };
 
@@ -755,20 +716,20 @@ void SimulationMaster::MasterDuties(void)
    int cpu, cpu_ind, next_batch_size;
 
 // Service the CPU available requests from all workers
-   MPI_Testsome(mpi_config->work_comm_size, req_cpuavail->mpi_req, &req_cpuavail->count, req_cpuavail->cpu_rank, MPI_STATUSES_IGNORE);
-   for(cpu_ind = 0; cpu_ind < req_cpuavail->count; cpu_ind++) {
+   MPI_Testsome(MPI_Config::work_comm_size, req_cpuavail->mpi_req, &req_cpuavail->count, req_cpuavail->cpu_rank, MPI_STATUSES_IGNORE);
+   for (cpu_ind = 0; cpu_ind < req_cpuavail->count; cpu_ind++) {
       cpu = req_cpuavail->cpu_rank[cpu_ind];
 
 // Get data from worker and tell the worker if more data is needed (i.e. assign a batch)
       RecvDataFromWorker(cpu);
-      if(max_traj_per_worker) next_batch_size = (trajectories_assigned[cpu] < max_traj_per_worker ? current_batch_size : 0);
+      if (max_traj_per_worker) next_batch_size = (trajectories_assigned[cpu] < max_traj_per_worker ? current_batch_size : 0);
       else next_batch_size = current_batch_size;
-      MPI_Send(&next_batch_size, 1, MPI_INT, cpu, tag_needmore_MW, mpi_config->work_comm);
+      MPI_Send(&next_batch_size, 1, MPI_INT, cpu, tag_needmore_MW, MPI_Config::work_comm);
       trajectories_assigned[cpu] += next_batch_size;
       worker_processing[cpu] = next_batch_size;
 
 // If this CPU will start a batch, post an availability request for when it is finished.
-      if(next_batch_size) MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, mpi_config->work_comm, req_cpuavail->mpi_req + cpu);
+      if (next_batch_size) MPI_Irecv(NULL, 0, MPI_INT, cpu, tag_cpuavail, MPI_Config::work_comm, req_cpuavail->mpi_req + cpu);
 // There are no unassigned batches - this worker will quit since we just sent it a zero "needmore" signal.
       else active_workers--;
 // If there are still unassigned batches - decrement the counter.
@@ -786,12 +747,12 @@ void SimulationMaster::MasterFinish(void)
    int distro, cpu;
    std::chrono::seconds sim_time_elapsed;
    std::chrono::system_clock::time_point sim_current_time;
-   PrintMessage(__FILE__, __LINE__, "Simulation completed", mpi_config->is_master);
+   PrintMessage(__FILE__, __LINE__, "Simulation completed", MPI_Config::is_master);
 
 // Print last trajectory
-   if(print_last_trajectory && mpi_config->is_worker) {
-      std::string rank_str = std::to_string(mpi_config->work_comm_rank);
-      std::string size_str = std::to_string(mpi_config->work_comm_size);
+   if (print_last_trajectory && MPI_Config::is_worker) {
+      std::string rank_str = std::to_string(MPI_Config::work_comm_rank);
+      std::string size_str = std::to_string(MPI_Config::work_comm_size);
       rank_str.insert(0, size_str.size() - rank_str.size(), '0');
       std::string traj_name = "trajectory_rank_" + rank_str + ".lines";
       trajectory->PrintCSV(traj_name, false, 1);
@@ -799,16 +760,16 @@ void SimulationMaster::MasterFinish(void)
    };
 
 // Save the final distributions
-   for(distro = 0; distro < local_distros.size(); distro++) {
+   for (distro = 0; distro < local_distros.size(); distro++) {
       local_distros[distro]->Dump(distro_file_name + std::to_string(distro) + ".out");
    };
 
 // Print shortest and longest simulated time
    std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time * unit_time_fluid << " s" << std::endl;
    std::cerr << "Longest simulated trajectory time = " << longest_sim_time * unit_time_fluid << " s" << std::endl;
-   if(is_parallel) {
+   if (is_parallel) {
       std::cerr << "Time per trajectory integration:" << std::endl;
-      for(cpu = 1; cpu < mpi_config->work_comm_size; cpu++) {
+      for (cpu = 1; cpu < MPI_Config::work_comm_size; cpu++) {
          std::cerr << "\tcpu " << cpu << " = " << time_spent_processing[cpu] / trajectories_assigned[cpu] << " ms" << std::endl;
       };
    } 
@@ -831,12 +792,12 @@ void SimulationMaster::MainLoop(void)
    MasterStart();
 
 // This is a parallel run in which the master does not do any simulation work, but assigns batches to worker processes.
-   if(is_parallel) {
-      while(active_workers) MasterDuties();
+   if (is_parallel) {
+      while (active_workers) MasterDuties();
    }
-// This is a serial run in which the master process does the work. "active_workers" is checked because it could be 0 from an error in the "mpi_config" setup by the user.
-   else if(active_workers) {
-      while(current_batch_size) {
+// This is a serial run in which the master process does the work. "active_workers" is checked because it could be 0 from an error in "mpi_config.hh" setup by the user.
+   else if (active_workers) {
+      while (current_batch_size) {
          WorkerDuties();
          DecrementTrajectoryCount();
       };
@@ -900,12 +861,21 @@ void SimulationMaster::PrintRecords(int distro, const std::string& file_name, bo
 // Top level methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 01/07/2025
+\param[in] argc Number of command line arguments
+\param[in] argv Command line arguments
+*/
 std::unique_ptr<SimulationWorker> CreateSimulation(int argc, char** argv)
 {
-   std::shared_ptr<MPI_Config> mpi_config = std::make_shared<MPI_Config>(argc, argv);
-   if(mpi_config->is_master) return std::make_unique<SimulationMaster>(mpi_config);
-   else if(mpi_config->is_boss) return std::make_unique<SimulationBoss>(mpi_config);
-   else return std::make_unique<SimulationWorker>(mpi_config);
+// Initialize a single instance of "MPI_Config" that will persist until the program terminates
+   static MPI_Config mpicfg(argc, argv);
+
+   if (MPI_Config::is_master) return std::make_unique<SimulationMaster>();
+   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss>();
+   else return std::make_unique<SimulationWorker>();
 };
 
 };
