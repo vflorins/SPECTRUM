@@ -339,7 +339,6 @@ int main(int argc, char** argv)
    int n_traj;
    int batch_size;
 
-   std::cout << "***CPU*** " << MPI_Config::glob_comm_rank << std::endl;
    batch_size = n_traj = 1;
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
