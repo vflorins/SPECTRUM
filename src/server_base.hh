@@ -143,9 +143,6 @@ class ServerBase {
 
 protected:
 
-//! MPI configuration object
-   std::shared_ptr<MPI_Config> mpi_config;
-
 //! Number of variables
    int n_variables = 0;
 
@@ -174,9 +171,6 @@ public:
 
 //! Destructor
    virtual ~ServerBase(void) = default;
-
-//! Connect to an existing MPI_Config object
-   void ConnectMPIConfig(const std::shared_ptr<MPI_Config> mpi_config_in);
 
 //! Common set up prior to main loop
    virtual void ServerStart(void);

@@ -41,9 +41,6 @@ protected:
 //! Particle's specie
    unsigned int specie = 0;
 
-//! MPI configuration object
-   std::shared_ptr<MPI_Config> mpi_config;
-
 //! Random number generator object
    std::shared_ptr<RNG> rng;
 
@@ -83,10 +80,7 @@ protected:
 public:
 
 //! Default constructor
-   SimulationWorker(void) = delete;
-
-//! Constructor with arguments
-   SimulationWorker(std::shared_ptr<MPI_Config> mpi_config_in);
+   SimulationWorker(void);
 
 //! Destructor
    virtual ~SimulationWorker() = default;
@@ -98,17 +92,11 @@ public:
 //! Set the particle count and the size of one batch
    virtual void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0);
 
-//! Tells whether our process is the master
-   bool IsMaster(void);
-
-//! Returns worker communicator rank and size
-   int GetWorkCommRankSize(int& work_comm_size_out);
-
 //! Get name (type) of trajectory
    std::string GetTrajectoryName(void) const;
 
 //! Get number of completed batches
-   int GetJobsDone(void) const;
+   int GetJobsDone(void) const {return jobsdone;};
 
 //! Set the particle specie
    void SetSpecie(unsigned int specie_in);
@@ -178,10 +166,7 @@ protected:
 public:
 
 //! Default constructor
-   SimulationBoss(void) = delete;
-
-//! Constructor with parameters
-   SimulationBoss(std::shared_ptr<MPI_Config> mpi_config_in);
+   SimulationBoss(void);
 
 //! Add a background object
    void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "") override;
@@ -263,10 +248,7 @@ protected:
 public:
 
 //! Default constructor
-   SimulationMaster(void) = delete;
-
-//! Constructor with parameters
-   SimulationMaster(std::shared_ptr<MPI_Config> mpi_config_in);
+   SimulationMaster(void);
 
 //! Set distro base filename
    void DistroFileName(const std::string& file_name) override;
