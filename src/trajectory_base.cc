@@ -69,15 +69,15 @@ void TrajectoryBase::ResetAllBoundaries(void)
 {
    unsigned int bnd;
 
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) {
       bcond_t[bnd]->SetScale(_spdata.dmax / c_code);
       bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) {
       bcond_s[bnd]->SetScale(_spdata.dmax);
       bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) {
       bcond_m[bnd]->SetScale(_mom.Norm());
       bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
@@ -91,9 +91,9 @@ void TrajectoryBase::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
 };
 
 /*!
@@ -104,9 +104,9 @@ void TrajectoryBase::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->RecordBoundary();
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->RecordBoundary();
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->RecordBoundary();
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->RecordBoundary();
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->RecordBoundary();
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->RecordBoundary();
 };
 
 /*!
@@ -119,13 +119,13 @@ void TrajectoryBase::UpdateAllBoundaries(void)
 void TrajectoryBase::GetIdx(double t_in, int& pt, double& weight) const
 {
 // For a negative "t_in", return an index of "-1" and weight of 0. The calling program must check for this to avoid a memory access error.
-   if (t_in < 0.0) {
+   if(t_in < 0.0) {
       pt = -1;
       weight = 0.0;
    }
 
 // For a very large "t_in", return the next to last point, so the interpolator will use only the last point with a weight of 1. If the trajectory has only the starting point in it, the index returned will be "-1", and the calling program must check for this to avoid a memory access error.
-   else if (t_in >= traj_t.back()) {
+   else if(t_in >= traj_t.back()) {
       pt = traj_t.size() - 2;
       weight = 0.0;
    }
@@ -149,7 +149,8 @@ void TrajectoryBase::ReverseMomentum(void)
 
 /*!
 \author Vladimir Florinski
-\date 02/10/2022
+\author Juan G Alonso Guzman
+\date 10/08/2024
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
@@ -164,22 +165,22 @@ void TrajectoryBase::TimeBoundaryProximityCheck(void)
 #endif
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) {
       delta = bcond_t[bnd]->GetDelta();
 
 // This gives the smallest delta in magnitude. Note that if two boundaries share a time stamp, only the first one will be processed. The first check is done to skip the event boundaries for which the crossing has already happened.
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-      if ((delta <= 0.0) && (delta > delta_next)) delta_next = delta;
+      if((delta <= 0.0) && (delta > delta_next)) delta_next = delta;
 #else
-      if ((delta >= 0.0) && (delta < delta_next)) delta_next = delta;
+      if((delta >= 0.0) && (delta < delta_next)) delta_next = delta;
 #endif
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if(dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
 #else
-   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if(dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
 #endif
 };
 
@@ -197,12 +198,12 @@ try {
 
 // Only check whether at least one absorbing boundary was crossed.
    bactive_s = -1;
-   while ((bactive_s == -1) && (bnd < bcond_s.size())) {
+   while((bactive_s == -1) && (bnd < bcond_s.size())) {
       bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
       bnd_status = bcond_s[bnd]->GetStatus();
 
 // Terminal boundary crossed, so the trajectory cannot continue
-      if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED) && BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
+      if(BITS_RAISED(bnd_status, BOUNDARY_CROSSED) && BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
          RAISE_BITS(_status, TRAJ_SPATIAL_CROSSED);
          RAISE_BITS(_status, TRAJ_FINISH);
          bactive_s = bnd;
@@ -211,15 +212,15 @@ try {
    };
 
 // Handle distribution events
-   if (bactive_s >= 0) {
-      for (distro = 0; distro < distributions.size(); distro++) {
+   if(bactive_s >= 0) {
+      for(distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if(action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
       };
    };
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the full RK step cannot be completed. In that case the function should return immediately and the last recorded position and momentum will be saved as if the step has completed. A check for momentum boundary is not needed; if one was crossed it will be recorded at the end of the step.
-   if (BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED) && BITS_RAISED(_status, TRAJ_FINISH)) {
+   if(BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED) && BITS_RAISED(_status, TRAJ_FINISH)) {
 
 #ifdef GEO_DEBUG
      PrintMessage(__FILE__, __LINE__, "Advance: The trajectory will terminate inside the RK loop", true);
@@ -317,10 +318,10 @@ bool TrajectoryBase::RKSlopes(void)
 {
    unsigned int istage, islope;
 
-   for (istage = 1; istage < RK_Table.stages; istage++) {
+   for(istage = 1; istage < RK_Table.stages; istage++) {
 
 // Advance to the current stage.
-      for (islope = 0; islope < istage; islope++) {
+      for(islope = 0; islope < istage; islope++) {
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
          _t += RK_Table.a[istage] * dt;
          _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
@@ -333,7 +334,7 @@ bool TrajectoryBase::RKSlopes(void)
       };
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the full RK step cannot be completed. In that case the function should return immediately and the last recorded position and momentum will be saved as if the step has completed. A check for momentum boundary is not needed; if one was crossed it will be recorded at the end of the step.
-      if (SpaceTerminateCheck()) return true;
+      if(SpaceTerminateCheck()) return true;
 
 // Obtain the fields at the new position. We can now compute p_perp and velocity even when using MM conservation.
       CommonFields();
@@ -372,31 +373,31 @@ bool TrajectoryBase::RKStep(void)
    _t -= dt;
 #endif
 // For adaptive schemes "pos_lo" is computed with a lower order version (we only use position to test for accuracy).
-   if (RK_Table.adaptive) pos_lo = _pos;
-   for (islope = 0; islope < RK_Table.stages; islope++) {
+   if(RK_Table.adaptive) pos_lo = _pos;
+   for(islope = 0; islope < RK_Table.stages; islope++) {
 
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
       _pos += dt * RK_Table.v[islope] * slope_pos[islope];
       _mom += dt * RK_Table.v[islope] * slope_mom[islope];
-      if (RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
+      if(RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
 #else
       _pos -= dt * RK_Table.v[islope] * slope_pos[islope];
       _mom -= dt * RK_Table.v[islope] * slope_mom[islope];
-      if (RK_Table.adaptive) pos_lo -= dt * RK_Table.w[islope] * slope_pos[islope];
+      if(RK_Table.adaptive) pos_lo -= dt * RK_Table.w[islope] * slope_pos[islope];
 #endif
 
    };
    _vel = Vel(_mom, specie);
 
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
-   if (RK_Table.adaptive) {
+   if(RK_Table.adaptive) {
       error = sqrt((_pos - pos_lo).Norm2() / Sqr(rk_tol_abs + rk_tol_rel * (_pos.Norm() + pos_lo.Norm())));
       dt_adaptive = dt * rk_adjust * pow(error, -1.0 / RK_Table.order);
       dt_adaptive = fmin(dt * rk_safety, dt_adaptive);
       dt_adaptive = fmax(dt / rk_safety, dt_adaptive);
 
 // Don't make this step if the error is unacceptable. The FINISH flag must be cleared.
-      if (error > 1.0 + sp_tiny) {
+      if(error > 1.0 + sp_tiny) {
          LOWER_BITS(_status, TRAJ_FINISH);
          return true;
       };
@@ -418,16 +419,16 @@ void TrajectoryBase::HandleBoundaries(void)
    ComputeAllBoundaries();
 
 // *** Momentum ***
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) {
       bnd_status = bcond_m[bnd]->GetStatus();
-      if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
+      if(BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
          bactive_m = bnd;
 
 // Mirroring event
-         if (BITS_RAISED(bnd_status, BOUNDARY_REFLECT)) n_mirr++;
+         if(BITS_RAISED(bnd_status, BOUNDARY_REFLECT)) n_mirr++;
 
 // Absorbing boundary. In the event of multiple momentum boundary crossing this will record the last one in the list (but this should not happen under normal operation).
-         else if (BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
+         else if(BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
             RAISE_BITS(_status, TRAJ_MOMENTUM_CROSSED);
             RAISE_BITS(_status, TRAJ_FINISH);
          }
@@ -438,22 +439,22 @@ void TrajectoryBase::HandleBoundaries(void)
    };
 
 // Handle distribution events
-   if (bactive_m >= 0) {
-      for (distro = 0; distro < distributions.size(); distro++) {
+   if(bactive_m >= 0) {
+      for(distro = 0; distro < distributions.size(); distro++) {
          action = bcond_m[bactive_m]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if(action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
       };
       bactive_m = -1;
    };
 
 // *** Spatial ***
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) {
       bnd_status = bcond_s[bnd]->GetStatus();
-      if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
+      if(BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
          bactive_s = bnd;
 
 // Reflection
-         if (BITS_RAISED(bnd_status, BOUNDARY_REFLECT)) {
+         if(BITS_RAISED(bnd_status, BOUNDARY_REFLECT)) {
 
 #ifdef GEO_DEBUG
             std::cerr << "Position and momentum before reflection: " << _pos << " " << _mom << std::endl;
@@ -478,7 +479,7 @@ void TrajectoryBase::HandleBoundaries(void)
          }
 
 // Absorbing boundary. Again, multiple boundaries are not handled properly at this time. (TODO)
-         else if (BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
+         else if(BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
             RAISE_BITS(_status, TRAJ_SPATIAL_CROSSED);
             RAISE_BITS(_status, TRAJ_FINISH);
          }
@@ -489,20 +490,20 @@ void TrajectoryBase::HandleBoundaries(void)
    };
 
 // Handle distribution events
-   if (bactive_s >= 0) {
-      for (distro = 0; distro < distributions.size(); distro++) {
+   if(bactive_s >= 0) {
+      for(distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if(action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
       };
       bactive_s = -1;
    };
 
 // *** Temporal ***
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) {
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) {
       bnd_status = bcond_t[bnd]->GetStatus();
-      if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
+      if(BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
          bactive_t = bnd;
-         if (BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
+         if(BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
             RAISE_BITS(_status, TRAJ_TIME_CROSSED);
             RAISE_BITS(_status, TRAJ_FINISH);
          }
@@ -513,10 +514,10 @@ void TrajectoryBase::HandleBoundaries(void)
    };
 
 // Handle distribution events
-   if (bactive_t >= 0) {
-      for (distro = 0; distro < distributions.size(); distro++) {
+   if(bactive_t >= 0) {
+      for(distro = 0; distro < distributions.size(); distro++) {
          action = bcond_t[bactive_t]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if(action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
       };
       bactive_t = -1;
    };
@@ -549,16 +550,16 @@ bool TrajectoryBase::RKAdvance(void)
    TimeBoundaryProximityCheck();
 
 // Compute the RK slopes. If a trajectory terminated (or is invalid) while computing slopes, exit the function.
-   if (RKSlopes()) return true;
+   if(RKSlopes()) return true;
 
 // Advance the trajectory. If the adaptive method error is unacceptable, exit the function.
-   if (RKStep()) return false;
+   if(RKStep()) return false;
 
 // Handle boundaries
    HandleBoundaries();
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
-   if (BITS_LOWERED(_status, TRAJ_FINISH)) {
+   if(BITS_LOWERED(_status, TRAJ_FINISH)) {
       CommonFields();
       MomentumCorrection();
    };
@@ -576,7 +577,7 @@ bool TrajectoryBase::RKAdvance(void)
 */
 void TrajectoryBase::UpdateBmagExtrema(void)
 {
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
       _spdata.Bmag_min = fmin(_spdata.Bmag_min, _spdata.Bmag);
       _spdata.Bmag_max = fmax(_spdata.Bmag_max, _spdata.Bmag);
    };
@@ -599,27 +600,36 @@ void TrajectoryBase::MomentumCorrection(void)
 bool TrajectoryBase::IsSimmulationReady(void) const
 {
 // Particle specie must be known
-   if ((specie < 0) || (specie >= MAX_PARTICLE_SPECIES)) return false;
+   if((specie < 0) || (specie >= MAX_PARTICLE_SPECIES)) return false;
 
 // A background object is required
-   if (!background) return false;
-   else if (BITS_LOWERED(background->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if(!background) return false;
+   else if(BITS_LOWERED(background->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
 // Time initial condition is required
-   if (!icond_t) return false;
-   else if (BITS_LOWERED(icond_t->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if(!icond_t) return false;
+   else if(BITS_LOWERED(icond_t->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
 // Space initial condition is required
-   if (!icond_s) return false;
-   else if (BITS_LOWERED(icond_s->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if(!icond_s) return false;
+   else if(BITS_LOWERED(icond_s->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
 // Momentum initial condition is required
-   if (!icond_m) return false;
-   else if (BITS_LOWERED(icond_m->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if(!icond_m) return false;
+   else if(BITS_LOWERED(icond_m->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
 // A minimum of one time boundary is required
-   if (bcond_t.size() == 0) return false;
-   else if (BITS_LOWERED(bcond_t[0]->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if(bcond_t.size() == 0) return false;
+   else if(BITS_LOWERED(bcond_t[0]->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+
+// Verify that the initial conditions and transport make sense
+   
+
+
+
+
+
+
 
 // A distribution need not be present if we are simulating a single trajectory
    return true;
@@ -642,19 +652,19 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    Params::SetSpecie(specie_in);
 // The factor multiplying "charge[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
    q = charge_mass_particle * charge[specie];
-   if (background != nullptr) background->SetSpecie(specie);
-   if (diffusion != nullptr) diffusion->SetSpecie(specie);
+   if(background != nullptr) background->SetSpecie(specie);
+   if(diffusion != nullptr) diffusion->SetSpecie(specie);
 
 // TODO Compare the performance of this "fancy" loop
 //   for(auto bct = bcond_t.begin(); bct != bcond_t.end(); bct++) (*bct)->SetSpecie(specie);
 
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->SetSpecie(specie);
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->SetSpecie(specie);
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->SetSpecie(specie);
+   for(bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->SetSpecie(specie);
+   for(bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->SetSpecie(specie);
+   for(bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->SetSpecie(specie);
 
-   if (icond_t != nullptr) icond_t->SetSpecie(specie);
-   if (icond_s != nullptr) icond_s->SetSpecie(specie);
-   if (icond_m != nullptr) icond_m->SetSpecie(specie);
+   if(icond_t != nullptr) icond_t->SetSpecie(specie);
+   if(icond_s != nullptr) icond_s->SetSpecie(specie);
+   if(icond_m != nullptr) icond_m->SetSpecie(specie);
 };
 
 /*!
@@ -670,7 +680,7 @@ void TrajectoryBase::AddBackground(const BackgroundBase& background_in, const Da
    background->ConnectRNG(rng);
    background->SetupObject(container_in);
    
-   if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
+   if(IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -685,7 +695,7 @@ void TrajectoryBase::AddDiffusion(const DiffusionBase& diffusion_in, const DataC
    diffusion->SetSpecie(specie);
    diffusion->SetupObject(container_in);
    
-   if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
+   if(IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -697,27 +707,27 @@ void TrajectoryBase::AddDiffusion(const DiffusionBase& diffusion_in, const DataC
 void TrajectoryBase::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
 // Time boundary
-   if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
+   if(BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
       bcond_t.push_back(boundary_in.Clone());
       bcond_t.back()->SetSpecie(specie);
       bcond_t.back()->SetupObject(container_in);
    }
 
 // Spatial boundary
-   else if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_SPACE)) {
+   else if(BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_SPACE)) {
       bcond_s.push_back(boundary_in.Clone());
       bcond_s.back()->SetSpecie(specie);
       bcond_s.back()->SetupObject(container_in);
    }
 
 // Momentum boundary
-   else if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_MOMENTUM)) {
+   else if(BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_MOMENTUM)) {
       bcond_m.push_back(boundary_in.Clone());
       bcond_m.back()->SetSpecie(specie);
       bcond_m.back()->SetupObject(container_in);
    }
 
-   if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
+   if(IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -730,7 +740,7 @@ void TrajectoryBase::AddBoundary(const BoundaryBase& boundary_in, const DataCont
 void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
 // Time condition
-   if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
+   if(BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
       icond_t = initial_in.Clone();
       icond_t->SetSpecie(specie);
       icond_t->ConnectRNG(rng);
@@ -738,7 +748,7 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
    }
 
 // Spatial condition
-   else if (BITS_RAISED(initial_in.GetStatus(), INITIAL_SPACE)) {
+   else if(BITS_RAISED(initial_in.GetStatus(), INITIAL_SPACE)) {
       icond_s = initial_in.Clone();
       icond_s->SetSpecie(specie);
       icond_s->ConnectRNG(rng);
@@ -746,7 +756,7 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
    }      
 
 // Momentum condition
-   else if (BITS_RAISED(initial_in.GetStatus(), INITIAL_MOMENTUM)) {
+   else if(BITS_RAISED(initial_in.GetStatus(), INITIAL_MOMENTUM)) {
       icond_m = initial_in.Clone();
       icond_m->SetSpecie(specie);
       icond_m->ConnectRNG(rng);
@@ -791,7 +801,7 @@ GeoVector TrajectoryBase::GetPosition(double t_in) const
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt < 0) return traj_pos[0];
+   if(pt < 0) return traj_pos[0];
    else return weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
 #else
    std::cout << "Cannot get position with respect to time because it is not being recorded." << std::endl;
@@ -812,7 +822,7 @@ GeoVector TrajectoryBase::GetVelocity(double t_in) const
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt < 0) {
+   if(pt < 0) {
       mom1 = traj_mom[0].Norm();
       vel1 = Vel(mom1, specie);
       return (vel1 / mom1) * traj_mom[0];
@@ -845,7 +855,7 @@ double TrajectoryBase::GetEnergy(double t_in) const
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
+   if(pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
    else return weight * EnrKin(traj_mom[pt].Norm(), specie) + (1.0 - weight) * EnrKin(traj_mom[pt + 1].Norm(), specie);
 #else
    std::cout << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
@@ -867,7 +877,7 @@ double TrajectoryBase::GetDistance(double t_in) const
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt >= 0) {
+   if(pt >= 0) {
       for(ipt = 0; ipt < pt; ipt++) length += (traj_pos[ipt + 1] - traj_pos[ipt]).Norm();
       pos_final = weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
       length += (pos_final - traj_pos[pt]).Norm();
@@ -970,28 +980,28 @@ void TrajectoryBase::Integrate(void)
 #endif
 
 // Time loop is very simple - a single call to "Advance()" followed by a global boundary update. It is the responsibility of Advance() to record the distribution on boundary crossing events.
-   while (BITS_LOWERED(_status, TRAJ_FINISH) && BITS_LOWERED(_status, TRAJ_DISCARD)) {
+   while(BITS_LOWERED(_status, TRAJ_FINISH) && BITS_LOWERED(_status, TRAJ_DISCARD)) {
 
 // Attempt to advance trajectory by one segment
       was_advanced = Advance();
 
 #ifdef RECORD_BMAG_EXTREMA
 // Update |B| extrema
-      if (was_advanced) UpdateBmagExtrema();
+      if(was_advanced) UpdateBmagExtrema();
 #endif
 
 #if TRAJ_ADV_SAFETY_LEVEL > 1
 // Too many steps were taken - terminate
-      if (Segments() > max_trajectory_steps) {
+      if(Segments() > max_trajectory_steps) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExMaxStepsReached();
       };
 
 // Too many time adaptations were performed - terminate
-      if (was_advanced) time_step_adaptations = 0;
+      if(was_advanced) time_step_adaptations = 0;
       else {
          time_step_adaptations++;
-         if (time_step_adaptations > max_time_adaptations) {
+         if(time_step_adaptations > max_time_adaptations) {
             RAISE_BITS(_status, TRAJ_DISCARD);
             throw ExMaxTimeAdaptsReached();
          };
@@ -1000,11 +1010,11 @@ void TrajectoryBase::Integrate(void)
 
 #if TRAJ_ADV_SAFETY_LEVEL > 0
 // Time step is too small - terminate
-      if (dt < sp_tiny * _spdata.dmax / c_code) {
+      if(dt < sp_tiny * _spdata.dmax / c_code) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepTooSmall();
       }
-      else if (!std::isnormal(dt)) {
+      else if(!std::isnormal(dt)) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepNan();
       };
@@ -1033,11 +1043,11 @@ void TrajectoryBase::StopBackground(void)
 */
 int TrajectoryBase::Crossings(unsigned int output, unsigned int bnd) const
 {
-   if (bnd < 0) return 0;
+   if(bnd < 0) return 0;
 
-   if ((output == 0) && (bnd < bcond_t.size())) return bcond_t[bnd]->CrossingsMade();
-   else if ((output == 1) && (bnd < bcond_s.size())) return bcond_s[bnd]->CrossingsMade();
-   else if ((output == 2) && (bnd < bcond_m.size())) return bcond_m[bnd]->CrossingsMade();
+   if((output == 0) && (bnd < bcond_t.size())) return bcond_t[bnd]->CrossingsMade();
+   else if((output == 1) && (bnd < bcond_s.size())) return bcond_s[bnd]->CrossingsMade();
+   else if((output == 2) && (bnd < bcond_m.size())) return bcond_m[bnd]->CrossingsMade();
    return 0;
 };
 
@@ -1064,8 +1074,8 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
 // Generate multiple column output
    trajfile << std::setprecision(12);
 
-   if (stride) {
-      for (pt = 0; pt < traj_t.size(); pt += stride) {
+   if(stride) {
+      for(pt = 0; pt < traj_t.size(); pt += stride) {
 //FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_mom[0]) >> pitch angle cosine (_mom[1]).
          mom_mag = traj_mom[pt].Norm();
          vm_ratio = Vel(mom_mag, specie) / mom_mag;
@@ -1082,7 +1092,7 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
       };
    }
    else {
-      while (t_out < traj_t.back() && iter_out < max_out) {
+      while(t_out < traj_t.back() && iter_out < max_out) {
          pos_t = GetPosition(t_out);
          vel_t = GetVelocity(t_out);
          engkin_t = GetEnergy(t_out);
@@ -1125,7 +1135,7 @@ void TrajectoryBase::PrintCSV(const std::string traj_name, bool phys_units, unsi
 
 // Generate CSV output
    trajfile << std::setprecision(12);
-   for (pt = 0; pt < traj_t.size(); pt += stride) {
+   for(pt = 0; pt < traj_t.size(); pt += stride) {
       trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
       trajfile << ",";
       trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
@@ -1148,10 +1158,10 @@ void TrajectoryBase::PrintCSV(const std::string traj_name, bool phys_units, unsi
 void TrajectoryBase::InterpretStatus(void) const
 {
    std::cerr << "Trajectory status: ";
-   if (BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
+   if(BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
 
 // These three states correspond to an absorbing boundary leading to a termination. The status is preserved and can be checked after a trajectory completion.
-   else if (BITS_RAISED(_status, TRAJ_FINISH)) {
+   else if(BITS_RAISED(_status, TRAJ_FINISH)) {
       if(BITS_RAISED(_status, TRAJ_TIME_CROSSED)) std::cerr << "time expired\n";
       else if(BITS_RAISED(_status, TRAJ_MOMENTUM_CROSSED)) std::cerr << "momentum boundary crossed\n";
       else if(BITS_RAISED(_status, TRAJ_SPATIAL_CROSSED)) std::cerr << "spatial boundary crossed\n";
@@ -1173,30 +1183,30 @@ void TrajectoryBase::PrintInfo(void) const
    std::cerr << "   " << class_name << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Distributions\n";
-   for (obj = 0; obj < distributions.size(); obj++) {
+   for(obj = 0; obj < distributions.size(); obj++) {
       std::cerr << "   " << distributions[obj]->GetName() << std::endl;
    };
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Background\n";
-   if (background) std::cerr << "   " << background->GetName() << std::endl;
+   if(background) std::cerr << "   " << background->GetName() << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Diffusion\n";
-   if (diffusion) std::cerr << "   " << diffusion->GetName() << std::endl;
+   if(diffusion) std::cerr << "   " << diffusion->GetName() << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Boundaries\n";
-   for (obj = 0; obj < bcond_t.size(); obj++) {
+   for(obj = 0; obj < bcond_t.size(); obj++) {
       std::cerr << "   " << bcond_t[obj]->GetName() << std::endl;
    };
-   for (obj = 0; obj < bcond_s.size(); obj++) {
+   for(obj = 0; obj < bcond_s.size(); obj++) {
       std::cerr << "   " << bcond_s[obj]->GetName() << std::endl;
    };
-   for (obj = 0; obj < bcond_m.size(); obj++) {
+   for(obj = 0; obj < bcond_m.size(); obj++) {
       std::cerr << "   " << bcond_m[obj]->GetName() << std::endl;
    };
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Initials\n";
-   if (icond_s) std::cerr << "   " << icond_s->GetName() << std::endl;
-   if (icond_m) std::cerr << "   " << icond_m->GetName() << std::endl;
+   if(icond_s) std::cerr << "   " << icond_s->GetName() << std::endl;
+   if(icond_m) std::cerr << "   " << icond_m->GetName() << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
 };
 

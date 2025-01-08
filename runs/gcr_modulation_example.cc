@@ -326,6 +326,10 @@ int main(int argc, char** argv)
    double val_cold2 = 0.0;
    container.Insert(val_cold2);
 
+// Value for which time to bin
+   int val_time2 = 1;
+   container.Insert(val_time2);
+
    simulation->AddDistribution(DistributionTimeUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,6 +339,7 @@ int main(int argc, char** argv)
    int n_traj;
    int batch_size;
 
+   std::cout << "***CPU*** " << MPI_Config::glob_comm_rank << std::endl;
    batch_size = n_traj = 1;
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);

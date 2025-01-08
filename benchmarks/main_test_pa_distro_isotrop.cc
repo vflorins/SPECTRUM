@@ -462,7 +462,7 @@ int main(int argc, char** argv)
    simulation->PrintDistro1D(3, 1, simulation_files_prefix + "timemark3_distro.dat", true);
    simulation->PrintDistro1D(4, 1, simulation_files_prefix + "final_distro.dat", true);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "PITCH ANGLE DISTRIBUTION ISOTROPIZATION" << std::endl;
       std::cout << "=========================================================" << std::endl;

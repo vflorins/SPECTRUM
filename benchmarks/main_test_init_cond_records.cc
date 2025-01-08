@@ -254,7 +254,7 @@ int main(int argc, char** argv)
    simulation->PrintDistro1D(0, 0, simulation_files_prefix + "init_time.dat", true);
    simulation->PrintRecords(1, simulation_files_prefix + "pos_records.dat", false);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "INITIAL CONDITION RECORDS" << std::endl;
       std::cout << "=========================================================" << std::endl;
