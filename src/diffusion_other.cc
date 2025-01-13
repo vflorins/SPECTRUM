@@ -917,7 +917,6 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
-
 // The 300.0 the "magic" factor for rigidity calculations.
    double rig = 300.0 * Rigidity(_mom[0], specie);
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _spdata.Bmag);
@@ -927,7 +926,6 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
    if (Bmix_idx < 0) Bmix_ind = 1.0;
    Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
    double kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
-
 // Reduction factor based on lack of magnetic mixing (i.e. unipolar regions)
    kap_rat *= Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red;
    Kappa[0] = kap_rat * Kappa[1];
@@ -939,6 +937,93 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 double DiffusionStraussEtAl2013::GetMuDerivative(void)
+{
+   return 0.0;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionPotgieterEtAl2015 methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/09/2025
+*/
+DiffusionPotgieterEtAl2015::DiffusionPotgieterEtAl2015(void)
+                          : DiffusionBase(diff_name_potgieter_et_al_2015, 0, STATE_NONE)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/09/2025
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+DiffusionPotgieterEtAl2015::DiffusionPotgieterEtAl2015(const DiffusionPotgieterEtAl2015& other)
+                        : DiffusionBase(other)
+{
+   RAISE_BITS(_status, STATE_NONE);
+   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/09/2025
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void DiffusionPotgieterEtAl2015::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if(!construct) DiffusionBase::SetupDiffusion(false);
+   container.Read(LISM_idx);
+   container.Read(lam_in);
+   container.Read(lam_out);
+   container.Read(R0);
+   container.Read(B0);
+   container.Read(kap_rat_in);
+   container.Read(kap_rat_out);
+   container.Read(Bmix_idx);
+   container.Read(kap_rat_red);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/09/2025
+*/
+void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
+{
+   if (comp_eval == 2) return;
+
+// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
+   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
+   if (LISM_idx < 0) LISM_ind = 0.0;
+   else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
+   double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
+   double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
+// The 300.0 the "magic" factor for rigidity calculations.
+   double rig = 300.0 * Rigidity(_mom[0], specie);
+   Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
+
+// Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
+   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
+   if (Bmix_idx < 0) Bmix_ind = 1.0;
+   Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+   double kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
+// Reduction factor based on lack of magnetic mixing (i.e. unipolar regions)
+   kap_rat *= Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red;
+   Kappa[0] = kap_rat * Kappa[1];
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 01/09/2025
+\return double       Derivative in mu
+*/
+double DiffusionPotgieterEtAl2015::GetMuDerivative(void)
 {
    return 0.0;
 };

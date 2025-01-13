@@ -70,9 +70,8 @@ void BackgroundSolarWind::SetupBackground(bool construct)
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
 
-// Only the first components of velocity is used. The value for B could be negative (for negative cycles).
+// Only the first components of velocity is used.
    ur0 = fabs(u0[0]);
-   Br0 = B0[0];
 
 // Compute auxiliary quantities for fast-slow wind calculation
 #if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
@@ -112,14 +111,21 @@ double BackgroundSolarWind::TimeLag(const double r)
 void BackgroundSolarWind::EvaluateBackground(void)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
-   double r_mns, phase0, phase, ur, Br, Bt, Bp;
-   double sinphase, cosphase, tilt_amp, t_lag;
+   double r_mns, phase0, phase, sinphase, cosphase;
+   double tilt_amp, t_lag, ur, Br, Bt, Bp, arg;
 
 // Convert position into solar rotation frame
    posprime = _pos - r0;
    posprime.ChangeToBasis(eprime);
    r = posprime.Norm();
    r_mns = r - r_ref;
+
+// Compute time lag due to solar wind propagation.
+   t_lag = TimeLag(r) - (_t - t0);
+
+// Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
+   arg = 2.0 * W0_sw * t_lag;
+   Br0 = B0[0] + B0[1] * cos(arg);
 
 // Compute latitude and enforce equatorial symmetry.
    costheta = posprime[2] / r;
@@ -131,12 +137,10 @@ void BackgroundSolarWind::EvaluateBackground(void)
    _spdata.region[1] = -1.0;
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
-   t_lag = TimeLag(r) - (_t - t0);
 // Constant tilt
    tilt_amp = tilt_ang_sw;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Variable tilt
-   double arg = 2.0 * W0_sw * t_lag;
    tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
 #endif
 #if SOLARWIND_SECTORED_REGION == 1
