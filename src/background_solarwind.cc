@@ -45,7 +45,7 @@ BackgroundSolarWind::BackgroundSolarWind(const BackgroundSolarWind& other)
                    : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -58,14 +58,14 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundSolarWind::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(Omega);
    container.Read(r_ref);
    container.Read(dmax_fraction);
 
 // Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
    w0 = Omega.Norm(); 
-   if(w0 < sp_tiny) eprime[2] = gv_nz;
+   if (w0 < sp_tiny) eprime[2] = gv_nz;
    else eprime[2] = UnitVec(Omega);
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
@@ -130,7 +130,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Compute latitude and enforce equatorial symmetry.
    costheta = posprime[2] / r;
    double fs_theta_sym = acos(costheta);
-   if(fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
+   if (fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
 // indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1)
    _spdata.region[0] = (r < hp_rad_sw ? 1.0 : -1.0);
@@ -144,15 +144,15 @@ void BackgroundSolarWind::EvaluateBackground(void)
    tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
 #endif
 #if SOLARWIND_SECTORED_REGION == 1
-   if(M_PI_2 - fs_theta_sym < tilt_amp) _spdata.region[1] = 1.0;
+   if (M_PI_2 - fs_theta_sym < tilt_amp) _spdata.region[1] = 1.0;
 #endif
 #endif
 
 // Calculate speed (fast/slow) based on latitude
    ur = ur0;
 #if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
-      if(fs_theta_sym < fsl_mns) ur *= fast_slow_ratio_sw;
-      else if(fs_theta_sym < fsl_pls) ur *= fast_slow_ratio_sw - 0.25 * fast_slow_dlat_sw * (fs_theta_sym - fsl_mns);
+      if (fs_theta_sym < fsl_mns) ur *= fast_slow_ratio_sw;
+      else if (fs_theta_sym < fsl_pls) ur *= fast_slow_ratio_sw - 0.25 * fast_slow_dlat_sw * (fs_theta_sym - fsl_mns);
 #elif SOLARWIND_SPEED_LATITUDE_PROFILE == 2
       ur *= fsr_pls - fsr_mns * tanh(fast_slow_dlat_sw * (fs_theta_sym - fast_slow_lat_sw));
 #endif
@@ -160,17 +160,17 @@ void BackgroundSolarWind::EvaluateBackground(void)
    ModifyUr(r, ur);
 
 // Compute the (radial) velocity and convert back to global frame
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
       _spdata.Uvec = ur * UnitVec(posprime);
       _spdata.Uvec.ChangeFromBasis(eprime);
    };
    
 // Compute (Parker spiral) magnetic field and convert back to global frame
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
 // Coordinates for conversion
       sintheta = sqrt(fmax(1.0 - Sqr(costheta), 0.0));
       s = sqrt(Sqr(posprime[0]) + Sqr(posprime[1]));
-      if(s < r * sp_tiny) {
+      if (s < r * sp_tiny) {
          cosphi = 0.0;
          sinphi = 0.0;
       }
@@ -207,23 +207,23 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
 // Flat current sheet at the equator
-      if(acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
+      if (acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
 #elif SOLARWIND_CURRENT_SHEET >= 2
 // Wavy current sheet
       phase0 = w0 * t_lag;
       sinphase = sin(phase0);
       cosphase = cos(phase0);
-      if(acos(costheta) > M_PI_2 + tilt_amp * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+      if (acos(costheta) > M_PI_2 + tilt_amp * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes
-      if(sin(W0_sw * t_lag) > 0.0) _spdata.Bvec *= -1.0;
+      if (sin(W0_sw * t_lag) > 0.0) _spdata.Bvec *= -1.0;
 #endif
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);
    };
 
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -237,18 +237,18 @@ void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
 //TODO: complete
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
 //TODO: complete
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
    NumericalDerivatives();

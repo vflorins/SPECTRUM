@@ -35,7 +35,7 @@ BackgroundServerBATL::BackgroundServerBATL(const BackgroundServerBATL& other)
                     : BackgroundCartesianServer(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 };

@@ -45,11 +45,11 @@ TrajectoryGuidingScatt::TrajectoryGuidingScatt(const std::string& name_in, unsig
 */
 bool TrajectoryGuidingScatt::IsSimmulationReady(void) const
 {
-   if(!TrajectoryBase::IsSimmulationReady()) return false;
+   if (!TrajectoryBase::IsSimmulationReady()) return false;
 
 // A diffusion object is required
-   if(diffusion == nullptr) return false;
-   else if(BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if (diffusion == nullptr) return false;
+   else if (BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
    return true;
 };
 
@@ -95,9 +95,9 @@ void TrajectoryGuidingScatt::EulerPitchAngleScatt(bool second)
       mu_new = mom_conv[1] + Vmu * dt_local + sqrt(2.0 * Dmumu * dt_local) * rng->GetNormal();
 
 #ifdef GEO_DEBUG
-      if(fabs(mu_new) > 1.0) Nabsmugt1 += 1;
+      if (fabs(mu_new) > 1.0) Nabsmugt1 += 1;
 #endif
-   } while(fabs(mu_new) > 1.0);
+   } while (fabs(mu_new) > 1.0);
 
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
@@ -136,9 +136,9 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
       mu_new = mu + Vmu * dt_local + b * dW + 0.5 * b * b1 * (Sqr(dW) - dt_local);
 
 #ifdef GEO_DEBUG
-      if(fabs(mu_new) > 1.0) Nabsmugt1 += 1;
+      if (fabs(mu_new) > 1.0) Nabsmugt1 += 1;
 #endif
-   } while(fabs(mu_new) > 1.0);
+   } while (fabs(mu_new) > 1.0);
 
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
@@ -179,7 +179,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
 // Compute second slope for Vmu
       mu_new = mu + slope_Dmumu[0] * dW;
       mu_new += slope_Vmu[0] * dt_local;
-      if(fabs(mu_new) > 1.0) {
+      if (fabs(mu_new) > 1.0) {
 #ifdef GEO_DEBUG
          Nabsmugt1 += 1;
 #endif
@@ -198,7 +198,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
 // Compute second slope for Dmumu
       mu_new = mu + gambar * slope_Dmumu[0] * dW;
       mu_new += slope_Vmu[0] * dt_local;
-      if(fabs(mu_new) > 1.0) {
+      if (fabs(mu_new) > 1.0) {
 #ifdef GEO_DEBUG
          Nabsmugt1 += 1;
 #endif
@@ -212,7 +212,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
 // Compute third slope for Dmumu
       mu_new = mu - slope_Dmumu[0] / (3.0 * gambar) * dW;
       mu_new += slope_Vmu[0] * dt_local;
-      if(fabs(mu_new) > 1.0) {
+      if (fabs(mu_new) > 1.0) {
 #ifdef GEO_DEBUG
          Nabsmugt1 += 1;
 #endif
@@ -235,9 +235,9 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       mu_new += 0.5 * slope_Dmumu[0] * dfit * (Sqr(dW) - dt_local);
 
 #ifdef GEO_DEBUG
-      if(fabs(mu_new) > 1.0) Nabsmugt1 += 1;
+      if (fabs(mu_new) > 1.0) Nabsmugt1 += 1;
 #endif
-   } while(fabs(mu_new) > 1.0);
+   } while (fabs(mu_new) > 1.0);
 
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
@@ -305,14 +305,14 @@ bool TrajectoryGuidingScatt::Advance(void)
    Slopes(slope_pos[0], slope_mom[0]);
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
-   if(RKSlopes()) return true;
+   if (RKSlopes()) return true;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Advance the trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If adaptive method error is unacceptable, exit advance function with false (step was not taken)
-   if(RKStep()) return false;
+   if (RKStep()) return false;
 
 #ifdef SPLIT_SCATT
 
@@ -321,7 +321,7 @@ bool TrajectoryGuidingScatt::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the second half of the scattering cannot be performed. In that case the function should return immediately and the current position will be saved.
-   if(SpaceTerminateCheck()) return true;
+   if (SpaceTerminateCheck()) return true;
 
 // Compute diffusion coefficients (including PA advection term)
    CommonFields();
@@ -344,7 +344,7 @@ bool TrajectoryGuidingScatt::Advance(void)
    HandleBoundaries();
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
-   if(BITS_LOWERED(_status, TRAJ_FINISH)) {
+   if (BITS_LOWERED(_status, TRAJ_FINISH)) {
       CommonFields();
       MomentumCorrection();
    };

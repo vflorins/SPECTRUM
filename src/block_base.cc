@@ -57,7 +57,7 @@ BlockBase::~BlockBase(void)
 */
 BlockBase& BlockBase::operator =(const BlockBase& other)
 {
-   if(&other == this) return *this;
+   if (&other == this) return *this;
 
    node = other.node;
    face_min = other.face_min;
@@ -78,7 +78,7 @@ BlockBase& BlockBase::operator =(const BlockBase& other)
 */
 BlockBase& BlockBase::operator =(BlockBase&& other)
 {
-   if(&other == this) return *this;
+   if (&other == this) return *this;
 
    node = other.node;
    face_min = other.face_min;
@@ -114,7 +114,7 @@ void BlockBase::SetGhostCells(int num_ghost_cells_in)
    ghost_to_phys_ratio[2] = (double)num_ghost_cells / (double)block_size.k;
 
 // Update block_size to account for ghost cells if necessary
-   if(num_ghost_cells > 0) {
+   if (num_ghost_cells > 0) {
       block_size = block_size + 2 * num_ghost_cells;
 
 // Re-allocate memory for variables array
@@ -140,7 +140,7 @@ void BlockBase::LoadDimensions(double unit_length_block)
    face_max_phys = face_max;
 
 // Adjust for ghost cells
-   if(num_ghost_cells > 0) {
+   if (num_ghost_cells > 0) {
       GeoVector incr = (face_max - face_min);
       incr[0] *= ghost_to_phys_ratio[0];
       incr[1] *= ghost_to_phys_ratio[1];
@@ -160,7 +160,7 @@ void BlockBase::ConfigureProperties(void)
    zone_length = (face_max - face_min) / block_size;
 
 // FIXME   
-   if((zone_length[0] <= 0.0) ||(zone_length[1] <= 0.0) || (zone_length[2] <= 0.0)) {
+   if ((zone_length[0] <= 0.0) ||(zone_length[1] <= 0.0) || (zone_length[2] <= 0.0)) {
       std::cerr << "ConfigureProperties Error: Zone length for node " << node << " is negative.\n";
       std::cerr << face_max << "  " << face_min << "\n";
    };
@@ -195,8 +195,8 @@ void BlockBase::GetZoneOffset(const GeoVector& pos, MultiIndex& zone, GeoVector&
    offset = (pos - cent_min) / zone_length;
    zone = offset;
 
-   for(auto xyz = 0; xyz < 3; xyz++) {
-      if(offset[xyz] < 0.0) zone[xyz]--;
+   for (auto xyz = 0; xyz < 3; xyz++) {
+      if (offset[xyz] < 0.0) zone[xyz]--;
    };
    offset = offset - zone;
 };
@@ -248,7 +248,7 @@ int BlockBase::DataLoc(int vidx, int i, int j, int k) const
 */
 bool BlockBase::ZoneInsideBlock(const MultiIndex& zone) const
 {
-   if(   (zone.i < 0) || (zone.i >= block_size.i)
+   if (   (zone.i < 0) || (zone.i >= block_size.i)
       || (zone.j < 0) || (zone.j >= block_size.j)
       || (zone.k < 0) || (zone.k >= block_size.k)) return false;
    else return true;

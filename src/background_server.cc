@@ -43,7 +43,7 @@ BackgroundServer::BackgroundServer(const BackgroundServer& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -57,10 +57,10 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundServer::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    
 #ifdef NEED_SERVER
-   if(MPI_Config::is_worker) {
+   if (MPI_Config::is_worker) {
       server_front = std::make_unique<ServerFrontType>();
       server_front->ServerStart();
    };
@@ -89,7 +89,7 @@ void BackgroundServer::EvaluateBackgroundDerivatives(void)
 #ifdef NEED_SERVER
    server_front->GetGradients(_spdata);
 #endif
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) NumericalDerivatives();
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) NumericalDerivatives();
 };
 
 #if SERVER_INTERP_ORDER > 0

@@ -20,22 +20,20 @@ namespace Spectrum {
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 06/09/2022
+\date 01/15/2024
 */
 SimulationWorker::SimulationWorker(void)
 {
-// Analyze our parallel setup and determine if this is a serial or parallel run.
+// Check to make sure that there is at least one worker in the simulation. Otherwise, the simulation cannot happen and the program will exit immediately.
    if (MPI_Config::n_workers < 1) {
-      PrintError(__FILE__, __LINE__, "No worker processes available", MPI_Config::is_master);
-      is_parallel = false;
+      PrintError(__FILE__, __LINE__, "No worker processes available.", MPI_Config::is_master);
+      PrintError(__FILE__, __LINE__, "Simulation will exit immediately.", MPI_Config::is_master);
+      exit(1);
    }
    else is_parallel = true;
-
-// Some ambiguity exists for "n_workers" equal to 1 because there can be a separate master, which counts as a parallel run.
-#ifdef ALLOW_MASTER_BOSS
-#ifdef ALLOW_BOSS_WORKER
-   if (MPI_Config::n_workers == 1) is_parallel = false;
-#endif
+// The master is always present in the worker communicator. Thus, without a server, a run can only be parallel if this communicator has more than 1 member.
+#ifndef NEED_SERVER
+   if (MPI_Config::work_comm_size == 1) is_parallel = false;
 #endif
 
 // Create a common RNG object
@@ -234,7 +232,7 @@ void SimulationWorker::WorkerStart(void)
 void SimulationWorker::WorkerFinish(void)
 {
 // Print last trajectory
-   if(print_last_trajectory) {
+   if (print_last_trajectory) {
       std::string rank_str = std::to_string(MPI_Config::work_comm_rank);
       std::string size_str = std::to_string(MPI_Config::work_comm_size);
       rank_str.insert(0, size_str.size() - rank_str.size(), '0');
@@ -271,11 +269,11 @@ void SimulationWorker::WorkerDuties(void)
          trajectory->Integrate();
          traj_elapsed_time = trajectory->ElapsedTime();
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-         if(shortest_sim_time > traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
-         if(longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
+         if (shortest_sim_time > traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
+         if (longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
 #else
-         if(shortest_sim_time < traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
-         if(longest_sim_time > traj_elapsed_time) longest_sim_time = traj_elapsed_time;
+         if (shortest_sim_time < traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
+         if (longest_sim_time > traj_elapsed_time) longest_sim_time = traj_elapsed_time;
 #endif
          traj_count++;
       }
@@ -453,10 +451,10 @@ void SimulationBoss::MainLoop(void)
    BossStart();
 
 #ifdef NEED_SERVER
-   while(active_local_workers) BossDuties();
+   while (active_local_workers) BossDuties();
 #else
    if (MPI_Config::is_worker) {
-      while(current_batch_size) WorkerDuties();
+      while (current_batch_size) WorkerDuties();
    };
 #endif
 
@@ -560,7 +558,7 @@ void SimulationMaster::DecrementTrajectoryCount(void)
    long int remaining_alloc_time, sim_time_left;
 
    n_trajectories -= current_batch_size;
-   if(n_trajectories < current_batch_size) current_batch_size = n_trajectories;
+   if (n_trajectories < current_batch_size) current_batch_size = n_trajectories;
    
 #ifdef GEO_DEBUG
    std::cerr << "Trajectories left unassigned: " + std::to_string(n_trajectories) << std::endl;
@@ -682,12 +680,12 @@ void SimulationMaster::MasterStart(void)
    sim_start_time = std::chrono::system_clock::now();
 
 // Reset quantities
-   for(int distro = 0; distro < local_distros.size(); distro++) {
+   for (int distro = 0; distro < local_distros.size(); distro++) {
       local_distros[distro]->ResetDistribution();
       partial_distros[distro]->ResetDistribution();
 
 // Restore distros if requested by user
-      if(restore_distros[distro]) local_distros[distro]->Restore(distro_file_name + std::to_string(distro) + ".out");
+      if (restore_distros[distro]) local_distros[distro]->Restore(distro_file_name + std::to_string(distro) + ".out");
    };
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    shortest_sim_time = 1.0E300;

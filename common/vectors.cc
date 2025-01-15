@@ -523,7 +523,7 @@ SPECTRUM_DEVICE_FUNC GeoVector GreatCircleInt(const GeoVector& vect1, const GeoV
    GeoVector vect5 = (vect1 ^ vect2) ^ (vect3 ^ vect4);
 
 // Choose the direction that is closest to point 1 (angle < 90 deg).
-   if(vect1 * vect5 < 0.0) vect5 = -vect5;
+   if (vect1 * vect5 < 0.0) vect5 = -vect5;
    return vect5.Normalize();
 };
 
@@ -538,12 +538,12 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& first)
    int max_ang;
 
 // Find the unit vector making the largest angle with "first" (smallest component of "first")
-   if(fabs(first[0]) < fabs(first[1])) {
-      if(fabs(first[0]) < fabs(first[2])) max_ang = 0;
+   if (fabs(first[0]) < fabs(first[1])) {
+      if (fabs(first[0]) < fabs(first[2])) max_ang = 0;
       else max_ang = 2;
    }
    else {
-      if(fabs(first[1]) < fabs(first[2])) max_ang = 1;
+      if (fabs(first[1]) < fabs(first[2])) max_ang = 1;
       else max_ang = 2;
    };
 

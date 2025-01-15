@@ -76,7 +76,7 @@ public:
 */
 inline GeoVector BackgroundServer::GetDomainMin(void) const
 {
-   if(server_front) return server_front->GetDomainMin();
+   if (server_front) return server_front->GetDomainMin();
    else return gv_zeros;
 };
 
@@ -87,7 +87,7 @@ inline GeoVector BackgroundServer::GetDomainMin(void) const
 */
 inline GeoVector BackgroundServer::GetDomainMax(void) const
 {
-   if(server_front) return server_front->GetDomainMax();
+   if (server_front) return server_front->GetDomainMax();
    else return gv_zeros;
 };
 

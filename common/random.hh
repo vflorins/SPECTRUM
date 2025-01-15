@@ -80,7 +80,7 @@ inline RNG::RNG(int seed)
 */
 inline RNG::~RNG()
 {
-   if(rng_internal) gsl_rng_free(rng_internal);
+   if (rng_internal) gsl_rng_free(rng_internal);
 };
 
 /*!

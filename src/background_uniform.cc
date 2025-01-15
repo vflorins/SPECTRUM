@@ -35,7 +35,7 @@ BackgroundUniform::BackgroundUniform(const BackgroundUniform& other)
                  : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -49,7 +49,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundUniform::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Precompute motional electric field for efficiency
    E0 = -(u0 ^ B0) / c_code;
@@ -62,9 +62,9 @@ void BackgroundUniform::SetupBackground(bool construct)
 */
 void BackgroundUniform::EvaluateBackground(void)
 {
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
    _spdata.region = 1.0;
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -77,14 +77,14 @@ void BackgroundUniform::EvaluateBackground(void)
 void BackgroundUniform::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
 
 // Time derivatives are zero
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 };
 
 };

@@ -43,7 +43,7 @@ BackgroundCylindricalObstacle::BackgroundCylindricalObstacle(const BackgroundCyl
                              : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -56,7 +56,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundCylindricalObstacle::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
    container.Read(axis);
    axis.Normalize();
@@ -78,16 +78,16 @@ void BackgroundCylindricalObstacle::EvaluateBackground(void)
    posprime.SubtractParallel(axis);
    double posprimenorm = posprime.Norm();
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      if(posprimenorm < r_cylinder) _spdata.Bvec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (posprimenorm < r_cylinder) _spdata.Bvec = gv_zeros;
       else {
          double s2 = posprime.Norm2();
          _spdata.Bvec = B0 - Sqr(r_cylinder) / s2 * (2.0 * (posprime * B0) / s2 * posprime - B0);
       };
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
-   if(posprimenorm < r_cylinder) _spdata.region = 0.0;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
+   if (posprimenorm < r_cylinder) _spdata.region = 0.0;
    else _spdata.region = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -105,17 +105,17 @@ void BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(void)
    posprime.SubtractParallel(axis);
    double posprimenorm = posprime.Norm();
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      if(posprimenorm < r_cylinder) _spdata.gradBvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+      if (posprimenorm < r_cylinder) _spdata.gradBvec = gm_zeros;
       else {
 // TODO: complete
       };
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
    NumericalDerivatives(); 

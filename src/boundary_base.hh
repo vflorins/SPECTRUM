@@ -275,7 +275,7 @@ inline GeoVector BoundaryBase::GetNormal(void) const
 */
 inline double BoundaryBase::GetRecord(int crs) const
 {
-   if((crs < 0) || (std::abs(crs) >= _cross_t.size())) return 0.0;
+   if ((crs < 0) || (std::abs(crs) >= _cross_t.size())) return 0.0;
    else return _cross_t[crs];
 };
 
