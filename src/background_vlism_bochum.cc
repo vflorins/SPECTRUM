@@ -47,7 +47,7 @@ BackgroundVLISMBochum::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
                      : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -61,7 +61,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundVLISMBochum::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(z_nose);
 
 // Build the new coordinate system with z axis along -u0 and convert the magnetic field to the primed frame.
@@ -104,13 +104,13 @@ double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
 
 // Newton iterations
    zev = 2.0;
-   while(fabs(delta) > sp_tiny) {
+   while (fabs(delta) > sp_tiny) {
       f0 = (zev + 0.5 * log((zev - 1.0) / (zev + 1.0)) - zeta);
       f1 = (zev * zev) / (zev * zev - 1.0); 
       delta = f0 / f1;
 
 // Catch overshoot before doing log[<0] by just going halfway to 1.0
-      if(zev - delta <= 1.0) delta = 0.5 * (zev - 1.0);
+      if (zev - delta <= 1.0) delta = 0.5 * (zev - 1.0);
       zev -= delta;
    };
 
@@ -126,13 +126,13 @@ double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
 // No modification for zev>ztr, constant for zev<ztr
 #elif MOD_TYPE == 2
 
-   if(fabs(sin_theta_B0) < sp_tiny) return 1.0;
+   if (fabs(sin_theta_B0) < sp_tiny) return 1.0;
    else return (zev > ztr ? 1.0 : RelBtrans(ztr) / RelBtrans(zev));
 
 // No modification for zev>ztr, scaled to reach scB at the nose for zev<ztr
 #elif MOD_TYPE == 3
 
-   if((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
+   if ((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
    else return RelBtrans(fzoom * zev) / RelBtrans(fzoom * ztr) / RelBtrans(zev) * RelBtrans(ztr);
 
 // Unmodified field
@@ -167,7 +167,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    a2 = s2 - 2.0 * (1.0 - z / r);
 
 // Test for inside of the HP
-   if((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
+   if ((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
       _spdata.Bvec = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
       _spdata.Evec = gv_zeros;
@@ -179,13 +179,13 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    else _spdata.region[0] = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
       _spdata.Uvec = (posprime / r3 - gv_nz) * u0.Norm();
       _spdata.Uvec.ChangeFromBasis(eprime);
    };
 
 // If the flag for computing B is down, exit function because E depends on B, so it cannot be computed without it
-   if(BITS_LOWERED(_spdata._mask, BACKGROUND_B)) return;
+   if (BITS_LOWERED(_spdata._mask, BACKGROUND_B)) return;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -197,8 +197,8 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    a1s1 = sqrt(a2s2);
 
 // Separate treatment for z axis
-   if(s < sp_tiny) {
-      if(z > 1.0 + sp_tiny) {
+   if (s < sp_tiny) {
+      if (z > 1.0 + sp_tiny) {
          wus = sqrt(1.0 - 1.0 / Sqr(z));
          _spdata.Bvec[0] = B0[0] / wus;
          _spdata.Bvec[1] = B0[1] / wus;
@@ -237,7 +237,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
       double ellintF, ellintE;
 
 // A nonzero status indicates an error in elliptic integral evaluation. A value of 20 for F was obtained experimentally (the function is increasing logarithmically)
-      if(statusF || statusE) {
+      if (statusF || statusE) {
          ellintF = 20.0;
          ellintE = 1.0;
       }
@@ -275,7 +275,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
    _spdata.Bvec *= GetAmpFactor(zeta);
 
 // Add unmodified longitudinal (flow-parallel) part.
-   if(!small_s_eval) {
+   if (!small_s_eval) {
       _spdata.Bvec[0] -= B0[2] * posprime[0] / r3;
       _spdata.Bvec[1] -= B0[2] * posprime[1] / r3;
       _spdata.Bvec[2] -= B0[2] * (z / r3 - 1.0);
@@ -296,7 +296,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };

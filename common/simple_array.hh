@@ -442,7 +442,7 @@ inline std::ostream& operator <<(std::ostream& os, const SimpleArray<data_type, 
 template<typename data_type, int n_vars>
 inline std::istream& operator >>(std::istream& is, SimpleArray<data_type, n_vars>& sarr_i)
 {
-   for(auto i = 0; i < n_vars; i++) is >> sarr_i[i];
+   for (auto i = 0; i < n_vars; i++) is >> sarr_i[i];
    return is;
 };
 

@@ -35,7 +35,7 @@ InitialTimeFixed::InitialTimeFixed(const InitialTimeFixed& other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -48,7 +48,7 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialTimeFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
    container.Read(inittime);
 
 // Pre-assign "_t" so that it never needs to change
@@ -101,7 +101,7 @@ InitialTimeInterval::InitialTimeInterval(const InitialTimeInterval& other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
    RAISE_BITS(_status, INITIAL_CURVE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -114,14 +114,14 @@ This method's main role is to unpack the data container and set up the class dat
 void InitialTimeInterval::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) InitialBase::SetupInitial(false);
+   if (!construct) InitialBase::SetupInitial(false);
 
    int n_intervals;
    container.Read(starttime);
    container.Read(endtime);
    container.Read(n_intervals);
 
-   if(n_intervals <= 0) randomtime = true;
+   if (n_intervals <= 0) randomtime = true;
    else {
       randomtime = false;
       increment = (endtime - starttime) / (double)n_intervals;
@@ -135,7 +135,7 @@ void InitialTimeInterval::SetupInitial(bool construct)
 */
 void InitialTimeInterval::EvaluateInitial(void)
 {
-   if(randomtime) _t = starttime + (endtime - starttime) * rng->GetUniform();
+   if (randomtime) _t = starttime + (endtime - starttime) * rng->GetUniform();
    else _t += increment;
 };
 
@@ -164,7 +164,7 @@ InitialTimeTable::InitialTimeTable(const InitialTimeTable& other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
    RAISE_BITS(_status, INITIAL_POINT);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupInitial(true);
 };
 
 /*!
@@ -173,7 +173,7 @@ InitialTimeTable::InitialTimeTable(const InitialTimeTable& other)
 */
 void InitialTimeTable::EvaluateInitial(void)
 {
-   if(random) {
+   if (random) {
 // Generate random integer between 0 and initquant.size() - 1
       table_counter = rng->GetUniform() * initquant.size();
 // Pull time in randomly selected place on the table
@@ -183,7 +183,7 @@ void InitialTimeTable::EvaluateInitial(void)
 // Pull next time on the table
       _t = initquant[table_counter++];
 // If all positions have been sampled, reset the counter
-      if(table_counter == initquant.size()) table_counter = 0;
+      if (table_counter == initquant.size()) table_counter = 0;
    };
 };
 

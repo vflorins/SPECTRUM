@@ -84,7 +84,7 @@ namespace Spectrum {
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 02/26/2024
+\date 01/15/2025
 \param[in] argc Number of command line arguments
 \param[in] argv Array of command line arguments
 */
@@ -164,7 +164,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
    };
 
 // Process 0 on each node sends its global rank to the master (including master to self). At this time it is not known whether process 0 is a boss because a master-boss may not be allowed.
-   if(!node_comm_rank) MPI_Send(&glob_comm_rank, 1, MPI_INT, 0, 0, glob_comm);
+   if (!node_comm_rank) MPI_Send(&glob_comm_rank, 1, MPI_INT, 0, 0, glob_comm);
 
 // Sort the "glob_rank" array and broadcast the sorted array to all processes.
    if (is_master) {
@@ -195,8 +195,14 @@ MPI_Config::MPI_Config(int argc, char** argv)
    MPI_Comm node_comm_tmp;
    if (!my_node) {
       if (node_comm_size < 2) {
-         PrintError(__FILE__, __LINE__, "Cannot create a boss different from the master with less than 2 processes in the master's node.", is_master);
-         PrintError(__FILE__, __LINE__, "Master will also be boss in its own node.", is_master);
+         PrintError(__FILE__, __LINE__, "Less than 2 processes in the master's node.", is_master);
+#ifdef NEED_SERVER
+         PrintError(__FILE__, __LINE__, "Cannot create a server different from the master.", is_master);
+         PrintError(__FILE__, __LINE__, "Master will also be server in its own node.", is_master);
+#else
+         PrintError(__FILE__, __LINE__, "Cannot create a worker different from the master.", is_master);
+         PrintError(__FILE__, __LINE__, "Master will also be worker in its own node.", is_master);
+#endif
       }
       else {
          MPI_Comm_split(node_comm, (is_master ? MPI_UNDEFINED : 1), node_comm_rank, &node_comm_tmp);
@@ -370,8 +376,8 @@ void TestMPIConfig(void)
    infofile << "Worker status: " << (MPI_Config::is_worker ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   if(MPI_Config::is_master) {
-      for(auto node = 0; node < MPI_Config::n_nodes; node++) {
+   if (MPI_Config::is_master) {
+      for (auto node = 0; node < MPI_Config::n_nodes; node++) {
          infofile << "Number of workers in node " << node << ": " << MPI_Config::workers_per_node[node] << std::endl;
       };
    };

@@ -35,7 +35,7 @@ BackgroundDipole::BackgroundDipole(const BackgroundDipole& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -50,7 +50,7 @@ void BackgroundDipole::SetupBackground(bool construct)
    double r_ref;
 
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(r_ref);
    container.Read(dmax_fraction);
    M = B0 * Cube(r_ref);
@@ -62,8 +62,8 @@ void BackgroundDipole::SetupBackground(bool construct)
 */
 void BackgroundDipole::EvaluateBackground(void)
 {
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
       GeoVector posprime = _pos - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
@@ -71,7 +71,7 @@ void BackgroundDipole::EvaluateBackground(void)
       r5 *= r2;
       _spdata.Bvec = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
    _spdata.region = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -86,8 +86,8 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
 {
 #if DIPOLE_DERIVATIVE_METHOD == 0
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
       GeoVector posprime = _pos - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
@@ -101,13 +101,13 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
       _spdata.gradBvec = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
       _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
       _spdata.dBvecdt = gv_zeros;
       _spdata.dBmagdt = 0.0;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
    NumericalDerivatives();

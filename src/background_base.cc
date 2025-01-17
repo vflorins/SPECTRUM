@@ -257,47 +257,47 @@ void BackgroundBase::NumericalDerivatives(void)
       fa_basis.row[1] = fa_basis.row[2] ^ fa_basis.row[0];
 
 // Compute derivatives in field-aligned basis
-      for(xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+      for (xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec = rot_mat * _spdata.gradUvec;
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec = rot_mat * _spdata.gradUvec;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
          _spdata_tmp.gradBvec = rot_mat * _spdata.gradBvec;
          _spdata_tmp.gradBmag = rot_mat * _spdata.gradBmag;
       };
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec = rot_mat * _spdata.gradEvec;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec = rot_mat * _spdata.gradEvec;
 
 #if BACKGROUND_NUM_GRAD_EVALS > 1
 // Repeat for any additional rotations
-      for(n_rot = 1; n_rot < BACKGROUND_NUM_GRAD_EVALS; n_rot++) {
+      for (n_rot = 1; n_rot < BACKGROUND_NUM_GRAD_EVALS; n_rot++) {
          fa_basis[0].Rotate(fa_basis.row[2], sin_lra, cos_lra);
          fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
-         for(xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+         for (xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
 
          rot_mat.Transpose(fa_basis);
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec += rot_mat * _spdata.gradUvec;
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec += rot_mat * _spdata.gradUvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
             _spdata_tmp.gradBvec += rot_mat * _spdata.gradBvec;
             _spdata_tmp.gradBmag += rot_mat * _spdata.gradBmag;
          };
-         if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec += rot_mat * _spdata.gradEvec;
+         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec += rot_mat * _spdata.gradEvec;
       };
 
 // Average results
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec /= BACKGROUND_NUM_GRAD_EVALS;
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec /= BACKGROUND_NUM_GRAD_EVALS;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
          _spdata_tmp.gradBvec /= BACKGROUND_NUM_GRAD_EVALS;
          _spdata_tmp.gradBmag /= BACKGROUND_NUM_GRAD_EVALS;
       };
-      if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec /= BACKGROUND_NUM_GRAD_EVALS;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec /= BACKGROUND_NUM_GRAD_EVALS;
 #endif
    };
 
 // Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.
    _spdata._mask >>= mask_offset;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
       w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), Vel(_mom[0]) / _spdata.dmax);
       DirectionalDerivative(3);
@@ -437,14 +437,14 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVe
 
 // Compute u, B, E
    EvaluateBackground();
-   if(BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
+   if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute Bmag, bhat
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
       EvaluateBmag();
-      if(_spdata.Bmag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
+      if (_spdata.Bmag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
       else _spdata.bhat = _spdata.Bvec / _spdata.Bmag;
    };
-   if(BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
+   if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute derivatives of u, B, E
    EvaluateBackgroundDerivatives();
 

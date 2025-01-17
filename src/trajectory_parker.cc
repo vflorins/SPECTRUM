@@ -43,11 +43,11 @@ TrajectoryParker::TrajectoryParker(const std::string& name_in, unsigned int spec
 */
 bool TrajectoryParker::IsSimmulationReady(void) const
 {
-   if(!TrajectoryBase::IsSimmulationReady()) return false;
+   if (!TrajectoryBase::IsSimmulationReady()) return false;
 
 // A diffusion object is required
-   if(diffusion == nullptr) return false;
-   else if(BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   if (diffusion == nullptr) return false;
+   else if (BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
    return true;
 };
 
@@ -100,7 +100,7 @@ try {
 // Loop over dimensions to find derivatives of Kappa.
    divK = gv_zeros;
 // TODO: check if CommonFields returns a STATE_INVALID flag and revert to forward/backward (1st order) FD.
-   for(j = 0; j < 3; j++) {
+   for (j = 0; j < 3; j++) {
 // Forward evaluation
       pos_tmp = _pos + delta * cart_unit_vec[j];
       CommonFields(_t, pos_tmp, _mom, spdata_forw);
@@ -111,7 +111,7 @@ try {
       CommonFields(_t, pos_tmp, _mom, spdata_back);
       Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_back);
       Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_back);
-      for(i = 0; i < 3; i++) {
+      for (i = 0; i < 3; i++) {
          Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * spdata_forw.bhat[j] * spdata_forw.bhat[i];
          Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * spdata_back.bhat[j] * spdata_back.bhat[i];
          divK[i] += 0.5 * (Kappa_forw - Kappa_back) / delta;
@@ -140,7 +140,7 @@ try {
 #endif
 
 // Scale magnitude to an upper limit of v/2 if necessary.
-   // if(divK.Norm() > 0.5 * _vel[0]) {
+   // if (divK.Norm() > 0.5 * _vel[0]) {
    //    divK.Normalize();
    //    divK *= 0.5 * _vel[0];
    // };
@@ -194,7 +194,7 @@ void TrajectoryParker::DriftCoeff(void)
 // Scale by pvc/3q|B| = r_L*v/3
    drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
-   if(drift_vel.Norm() > 0.5 * _vel[0]) {
+   if (drift_vel.Norm() > 0.5 * _vel[0]) {
       drift_vel.Normalize();
       drift_vel *= 0.5 * _vel[0];
    };
@@ -279,14 +279,14 @@ bool TrajectoryParker::Advance(void)
 #endif
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
-   if(RKSlopes()) return true;
+   if (RKSlopes()) return true;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Advance trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If adaptive method error is unacceptable, exit advance function with false (step was not taken)
-   if(RKStep()) return false;
+   if (RKStep()) return false;
 
 // Stochastic displacement
    _pos += dr_perp;
@@ -297,7 +297,7 @@ bool TrajectoryParker::Advance(void)
    HandleBoundaries();
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed
-   if(BITS_LOWERED(_status, TRAJ_FINISH)) CommonFields();
+   if (BITS_LOWERED(_status, TRAJ_FINISH)) CommonFields();
 
 // Add the new point to the trajectory.
    Store();

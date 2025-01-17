@@ -239,7 +239,7 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::Transpose(void)
 */
 SPECTRUM_DEVICE_FUNC inline void GeoMatrix::Transpose(const GeoMatrix& matr_in)
 {
-   if(this != &matr_in) memcpy(linear, matr_in.linear, 9 * SZDBL);
+   if (this != &matr_in) memcpy(linear, matr_in.linear, 9 * SZDBL);
    this->Transpose();
 };
 
@@ -451,8 +451,8 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(const GeoMatrix& matr_l, const 
    int i, j;
    GeoMatrix matr_tmp, matr_rt(matr_r);
    matr_rt.Transpose();
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) {
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
          matr_tmp.row[i][j] = matr_l[i] * matr_rt[j];
       };
    };
@@ -469,7 +469,7 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(const GeoMatrix& matr_l, const 
 SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoVector& vect_l, const GeoMatrix& matr_r)
 {
    GeoMatrix matr_tmp;
-   for(auto i = 0; i < 3; i++) matr_tmp[i] = vect_l ^ matr_r[i];
+   for (auto i = 0; i < 3; i++) matr_tmp[i] = vect_l ^ matr_r[i];
    return matr_tmp;
 };
 
@@ -483,7 +483,7 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoVector& vect_l, const 
 SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoMatrix& matr_l, const GeoVector& vect_r)
 {
    GeoMatrix matr_tmp;
-   for(auto i = 0; i < 3; i++) matr_tmp[i] = matr_l[i] ^ vect_r;
+   for (auto i = 0; i < 3; i++) matr_tmp[i] = matr_l[i] ^ vect_r;
    return matr_tmp;
 };
 
@@ -497,7 +497,7 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator ^(const GeoMatrix& matr_l, const 
 SPECTRUM_DEVICE_FUNC inline double operator %(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 {
    double ip = 0.0;
-   for(auto i = 0; i < 3; i++) ip += matr_l[i] * matr_r[i];
+   for (auto i = 0; i < 3; i++) ip += matr_l[i] * matr_r[i];
    return ip;
 };
 

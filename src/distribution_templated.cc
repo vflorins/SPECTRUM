@@ -53,7 +53,7 @@ DistributionTemplated<distroClass>::DistributionTemplated(const DistributionTemp
                                   : DistributionBase(other)
 {
 // Params' constructor resets all flags
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -109,14 +109,14 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
 
 // The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addresing possible. Active dimensions are flagged as bits in "dims".
    dims = 0;
-   for(ijk = 0; ijk < 3; ijk++) {
-      if(n_bins[ijk] > 0) RAISE_BITS(dims, 1 << ijk);
+   for (ijk = 0; ijk < 3; ijk++) {
+      if (n_bins[ijk] > 0) RAISE_BITS(dims, 1 << ijk);
       n_bins[ijk] = std::max(n_bins[ijk], 1);
    };
 
 // "limits" and "range" keep the transformed min/max values (linear, log, or possibly other functional forms).
-   for(ijk = 0; ijk < 3; ijk++) {
-      if(log_bins[ijk]) {
+   for (ijk = 0; ijk < 3; ijk++) {
+      if (log_bins[ijk]) {
          limits[0][ijk] = log10(minval[ijk]);
          limits[1][ijk] = log10(maxval[ijk]);
       }
@@ -148,19 +148,19 @@ void DistributionTemplated<distroClass>::AddEvent(void)
    MultiIndex bin = mi_zeros;
 
 // The event has been already processed and "_values" and "_weight" computed
-   for(ijk = 0; ijk < 3; ijk++) {
+   for (ijk = 0; ijk < 3; ijk++) {
 
 // Skip if dimension is ignorable
-      if(BITS_LOWERED(dims, 1 << ijk)) continue;
+      if (BITS_LOWERED(dims, 1 << ijk)) continue;
       bin[ijk] = ((log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk]) / bin_size[ijk];
 
 // Check for outlying events
-      if(bin[ijk] < 0) {
-         if(bin_outside[ijk]) bin[ijk] = 0;
+      if (bin[ijk] < 0) {
+         if (bin_outside[ijk]) bin[ijk] = 0;
          else return;
       }
-      else if(bin[ijk] >= n_bins[ijk]) {
-         if(bin_outside[ijk]) bin[ijk] = n_bins[ijk] - 1;
+      else if (bin[ijk] >= n_bins[ijk]) {
+         if (bin_outside[ijk]) bin[ijk] = n_bins[ijk] - 1;
          else return;
       };
    };
@@ -342,7 +342,7 @@ void DistributionTemplated<distroClass>::EvaluateWeight(int action_in)
 {
 // This template method should only work for <double> because of 0.0
 // TODO Implement exception throwing for bad action index
-   if((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = 0.0;
       return;
@@ -355,7 +355,7 @@ template <>
 void DistributionTemplated<GeoVector>::EvaluateWeight(int action_in)
 {
 // TODO Implement exception throwing for bad action index
-   if((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = gv_zeros;
       return;
@@ -368,7 +368,7 @@ template <>
 void DistributionTemplated<GeoMatrix>::EvaluateWeight(int action_in)
 {
 // TODO Implement exception throwing for bad action index
-   if((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = gm_zeros;
       return;
@@ -427,13 +427,13 @@ void DistributionTemplated<distroClass>::Restore(const std::string& file_name)
    unsigned int datalen, datasize;
 
    std::ifstream distfile(file_name.c_str(), std::ifstream::binary);
-   if(!distfile.is_open()) return;
+   if (!distfile.is_open()) return;
 
    distfile.read((char*)&datalen, sizeof(datalen));
    std::string class_name_in;
    class_name_in.resize(datalen);
    distfile.read((char*)class_name_in.data(), datalen);
-   if(class_name_in != class_name) return;
+   if (class_name_in != class_name) return;
 
    distfile.read((char*)&specie, sizeof(specie));
    
@@ -480,19 +480,19 @@ void DistributionTemplated<GeoVector>::PrintSumDistro(std::ofstream& distfile, l
 {
    int i;
 
-   if(sum_counts) {
-      if(phys_units) {
-         for(i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] / sum_counts * unit_distro[i];
-         for(i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] * unit_distro[i];
+   if (sum_counts) {
+      if (phys_units) {
+         for (i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] / sum_counts * unit_distro[i];
+         for (i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] * unit_distro[i];
       }
       else {
-         for(i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] / sum_counts;
-         for(i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i];
+         for (i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i] / sum_counts;
+         for (i = 0; i < 3; i++) distfile << std::setw(20) << sum_distro[i];
       };
    }
    else {
-      for(i = 0; i < 3; i++) distfile << std::setw(20) << 0.0;
-      for(i = 0; i < 3; i++) distfile << std::setw(20) << 0.0;
+      for (i = 0; i < 3; i++) distfile << std::setw(20) << 0.0;
+      for (i = 0; i < 3; i++) distfile << std::setw(20) << 0.0;
    };
 };
 
@@ -502,27 +502,27 @@ void DistributionTemplated<GeoMatrix>::PrintSumDistro(std::ofstream& distfile, l
 {
    int i, j;
 
-   if(sum_counts) {
-      if(phys_units) {
-         for(i = 0; i < 3; i++) {
-            for(j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] / sum_counts * unit_distro[i][j];
+   if (sum_counts) {
+      if (phys_units) {
+         for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] / sum_counts * unit_distro[i][j];
          };
-         for(i = 0; i < 3; i++) {
-            for(j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] * unit_distro[i][j];
+         for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] * unit_distro[i][j];
          };
       }
       else {
-         for(i = 0; i < 3; i++) {
-            for(j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] / sum_counts;
+         for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j] / sum_counts;
          };
-         for(i = 0; i < 3; i++) {
-            for(j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j];
+         for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) distfile << std::setw(20) << sum_distro[i][j];
          };
       };
    }
    else {
-      for(i = 0; i < 9; i++) distfile << std::setw(20) << 0.0;
-      for(i = 0; i < 9; i++) distfile << std::setw(20) << 0.0;
+      for (i = 0; i < 9; i++) distfile << std::setw(20) << 0.0;
+      for (i = 0; i < 9; i++) distfile << std::setw(20) << 0.0;
    };
 };
 
@@ -542,7 +542,7 @@ void DistributionTemplated<distroClass>::Print1D(int ijk, const std::string& dis
    distroClass sum_distro;
    MultiIndex bin;
 
-   if((ijk < 0) || (ijk >= 3)) return;
+   if ((ijk < 0) || (ijk >= 3)) return;
 
    ijk1 = (ijk + 1) % 3;
    ijk2 = (ijk + 2) % 3;
@@ -551,13 +551,13 @@ void DistributionTemplated<distroClass>::Print1D(int ijk, const std::string& dis
    distfile << "# Total number of events: " << n_events << std::endl << std::endl;
    
    distfile << std::setprecision(10);
-   for(bin[ijk] = 0; bin[ijk] < n_bins[ijk]; bin[ijk]++) {
+   for (bin[ijk] = 0; bin[ijk] < n_bins[ijk]; bin[ijk]++) {
       sum_counts = 0;
       sum_distro = 0.0;
 
 // Collapse the remaining two dimensions
-      for(bin[ijk1] = 0; bin[ijk1] < n_bins[ijk1]; bin[ijk1]++) {
-         for(bin[ijk2] = 0; bin[ijk2] < n_bins[ijk2]; bin[ijk2]++) {
+      for (bin[ijk1] = 0; bin[ijk1] < n_bins[ijk1]; bin[ijk1]++) {
+         for (bin[ijk2] = 0; bin[ijk2] < n_bins[ijk2]; bin[ijk2]++) {
             lin_bin = n_bins.LinIdx(bin);
             sum_counts += counts[lin_bin];
             sum_distro += distro[lin_bin];
@@ -587,29 +587,29 @@ void DistributionTemplated<distroClass>::Print2D(int ijk1, int ijk2, const std::
    distroClass sum_distro;
    MultiIndex bin;
 
-   if((ijk1 < 0) || (ijk1 >= 3) || (ijk2 < 0) || (ijk2 >= 3)) return;
+   if ((ijk1 < 0) || (ijk1 >= 3) || (ijk2 < 0) || (ijk2 >= 3)) return;
 
-   if(ijk1 == ijk2) {
+   if (ijk1 == ijk2) {
       Print1D(ijk1, dist_name, phys_units);
       return;
    };
 
-   if((ijk1 != 0) && (ijk2 != 0)) ijk = 0;
-   else if((ijk1 != 1) && (ijk2 != 1)) ijk = 1;
-   else if((ijk1 != 2) && (ijk2 != 2)) ijk = 2;
+   if ((ijk1 != 0) && (ijk2 != 0)) ijk = 0;
+   else if ((ijk1 != 1) && (ijk2 != 1)) ijk = 1;
+   else if ((ijk1 != 2) && (ijk2 != 2)) ijk = 2;
    else return;
 
    std::ofstream distfile(dist_name.c_str());
    distfile << "# Total number of events: " << n_events << std::endl << std::endl;
    
    distfile << std::setprecision(10);
-   for(bin[ijk1] = 0; bin[ijk1] < n_bins[ijk1]; bin[ijk1]++) {
-      for(bin[ijk2] = 0; bin[ijk2] < n_bins[ijk2]; bin[ijk2]++) {
+   for (bin[ijk1] = 0; bin[ijk1] < n_bins[ijk1]; bin[ijk1]++) {
+      for (bin[ijk2] = 0; bin[ijk2] < n_bins[ijk2]; bin[ijk2]++) {
          sum_counts = 0;
          sum_distro = 0.0;
 
 // Collapse the remaining dimension
-         for(bin[ijk] = 0; bin[ijk] < n_bins[ijk]; bin[ijk]++) {
+         for (bin[ijk] = 0; bin[ijk] < n_bins[ijk]; bin[ijk]++) {
             lin_bin = n_bins.LinIdx(bin);
             sum_counts += counts[lin_bin];
             sum_distro += distro[lin_bin];
@@ -643,7 +643,7 @@ template <>
 void DistributionTemplated<GeoVector>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
 {
    int i;
-   for(i = 0; i < 3; i++) distfile << std::setw(20) << weights_record[record][i] * (phys_units ? unit_distro[i] : 1.0);
+   for (i = 0; i < 3; i++) distfile << std::setw(20) << weights_record[record][i] * (phys_units ? unit_distro[i] : 1.0);
 };
 
 // Method specialization for GeoMatrix
@@ -651,8 +651,8 @@ template <>
 void DistributionTemplated<GeoMatrix>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
 {
    int i, j;
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) distfile << std::setw(20) << weights_record[record][i][j] * (phys_units ? unit_distro[i][j] : 1.0);
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) distfile << std::setw(20) << weights_record[record][i][j] * (phys_units ? unit_distro[i][j] : 1.0);
    };
 };
 
@@ -670,8 +670,8 @@ void DistributionTemplated<distroClass>::PrintRecords(const std::string& dist_na
    std::ofstream distfile(dist_name.c_str());
    
    distfile << "# Total number of records: " << values_record.size() << std::endl << std::endl;
-   for(i = 0; i < values_record.size(); i++) {
-      for(j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j] * (phys_units ? unit_val[j] : 1.0);
+   for (i = 0; i < values_record.size(); i++) {
+      for (j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j] * (phys_units ? unit_val[j] : 1.0);
       PrintWeight(distfile, i, phys_units);
       distfile << std::endl;
    };

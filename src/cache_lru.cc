@@ -23,7 +23,7 @@ namespace Spectrum {
 void BlockCache::DeleteOldest(void)
 {
 // Nothing to do if the cache is empty
-   if(!blocks.size()) return;
+   if (!blocks.size()) return;
 
    int bidx = queue.back();
    blocks.erase(bidx);
@@ -40,11 +40,11 @@ void BlockCache::DeleteOldest(void)
 int BlockCache::AddBlock(const BlockPtrType& block)
 {
 // Check if the cache is full
-   if(blocks.size() >= max_cache_size) DeleteOldest();
+   if (blocks.size() >= max_cache_size) DeleteOldest();
 
    int bidx = block->GetNode();
 
-   if(blocks.emplace(bidx, block).second) {
+   if (blocks.emplace(bidx, block).second) {
       queue.push_front(bidx);
       helper.emplace(bidx, queue.cbegin());
    }
@@ -76,15 +76,15 @@ int BlockCache::PosOwner(const GeoVector& pos)
 
 // Probe all blocks starting from the most recent
    QueueIterType iter = queue.cbegin();
-   while(iter != queue.cend()) {
+   while (iter != queue.cend()) {
       bidx = *iter;
-      if(blocks[bidx]->PositionInside(pos)) break;
+      if (blocks[bidx]->PositionInside(pos)) break;
       iter++;
    };         
 
 // If the interator is past the end, then the position is not in the cache. If the iterator is at the beginning, the newest block owns the position, so no renewal is needed.
-   if(iter == queue.cend()) bidx = -1;
-   else if(iter != queue.cbegin()) Renew(bidx);
+   if (iter == queue.cend()) bidx = -1;
+   else if (iter != queue.cbegin()) Renew(bidx);
 
    return bidx;
 };
@@ -98,7 +98,7 @@ void BlockCache::PrintAllIndices(void) const
    int count = 1;
    QueueIterType iter;
 
-   for(iter = queue.cbegin(); iter != queue.cend(); iter++) {
+   for (iter = queue.cbegin(); iter != queue.cend(); iter++) {
       std::cerr << std::setw(6) << count << std::setw(12) << *iter << std::endl;
       count++;
    };

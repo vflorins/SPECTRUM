@@ -351,13 +351,13 @@ int ServerCartesianFront::RequestBlock(void)
 
 // Test whether the block is cached. Either call will renew the block if it is present.
    if (_inquiry.type) {
-      if(block_pri->PositionInside(_inquiry.pos)) bidx = block_pri->GetNode();
-      else if(block_sec->PositionInside(_inquiry.pos)) bidx = block_sec->GetNode();
+      if (block_pri->PositionInside(_inquiry.pos)) bidx = block_pri->GetNode();
+      else if (block_sec->PositionInside(_inquiry.pos)) bidx = block_sec->GetNode();
       else bidx = cache_line.PosOwner(_inquiry.pos);
    }
    else {
-      if(block_pri->GetNode() == _inquiry.node) bidx = block_pri->GetNode();
-      else if(block_sec->GetNode() == _inquiry.node) bidx = block_sec->GetNode();
+      if (block_pri->GetNode() == _inquiry.node) bidx = block_pri->GetNode();
+      else if (block_sec->GetNode() == _inquiry.node) bidx = block_sec->GetNode();
       else bidx = cache_line.Present(_inquiry.node);
    };
 

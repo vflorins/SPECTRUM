@@ -22,8 +22,8 @@ namespace Spectrum {
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect)
 {
-   for(auto i = 0; i < 3; i++) {
-      for(auto j = i; j < 3; j++) {
+   for (auto i = 0; i < 3; i++) {
+      for (auto j = i; j < 3; j++) {
          row[i][j] = vect[i] * vect[j];
       };
    };
@@ -40,8 +40,8 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect)
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   for(auto i = 0; i < 3; i++) {
-      for(auto j = 0; j < 3; j++) {
+   for (auto i = 0; i < 3; i++) {
+      for (auto j = 0; j < 3; j++) {
          row[i][j] = vect_l[i] * vect_r[j];
       };
    };
@@ -57,8 +57,8 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::Dyadic(const GeoVector& vect_l, const GeoVe
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::IncrementCov(const GeoVector& vect_l, const GeoVector& vect_r)
 {
-   for(auto i = 0; i < 3; i++) {
-      for(auto j = 0; j < 3; j++) {
+   for (auto i = 0; i < 3; i++) {
+      for (auto j = 0; j < 3; j++) {
          row[i][j] += vect_l[i] * vect_r[j];
       };
    };
@@ -83,7 +83,7 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::AxisymmetricBasis(const GeoVector& ez)
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 {
-   for(auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeToBasis(basis.VectorArray());
+   for (auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeToBasis(basis.VectorArray());
 };
 
 /*!
@@ -93,7 +93,7 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeFromBasis(const GeoMatrix& basis)
 {
-   for(auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeFromBasis(basis.VectorArray());
+   for (auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeFromBasis(basis.VectorArray());
 };
 
 /*!
@@ -126,8 +126,8 @@ SPECTRUM_DEVICE_FUNC GeoMatrix GeoMatrix::Inverse(void) const
    GeoMatrix inverse;
    double det = Det();
    
-   for(i = 0; i < 3; i++) {
-      for(j = 0; j < 3; j++) {
+   for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
          inverse[i][j] = Minor(j, i) / det;
       };
    };
@@ -168,22 +168,22 @@ SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
 
 // Find eigenvalues
    eval = Eigenvalues();
-   if(eval.Norm() < sp_tiny) {
+   if (eval.Norm() < sp_tiny) {
       evec = gm_zeros;
       return gv_zeros;
    };
 
 // Build characteristic matrices
-   for(ei = 0; ei < 3; ei++) mchar[ei] = *this - eval[ei] * gm_unit;
+   for (ei = 0; ei < 3; ei++) mchar[ei] = *this - eval[ei] * gm_unit;
 
 // Apply the operator C(ei1)C(ei2) to the initial vector (1,1,1) to eliminate all components except that parallel to "ei". This could fail if one of the eigenvectors corresponding to ei1 or ei2 is parallel to the initial vector.
-   for(ei = 0; ei < 3; ei++) {
+   for (ei = 0; ei < 3; ei++) {
       ei1 = (ei + 1) % 3;
       ei2 = (ei + 2) % 3;
 
-      for(i = 0; i < 3; i++) {
+      for (i = 0; i < 3; i++) {
          evec[ei][i] = 0.0;
-         for(k = 0; k < 3; k++) {
+         for (k = 0; k < 3; k++) {
             evec[ei][i] += mchar[ei1][i][k] * (mchar[ei2][k][0] + mchar[ei2][k][1] + mchar[ei2][k][2]);
          };
       };
@@ -209,8 +209,8 @@ SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect_l, const GeoVector& 
 {
    GeoMatrix cov_matr;
 
-   for(auto i = 0; i < 3; i++) {
-      for(auto j = 0; j < 3; j++) {
+   for (auto i = 0; i < 3; i++) {
+      for (auto j = 0; j < 3; j++) {
          cov_matr[i][j] = vect_l[i] * vect_r[j];
       };
    };

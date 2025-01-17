@@ -965,7 +965,7 @@ DiffusionPotgieterEtAl2015::DiffusionPotgieterEtAl2015(const DiffusionPotgieterE
                         : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
@@ -978,7 +978,7 @@ This method's main role is to unpack the data container and set up the class dat
 void DiffusionPotgieterEtAl2015::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DiffusionBase::SetupDiffusion(false);
+   if (!construct) DiffusionBase::SetupDiffusion(false);
    container.Read(LISM_idx);
    container.Read(lam_in);
    container.Read(lam_out);

@@ -181,40 +181,40 @@ struct SpatialData {
 inline SpatialData& SpatialData::operator =(const SpatialData& other)
 {
 // Field copy
-   if(BITS_RAISED(_mask, BACKGROUND_U)) Uvec = other.Uvec;
-   if(BITS_RAISED(_mask, BACKGROUND_B)) {
+   if (BITS_RAISED(_mask, BACKGROUND_U)) Uvec = other.Uvec;
+   if (BITS_RAISED(_mask, BACKGROUND_B)) {
       Bvec = other.Bvec;
       Bmag = other.Bmag;
       bhat = other.bhat;
    };
-   if(BITS_RAISED(_mask, BACKGROUND_E)) Evec = other.Evec;
+   if (BITS_RAISED(_mask, BACKGROUND_E)) Evec = other.Evec;
 
 // Gradient copy. Check first if ANY of BACKGROUND_gradALL bits are raised for speed.
-   if(BITS_RAISED(_mask, BACKGROUND_gradALL)) {
+   if (BITS_RAISED(_mask, BACKGROUND_gradALL)) {
       _dr = other._dr;
-      for(int xyz = 0; xyz < 3; xyz++) {
+      for (int xyz = 0; xyz < 3; xyz++) {
          _dr_forw_fail[xyz] = other._dr_forw_fail[xyz];
          _dr_back_fail[xyz] = other._dr_back_fail[xyz];
       };
-      if(BITS_RAISED(_mask, BACKGROUND_gradU)) gradUvec = other.gradUvec;
-      if(BITS_RAISED(_mask, BACKGROUND_gradB)) {
+      if (BITS_RAISED(_mask, BACKGROUND_gradU)) gradUvec = other.gradUvec;
+      if (BITS_RAISED(_mask, BACKGROUND_gradB)) {
          gradBvec = other.gradBvec;
          gradBmag = other.gradBmag;
       };
-      if(BITS_RAISED(_mask, BACKGROUND_gradE)) gradEvec = other.gradEvec;
+      if (BITS_RAISED(_mask, BACKGROUND_gradE)) gradEvec = other.gradEvec;
    };
 
 // Time derivative copy. Check first if ANY of BACKGROUND_dALLdt bits are raised for speed.
-   if(BITS_RAISED(_mask, BACKGROUND_dALLdt)) {
+   if (BITS_RAISED(_mask, BACKGROUND_dALLdt)) {
       _dt = other._dt;
       _dt_forw_fail = other._dt_forw_fail;
       _dt_back_fail = other._dt_back_fail;
-      if(BITS_RAISED(_mask, BACKGROUND_dUdt)) dUvecdt = other.dUvecdt;
-      if(BITS_RAISED(_mask, BACKGROUND_dBdt)) {
+      if (BITS_RAISED(_mask, BACKGROUND_dUdt)) dUvecdt = other.dUvecdt;
+      if (BITS_RAISED(_mask, BACKGROUND_dBdt)) {
          dBvecdt = other.dBvecdt;
          dBmagdt = other.dBmagdt;
       };
-      if(BITS_RAISED(_mask, BACKGROUND_dEdt)) dEvecdt = other.dEvecdt;
+      if (BITS_RAISED(_mask, BACKGROUND_dEdt)) dEvecdt = other.dEvecdt;
    };
 
    region = other.region;

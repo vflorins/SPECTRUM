@@ -55,7 +55,7 @@ subroutine spectrum_get_neighbor_node(node, i, j, k, neighbor_node, neighbor_lev
    integer :: iBlock
 
 ! Make sure the input is correct
-   if(i < 0 .or. i > 3 .or. j < 0 .or. j > 3 .or. k < 0 .or. k > 3) then
+   if (i < 0 .or. i > 3 .or. j < 0 .or. j > 3 .or. k < 0 .or. k > 3) then
       neighbor_node = -1
       neighbor_level = 0
       return
@@ -63,7 +63,7 @@ subroutine spectrum_get_neighbor_node(node, i, j, k, neighbor_node, neighbor_lev
 
 ! Neighbor information is only available locally
    iBlock = iTree_IA(Block_, node)
-   if(iProc == iTree_IA(Proc_, node)) then
+   if (iProc == iTree_IA(Proc_, node)) then
       neighbor_node = iNodeNei_IIIB(i, j, k, iBlock)
       neighbor_level = DiLevelNei_IIIB((i + 1) / 2 - 1, (j + 1) / 2 - 1, (k + 1) / 2 - 1, iBlock)
    else
@@ -90,7 +90,7 @@ end subroutine spectrum_get_neighbor_node
 
 !! Pass a pointer to the neighbor structure. This is always 4 bytes long, so no conversion in necessary.
 !   iBlock = iTree_IA(Block_, node)
-!   if(iProc == iTree_IA(Proc_, node)) then
+!   if (iProc == iTree_IA(Proc_, node)) then
 !      neighbor_nodes = c_loc(iNodeNei_IIIB(0, 0, 0, iBlock))
 !      neighbor_levels = c_loc(DiLevelNei_IIIB(-1, -1, -1, iBlock))
 !   else
@@ -115,7 +115,7 @@ subroutine spectrum_get_all_neighbor_copies(node, neighbor_nodes, neighbor_level
    integer :: iBlock
 
    iBlock = iTree_IA(Block_, node)
-   if(iProc == iTree_IA(Proc_, node)) then
+   if (iProc == iTree_IA(Proc_, node)) then
       neighbor_nodes = iNodeNei_IIIB(:, :, :, iBlock)
       neighbor_levels = DiLevelNei_IIIB(:, :, :, iBlock)
    else
@@ -139,7 +139,7 @@ subroutine spectrum_get_block_corners(node, face_min, face_max) bind(C)
    integer :: iBlock
    
    iBlock = iTree_IA(Block_, node)
-   if(iProc == iTree_IA(Proc_, node)) then
+   if (iProc == iTree_IA(Proc_, node)) then
       face_min = CoordMin_DB(:, iBlock)
       face_max = CoordMax_DB(:, iBlock)
    else
@@ -166,7 +166,7 @@ subroutine spectrum_get_block_data(node, variables) bind(C)
 ! This performs a copy of the portion of the data array.
    iBlock = iTree_IA(Block_, node)
 
-   if(iProc == iTree_IA(Proc_, node)) then
+   if (iProc == iTree_IA(Proc_, node)) then
       variables = State_VGB(:, :, :, :, iBlock)
    else
       variables = 0.0

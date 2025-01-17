@@ -56,9 +56,9 @@ void TrajectoryFieldline::PhysicalStep(void)
 */
 void TrajectoryFieldline::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
-   if(BITS_RAISED(which_field_to_follow, BACKGROUND_U)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Uvec);
-   else if(BITS_RAISED(which_field_to_follow, BACKGROUND_B)) slope_pos_istage = _vel[2] * _spdata.bhat;
-   else if(BITS_RAISED(which_field_to_follow, BACKGROUND_E)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Evec);
+   if (BITS_RAISED(which_field_to_follow, BACKGROUND_U)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Uvec);
+   else if (BITS_RAISED(which_field_to_follow, BACKGROUND_B)) slope_pos_istage = _vel[2] * _spdata.bhat;
+   else if (BITS_RAISED(which_field_to_follow, BACKGROUND_E)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Evec);
    else slope_pos_istage = gv_zeros;
    slope_mom_istage = gv_zeros;
 };
