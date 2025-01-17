@@ -7,6 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "domain_partition.hh"
+#include "fluid/variables.hh"
 
 namespace Spectrum {
 
@@ -68,7 +69,7 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
    int* vert_index;
    GeoVector* vcart;
 
-// This is a loop on _all_ blocks in the simulation. Each process grabs blocks out of the pool in a round-robin fashion. The vector "blocks_local" emplaces empty blocks; the actual memory allocation happens in SetDimensions() and AssociateMesh().
+// This is a loop on _all_ blocks in the simulation. Each process grabs blocks out of the pool in a round-robin fashion. The vector "blocks_local" emplaces empty blocks; the actual memory allocation happens in "SetDimensions()" and "AssociateMesh()".
    bidx = 0;
    for (auto slab = 0; slab < n_slabs; slab++) {
       shells_per_slab = (slab < n_thinner_slabs ? thinner_slab_height : thinner_slab_height + 1);
@@ -89,7 +90,7 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
             
             tesselation.GetAllInsideFaceNative(sector_division, sector, face_division, GHOST_WIDTH, face_index, vert_index, corners);
             tesselation.FillVertCoordArrays(blocks_local.back().TotalVerts(), vert_index, vcart);
-            blocks_local.back().AssociateMesh(slab_interfaces[slab], slab_interfaces[slab + 1], corners, borders, vcart, distance_map);
+            blocks_local.back().AssociateMesh(slab_interfaces[slab], slab_interfaces[slab + 1], corners, borders, vcart, distance_map, false);
 
             delete[] face_index;
             delete[] vert_index;
@@ -164,7 +165,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
    block_temp_thick.SetDimensions(sector_width, GHOST_WIDTH, thinner_slab_height + 1, GHOST_HEIGHT, false);
 
 // Make the arrays large enough for any site. Note that "labels" are basically global block indices.
-   int faces[edges_per_vert], ranks[2 * edges_per_vert], labels[2 * edges_per_vert];
+   int sectors[edges_per_vert], ranks[2 * edges_per_vert], labels[2 * edges_per_vert];
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TFACE
@@ -201,7 +202,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
             
 // Initialize the exchange site and add it to the list if it is local to this process
          exch_sites[GEONBR_TFACE].back()->SetUpProperties(sidx, n_slab_parts_actual * n_sect_parts_actual, buf_size, ranks, labels);
-         if (exch_sites[GEONBR_TFACE].back()->site_comm != MPI_COMM_NULL) exch_sites_local[GEONBR_TFACE].push_back(sidx);
+         if (exch_sites[GEONBR_TFACE].back()->GetCommSize() > 0) exch_sites_local[GEONBR_TFACE].push_back(sidx);
          sidx++;
       };
    };         
@@ -225,7 +226,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
          exch_sites[GEONBR_RFACE].emplace_back(std::make_shared<ExchangeSite<datatype>>());
 
 // Request a list of face neighbors of the edge
-         n_sect_parts_actual = tesselation.FaceNeighborsOfEdge(sector_division, edge, faces);
+         n_sect_parts_actual = tesselation.FaceNeighborsOfEdge(sector_division, edge, sectors);
 
 // Loop over participating slabs
          part = 0;
@@ -233,7 +234,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 
 // Loop over participating sectors
             for (auto it = 0; it < n_sect_parts_actual; it++) {
-               labels[part] = (slab + is) * tesselation.NFaces(sector_division) + faces[it];
+               labels[part] = (slab + is) * tesselation.NFaces(sector_division) + sectors[it];
                ranks[part] = block_ranks[labels[part]];
                part++;
             };
@@ -241,7 +242,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 
 // Initialize the exchange site and add it to the list if it is local to this process
          exch_sites[GEONBR_RFACE].back()->SetUpProperties(sidx, n_slab_parts_actual * n_sect_parts_actual, buf_size, ranks, labels);
-         if (exch_sites[GEONBR_RFACE].back()->site_comm != MPI_COMM_NULL) exch_sites_local[GEONBR_RFACE].push_back(sidx);
+         if (exch_sites[GEONBR_RFACE].back()->GetCommSize() > 0) exch_sites_local[GEONBR_RFACE].push_back(sidx);
          sidx++;
      };
   };
@@ -267,7 +268,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
          exch_sites[GEONBR_TEDGE].emplace_back(std::make_shared<ExchangeSite<datatype>>());
 
 // Request a list of face neighbors of the edge
-         n_sect_parts_actual = tesselation.FaceNeighborsOfEdge(sector_division, edge, faces);
+         n_sect_parts_actual = tesselation.FaceNeighborsOfEdge(sector_division, edge, sectors);
 
 // Loop over participating slabs
          part = 0;
@@ -275,8 +276,8 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 
 // Loop over participating sectors
             for (auto it = 0; it < n_sect_parts_actual; it++) {
-               if (slab_i == 0) labels[part] = faces[it];
-               else labels[part] = (slab_i + is - 1) * tesselation.NFaces(sector_division) + faces[it];
+               if (slab_i == 0) labels[part] = sectors[it];
+               else labels[part] = (slab_i + is - 1) * tesselation.NFaces(sector_division) + sectors[it];
                ranks[part] = block_ranks[labels[part]];
                part++;
             };
@@ -284,7 +285,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
             
 // Initialize the exchange site and add it to the list if it is local to this process
          exch_sites[GEONBR_TEDGE].back()->SetUpProperties(sidx, n_slab_parts_actual * n_sect_parts_actual, buf_size, ranks, labels);
-         if (exch_sites[GEONBR_TEDGE].back()->site_comm != MPI_COMM_NULL) exch_sites_local[GEONBR_TEDGE].push_back(sidx);
+         if (exch_sites[GEONBR_TEDGE].back()->GetCommSize() > 0) exch_sites_local[GEONBR_TEDGE].push_back(sidx);
          sidx++;
       };
    };         
@@ -308,7 +309,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
          exch_sites[GEONBR_REDGE].emplace_back(std::make_shared<ExchangeSite<datatype>>());
 
 // Request a list of face neighbors of the vertex
-         n_sect_parts_actual = tesselation.FaceNeighborsOfVert(sector_division, vert, faces);
+         n_sect_parts_actual = tesselation.FaceNeighborsOfVert(sector_division, vert, sectors);
 
 // Loop over participating slabs
          part = 0;
@@ -316,7 +317,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 
 // Loop over participating sectors
             for (auto it = 0; it < n_sect_parts_actual; it++) {
-               labels[part] = (slab + is) * tesselation.NFaces(sector_division) + faces[it];
+               labels[part] = (slab + is) * tesselation.NFaces(sector_division) + sectors[it];
                ranks[part] = block_ranks[labels[part]];
                part++;
             };
@@ -324,7 +325,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
             
 // Initialize the exchange site and add it to the list if it is local to this process
          exch_sites[GEONBR_REDGE].back()->SetUpProperties(sidx, n_slab_parts_actual * n_sect_parts_actual, buf_size, ranks, labels);
-         if (exch_sites[GEONBR_REDGE].back()->site_comm != MPI_COMM_NULL) exch_sites_local[GEONBR_REDGE].push_back(sidx);
+         if (exch_sites[GEONBR_REDGE].back()->GetCommSize() > 0) exch_sites_local[GEONBR_REDGE].push_back(sidx);
          sidx++;
       };
    };         
@@ -350,7 +351,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
          exch_sites[GEONBR_VERTX].emplace_back(std::make_shared<ExchangeSite<datatype>>());
 
 // Request a list of face neighbors of the vertex
-         n_sect_parts_actual = tesselation.FaceNeighborsOfVert(sector_division, vert, faces);
+         n_sect_parts_actual = tesselation.FaceNeighborsOfVert(sector_division, vert, sectors);
 
 // Loop over participating slabs
          part = 0;
@@ -358,8 +359,8 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 
 // Loop over participating sectors
             for (auto it = 0; it < n_sect_parts_actual; it++) {
-               if (slab_i == 0) labels[part] = faces[it];
-               else labels[part] = (slab_i + is - 1) * tesselation.NFaces(sector_division) + faces[it];
+               if (slab_i == 0) labels[part] = sectors[it];
+               else labels[part] = (slab_i + is - 1) * tesselation.NFaces(sector_division) + sectors[it];
                ranks[part] = block_ranks[labels[part]];
                part++;
             };
@@ -367,7 +368,7 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
             
 // Initialize the exchange site and add it to the list if it is local to this process
          exch_sites[GEONBR_VERTX].back()->SetUpProperties(sidx, n_slab_parts_actual * n_sect_parts_actual, buf_size, ranks, labels);
-         if (exch_sites[GEONBR_VERTX].back()->site_comm != MPI_COMM_NULL) exch_sites_local[GEONBR_VERTX].push_back(sidx);
+         if (exch_sites[GEONBR_VERTX].back()->GetCommSize() > 0) exch_sites_local[GEONBR_VERTX].push_back(sidx);
          sidx++;
       };
    };         
@@ -382,7 +383,7 @@ void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
 {
    int slab, sector, sidx, n_sites_sect;
    int edges[verts_per_face], verts[verts_per_face];
-   std::vector<std::shared_ptr<ExchangeSite<ConservedVariables>>> exch_sites_block;
+   std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites_block;
 
 // This loop generates an array "exch_sites_block" for each block in this process from the global "exch_sites" array.
    for (auto block = 0; block < blocks_local.size(); block++) {
@@ -450,14 +451,21 @@ void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
 template <typename datatype, typename blocktype>
 void DomainPartition<datatype, blocktype>::ExchangeAll(void)
 {
-// All work is done by the exchange sites
    for (auto ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
+
+// Pack the buffers - loop location should allow for some parallelism
+      for (auto block = 0; block < blocks_local.size(); block++) blocks_local[block].PackBuffers(ntype);
+      
+// Perform the exchange
       for (auto sidx : exch_sites_local[ntype]) {
          exch_sites[ntype][sidx]->Exchange();
       };
+
+// Unpack the buffers - test with a different loop location
+      for (auto block = 0; block < blocks_local.size(); block++) blocks_local[block].UnPackBuffers(ntype);
    };
 };
 
-template class DomainPartition<ConservedVariables, BufferedBlock<VERTS_PER_FACE>>;
+template class DomainPartition<ConservedVariables, BufferedBlock<VERTS_PER_FACE, ConservedVariables>>;
 
 };
