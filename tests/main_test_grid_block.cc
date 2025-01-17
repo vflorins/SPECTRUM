@@ -6,10 +6,15 @@
 
 using namespace Spectrum;
 
-#define POLY_TYPE POLY_HEXAHEDRON
-//#define POLY_TYPE POLY_ICOSAHEDRON
-#define MAX_DIVISION 6
+//#define POLY_TYPE POLY_HEXAHEDRON
+#define POLY_TYPE POLY_ICOSAHEDRON
+#define MAX_FACE_DIVISION 5
+
+#if (POLY_TYPE == POLY_HEXAHEDRON)
 #define verts_per_face 4
+#else
+#define verts_per_face 3
+#endif
 
 const double rmin = 30.0;
 const double rmed = 300.0;
@@ -18,8 +23,8 @@ const double power_law = 10.0;
 const double fraction = 0.4;
 const double logy = 10.0;
 
-const int face_division = 6;
-const int sect_division = 0;
+const int face_division = 3;
+const int sector_division = 0;
 const int ghost_width = 2;
 
 const int slab_height = 720;
@@ -36,7 +41,7 @@ int main(int argc, char *argv[])
    borders[1] = (slab == n_slabs - 1 ? true : false);
 
 // Create a Tesselation object
-   TraversableTesselation<POLY_TYPE, MAX_DIVISION> tess;
+   TraversableTesselation<POLY_TYPE, MAX_FACE_DIVISION> tesselation;
 
 // Set up a radial map
    DataContainer container;
@@ -52,16 +57,16 @@ int main(int argc, char *argv[])
    dist_map->SetupObject(container);
 
 // Create one grid block
-   GridBlock<verts_per_face> block(Pow2(face_division - sect_division), ghost_width, slab_height, ghost_height);
+   GridBlock<verts_per_face> block(Pow2(face_division - sector_division), ghost_width, slab_height, ghost_height);
    block.SetIndex(0);
 
    int* face_index = new int[block.TotalFaces()];
    int* vert_index = new int[block.TotalVerts()];
    GeoVector* vcart = new GeoVector[block.TotalVerts()];
 
-   tess.GetAllInsideFaceNative(sect_division, sector, face_division, ghost_width, face_index, vert_index, corners);
+   tesselation.GetAllInsideFaceNative(sector_division, sector, face_division, ghost_width, face_index, vert_index, corners);
 
-   tess.FillVertCoordArrays(block.TotalVerts(), vert_index, vcart);
+   tesselation.FillVertCoordArrays(block.TotalVerts(), vert_index, vcart);
    block.AssociateMesh(slab / (double)n_slabs, (slab + 1.0) / (double)n_slabs, corners, borders, vcart, dist_map);
    block.PrintStats();
 //   block.DrawZone(3, 57, DegToRad(0.0), DegToRad(0.0));
