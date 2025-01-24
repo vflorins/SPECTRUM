@@ -43,7 +43,7 @@ namespace Spectrum {
 //! Frequency: derived
 #define unit_frequency_fluid (1.0 / unit_time_fluid)
 
-//! Number density: a good number is 1 per cm^3. We can choose a number density unit independently of the length unit because physical laws are invariant under the transformation rho->a*rho, p->a*p, B^2->a*B^2.
+//! Number density: a good number is 1 per cm^3. We can choose a number density unit independently of the length unit because certain conservation laws (namely MHD) are invariant under the transformation rho->a*rho, p->a*p, B^2->a*B^2. However, this is not the case for other physical laws such as those governing collisions, where corrections must are applied.
 #define unit_number_density_fluid 1.0
 
 //! Density: derived, should be 1 _particle_ mass unit times 1 number density unit
@@ -495,6 +495,40 @@ SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B, unsigned
 SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsigned int isp = 0)
 {
    return sqrt(2.0 * mass[isp] * mag_mom * B);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Plasma physics routines
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief Plasma frequency
+\author Vladimir Florinski
+\date 01/21/2025
+\param[in] den Density
+\param[in] isp Index of the species
+\return Plasma frequency
+*/
+SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp = 0)
+{
+   return sqrt(M_4PI * den) * charge_mass_particle * charge[isp] / mass[isp];
+};
+
+/*!
+\brief Collision frequency
+\author Vladimir Florinski
+\date 01/21/2025
+\param[in] den Density
+\param[in] T   Temperature
+\param[in] Lam Coulomb logarithm
+\param[in] isp Index of the species
+\return Collision frequency
+\note Our system of units (MHD centric) requires a coefficient to relate the number density unit to the inverse cube of distance unit.
+*/
+SPECTRUM_DEVICE_FUNC inline double CollisionFrequency(double den, double T, double Lam, unsigned int isp = 0)
+{
+   return 2.0 / 3.0 * M_SQRT2 / M_SQRTPI * Lam * mass[isp] / Cube(ThermalSpeed(T, isp) * unit_length_fluid) / unit_density_fluid * unit_mass_particle
+          * Sqr(PlasmaFrequency(den, isp) * charge_mass_particle * charge[isp] / mass[isp]);
 };
 
 //! Print all units and constants
