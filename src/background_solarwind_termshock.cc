@@ -79,6 +79,25 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 
 /*!
 \author Juan G Alonso Guzman
+\date 02/03/2025
+\param[in]  r      radial distance
+*/
+double BackgroundSolarWindTermShock::dUrdr(const double r)
+{
+   if (r > r_TS) {
+#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
+      if (r > r_TS + w_TS) return -_spdata.Uvec.Norm() / r;
+#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
+      if (r > r_TS + w_TS) return -2.0 * _spdata.Uvec.Norm() / r;
+#else
+      if (r > r_TS + w_TS) return 0.0;
+#endif
+      else return -(s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
+   };
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 06/21/2024
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
@@ -102,9 +121,16 @@ double BackgroundSolarWindTermShock::TimeLag(const double r)
 void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
+   double r;
+   GeoVector posprime;
+   GeoMatrix rr;
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-//TODO: complete
+// Expression valid only for radial flow
+      posprime = _pos - r0;
+      r = posprime.Norm();
+      rr.Dyadic(posprime);
+      _spdata.gradUvec = dUrdr(r) * rr + (_spdata.Uvec.Norm() / r) * (gm_unit - rr);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
 //TODO: complete

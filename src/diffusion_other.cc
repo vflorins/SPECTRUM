@@ -838,9 +838,7 @@ void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-
-// The 300.0 the "magic" factor for rigidity calculations.
-   Kappa[1] = (lam0 * vmag / 3.0) * pow(300.0 * Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -917,8 +915,7 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
-// The 300.0 the "magic" factor for rigidity calculations.
-   double rig = 300.0 * Rigidity(_mom[0], specie);
+   double rig = Rigidity(_mom[0], specie);
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _spdata.Bmag);
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
@@ -1004,8 +1001,7 @@ void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
-// The 300.0 the "magic" factor for rigidity calculations.
-   double rig = 300.0 * Rigidity(_mom[0], specie);
+   double rig = Rigidity(_mom[0], specie);
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.

@@ -236,9 +236,14 @@ void BackgroundSolarWind::EvaluateBackground(void)
 void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
+   double posprime;
+   GeoMatrix rr;
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-//TODO: complete
+// Expression valid only for radial flow
+      posprime = _pos - r0;
+      rr.Dyadic(posprime);
+      _spdata.gradUvec = (_spdata.Uvec.Norm() / posprime.Norm()) * (gm_unit - rr);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
 //TODO: complete
