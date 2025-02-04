@@ -1,28 +1,83 @@
 /*!
-\file exchange_site.hh
-\brief Implements a communication object controlling one exchange site
+\file shared_site.hh
+\brief Implements a communication object controlling a shared site
 \author Vladimir Florinski
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_EXCHANGE_SITE_HH
-#define SPECTRUM_EXCHANGE_SITE_HH
+#ifndef SPECTRUM_SHARED_SITE_HH
+#define SPECTRUM_SHARED_SITE_HH
 
 #include <common/communication_site.hh>
 
 #ifdef USE_MPI
 
-#include <utility>
-
 namespace Spectrum {
 
-/*!
-\brief A class representing an MPI exchange site
+/*
+\brief Minimum MPI operation template
 \author Vladimir Florinski
+\date 01/17/2025
+\param[in]     first        First array
+\param[in,out] second       Second array
+\param[in]     length       Length of array
+\param[in]     mpi_datatype MPI data type
 */
 template <typename datatype>
-class ExchangeSite : public CommunicationSite<datatype>
+void MPI_User_Min(datatype* first, datatype* second, int* length, MPI_Datatype* mpi_datatype)
+{
+   for(auto i = 0; i < *length; i++) {
+      *second = std::min(*first, *second);
+      first++;
+      second++;
+   };
+};
+
+/*
+\brief Maximum MPI operation template
+\author Vladimir Florinski
+\date 01/17/2025
+\param[in]     first        First array
+\param[in,out] second       Second array
+\param[in]     length       Length of array
+\param[in]     mpi_datatype MPI data type
+*/
+template <typename datatype>
+void MPI_User_Max(datatype* in, datatype* inout, int* len, MPI_Datatype* mpi_datatype)
+{
+   for(auto i = 0; i < *len; i++) {
+      *inout = std::max(*in, *inout);
+      in++;
+      inout++;
+   };
+};
+
+/*
+\brief Maximum MPI operation template
+\author Vladimir Florinski
+\date 01/17/2025
+\param[in]     first        First array
+\param[in,out] second       Second array
+\param[in]     length       Length of array
+\param[in]     mpi_datatype MPI data type
+*/
+template <typename datatype>
+void MPI_User_Sum(datatype* in, datatype* inout, int* len, MPI_Datatype* mpi_datatype)
+{
+   for(auto i = 0; i < *len; i++) {
+      *inout = *in + *inout;
+      in++;
+      inout++;
+   };
+};
+
+/*!
+\brief A class representing an MPI shared site
+\author Vladimir Florinski
+*/
+template <typename datatype, int op>
+struct SharedSite : public CommunicationSite<datatype>
 {
 protected:
 
@@ -35,43 +90,55 @@ protected:
    using CommunicationSite<datatype>::n_parts;
    using CommunicationSite<datatype>::buf_size;
 
+//! MPI reduction operation
+   MPI_Op mpi_red_func = MPI_OP_NULL;
+
+//! Create an operation for the user-defined datatype
+   void CreateOp(void);
+
 public:
 
 //! Default constructor
-   ExchangeSite(void);
+   SharedSite(void);
 
 //! Copy constructor - deleted because each site must be unique due to MPI restrictions
-   ExchangeSite(const ExchangeSite& other) = delete;
+   SharedSite(const SharedSite& other) = delete;
 
 //! Move constructor
-   ExchangeSite(ExchangeSite&& other);
+   SharedSite(SharedSite&& other);
 
 //! Assignment operator - deleted because we cannot have multiple copies of the MPI objects
-   ExchangeSite& operator =(const ExchangeSite& other) = delete;
+   SharedSite& operator =(const SharedSite& other) = delete;
 
-//! Perform the exchange
-   void Exchange(void);
-
-#ifdef GEO_DEBUG
-
-//! Fill all buffers with the same value
-   void FillBuffers(datatype val);
-
-//! Print the participant information
-   void PrintParts(void) const;
-
-#endif
-
+//! Perform the sharing
+   void Share(void);
 };
 
 /*!
 \author Vladimir Florinski
 \date 01/16/2025
 */
-template <typename datatype>
-inline ExchangeSite<datatype>::ExchangeSite(void)
-                             : CommunicationSite<datatype>()
+template <typename datatype, int op>
+inline SharedSite<datatype, op>::SharedSite(void)
+                           : CommunicationSite<datatype>()
 {
+   switch(op) {
+
+   case 0:
+      MPI_Op_create((MPI_User_function*)MPI_User_Min<datatype>, true, &mpi_red_func);
+      break;
+
+   case 1:
+      MPI_Op_create((MPI_User_function*)MPI_User_Max<datatype>, true, &mpi_red_func);
+      break;
+   
+   case 2:
+      MPI_Op_create((MPI_User_function*)MPI_User_Sum<datatype>, true, &mpi_red_func);
+      break;
+
+   default:
+      break;
+   };
 };
 
 /*!
@@ -79,45 +146,88 @@ inline ExchangeSite<datatype>::ExchangeSite(void)
 \date 01/16/2025
 \param[in] other Object to move into this
 */
-template <typename datatype>
-inline ExchangeSite<datatype>::ExchangeSite(ExchangeSite<datatype>&& other)
-                             : CommunicationSite<datatype>(std::move(static_cast<CommunicationSite<datatype>&&>(other)))
+template <typename datatype, int op>
+inline SharedSite<datatype, op>::SharedSite(SharedSite<datatype, op>&& other)
+                               : CommunicationSite<datatype>(std::move(static_cast<CommunicationSite<datatype>&&>(other)))
 {
+   mpi_red_func = other.mpi_red_func;
+   other.mpi_red_func = MPI_OP_NULL;
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/26/2024
+\date 01/17/2025
 */
-template <typename datatype>
-inline void ExchangeSite<datatype>::Exchange(void)
+template <typename datatype, int op>
+inline void SharedSite<datatype, op>::Share(void)
 {
 // If this process is the only one participating, the data is accessible directly from the buffer.
    if ((site_comm == MPI_COMM_NULL) || (site_comm_size <= 1)) return;
 
-   MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, buffer, sendcounts, sdispls, mpi_datatype, site_comm);
+   int my_rank, n_parts_rank;
+   datatype* buf_ptr;
+   datatype* buf_reduced = new datatype[buf_size];
+   MPI_Comm_rank(site_comm, &my_rank);
+
+   n_parts_rank = sendcounts[my_rank] / buf_size;
+   
+// Perform local reduction first
+   for (auto i = 0; i < buf_size; i++) {
+
+// Very first entry - we cannot use 0 or some other number because the starting value depends on "op".
+      buf_reduced[i] = *(buffer + sdispls[my_rank]);
+      for (auto part_rank = 1; part_rank < n_parts_rank; part_rank++) {
+         buf_ptr = buffer + sdispls[my_rank] + part_rank * buf_size;
+
+         switch(op) {
+
+// minimum
+         case 0:
+            buf_reduced[i] = std::min(buf_reduced[i], buf_ptr[i]);
+            break;
+
+// maximum
+         case 1:
+            buf_reduced[i] = std::max(buf_reduced[i], buf_ptr[i]);
+            break;
+
+// average
+         case 2:
+            buf_reduced[i] += buf_ptr[i];
+            break;
+            
+         default:
+            break;
+         };
+      };
+   };
+            
+// Perform global reduction
+   MPI_Allreduce(MPI_IN_PLACE, buf_reduced, buf_size, mpi_datatype, mpi_red_func, site_comm);
+
+// Put the numbers back in "buffer"
+   for (auto part_rank = 0; part_rank < n_parts_rank; part_rank++) {
+      buf_ptr = buffer + sdispls[my_rank] + part_rank * buf_size;
+      std::memcpy(buf_ptr, buf_reduced, buf_size * sizeof(datatype));
+
+// For averages, an extra step is requires
+      if(op == 2) {
+         for (auto i = 0; i < buf_size; i++) buf_ptr[i] /= n_parts;
+      };
+   };
+
+   delete[] buf_reduced;
 };
 
 #ifdef GEO_DEBUG
 
 /*!
-\author Vladimir Florinski
-\date 01/11/2025
-\param[in] val Value to fill the buffers with
-*/
-template <typename datatype>
-inline void ExchangeSite<datatype>::FillBuffers(datatype val)
-{
-   for(auto bufidx = 0; bufidx < buf_size * n_parts; bufidx++) buffer[bufidx] = val;
-};
-
-/*!
 \brief Test the functionality of this class
 \author Vladimir Florinski
-\date 01/16/2025
+\date 01/17/2025
 \param[in] test_rank Process rank that will do the testing
 */
-inline void TestExchange(int test_rank)
+inline void TestShared(int test_rank)
 {
    const int n_parts = 8;
    const int buf_size = 1;
@@ -150,7 +260,7 @@ inline void TestExchange(int test_rank)
    };
 
 // Create and set up an instance of ExchangeSite
-   ExchangeSite<int> exch_site;
+   SharedSite<int, 0> exch_site;
    int* buf_ptr;
    exch_site.SetUpProperties(0, n_parts, buf_size, ranks, labels);
 
@@ -163,7 +273,7 @@ inline void TestExchange(int test_rank)
    if (exch_site.GetCommSize() > 0) {
       for (auto part = 0; part < n_parts; part++) {
          buf_ptr = exch_site.BufferAddress(part);
-         if (MPI_Config::glob_comm_rank == ranks[part]) *buf_ptr = part;
+         if (MPI_Config::glob_comm_rank == ranks[part]) *buf_ptr = 10 * drand48() * MPI_Config::glob_comm_size;
          else *buf_ptr = -1;
       };
    }
@@ -185,7 +295,7 @@ inline void TestExchange(int test_rank)
    };      
 
 // To properly test we must call this on all processes, not just those in "site_comm".
-   exch_site.Exchange();
+   exch_site.Share();
 
 // Print buffers after the exchange
    if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.GetCommSize() > 0)) {

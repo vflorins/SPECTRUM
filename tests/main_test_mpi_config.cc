@@ -7,15 +7,9 @@
 
 using namespace Spectrum;
 
-// Create an instance of the class to initialize all MPI objects
-void InitializeMPI(int argc, char** argv)
-{
-   static MPI_Config mpi_config(argc, argv);
-};
-
 int main(int argc, char** argv)
 {
-   InitializeMPI(argc, argv);
+   MPI_Config mpi_config(argc, argv);
    TestMPIConfig();
 };
 

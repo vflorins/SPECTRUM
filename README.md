@@ -16,14 +16,14 @@ The 'common' directory contains fundamental classes and routines used throughout
 
 **Compiling and Running the Code**
 
-SPECTRUM was designed primarily for devices running popular Linux distros, such as Debian or Fedora, and uses the GNU Automake tool for compilation. Note that a C++ compiler (c++17 or above), a properly installed MPI library (e.g. Open MPI or MPICH), and the GNU Scientic Library (GSL) of mathematical tools are pre-requisites for compiling and running SPECTRUM codes.
+SPECTRUM was designed primarily for devices running popular Linux distros, such as Debian or Fedora, and uses the GNU Automake tool for compilation. Note that a C++ compiler (capable of interpreting c++20 or above), a properly installed MPI library (e.g. Open MPI or MPICH), and the GNU Scientic Library (GSL) of mathematical tools are pre-requisites for compiling and running SPECTRUM codes.
 
 To configure the code from a fresh download navigate to the main SPECTRUM directory and execute the following commands in terminal:
 
-`autoreconf`
+```
+autoreconf
+automake --add-missing
+./configure <configure-options>
+```
 
-`automake --add-missing`
-
-`./configure <configure-options>`
-
-The `<configure-options>` are used to specify parameters such as which type of trajectory transport should be simulated or what integration method should be used. Consult the documentation ('SPECTRUM.pdf') for more details.
+The `<configure-options>` are used to specify parameters such as which type of trajectory transport should be simulated or what integration method should be used. Consult the documentation ('Documentation and Tutorial.pdf') for more details.

@@ -6,14 +6,15 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_GRID_BLOCK
-#define SPECTRUM_GRID_BLOCK
+#ifndef SPECTRUM_GRID_BLOCK_HH
+#define SPECTRUM_GRID_BLOCK_HH
 
 #include "config.h"
 
 #ifdef USE_SILO
 #include <silo.h>
 #endif
+
 #include "common/vectors.hh"
 #include "geometry/distance_map.hh"
 #include "geodesic/geodesic_sector.hh"
@@ -50,7 +51,7 @@ const std::string blck_format = "%0" + std::to_string(blck_length) + 'i';
 The grid block is the smallest computational unit that must reside on a single core. Zones are arranged in radial layers (shells), where each shell is a sector.
 */
 template <int verts_per_face>
-class GridBlock : public GeodesicSector<verts_per_face>, public SphericalSlab
+class GridBlock : public SphericalSlab, public GeodesicSector<verts_per_face>
 {
 protected:
 
@@ -104,7 +105,7 @@ protected:
    int rotated_faces[edges_per_vert][2][1 + square_fill];
 
 //! Unique numerical index of the block
-   int block_index;
+   int block_index = -1;
 
 //! Indicates a mesh was associated
    bool mesh_associated = false;
@@ -208,49 +209,52 @@ protected:
 #endif
 
 //! Return (i,j) coordinates of a corner vertex
-   SPECTRUM_DEVICE_FUNC void CornerCoords(int corner, int& i, int& j) const;
+   void CornerCoords(int corner, int& i, int& j) const;
 
 //! Determine whether a vertex belongs to the sector's interior (including boundary) - vert version
-   SPECTRUM_DEVICE_FUNC bool IsInteriorVertOfSector(int vert) const;
+   bool IsInteriorVertOfSector(int vert) const;
 
 //! Determine whether a face is in the sector's interior - face version
-   SPECTRUM_DEVICE_FUNC bool IsInteriorFaceOfSector(int face) const;
+   bool IsInteriorFaceOfSector(int face) const;
 
 //! Calculate the increments for each object type
-   SPECTRUM_DEVICE_FUNC void Setup(void);
+   constexpr void Setup(void);
 
 //! Correct the connectivity at the singular corners
-   SPECTRUM_DEVICE_FUNC void FixSingularCorners(void);
+   void FixSingularCorners(void);
 
 public:
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GridBlock(void);
+   GridBlock(void);
 
 //! Copy constructor
-   SPECTRUM_DEVICE_FUNC GridBlock(const GridBlock& other);
+   GridBlock(const GridBlock& other);
+
+//! Move constructor
+   GridBlock(GridBlock&& other);
 
 //! Constructor with arguments
-   SPECTRUM_DEVICE_FUNC GridBlock(int width, int wghost, int height, int hghost);
+   GridBlock(int width, int wghost, int height, int hghost);
 
 //! Destructor
-   SPECTRUM_DEVICE_FUNC ~GridBlock();
+   ~GridBlock();
 
 //! Allocate memory
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int width, int wghost, int height, int hghost, bool construct);
+   void SetDimensions(int width, int wghost, int height, int hghost, bool construct);
 
 //! Free all dynamically allocated memory
-   SPECTRUM_DEVICE_FUNC void FreeStorage(void);
+   void FreeStorage(void);
 
 //! Set up the dimensions and geometry of the mesh
-   SPECTRUM_DEVICE_FUNC void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
-                                           const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in);
+   void AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                      const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in, bool construct);
 
 //! Assign the block index
-   SPECTRUM_DEVICE_FUNC void SetIndex(int index) {block_index = index;};
+   void SetIndex(int index) {block_index = index;};
 
 //! Retrieve the block index
-   SPECTRUM_DEVICE_FUNC int GetIndex(void) const {return block_index;};
+   int GetIndex(void) const {return block_index;};
 
 #ifdef USE_SILO
 //! Write the entire block to a SILO database
@@ -277,7 +281,7 @@ public:
 \param[out] j      Second index of corner vertex
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline void GridBlock<verts_per_face>::CornerCoords(int corner, int& i, int& j) const
+inline void GridBlock<verts_per_face>::CornerCoords(int corner, int& i, int& j) const
 {
    switch (corner) {
 
@@ -310,7 +314,7 @@ SPECTRUM_DEVICE_FUNC inline void GridBlock<verts_per_face>::CornerCoords(int cor
 \return True if the vertex is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorVertOfSector(int vert) const
+inline bool GridBlock<verts_per_face>::IsInteriorVertOfSector(int vert) const
 {
    if ((vert < 0) || (vert >= n_verts_withghost)) return false;
    else return GeodesicSector<verts_per_face>::IsInteriorVertOfSector(vert_index_i[vert], vert_index_j[vert]);
@@ -323,7 +327,7 @@ SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorVertOfSect
 \return True if the face is interior to the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline bool GridBlock<verts_per_face>::IsInteriorFaceOfSector(int face) const
+inline bool GridBlock<verts_per_face>::IsInteriorFaceOfSector(int face) const
 {
    if ((face < 0) || (face >= n_faces_withghost)) return false;
    else return GeodesicSector<verts_per_face>::IsInteriorFaceOfSector(face_index_i[face], face_index_j[face]);

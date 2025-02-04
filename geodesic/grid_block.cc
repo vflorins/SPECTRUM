@@ -6,7 +6,14 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-//#include <fstream>
+#include <cstring>
+#include <utility>
+
+#ifdef GEO_DEBUG
+#include <iostream>
+#include <iomanip>
+#endif
+
 #include "common/physics.hh"
 #include "geodesic/grid_block.hh"
 
@@ -21,30 +28,125 @@ namespace Spectrum {
 \date 05/17/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(void)
-                                              : GeodesicSector<verts_per_face>(),
-                                                SphericalSlab()
+GridBlock<verts_per_face>::GridBlock(void)
+                         : SphericalSlab(),
+                           GeodesicSector<verts_per_face>()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Default constructing a GridBlock\n";
+#endif
+#endif
+
    Setup();
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/28/2024
+\date01/08/2025
 \param[in] other Object to initialize from
+\note The copy constructor for "SphericalSlab" calls its "SetDimensions()" method
+\note The copy constructor for "GeodesicSector" calls its "SetDimensions()" method
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
-                                              : GeodesicSector<verts_per_face>(static_cast<GeodesicSector<verts_per_face>>(other)),
-                                                SphericalSlab(static_cast<SphericalSlab>(other))
+GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
+                         : SphericalSlab(static_cast<const SphericalSlab&>(other)),
+                           GeodesicSector<verts_per_face>(static_cast<const GeodesicSector<verts_per_face>&>(other))
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Copy constructing a GridBlock\n";
+#endif
+#endif
+
    Setup();
-   if (other.side_length != -1) {
-      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
-   };
+   if (other.side_length != -1) SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   block_index = other.block_index;
    if (other.mesh_associated) {
-      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map);
+      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
    };
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
+\param[in] other Object to move into this
+\note The move constructor for "SphericalSlab" calls its "SetDimensions()" method
+*/
+template <int verts_per_face>
+GridBlock<verts_per_face>::GridBlock(GridBlock&& other)
+                         : SphericalSlab(std::move(static_cast<SphericalSlab&&>(other))),
+                           GeodesicSector<verts_per_face>(std::move(static_cast<GeodesicSector<verts_per_face>&&>(other)))
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Move constructing a GridBlock\n";
+#endif
+#endif
+
+   Setup();
+   if (other.side_length == -1) return;
+
+// Copy the radial grid properties
+   Rmin = other.Rmin;
+   Rmax = other.Rmax;
+   LogRmax_Rmin = other.LogRmax_Rmin;
+   drp_ratio = other.drp_ratio;
+   dxi = other.dxi;
+   
+// Move the radial grid
+   xi_in = other.xi_in;
+   r_in = other.r_in;
+   r2_in = other.r2_in;
+   r3_in = other.r3_in;
+   rp_in = other.rp_in;
+   dr = other.dr;
+   r_mp = other.r_mp;
+   drp = other.drp;
+   other.xi_in = nullptr;
+   other.r_in = nullptr;
+   other.r2_in = nullptr;
+   other.r3_in = nullptr;
+   other.rp_in = nullptr;
+   other.dr = nullptr;
+   other.r_mp = nullptr;
+   other.drp = nullptr;
+
+   dist_map = std::move(other.dist_map);
+
+// Copy the geodesic mesh properties
+   block_index = other.block_index;
+   mesh_associated = other.mesh_associated;
+   n_singular = other.n_singular;
+   std::memcpy(border_type, other.border_type, 2 * sizeof(bool));
+   std::memcpy(corner_type, other.corner_type, verts_per_face * sizeof(bool));
+   other.block_index = -1;
+
+// Move the duplicate element arrays
+   std::memcpy(dup_vert, other.dup_vert, verts_per_face * sizeof(int**));
+   std::memcpy(dup_edge, other.dup_edge, verts_per_face * sizeof(int**));
+   missing_faces = other.missing_faces;
+   other.dup_vert[0] = nullptr;
+   other.dup_edge[0] = nullptr;
+   other.missing_faces = nullptr;
+
+// Move the vertex coordinates
+   block_vert_cart = other.block_vert_cart;
+   other.block_vert_cart = nullptr;
+   
+#ifdef USE_SILO
+
+// Move the SILO index arrays
+   vert_to_silo = other.vert_to_silo;
+   face_to_silo = other.face_to_silo;
+   silo_to_vert = other.silo_to_vert;
+   silo_to_face = other.silo_to_face;
+   other.vert_to_silo = nullptr;
+   other.face_to_silo = nullptr;
+   other.silo_to_vert = nullptr;
+   other.silo_to_face = nullptr;
+
+#endif
 };
 
 /*!
@@ -56,10 +158,16 @@ SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(const GridBlock& other
 \param[in] hghost Number of ghost shells outside the slab
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(int width, int wghost, int height, int hghost)
-                                              : GeodesicSector<verts_per_face>(width, wghost),
-                                                SphericalSlab(height, hghost)
+GridBlock<verts_per_face>::GridBlock(int width, int wghost, int height, int hghost)
+                                              : SphericalSlab(height, hghost),
+                                                GeodesicSector<verts_per_face>(width, wghost)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Argument constructing a GridBlock\n";
+#endif
+#endif
+
    Setup();
    SetDimensions(width, wghost, height, hghost, true);
 };
@@ -69,8 +177,14 @@ SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::GridBlock(int width, int wghost,
 \date 05/16/2018
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::~GridBlock()
+GridBlock<verts_per_face>::~GridBlock()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Destructing a GridBlock\n";
+#endif
+#endif
+
    FreeStorage();
 };
 
@@ -84,8 +198,14 @@ SPECTRUM_DEVICE_FUNC GridBlock<verts_per_face>::~GridBlock()
 \param[in] construct Set to true when called from a constructor
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
+void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Setting dimensions for a GridBlock\n";
+#endif
+#endif
+
 // Call base methods
    if (!construct) {
       GeodesicSector<verts_per_face>::SetDimensions(width, wghost, false);
@@ -131,13 +251,14 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::SetDimensions(int width, in
 \date 02/17/2020
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
+void GridBlock<verts_per_face>::FreeStorage()
 {
 // Free up radial arrays
    delete[] xi_in;
    delete[] r_in;
    delete[] r2_in;
    delete[] r3_in;
+   delete[] rp_in;
    delete[] dr;
    delete[] r_mp;
    delete[] drp;
@@ -163,18 +284,25 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FreeStorage()
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 01/09/2025
 \param[in] ximin       Smallest reference distance of the block (without ghost)
 \param[in] ximax       Largest reference distance of the block (without ghost)
 \param[in] corners     Corner type, true for singular corners
 \param[in] borders     Radial boundary type, true for external
 \param[in] vcart       Vertex coordinate array in TAS/QAS
 \param[in] dist_map_in Radial map function 
+\param[in] construct   Set to true when called from a constructor
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
-                                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
+void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
+                                              const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in, bool construct)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Associating mesh for a GridBlock\n";
+#endif
+#endif
+
 // The dimensions were not set, cannot proceed.
    if (side_length == -1) return;
 
@@ -239,7 +367,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::AssociateMesh(double ximin,
 \date 05/08/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC void GridBlock<3>::Setup(void)
+constexpr void GridBlock<3>::Setup(void)
 {
 //          2          2---------1          1          1---------0          0          0---------2
 //         / \          \       /          / \          \       /          / \          \       / 
@@ -332,7 +460,7 @@ SPECTRUM_DEVICE_FUNC void GridBlock<3>::Setup(void)
 \date 05/08/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
+constexpr void GridBlock<4>::Setup(void)
 {
 //     3---------2     2---------1     1---------0     0---------3
 //     |         |     |         |     |         |     |         |
@@ -401,13 +529,19 @@ SPECTRUM_DEVICE_FUNC void GridBlock<4>::Setup(void)
 \date 05/08/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GridBlock<verts_per_face>::FixSingularCorners(void)
+void GridBlock<verts_per_face>::FixSingularCorners(void)
 {
    int i, j, i1, j1, i2, j2, etype, i_origin, j_origin, i_origin1, j_origin1, i_origin2, j_origin2;
    int iv, iv1, iv2, iv3, iv4, ie, it, it1, it2;
    int vert, vert1, vert2, edge, edge1, edge2, face, face1, face2, rot, vert_origin, face_origin, bl_side, bl_corner, n_mf;
    bool dup_found;
    std::pair base_vert = std::make_pair(0, 0);
+
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Fixing singular corners for a GridBlock\n";
+#endif
+#endif
 
 // Reset the "dup" arrays
    for (auto corner = 0; corner < verts_per_face; corner++) {
@@ -1008,6 +1142,6 @@ void GridBlock<verts_per_face>::DrawZone(int k, int face, double rot_z, double r
 #endif
 
 template class GridBlock<3>;
-template class GridBlock<4>;
+//template class GridBlock<4>;
 
 };

@@ -16,14 +16,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Debug level
+#define GEO_DEBUG_LEVEL 3
+
 //! Comment character
 const char comment_char = '#';
 
 //! Color of error messages (red)
 const std::string err_color = "\033[31m";
 
-//! Color of informational messages (yellow)
-const std::string inf_color = "\033[33m";
+//! Color of informational messages (green)
+const std::string inf_color = "\033[32m";
 
 //! Color of normal messages (default)
 const std::string std_color = "\033[0m";

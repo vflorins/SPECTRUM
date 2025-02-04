@@ -7,6 +7,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include <cstring>
+#include <utility>
+
+#ifdef GEO_DEBUG
+#include <iostream>
+#include <iomanip>
+#endif
+
 #include "common/definitions.hh"
 #include "common/print_warn.hh"
 #include "geodesic/geodesic_sector.hh"
@@ -19,16 +26,116 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 06/28/2024
+\date 01/08/2025
+\note The default constructor for "PolygonalAddressing" calls its "Setup()" method
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(void)
+                                                   : PolygonalAddressing<verts_per_face>()
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Default constructing a GeodesicSector\n";
+#endif
+#endif
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
 \param[in] other Object to initialize from
+\note The copy constructor for "PolygonalAddressing" calls its "Setup()" method
 */
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(const GeodesicSector& other)
-                                                   : PolygonalAddressing<verts_per_face>()
+                                                   : PolygonalAddressing<verts_per_face>(static_cast<const PolygonalAddressing<verts_per_face>&>(other))
 {
-   if (other.side_length != -1) {
-      SetDimensions(other.side_length, other.ghost_width, true);
-   };
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Copy constructing a GeodesicSector\n";
+#endif
+#endif
+
+   if (other.side_length != -1) SetDimensions(other.side_length, other.ghost_width, true);
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
+\param[in] other Object to move into this
+\note The move constructor for "PolygonalAddressing" calls its "Setup()" method
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(GeodesicSector&& other)
+                                                   : PolygonalAddressing<verts_per_face>(std::move(static_cast<PolygonalAddressing<verts_per_face>&&>(other)))
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Move constructing a GeodesicSector\n";
+#endif
+#endif
+
+   if (other.side_length == -1) return;
+
+   side_length = other.side_length;
+   ghost_width = other.ghost_width;
+   total_length = other.total_length;
+   other.side_length = -1;
+
+   n_verts = other.n_verts;
+   n_verts_withghost = other.n_verts_withghost;
+   n_edges = other.n_edges;
+   n_edges_withghost = other.n_edges_withghost;
+   n_faces = other.n_faces;
+   n_faces_withghost = other.n_faces_withghost;
+
+// Move the index arrays
+   vert_index_sector = other.vert_index_sector;
+   std::memcpy(edge_index_sector, other.edge_index_sector, cardinal_directions * sizeof(int**));
+   face_index_sector = other.face_index_sector;
+   other.vert_index_sector = nullptr;
+   for (auto etype = 0; etype < cardinal_directions; etype++) other.edge_index_sector[etype] = nullptr;
+   other.face_index_sector = nullptr;
+
+// Move the reverse lookup arrays
+   vert_index_i = other.vert_index_i;
+   vert_index_j = other.vert_index_j;
+   edge_index_i = other.edge_index_i;
+   edge_index_j = other.edge_index_j;
+   face_index_i = other.face_index_i;
+   face_index_j = other.face_index_j;
+   other.vert_index_i = nullptr;
+   other.vert_index_j = nullptr;
+   other.edge_index_i = nullptr;
+   other.edge_index_j = nullptr;
+   other.face_index_i = nullptr;
+   other.face_index_j = nullptr;
+
+// Mote the connectivity arrays
+   vv_local = other.vv_local;
+   ve_local = other.ve_local;
+   vf_local = other.vf_local;
+   ev_local = other.ev_local;
+   ef_local = other.ef_local;
+   fv_local = other.fv_local;
+   fe_local = other.fe_local;
+   ff_local = other.ff_local;
+   other.vv_local = nullptr;
+   other.ve_local = nullptr;
+   other.vf_local = nullptr;
+   other.ev_local = nullptr;
+   other.ef_local = nullptr;
+   other.fv_local = nullptr;
+   other.fe_local = nullptr;
+   other.ff_local = nullptr;
+   
+// Move the masks
+   vert_mask = other.vert_mask;
+   edge_mask = other.edge_mask;
+   face_mask = other.face_mask;
+   other.vert_mask = nullptr;
+   other.edge_mask = nullptr;
+   other.face_mask = nullptr;
 };
 
 /*!
@@ -41,6 +148,12 @@ template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(int width, int wghost)
                                                    : PolygonalAddressing<verts_per_face>()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Argument constructing a GeodesicSector\n";
+#endif
+#endif
+
    SetDimensions(width, wghost, true);
 };
 
@@ -51,6 +164,12 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(int width, i
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::~GeodesicSector()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Destructing a GeodesicSector\n";
+#endif
+#endif
+
    FreeStorage();
 };
 
@@ -64,6 +183,12 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::~GeodesicSector()
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::SetDimensions(int width, int wghost, bool construct)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Setting dimensions for a GeodesicSector\n";
+#endif
+#endif
+
    if ((width < min_block_width) || (width > max_block_width) || (wghost < min_ghost_width) || (wghost > max_ghost_width)) {
       PrintError(__FILE__, __LINE__, "Cannot allocate a sector with these dimensions", true);
       return;
@@ -254,7 +379,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::ComputeIndices(void)
 
    face = 0;
    for (i = 0; i < total_length; i++) {
-      for (j = 0; j <= square_fill * (total_length - 1); j++) {
+      for (j = 0; j < square_fill * total_length; j++) {
          if (IsInteriorFace(base_vert, total_length, i, j)) {
             face_index_i[face] = i;
             face_index_j[face] = j;
@@ -681,6 +806,6 @@ void GeodesicSector<verts_per_face>::PrintMask(int type) const
 #endif
 
 template class GeodesicSector<3>;
-template class GeodesicSector<4>;
+//template class GeodesicSector<4>;
 
 };

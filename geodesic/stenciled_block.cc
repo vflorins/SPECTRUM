@@ -8,11 +8,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <cmath>
 #include <cstring>
+#include <utility>
+
+#ifdef GEO_DEBUG
 #include <iostream>
 #include <iomanip>
-#include <fstream>
-#include <algorithm>
-#include "common/polynomial.hh"
+#endif
+
 #include "geodesic/stenciled_block.hh"
 
 namespace Spectrum {
@@ -23,21 +25,87 @@ namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 06/28/2024
-\param[in] other Object to initialize from
+\date 01/08/2025
+\note The default constructor for "GridBlock" calls its "Setup()" method
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
-                                                   : GridBlock<verts_per_face>(static_cast<GridBlock<verts_per_face>>(other))
+StenciledBlock<verts_per_face>::StenciledBlock(void)
+                              : GridBlock<verts_per_face>()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Default constructing a StenciledBlock\n";
+#endif
+#endif
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
+\param[in] other Object to initialize from
+\note The copy constructor for "GridBlock" calls its "Setup()", "SetDimensions()", and "AssociateMesh()" methods
+*/
+template <int verts_per_face>
+StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
+                              : GridBlock<verts_per_face>(static_cast<const GridBlock<verts_per_face>&>(other))
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Copy constructing a StenciledBlock\n";
+#endif
+#endif
+
    if (other.side_length != -1) {
       SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   };
+
+   if (other.mesh_associated) {
+      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
    };
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/17/2024
+\date 01/08/2025
+\param[in] other Object to move into this
+\note The move constructor for "GridBlock" calls its "Setup()" method
+*/
+template <int verts_per_face>
+StenciledBlock<verts_per_face>::StenciledBlock(StenciledBlock&& other)
+                              : GridBlock<verts_per_face>(std::move(static_cast<GridBlock<verts_per_face>&&>(other)))
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Move constructing a StenciledBlock\n";
+#endif
+#endif
+
+   if (other.side_length == -1) return;
+
+// Move the area/length arrays
+   face_area = other.face_area;
+   face_cmass = other.face_cmass;
+   edge_length = other.edge_length;
+   edge_cmass = other.edge_cmass;
+   other.face_area = nullptr;
+   other.face_cmass = nullptr;
+   other.edge_length = nullptr;
+   other.edge_cmass = nullptr;
+
+   memcpy(zones_per_stencil, other.zones_per_stencil, n_stencils * sizeof(int));
+
+// Move the stencil storage - this works even if "StenciledBlock::SetDimensions()" was not called for "other"
+   stencil_zonelist = other.stencil_zonelist;
+   geom_matr_At = other.geom_matr_At;
+   geom_matr_LU = other.geom_matr_LU;
+   other.stencil_zonelist = nullptr;
+   other.geom_matr_At = nullptr;
+   other.geom_matr_LU = nullptr;
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
 \param[in] width  Length of the side, without ghost cells
 \param[in] wgohst Width of the ghost cell layer outside the sector
 \param[in] height Hight of the block, without ghost cells
@@ -47,16 +115,28 @@ template <int verts_per_face>
 StenciledBlock<verts_per_face>::StenciledBlock(int width, int wghost, int height, int hghost)
                               : GridBlock<verts_per_face>(width, wghost, height, hghost)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Argument constructing a StenciledBlock\n";
+#endif
+#endif
+
    SetDimensions(width, wghost, height, hghost, true);
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/14/2024
+\date 01/08/2025
 */
 template <int verts_per_face>
 StenciledBlock<verts_per_face>::~StenciledBlock()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Destructing a StenciledBlock\n";
+#endif
+#endif
+
    FreeStorage();
 };
 
@@ -72,6 +152,12 @@ StenciledBlock<verts_per_face>::~StenciledBlock()
 template <int verts_per_face>
 void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int height, int hghost, bool construct)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Setting dimensions for a StenciledBlock\n";
+#endif
+#endif
+
 // Call base method.
    if (!construct) GridBlock<verts_per_face>::SetDimensions(width, wghost, height, hghost, false);
 
@@ -81,8 +167,9 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
    face_area = new double[n_faces_withghost];
    face_cmass = new GeoVector[n_faces_withghost];
    edge_length = new double[n_edges_withghost];
+   edge_cmass = new GeoVector[n_edges_withghost];
 
-// Stenciled area is independent of the singular corners for 2nd order reconstructions, so the calculation can be done here. However, stencils themselves must be built after "AssociateMesh()". At this time each zonelist is set to "nullptr" so that the descructor works regardless of whether "AssociateMesh()" was invoked or not.
+// Stenciled area is independent of the singular corners for 2nd order reconstructions, so the calculation can be done here. However, stencils themselves must be built after "AssociateMesh()". At this time each zonelist is set to "nullptr" so that the destructor works regardless of whether "AssociateMesh()" was invoked or not.
    MarkStenciledArea();
    stencil_zonelist = Create2D<int*>(n_faces_withghost, n_stencils);
    memset(stencil_zonelist[0], 0x0, n_faces_withghost * n_stencils * sizeof(int*));
@@ -92,7 +179,7 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
 
 /*!
 \author Vladimir Florinski
-\date 05/14/2024
+\date 01/08/2025
 */
 template <int verts_per_face>
 void StenciledBlock<verts_per_face>::FreeStorage(void)
@@ -100,20 +187,23 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
    Delete2D(geom_matr_At);
    Delete2D(geom_matr_LU);
 
-// Free up stencils
-   for (auto pface = 0; pface < n_faces_withghost; pface++) {
-      if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
-         for (auto stencil = 0; stencil < n_stencils; stencil++) {
-            delete[] stencil_zonelist[pface][stencil];
+// Free up stencils. A test for "stencil_zonelist" is required because of a possible creation via a move constructor.
+   if(stencil_zonelist) {
+      for (auto pface = 0; pface < n_faces_withghost; pface++) {
+         if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
+            for (auto stencil = 0; stencil < n_stencils; stencil++) {
+               delete[] stencil_zonelist[pface][stencil];
+            };
          };
       };
+      Delete2D(stencil_zonelist);
    };
-   Delete2D(stencil_zonelist);
 
 // Free up storage for geometric properties
    delete[] face_area;
    delete[] face_cmass;
    delete[] edge_length;
+   delete[] edge_cmass;
 };
 
 /*!
@@ -125,14 +215,22 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
 \param[in] borders     Radial boundary type, true for external
 \param[in] vcart       Vertex coordinate array in TAS/QAS
 \param[in] dist_map_in Radial map function 
+\param[in] construct   Set to true when called from a constructor
 */
 template <int verts_per_face>
 void StenciledBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const bool* corners, const bool* borders,
-                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in)
+                                                   const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in, bool construct)
 {
-   GridBlock<verts_per_face>::AssociateMesh(ximin, ximax, corners, borders, vcart, dist_map_in);
-   BuildAllStencils();
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Associating mesh for a StenciledBlock\n";
+#endif
+#endif
 
+// Call base method.
+   if(!construct) GridBlock<verts_per_face>::AssociateMesh(ximin, ximax, corners, borders, vcart, dist_map_in, false);
+
+   BuildAllStencils();
    ComputeMoments();
    for (auto pface = 0; pface < n_faces_withghost; pface++) {
       if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
@@ -184,10 +282,11 @@ void StenciledBlock<verts_per_face>::ComputeMoments(void)
       face_cmass[face] = (cm1 * area1 + cm2 * area2) / face_area[face];
    };
 
-// Compute edge lengths
+// Compute edge lengths and centers
    for (auto edge = 0; edge < n_edges_withghost; edge++) {
       if (BITS_RAISED(edge_mask[edge], GEOELM_NEXI)) {
-         edge_length[edge] = acos(block_vert_cart[ev_local[edge][0]] * block_vert_cart[ev_local[edge][1]]);
+         edge_length[edge] = CircArcLength(block_vert_cart[ev_local[edge][0]], block_vert_cart[ev_local[edge][1]]);
+         edge_cmass[edge] = CircArcCenter(block_vert_cart[ev_local[edge][0]], block_vert_cart[ev_local[edge][1]]);
       };
    };
 };
@@ -246,6 +345,12 @@ template <int verts_per_face>
 void StenciledBlock<verts_per_face>::BuildAllStencils(void)
 {
    int ic, nface, face;
+
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Building stencils for a StenciledBlock\n";
+#endif
+#endif
 
    zones_per_stencil[0] = verts_per_face + 2;
    for (auto stencil = 1; stencil < n_stencils; stencil++) zones_per_stencil[stencil] = 4;
@@ -370,27 +475,27 @@ void StenciledBlock<verts_per_face>::PrintStencilProps(int pface, int stencil) c
 /*!
 \author Vladimir Florinski
 \date 05/19/2024
-\param[in] k       Shell index
+\param[in] pshell  Principal shell
 \param[in] pface   Principal face
 \param[in] stencil Stencil (central, dir1, dir2, etc.)
 \param[in] rot_z   The first rotation angle about the z-axis
 \param[in] rot_x   The second rotation angle about the x-axis
 */
 template <int verts_per_face>
-void StenciledBlock<verts_per_face>:: DrawStencil(int k, int pface, int stencil, double rot_z, double rot_x) const
+void StenciledBlock<verts_per_face>:: DrawStencil(int pshell, int pface, int stencil, double rot_z, double rot_x) const
 {
-   int k1, face;
+   int shell, face;
 
    for (auto row = 0; row < zones_per_stencil[stencil]; row++) {
-      k1 = k + stencil_zonelist[pface][stencil][2 * row + 1];
+      shell = pshell + stencil_zonelist[pface][stencil][2 * row + 1];
       face = stencil_zonelist[pface][stencil][2 * row];
-      GridBlock<verts_per_face>::DrawZone(k1, face, rot_z, rot_x);
+      GridBlock<verts_per_face>::DrawZone(shell, face, rot_z, rot_x);
    };
 };
 
 #endif
 
 template class StenciledBlock<3>;
-template class StenciledBlock<4>;
+//template class StenciledBlock<4>;
 
 };

@@ -29,7 +29,7 @@ static constexpr int EdgesAtVert(void)
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
 
-This class's role is to fill out the bootstrap arrays ("vert_vert", "vert_ende", etc.) that are used later in the "GeodesicSector" class to generate the connectivity arrays ("vv_local", "ve_local", etc.) The bootstrap arrays have minimum utility beyond that, and it is recommended that they are not used in classes derived from "GeodesicSector".
+This class's role is to fill in the bootstrap arrays ("vert_vert", "vert_edge", etc.) that are used later in the "GeodesicSector" class to generate the connectivity arrays ("vv_local", "ve_local", etc.) The bootstrap arrays have minimum utility beyond that, and it is recommended that they are not used in classes derived from "GeodesicSector".
 */
 template <int verts_per_face>
 class PolygonalAddressing
@@ -96,6 +96,9 @@ public:
 
 //! Copy constructor
    SPECTRUM_DEVICE_FUNC PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other);
+
+//! Move constructor
+   SPECTRUM_DEVICE_FUNC PolygonalAddressing(PolygonalAddressing<verts_per_face>&& other);
 };
 
 /*!
@@ -115,6 +118,17 @@ SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddres
 */
 template <int verts_per_face>
 SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(const PolygonalAddressing<verts_per_face>& other)
+                                                               : PolygonalAddressing<verts_per_face>()
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/20256
+\param[in] other Object to move into this
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(PolygonalAddressing<verts_per_face>&& other)
                                                                : PolygonalAddressing<verts_per_face>()
 {
 };
@@ -162,7 +176,7 @@ SPECTRUM_DEVICE_FUNC inline int PolygonalAddressing<verts_per_face>::VertCount(i
 template <>
 SPECTRUM_DEVICE_FUNC inline constexpr void PolygonalAddressing<3>::Setup(void)
 {
-// Indexing scheme: vertex "V" and edges "T0", "T1", and "T2" have the same i and j coordinates. Face "F" (unshaded) has coordinates (i,2j). Face "S" (shaded) has coordinates (i,2j+1). When obtaining edge and vertex coorindates from face coordinates, divide the second coordinate by two, so both "F" and "S" will point to (i,j).
+// Indexing scheme: vertex "V" and edges "T0", "T1", and "T2" have the same i and j coordinates. Face "F" (upward) has coordinates (i,2j). Face "S" (downward) has coordinates (i,2j+1). When obtaining edge and vertex coorindates from face coordinates, divide the second coordinate by two, so both "F" and "S" will point to (i,j).
 
 /*          -----------
 //           \       / \
@@ -248,7 +262,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr void PolygonalAddressing<3>::Setup(void)
 //                                                                                   \ /          /       \ /       \
 //                                                                                    -          ---------------------
 */
-// Unshaded faces are element [0] and shaded faces are element [1]. The correct set is chosen based on (j % 2).
+// Upward faces are element [0] and downward faces are element [1]. The correct set is chosen based on (j % 2).
 
    face_vert[0][0][0] =  0; face_vert[0][0][1] =  0;
    face_vert[0][1][0] =  1; face_vert[0][1][1] =  0;
