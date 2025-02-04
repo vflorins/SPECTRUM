@@ -167,7 +167,7 @@ AS_IF([test "x$enable_cuda" == "xyes"],
       [AC_MSG_NOTICE([CUDA is disabled])])
 
 # Files to generate
-AC_CONFIG_FILES([Makefile runs/Makefile])
+AC_CONFIG_FILES([Makefile runs/Makefile tests/Makefile benchmarks/Makefile])
 
 AC_OUTPUT
 
