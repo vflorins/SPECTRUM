@@ -236,7 +236,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
 void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
-   double posprime;
+   GeoVector posprime;
    GeoMatrix rr;
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
