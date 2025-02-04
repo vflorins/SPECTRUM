@@ -121,7 +121,8 @@ double BackgroundSolarWindTermShock::TimeLag(const double r)
 void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
-   double posprime, r;
+   double r;
+   GeoVector posprime;
    GeoMatrix rr;
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
