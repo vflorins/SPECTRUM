@@ -126,7 +126,7 @@ int main(int argc, char** argv)
    actions_time.push_back(-1);
    container.Insert(actions_time);
    
-// Spacing between dumps
+// First timemark
    double timemark1 = 0.5 / D0;
    container.Insert(timemark1);
 
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
    actions_time.push_back(-1);
    container.Insert(actions_time);
    
-// Spacing between dumps
+// Second timemark
    double timemark2 = 2.0 * timemark1;
    container.Insert(timemark2);
 
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
    actions_time.push_back(-1);
    container.Insert(actions_time);
    
-// Spacing between dumps
+// Third timemark
    double timemark3 = 2.0 * timemark2;
    container.Insert(timemark3);
 
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
    container.Insert(log_bins);
 
 // Add outlying events to the end bins
-   MultiIndex bin_outside(0, 0, 0);
+   MultiIndex bin_outside(0, 0, 1);
    container.Insert(bin_outside);
 
 // Physical units of the distro variable
@@ -462,7 +462,7 @@ int main(int argc, char** argv)
    simulation->PrintDistro1D(3, 1, simulation_files_prefix + "timemark3_distro.dat", true);
    simulation->PrintDistro1D(4, 1, simulation_files_prefix + "final_distro.dat", true);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "PITCH ANGLE DISTRIBUTION ISOTROPIZATION" << std::endl;
       std::cout << "=========================================================" << std::endl;

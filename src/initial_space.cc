@@ -50,7 +50,7 @@ void InitialSpaceFixed::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
-   container.Read(initpos.Data());
+   container.Read(initpos);
 
 // Pre-assign "_pos" so that it never needs to change
    _pos = initpos;
@@ -369,7 +369,7 @@ void InitialSpaceSphereSector::SetupInitial(bool construct)
    costheta2 = cos(theta2);
 
    container.Read(phi1);
-   // if(phi1 < 0.0) phi1 = 0.0;
+   // if (phi1 < 0.0) phi1 = 0.0;
 
    container.Read(phi2);
    if (phi2 > M_2PI) phi2 = M_2PI;
@@ -624,11 +624,11 @@ void InitialSpaceCylinderSector::SetupInitial(bool construct)
    if (!construct) InitialSpaceCylinder::SetupInitial(false);
 
    container.Read(phi1);
-   // if(phi1 < 0.0) phi1 = 0.0;
+   // if (phi1 < 0.0) phi1 = 0.0;
 
    container.Read(phi2);
-   if(phi2 > M_2PI) phi2 = M_2PI;
-   if(phi2 < phi1) phi2 = phi1;
+   if (phi2 > M_2PI) phi2 = M_2PI;
+   if (phi2 < phi1) phi2 = phi1;
 };
 
 /*!

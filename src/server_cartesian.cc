@@ -22,7 +22,7 @@ namespace Spectrum {
 */
 void StencilCartesian::Print(void)
 {
-   for(auto iz = 0; iz < n_elements; iz++) {
+   for (auto iz = 0; iz < n_elements; iz++) {
       std::cerr << std::setw(10) << blocks[iz] << "  " << zones[iz] << "  " << weights[iz] << std::endl;
    };
 };
@@ -68,7 +68,7 @@ void ServerCartesian::CreateBlockDatatype(void)
    MPI_Get_address(block_tmp->GetFaceMaxAddress(), &block_displ[2]);
    MPI_Get_address(block_tmp->GetFaceMinPhysAddress(), &block_displ[3]);
    MPI_Get_address(block_tmp->GetFaceMaxPhysAddress(), &block_displ[4]);
-   for(i = 4; i >= 0; i--) block_displ[i] -= block_start;
+   for (i = 4; i >= 0; i--) block_displ[i] -= block_start;
 
 // Commit the type
    MPI_Type_create_struct(5, block_lengths, block_displ, block_types, &MPIBlockType);
@@ -97,7 +97,7 @@ void ServerCartesian::CreateStencilDatatype(void)
    MPI_Get_address(&stencil.zones      , &stencil_displ[2]);
    MPI_Get_address(&stencil.weights    , &stencil_displ[3]);
    MPI_Get_address(&stencil.derivatives, &stencil_displ[4]);
-   for(i = 4; i >= 0; i--) stencil_displ[i] -= stencil_start;
+   for (i = 4; i >= 0; i--) stencil_displ[i] -= stencil_start;
 
 // Commit the type
    MPI_Type_create_struct(5, stencil_lengths, stencil_displ, stencil_types, &MPIStencilType);
@@ -160,8 +160,8 @@ void ServerCartesianFront::ServerStart(void) {
    stencil_outcomes[0] = stencil_outcomes[1] = stencil_outcomes[2] = 0;
    num_blocks_requested = 0;
 
-   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, mpi_config->node_comm);
-   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, mpi_config->node_comm);
+   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
+   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
 
 // Prime "block_pri" and "block_sec" with stub blocks that always fail tests. These and "block_stn" must be smart pointers to avoid double free or corruption errors.
    MakeSharedBlock(block_pri);
@@ -180,7 +180,7 @@ void ServerCartesianFront::ServerStart(void) {
 */
 void ServerCartesianFront::ServerFinish(void)
 {
-   MPI_Send(nullptr, 0, MPI_BYTE, 0, tag_stopserve, mpi_config->node_comm);
+   MPI_Send(nullptr, 0, MPI_BYTE, 0, tag_stopserve, MPI_Config::node_comm);
    ServerCartesian::ServerFinish();
 };
 
@@ -291,21 +291,21 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
    block_size = block_pri->GetBlockSize();
 // Correct stencil zones and blocks for multi-block interpolation
 // The weights do not change because of the uniformity of the grid
-   for(iz = 0; iz < stencil.n_elements; iz++) {
+   for (iz = 0; iz < stencil.n_elements; iz++) {
       node_idx = mi_ones;
 
 // Find which indices fall outside of the primary block's boundaries
-      for(xyz = 0; xyz < 3; xyz++) {
+      for (xyz = 0; xyz < 3; xyz++) {
 
 // Use "previous" block
-         if(stencil.zones[iz][xyz] == -1) {
+         if (stencil.zones[iz][xyz] == -1) {
             stencil.zones[iz][xyz] = block_size[xyz] - 1;
             node_idx[xyz]--;
             status = xyz + 1;
          }
 
 // Use "next" block
-         else if(stencil.zones[iz][xyz] == block_size[xyz]) {
+         else if (stencil.zones[iz][xyz] == block_size[xyz]) {
             stencil.zones[iz][xyz] = 0;
             node_idx[xyz]++;
             status = xyz + 1;
@@ -314,7 +314,7 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
 
 // Assign the appropriate block for each zone
       tmp_idx = block_pri->GetNeighborNode(node_idx);
-      if(tmp_idx == pri_idx) stencil.blocks[iz] = pri_idx;
+      if (tmp_idx == pri_idx) stencil.blocks[iz] = pri_idx;
       else {
          _inquiry.type = 0;
          _inquiry.node = tmp_idx;
@@ -325,11 +325,11 @@ int ServerCartesianFront::BuildInterpolationStencil(const GeoVector& pos)
    };
 #endif
 
-   if(n_blocks == 0) status = 0;
-   else if(n_blocks == 4) {
+   if (n_blocks == 0) status = 0;
+   else if (n_blocks == 4) {
 // If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
-      if(block_sec->GetNode() != sec_idx) {
-         if(block_pri->GetNode() == sec_idx) block_sec = block_pri;
+      if (block_sec->GetNode() != sec_idx) {
+         if (block_pri->GetNode() == sec_idx) block_sec = block_pri;
          else block_sec = cache_line[sec_idx];
       };
    }
@@ -350,20 +350,20 @@ int ServerCartesianFront::RequestBlock(void)
    BlockPtrType block_new;
 
 // Test whether the block is cached. Either call will renew the block if it is present.
-   if(_inquiry.type) {
-      if(block_pri->PositionInside(_inquiry.pos)) bidx = block_pri->GetNode();
-      else if(block_sec->PositionInside(_inquiry.pos)) bidx = block_sec->GetNode();
+   if (_inquiry.type) {
+      if (block_pri->PositionInside(_inquiry.pos)) bidx = block_pri->GetNode();
+      else if (block_sec->PositionInside(_inquiry.pos)) bidx = block_sec->GetNode();
       else bidx = cache_line.PosOwner(_inquiry.pos);
    }
    else {
-      if(block_pri->GetNode() == _inquiry.node) bidx = block_pri->GetNode();
-      else if(block_sec->GetNode() == _inquiry.node) bidx = block_sec->GetNode();
+      if (block_pri->GetNode() == _inquiry.node) bidx = block_pri->GetNode();
+      else if (block_sec->GetNode() == _inquiry.node) bidx = block_sec->GetNode();
       else bidx = cache_line.Present(_inquiry.node);
    };
 
 // Block is not in the cache, request it from the server.
-   if(bidx == -1) {
-      MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needblock, mpi_config->node_comm);
+   if (bidx == -1) {
+      MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needblock, MPI_Config::node_comm);
       num_blocks_requested++;
 
 // Allocate memory for block.
@@ -375,17 +375,17 @@ int ServerCartesianFront::RequestBlock(void)
 #endif
 
 // Receive the block in 4 parts (member data plus 3 dynamic arrays). This is called even if SERVER_INTERP_ORDER is -1 to import the block dimensions
-      MPI_Recv(block_new.get(), 1, MPIBlockType, 0, tag_sendblock, mpi_config->node_comm, MPI_STATUS_IGNORE);
+      MPI_Recv(block_new.get(), 1, MPIBlockType, 0, tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
 
 #if SERVER_INTERP_ORDER > -1
       MPI_Recv(block_new->GetVariablesAddress(), block_new->GetVariableCount() * block_new->GetZoneCount(), MPI_DOUBLE, 0,
-               tag_sendblock, mpi_config->node_comm, MPI_STATUS_IGNORE);
+               tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
 #endif
 #if SERVER_INTERP_ORDER > 0 && SERVER_NUM_GHOST_CELLS == 0
       MPI_Recv(block_new->GetNeighborNodesAddress(), block_new->GetNeighborCount(), MPI_INT, 0,
-               tag_sendblock, mpi_config->node_comm, MPI_STATUS_IGNORE);
+               tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
       MPI_Recv(block_new->GetNeighborLevelsAddress(), block_new->GetNeighborLevelCount(), MPI_INT, 0,
-               tag_sendblock, mpi_config->node_comm, MPI_STATUS_IGNORE);
+               tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
 #endif
 
 // Insert the block into the cache
@@ -409,8 +409,8 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
    double rho, vars[n_variables] = {0.0};
 
 // Get variables
-   MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needvars, mpi_config->node_comm);
-   MPI_Recv(vars, n_variables, MPI_DOUBLE, 0, tag_sendvars, mpi_config->node_comm, MPI_STATUS_IGNORE);
+   MPI_Send(&_inquiry, 1, MPIInquiryType, 0, tag_needvars, MPI_Config::node_comm);
+   MPI_Recv(vars, n_variables, MPI_DOUBLE, 0, tag_sendvars, MPI_Config::node_comm, MPI_STATUS_IGNORE);
    stencil_outcomes[2]++;
 
 // Mass density, if provided
@@ -428,7 +428,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
    spdata.p_ther = vars[SERVER_VAR_INDEX_PTH];
 #endif
 
-   for(xyz = 0; xyz < 3; xyz++) {
+   for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
@@ -461,7 +461,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
 
 // Region(s) indicator variable(s), if provided
 #ifdef SERVER_VAR_INDEX_REG
-   for(xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
+   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
 #else
    spdata.region = gv_zeros;
 #endif
@@ -499,7 +499,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 #endif
 
 // Convert the variables to SPECTRUM format
-   for(xyz = 0; xyz < 3; xyz++) {
+   for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
@@ -532,7 +532,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 
 // Region(s) indicator variable(s), if provided
 #ifdef SERVER_VAR_INDEX_REG
-   for(xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + xyz);
+   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + xyz);
 #else
    spdata.region = gv_zeros;
 #endif
@@ -555,10 +555,10 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
    spdata.Bmag = 0.0;
 
 // Internal interpolation
-   if(stencil_status == 0) {
+   if (stencil_status == 0) {
       stencil_outcomes[0]++;
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         for(vidx = 0; vidx < n_variables; vidx++) {
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_pri->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
@@ -571,15 +571,15 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
    }
 
 // Edge or corner interpolation
-   else if(stencil_status == 4) {
+   else if (stencil_status == 4) {
       stencil_outcomes[2]++;
       pri_idx = block_pri->GetNode();
       sec_idx = block_sec->GetNode();
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         if(stencil.blocks[iz] == pri_idx) block_stn = block_pri;
-         else if(stencil.blocks[iz] == sec_idx) block_stn = block_sec;
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         if (stencil.blocks[iz] == pri_idx) block_stn = block_pri;
+         else if (stencil.blocks[iz] == sec_idx) block_stn = block_sec;
          else block_stn = cache_line[stencil.blocks[iz]];
-         for(vidx = 0; vidx < n_variables; vidx++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
@@ -595,10 +595,10 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
    else {
       stencil_outcomes[1]++;
       pri_idx = block_pri->GetNode();
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         if(stencil.blocks[iz] == pri_idx) block_stn = block_pri;
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         if (stencil.blocks[iz] == pri_idx) block_stn = block_pri;
          else block_stn = block_sec;
-         for(vidx = 0; vidx < n_variables; vidx++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
             vars[vidx] += stencil.weights[iz] * var;
          };
@@ -626,7 +626,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
 #endif
 
 // Convert the variables to SPECTRUM format
-   for(xyz = 0; xyz < 3; xyz++) {
+   for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
@@ -659,7 +659,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
 
 // Region(s) indicator variable(s), if provided
 #ifdef SERVER_VAR_INDEX_REG
-   for(xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
+   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
 #else
    spdata.region = gv_zeros;
 #endif
@@ -683,8 +683,8 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
    bidx = RequestBlock();
 
 // If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
-   if(block_pri->GetNode() != bidx) {
-      if(block_sec->GetNode() == bidx) block_pri = block_sec;
+   if (block_pri->GetNode() != bidx) {
+      if (block_sec->GetNode() == bidx) block_pri = block_sec;
       else block_pri = cache_line[bidx];
    };
    spdata.dmax = fmin(spdata.dmax, block_pri->GetZoneLength().Smallest());
@@ -730,11 +730,11 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
    LOWER_BITS(spdata._mask, BACKGROUND_grad_FAIL);
 
 // Internal interpolation
-   if(stencil_status == 0) {
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         for(vidx = 0; vidx < n_variables; vidx++) {
+   if (stencil_status == 0) {
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_pri->GetValue(stencil.zones[iz], vidx);
-            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+            for (uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
          };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
@@ -744,21 +744,21 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
          _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
 // Edge or corner interpolation
-   else if(stencil_status == 4) {
+   else if (stencil_status == 4) {
       pri_idx = block_pri->GetNode();
       sec_idx = block_sec->GetNode();
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         if(stencil.blocks[iz] == pri_idx) block_stn = block_pri;
-         else if(stencil.blocks[iz] == sec_idx) block_stn = block_sec;
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         if (stencil.blocks[iz] == pri_idx) block_stn = block_pri;
+         else if (stencil.blocks[iz] == sec_idx) block_stn = block_sec;
          else block_stn = cache_line[stencil.blocks[iz]];
-         for(vidx = 0; vidx < n_variables; vidx++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
-            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+            for (uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
          };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
@@ -768,19 +768,19 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
 // Plane interpolation
    else {
       pri_idx = block_pri->GetNode();
-      for(iz = 0; iz < stencil.n_elements; iz++) {
-         if(stencil.blocks[iz] == pri_idx) block_stn = block_pri;
+      for (iz = 0; iz < stencil.n_elements; iz++) {
+         if (stencil.blocks[iz] == pri_idx) block_stn = block_pri;
          else block_stn = block_sec;
-         for(vidx = 0; vidx < n_variables; vidx++) {
+         for (vidx = 0; vidx < n_variables; vidx++) {
             var = block_stn->GetValue(stencil.zones[iz], vidx);
-            for(uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
+            for (uvw = 0; uvw < 3; uvw++) grads[vidx][uvw] += stencil.derivatives[3 * iz + uvw] * var;
          };
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
@@ -790,13 +790,13 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for(uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    };
 
 // Convert the gradients to SPECTRUM format
-   for(uvw = 0; uvw < 3; uvw++) {
-      for(xyz = 0; xyz < 3; xyz++) {
+   for (uvw = 0; uvw < 3; uvw++) {
+      for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
@@ -931,8 +931,8 @@ void ServerCartesianBack::ServerStart(void)
    domain_min *= unit_length_server / unit_length_fluid;
    domain_max *= unit_length_server / unit_length_fluid;
 
-   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, mpi_config->node_comm);
-   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, mpi_config->node_comm);
+   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
+   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
 };
 
 /*!
@@ -1004,21 +1004,21 @@ void ServerCartesianBack::HandleNeedVarsRequests(void)
    int found, cpu, cpu_idx, count_needvars = 0;
 
 // Service the "needvars" requests
-   MPI_Testsome(mpi_config->node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
+   MPI_Testsome(MPI_Config::node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
 
-   for(cpu_idx = 0; cpu_idx < count_needvars; cpu_idx++) {
+   for (cpu_idx = 0; cpu_idx < count_needvars; cpu_idx++) {
       cpu = index_needvars[cpu_idx];
 
 // Obtain the variables requested
       pos_cart = buf_needvars[cpu].pos / unit_length_server * unit_length_fluid;
       GetBlockData(pos_cart.Data(), vars, &found);
-      if(!found) std::cerr << "Position not found\n";
+      if (!found) std::cerr << "Position not found\n";
 
 // Send the variables to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, tag_sendvars, mpi_config->node_comm);
+      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, tag_sendvars, MPI_Config::node_comm);
 
 // Post the receive for the next variables request from this worker.
-      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, mpi_config->node_comm, &req_needvars[cpu]);
+      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, MPI_Config::node_comm, &req_needvars[cpu]);
    };
 };
 
@@ -1043,38 +1043,38 @@ void ServerCartesianBack::HandleNeedBlockRequests(void)
    int cpu, cpu_idx, count_needblock = 0;
 
    // Service the "needblock" requests
-   MPI_Testsome(mpi_config->node_comm_size, req_needblock, &count_needblock, index_needblock, MPI_STATUSES_IGNORE);
+   MPI_Testsome(MPI_Config::node_comm_size, req_needblock, &count_needblock, index_needblock, MPI_STATUSES_IGNORE);
 
 // Load the block requested. If the requestor does not know the node, figure it out.
-   for(cpu_idx = 0; cpu_idx < count_needblock; cpu_idx++) {
+   for (cpu_idx = 0; cpu_idx < count_needblock; cpu_idx++) {
       cpu = index_needblock[cpu_idx];
 
-      if(buf_needblock[cpu].type) {
+      if (buf_needblock[cpu].type) {
          pos_cart = buf_needblock[cpu].pos / unit_length_server * unit_length_fluid;
          GetBlock(pos_cart.Data(), &buf_needblock[cpu].node);
-         if(buf_needblock[cpu].node == -1) throw ExServerError();
+         if (buf_needblock[cpu].node == -1) throw ExServerError();
       };
 
       block_served->SetNode(buf_needblock[cpu].node);
       block_served->LoadDimensions(unit_length_server);
 
 // Send the block to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(block_served, 1, MPIBlockType, cpu, tag_sendblock, mpi_config->node_comm);
+      MPI_Send(block_served, 1, MPIBlockType, cpu, tag_sendblock, MPI_Config::node_comm);
 #if SERVER_INTERP_ORDER > -1
       block_served->LoadVariables();
       MPI_Send(block_served->GetVariablesAddress(), block_served->GetVariableCount() * block_served->GetZoneCount(),
-               MPI_DOUBLE, cpu, tag_sendblock, mpi_config->node_comm);
+               MPI_DOUBLE, cpu, tag_sendblock, MPI_Config::node_comm);
 #endif
 #if SERVER_INTERP_ORDER > 0 && SERVER_NUM_GHOST_CELLS == 0
       block_served->LoadNeighbors();
       MPI_Send(block_served->GetNeighborNodesAddress(), block_served->GetNeighborCount(),
-               MPI_INT, cpu, tag_sendblock, mpi_config->node_comm);
+               MPI_INT, cpu, tag_sendblock, MPI_Config::node_comm);
       MPI_Send(block_served->GetNeighborLevelsAddress(), block_served->GetNeighborLevelCount(),
-               MPI_INT, cpu, tag_sendblock, mpi_config->node_comm);
+               MPI_INT, cpu, tag_sendblock, MPI_Config::node_comm);
 #endif
 
 // Post the receive for the next block request from this worker
-      MPI_Irecv(&buf_needblock[cpu], 1, MPIInquiryType, cpu, tag_needblock, mpi_config->node_comm, &req_needblock[cpu]);
+      MPI_Irecv(&buf_needblock[cpu], 1, MPIInquiryType, cpu, tag_needblock, MPI_Config::node_comm, &req_needblock[cpu]);
    };
 };
 
@@ -1088,10 +1088,10 @@ int ServerCartesianBack::HandleStopServeRequests(void)
    int cpu, cpu_idx, count_stopserve = 0;
 
    // Service the "stopserve" requests. We assume that each worker sends a single request at the end of the simulation. 
-   MPI_Testsome(mpi_config->node_comm_size, req_stopserve, &count_stopserve, index_stopserve, MPI_STATUSES_IGNORE);
+   MPI_Testsome(MPI_Config::node_comm_size, req_stopserve, &count_stopserve, index_stopserve, MPI_STATUSES_IGNORE);
    
 // Cancel all "needblock" and "needstencil" receive requests from the cpus that have finished.
-   for(cpu_idx = 0; cpu_idx < count_stopserve; cpu_idx++) {
+   for (cpu_idx = 0; cpu_idx < count_stopserve; cpu_idx++) {
       cpu = index_stopserve[cpu_idx];
       MPI_Cancel(&req_needblock[cpu]);
       MPI_Cancel(&req_needstencil[cpu]);

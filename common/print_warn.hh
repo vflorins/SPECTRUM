@@ -16,14 +16,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+//! Debug level
+#define GEO_DEBUG_LEVEL 3
+
 //! Comment character
 const char comment_char = '#';
 
 //! Color of error messages (red)
 const std::string err_color = "\033[31m";
 
-//! Color of informational messages (yellow)
-const std::string inf_color = "\033[33m";
+//! Color of informational messages (green)
+const std::string inf_color = "\033[32m";
 
 //! Color of normal messages (default)
 const std::string std_color = "\033[0m";
@@ -42,7 +45,7 @@ const int line_width = 1000;
 */
 inline void PrintError(const char* filename, int line, const std::string& message, bool do_print)
 {
-   if(!do_print) return;
+   if (!do_print) return;
    std::cerr << err_color;
    std::cerr << filename << ":" << line << ": error: " << message << std::endl;
    std::cerr << std_color;
@@ -59,7 +62,7 @@ inline void PrintError(const char* filename, int line, const std::string& messag
 */
 inline void PrintMessage(const char* filename, int line, const std::string& message, bool do_print)
 {
-   if(!do_print) return;
+   if (!do_print) return;
    std::cerr << inf_color;
    std::cerr << filename << ":" << line << ": info message: " << message << std::endl;
    std::cerr << std_color;
@@ -73,15 +76,15 @@ inline void PrintMessage(const char* filename, int line, const std::string& mess
 */
 inline void SkipComments(std::ifstream& inpfile)
 {
-   if(!inpfile.is_open()) return;
+   if (!inpfile.is_open()) return;
 
    char first_char;
 
    do {
       inpfile >> std::ws;
       first_char = inpfile.peek();
-      if(first_char == comment_char) inpfile.ignore(line_width, '\n');
-   } while(first_char == comment_char);
+      if (first_char == comment_char) inpfile.ignore(line_width, '\n');
+   } while (first_char == comment_char);
 };
 
 /*!
@@ -93,16 +96,16 @@ inline void SkipComments(std::ifstream& inpfile)
 */
 inline unsigned long CountRecords(std::ifstream& inpfile)
 {
-   if(!inpfile.is_open()) return 0;
+   if (!inpfile.is_open()) return 0;
 
    unsigned long count = 0;
    char line[line_width + 1];
 
    inpfile.seekg(inpfile.beg);
-   while(inpfile.peek() != EOF) {
+   while (inpfile.peek() != EOF) {
       inpfile >> std::ws;
       inpfile.getline(line, line_width);
-      if(line[0] != comment_char) count++;
+      if (line[0] != comment_char) count++;
    };
    return count;
 };
@@ -120,11 +123,11 @@ inline void PrintConnectivity(int n_nodes, int n_nbrs, int n_sing, const int* co
 {
    int n_nbrs_actual;
 
-   for(auto node = 0; node < n_nodes; node++) {
+   for (auto node = 0; node < n_nodes; node++) {
       std::cerr << std::setw(8) << node << " │ ";
       n_nbrs_actual = (node < n_sing ? n_nbrs - 1 : n_nbrs);
 
-      for(auto i = 0; i < n_nbrs_actual; i++) {
+      for (auto i = 0; i < n_nbrs_actual; i++) {
          std::cerr << std::setw(8) << conn[node][i];
       };
       std::cerr << std::endl;

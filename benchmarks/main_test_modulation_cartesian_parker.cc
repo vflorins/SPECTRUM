@@ -1,6 +1,6 @@
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
-#include "src/background_cartesian.hh"
+#include "src/background_server_cartesian.hh"
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
    container.Insert(dmax);
 
    std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
-   simulation->AddBackground(BackgroundCartesian(), container, fname_pattern);
+   simulation->AddBackground(BackgroundServerCartesian(), container, fname_pattern);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -276,7 +276,7 @@ int main(int argc, char** argv)
    simulation->MainLoop();
    simulation->PrintDistro1D(0, 0, simulation_files_prefix + "spectrum.dat", true);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "MODULATION CARTESIAN PARKER SPIRAL" << std::endl;
       std::cout << "=========================================================" << std::endl;

@@ -190,6 +190,9 @@ public:
 //! Constructor with arguments
    DomainPartition(int n_shells, const std::shared_ptr<DistanceBase> dist_map, double face_div);
 
+//! Copy constructor - deleted because only a single partition can exist
+   DomainPartition(const DomainPartition& other) = delete;
+
 //! Destructor
    ~DomainPartition();
 
@@ -234,7 +237,7 @@ inline int DomainPartition<datatype, blocktype>::GetSlab(int bidx) const
 template <typename datatype, typename blocktype>
 inline int DomainPartition<datatype, blocktype>::GetSector(int bidx) const
 {
-   return bidx % n_slabs;
+   return bidx % n_sectors;
 };
 
 };

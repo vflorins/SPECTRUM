@@ -326,6 +326,10 @@ int main(int argc, char** argv)
    double val_cold2 = 0.0;
    container.Insert(val_cold2);
 
+// Value for which time to bin
+   int val_time2 = 1;
+   container.Insert(val_time2);
+
    simulation->AddDistribution(DistributionTimeUniform(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

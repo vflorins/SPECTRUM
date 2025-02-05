@@ -244,8 +244,8 @@ inline MultiIndex DistributionBase::NBins(void) const
 */
 inline double DistributionBase::BinLeft(int ijk, int bin) const
 {
-   if((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
-   if(log_bins[ijk]) return pow(10.0, limits[0][ijk] + bin * bin_size[ijk]);
+   if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
+   if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + bin * bin_size[ijk]);
    else return limits[0][ijk] + bin * bin_size[ijk];
 };
 
@@ -258,8 +258,8 @@ inline double DistributionBase::BinLeft(int ijk, int bin) const
 */
 inline double DistributionBase::BinCent(int ijk, int bin) const
 {
-   if((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
-   if(log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 0.5) * bin_size[ijk]);
+   if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
+   if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 0.5) * bin_size[ijk]);
    else return limits[0][ijk] + (bin + 0.5) * bin_size[ijk];
 };
 
@@ -272,8 +272,8 @@ inline double DistributionBase::BinCent(int ijk, int bin) const
 */
 inline double DistributionBase::BinRght(int ijk, int bin) const
 {
-   if((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
-   if(log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 1) * bin_size[ijk]);
+   if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
+   if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 1) * bin_size[ijk]);
    else return limits[0][ijk] + (bin + 1) * bin_size[ijk];
 };
 

@@ -556,6 +556,26 @@ SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
    else return x - n * period;
 };
 
+/*!
+\brief Average values in array using arithmetic or geometric mean
+\author Juan G Alonso Guzman
+\date 01/29/2025
+\param[in] size  Size of array
+\param[in] x     Array of values to average
+\param[in] arith Whether to calculate the arithmetic or geometric average
+\return Average of values in array
+\note The geometric average is done by exponentiating the average of the logged values for numerical stability
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Average(int size, const T* x, bool arith)
+{
+   int i;
+   T avg = 0.0;
+   for (i = 0; i < size; i++) avg += (arith ? x[i] : log(x[i]));
+   avg /= size;
+   return (arith ? avg : exp(avg));
+};
+
 };
 
 #endif

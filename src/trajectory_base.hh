@@ -35,26 +35,26 @@ namespace Spectrum {
 
 #if TRAJ_ADV_SAFETY_LEVEL == 2
 //! Largest length for single trajectory
-const int max_trajectory_steps = 10000000;
+constexpr int max_trajectory_steps = 10000000;
 
 //! Largest number of time step adaptations for a single time step
-const int max_time_adaptations = 100;
+constexpr int max_time_adaptations = 100;
 #endif
 
 //! The trajecory will end after the step is completed
-const uint16_t TRAJ_FINISH = 0x0010;
+constexpr uint16_t TRAJ_FINISH = 0x0010;
 
 //! Time boundary was crossed
-const uint16_t TRAJ_TIME_CROSSED = 0x0020;
+constexpr uint16_t TRAJ_TIME_CROSSED = 0x0020;
 
 //! Spatial boundary was crossed
-const uint16_t TRAJ_SPATIAL_CROSSED = 0x0040;
+constexpr uint16_t TRAJ_SPATIAL_CROSSED = 0x0040;
 
 //! Momentum boundary was crossed
-const uint16_t TRAJ_MOMENTUM_CROSSED = 0x0080;
+constexpr uint16_t TRAJ_MOMENTUM_CROSSED = 0x0080;
 
 //! Trajectory is invalid and must be discarded
-const uint16_t TRAJ_DISCARD = 0x0100;
+constexpr uint16_t TRAJ_DISCARD = 0x0100;
 
 //! Clone function pattern
 #define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase> Clone(void) const override {return std::make_unique<T>();};
@@ -170,7 +170,7 @@ protected:
 //! Initial length of trajectory containers (persistent)
    unsigned int presize = 1;
 
-//! Particle's charge (persistent)
+//! Particle's charge to mass ratio (persistent)
    double q;
 
 //! Array of distribution objects (persistent)
@@ -203,7 +203,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Time along trajectory, includes segment counter (transient)
-   std::vector <double> traj_t;
+   std::vector<double> traj_t;
 
 //! Position along trajectory (transient)
    std::vector <GeoVector> traj_pos;
@@ -411,10 +411,10 @@ public:
    int Segments(void) const;
 
 //! Return the number of reflections (at boundaries)
-   int Reflections(void) const;
+   int Reflections(void) const {return n_refl;};
 
 //! Return the number of mirror events in the trajectory
-   int Mirrorings(void) const;
+   int Mirrorings(void) const {return n_mirr;};
 
 //! Return the time elapsed
    double ElapsedTime(void) const;
@@ -559,35 +559,15 @@ inline int TrajectoryBase::Segments(void) const
 
 /*!
 \author Vladimir Florinski
-\date 01/07/2021
-\return Number of reflection events
-*/
-inline int TrajectoryBase::Reflections(void) const
-{
-   return n_refl;
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/07/2021
-\return Number of mirror events
-*/
-inline int TrajectoryBase::Mirrorings(void) const
-{
-   return n_mirr;
-};
-
-/*!
-\author Vladimir Florinski
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
 inline double TrajectoryBase::ElapsedTime(void) const
 {
 #ifdef RECORD_TRAJECTORY
-   return traj_t.back();
+   return traj_t.back() - traj_t.front();
 #else
-   return _t;
+   return _t - traj_t[0];
 #endif
 };
 

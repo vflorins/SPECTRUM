@@ -710,6 +710,81 @@ public:
 
 typedef DiffusionStraussEtAl2013 DiffusionGuoEtAl2014;
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionPotgieterEtAl2015 class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionPotgieterEtAl2015 class
+const std::string diff_name_potgieter_et_al_2015 = "DiffusionPotgieterEtAl2015";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Potgieter et al 2015, with change in perpendicular diffusion according to a magnetic mixing indicator variable
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+
+Parameters: (DiffusionBase), lam_in, lam_out, double R0, double B0, double pow_law_R_low, double pow_law_R_high, double pow_law_B, double kap_rat_low, double kap_rat_high
+*/
+class DiffusionPotgieterEtAl2015 : public DiffusionBase {
+
+protected:
+
+//! Index for LISM indicator variable (persistent)
+   int LISM_idx;
+
+//! Parallel inner heliosphere mean free path (persistent)
+   double lam_in;
+
+//! Parallel outer heliosphere mean free path (persistent)
+   double lam_out;
+
+//! Rigidity normalization factor (persistent)
+   double R0;
+
+//! Magnetic field normalization factor for inner heliosphere (persistent)
+   double B0;
+
+//! Ratio of perpendicular to parallel diffusion inner heliosphere (persistent)
+   double kap_rat_in;
+
+//! Ratio of perpendicular to parallel diffusion outer heliosphere (persistent)
+   double kap_rat_out;
+
+//! Index for magnetic mixing indicator variable (persistent)
+   int Bmix_idx;
+
+//! Reduction factor for kappa in unipolar regions (persistent)
+   double kap_rat_red;
+
+//! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
+   double LISM_ind;
+
+//! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
+   double Bmix_ind;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionPotgieterEtAl2015(void);
+
+//! Copy constructor
+   DiffusionPotgieterEtAl2015(const DiffusionPotgieterEtAl2015& other);
+
+//! Destructor
+   ~DiffusionPotgieterEtAl2015() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionPotgieterEtAl2015);
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
+
 };
 
 #endif

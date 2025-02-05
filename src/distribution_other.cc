@@ -47,7 +47,7 @@ template <class distroClass>
 DistributionUniform<distroClass>::DistributionUniform(const DistributionUniform& other)
                                 : DistributionTemplated<distroClass>(other)
 {
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -59,11 +59,11 @@ template <class distroClass>
 void DistributionUniform<distroClass>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<distroClass>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<distroClass>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_hot);
-   this->container.Read(&val_cold);
+   this->container.Read(val_hot);
+   this->container.Read(val_cold);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {UniformHot();});
@@ -114,7 +114,7 @@ DistributionTimeUniform::DistributionTimeUniform(const DistributionTimeUniform& 
                        : DistributionUniform<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_TIME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -126,13 +126,13 @@ DistributionTimeUniform::DistributionTimeUniform(const DistributionTimeUniform& 
 void DistributionTimeUniform::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionUniform<double>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionUniform<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
+   this->container.Read(val_time);
 
 // Check that ONLY the first dimension is active.
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -142,7 +142,7 @@ void DistributionTimeUniform::SetupDistribution(bool construct)
 */
 void DistributionTimeUniform::EvaluateValue(void)
 {
-   if(val_time == 0) this->_value[0] = this->_t;
+   if (val_time == 0) this->_value[0] = this->_t;
    else this->_value[0] = this->_t2;
 };
 
@@ -170,7 +170,7 @@ DistributionPositionUniform::DistributionPositionUniform(const DistributionPosit
                            : DistributionUniform<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -181,14 +181,14 @@ DistributionPositionUniform::DistributionPositionUniform(const DistributionPosit
 void DistributionPositionUniform::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionUniform<double>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionUniform<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
-   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -197,10 +197,10 @@ void DistributionPositionUniform::SetupDistribution(bool construct)
 */
 void DistributionPositionUniform::EvaluateValue(void)
 {
-   if(val_time == 0) this->_value = this->_pos;
+   if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if(val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) this->_value.XYZ_RTP();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ DistributionMomentumUniform::DistributionMomentumUniform(const DistributionMomen
                            : DistributionUniform<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -238,14 +238,14 @@ DistributionMomentumUniform::DistributionMomentumUniform(const DistributionMomen
 void DistributionMomentumUniform::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionUniform<double>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionUniform<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
-   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -258,7 +258,7 @@ If val_coord == 1, then the momentum vector is converted to locally spherical co
 void DistributionMomentumUniform::EvaluateValue(void)
 {
    GeoVector momentum, bhat;
-   if(val_time == 0) {
+   if (val_time == 0) {
       momentum = this->_mom;
       bhat = this->_spdata.bhat;
    }
@@ -267,7 +267,7 @@ void DistributionMomentumUniform::EvaluateValue(void)
       bhat = this->_spdata2.bhat;
    };
 
-   if(val_coord == 0) this->_value = momentum;
+   if (val_coord == 0) this->_value = momentum;
    else {
 #if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
 // Focused and Parker trajectories are already in locally spherical coordinates
@@ -314,7 +314,7 @@ DistributionAnisotropyLISM::DistributionAnisotropyLISM(const DistributionAnisotr
                           : DistributionTemplated<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -325,15 +325,15 @@ DistributionAnisotropyLISM::DistributionAnisotropyLISM(const DistributionAnisotr
 void DistributionAnisotropyLISM::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<double>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(rot_matrix[0].Data());
-   this->container.Read(rot_matrix[1].Data());
-   this->container.Read(rot_matrix[2].Data());
-   this->container.Read(U_LISM.Data());
-   this->container.Read(&mom_pow_law);
-   this->container.Read(grad_perp_dens.Data());
+   this->container.Read(rot_matrix[0]);
+   this->container.Read(rot_matrix[1]);
+   this->container.Read(rot_matrix[2]);
+   this->container.Read(U_LISM);
+   this->container.Read(mom_pow_law);
+   this->container.Read(grad_perp_dens);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {ComptonGettingFactor();});
@@ -343,7 +343,7 @@ void DistributionAnisotropyLISM::SetupDistribution(bool construct)
    this->ActionTable.push_back([this]() {bCrossGradientAnisotropy();});
 
 // Check that ONLY the first two dimensions are active.
-   if(this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -456,7 +456,7 @@ DistributionSpectrumKineticEnergyPowerLaw::DistributionSpectrumKineticEnergyPowe
                                          : DistributionTemplated<double>(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -467,20 +467,20 @@ DistributionSpectrumKineticEnergyPowerLaw::DistributionSpectrumKineticEnergyPowe
 void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<double>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&J0);
-   this->container.Read(&T0);
-   this->container.Read(&pow_law);
-   this->container.Read(&val_cold);
+   this->container.Read(J0);
+   this->container.Read(T0);
+   this->container.Read(pow_law);
+   this->container.Read(val_cold);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
    this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawCold();});
 
 // Check that ONLY the first dimension is active.
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -564,7 +564,7 @@ DistributionSpectrumKineticEnergyBentPowerLaw::DistributionSpectrumKineticEnergy
                                              : DistributionSpectrumKineticEnergyPowerLaw(other)
 {
    RAISE_BITS(this->_status, DISTRO_MOMENTUM);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -575,17 +575,17 @@ DistributionSpectrumKineticEnergyBentPowerLaw::DistributionSpectrumKineticEnergy
 void DistributionSpectrumKineticEnergyBentPowerLaw::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
    double pow_law_b;
-   this->container.Read(&T_b);
-   this->container.Read(&pow_law_b);
-   this->container.Read(&bend_smoothness);
+   this->container.Read(T_b);
+   this->container.Read(pow_law_b);
+   this->container.Read(bend_smoothness);
    pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
 
 // Check that ONLY the first dimension is active.
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -624,7 +624,7 @@ DistributionPositionCumulativeOrder1::DistributionPositionCumulativeOrder1(const
                                     : DistributionTemplated<GeoVector>(other)
 {
    RAISE_BITS(this->_status, DISTRO_TIME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -635,14 +635,14 @@ DistributionPositionCumulativeOrder1::DistributionPositionCumulativeOrder1(const
 void DistributionPositionCumulativeOrder1::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<GeoVector>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<GeoVector>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordPosition();});
 
 // Check that ONLY the first dimension is active.
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -688,7 +688,7 @@ DistributionPositionCumulativeOrder2::DistributionPositionCumulativeOrder2(const
                                     : DistributionTemplated<GeoMatrix>(other)
 {
    RAISE_BITS(this->_status, DISTRO_TIME);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -699,14 +699,14 @@ DistributionPositionCumulativeOrder2::DistributionPositionCumulativeOrder2(const
 void DistributionPositionCumulativeOrder2::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<GeoMatrix>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<GeoMatrix>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordPosition();});
 
 // Check that ONLY the first dimension is active.
-   if(this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -752,7 +752,7 @@ DistributionLossCone::DistributionLossCone(const DistributionLossCone& other)
                     : DistributionTemplated<GeoVector>(other)
 {
    RAISE_BITS(this->_status, DISTRO_SPACE);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -763,17 +763,17 @@ DistributionLossCone::DistributionLossCone(const DistributionLossCone& other)
 void DistributionLossCone::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) DistributionTemplated<GeoVector>::SetupDistribution(false);
-   if(BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (!construct) DistributionTemplated<GeoVector>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(&val_time);
-   this->container.Read(&val_coord);
+   this->container.Read(val_time);
+   this->container.Read(val_coord);
 
 // Place the actions into the table
    this->ActionTable.push_back([this]() {RecordLossCone();});
 
 // Check that ALL three dimensions are active.
-   if(this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -782,10 +782,10 @@ void DistributionLossCone::SetupDistribution(bool construct)
 */
 void DistributionLossCone::EvaluateValue(void)
 {
-   if(val_time == 0) this->_value = this->_pos;
+   if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if(val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) this->_value.XYZ_RTP();
 };
 
 /*!
@@ -794,7 +794,7 @@ void DistributionLossCone::EvaluateValue(void)
 */
 void DistributionLossCone::RecordLossCone(void)
 {
-   if(val_time == 0) this->_weight = GeoVector(_spdata2.Bmag_min, _spdata2.Bmag_max, asin(sqrt(_spdata.Bmag / _spdata2.Bmag_max)));
+   if (val_time == 0) this->_weight = GeoVector(_spdata2.Bmag_min, _spdata2.Bmag_max, asin(sqrt(_spdata.Bmag / _spdata2.Bmag_max)));
    else this->_weight = GeoVector(_spdata2.Bmag_min, _spdata2.Bmag_max, asin(sqrt(_spdata2.Bmag / _spdata2.Bmag_max)));
 };
 

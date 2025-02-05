@@ -47,7 +47,7 @@ DistributionBase::DistributionBase(const DistributionBase& other)
                 : Params(other)
 {
 // Params' constructor resets all flags
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
 /*!
@@ -188,7 +188,7 @@ void DistributionBase::ProcessTrajectory(double t1, const GeoVector& pos1, const
    EvaluateValue();
    EvaluateWeight(action_in);
    AddEvent();
-   if(keep_records) AddRecord();
+   if (keep_records) AddRecord();
 };
 
 /*!

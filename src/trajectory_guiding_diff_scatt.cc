@@ -116,18 +116,18 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 #elif STOCHASTIC_METHOD_PERP == 1
    MilsteinPerpDiffSlopes();
 #elif STOCHASTIC_METHOD_PERP == 2
-   if(RK2PerpDiffSlopes()) return true;
+   if (RK2PerpDiffSlopes()) return true;
 #endif
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
-   if(RKSlopes()) return true;
+   if (RKSlopes()) return true;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Advance the trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If adaptive method error is unacceptable, exit advance function with false (step was not taken)
-   if(RKStep()) return false;
+   if (RKStep()) return false;
 
 // Stochastic displacement
    _pos += dr_perp;
@@ -139,7 +139,7 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the second half of the scattering cannot be performed. In that case the function should return immediately and the current position will be saved.
-   if(SpaceTerminateCheck()) return true;
+   if (SpaceTerminateCheck()) return true;
 
 // Compute diffusion coefficients
    CommonFields();
@@ -162,7 +162,7 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
    HandleBoundaries();
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
-   if(BITS_LOWERED(_status, TRAJ_FINISH)) {
+   if (BITS_LOWERED(_status, TRAJ_FINISH)) {
       CommonFields();
       MomentumCorrection();
    };

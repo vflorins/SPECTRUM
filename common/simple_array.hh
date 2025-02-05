@@ -419,16 +419,31 @@ SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::ScalarProd
 \author Vladimir Florinski
 \date 03/10/2024
 \param[in,out] os     Output stream
-\param[in]     sarr_r Simple array to print
+\param[in]     sarr_o Simple array to output
 \return Modified output stream 
 */
 template<typename data_type, int n_vars>
-inline std::ostream& operator <<(std::ostream& os, const SimpleArray<data_type, n_vars>& sarr_r)
+inline std::ostream& operator <<(std::ostream& os, const SimpleArray<data_type, n_vars>& sarr_o)
 {
-   os << "(" << sarr_r[0];
-   for (auto i = 1; i < n_vars; i++) os << ", " << sarr_r[i];
+   os << "(" << sarr_o[0];
+   for (auto i = 1; i < n_vars; i++) os << ", " << sarr_o[i];
    os << ")";
    return os;
+};
+
+/*!
+\brief Stream extraction operator (host only)
+\author Juan G Alonso Guzman
+\date 08/11/2024
+\param[in,out] is     Input stream
+\param[in]     sarr_i Simple array to input
+\return Modified input stream 
+*/
+template<typename data_type, int n_vars>
+inline std::istream& operator >>(std::istream& is, SimpleArray<data_type, n_vars>& sarr_i)
+{
+   for (auto i = 0; i < n_vars; i++) is >> sarr_i[i];
+   return is;
 };
 
 };

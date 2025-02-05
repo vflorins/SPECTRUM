@@ -9,185 +9,80 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_EXCHANGE_SITE_HH
 #define SPECTRUM_EXCHANGE_SITE_HH
 
-#include <common/mpi_config.hh>
+#include <common/communication_site.hh>
 
 #ifdef USE_MPI
 
-#include <map>
-#include <vector>
-#include <memory>
-#include <algorithm>
-
-#ifdef GEO_DEBUG
-#include <common/print_warn.hh>
-#endif
+#include <utility>
 
 namespace Spectrum {
-
-// Example (n_parts=4):
-//          -------------------------               
-//          |  part 2   |  part 3   |     ranks_in:   11,  10,  11,  15
-//          |           |           |     labels_in: 381, 167, 254, 118
-//          | rank: 11  | rank: 15  |
-//          | bidx: 254 | bidx: 118 |     site_comm ranks: 11->0, 10->1, 15->2
-//          ------------+------------
-//          |  part 0   |  part 1   |     sendcounts: 2, 1, 1 (x buf_size)
-//          |           |           |     sdispls:    0, 2, 3 (x buf_size)
-//          | rank: 11  | rank: 10  |
-//          | bidx: 381 | bidx: 167 |     buffer_entry: 0->0, 1->2, 2->1, 3->3
-//          -------------------------                      ^           ^
-//                                                         |           |
-//                                                         ------------- contiguous
 
 /*!
 \brief A class representing an MPI exchange site
 \author Vladimir Florinski
-
-An object of this class contains an MPI communicator, a data buffer, and metadata to enable an exchange with MPI_Allgatherv. The array "buffer" has "n_part" slots corresponding to each participant. Because a process could host multiple participants, "ExchangeSite" will aggregate those into larger slots in the array (in MPI_Allgatherv each process sends and receives _one_ message, but the message size could be different). The intended use is for the calling function to create an array of ExchangeSite objects, one per site. This is redundant because each process may only need access to a subset of all sites. However, MPI communicator creation routines must be called on all processes, and it is desirable to perform all such operations within the class. The unused sites will remain, but since the communicator and buffers are not allocated, the memory lost will be small.
 */
 template <typename datatype>
-struct ExchangeSite
+class ExchangeSite : public CommunicationSite<datatype>
 {
-//! Index of this site
-   int site_index;
+protected:
 
-//! Number of participants (actual)
-   int n_parts;
+   using CommunicationSite<datatype>::site_comm;
+   using CommunicationSite<datatype>::site_comm_size;
+   using CommunicationSite<datatype>::buffer;
+   using CommunicationSite<datatype>::sendcounts;
+   using CommunicationSite<datatype>::sdispls;
+   using CommunicationSite<datatype>::mpi_datatype;
+   using CommunicationSite<datatype>::n_parts;
+   using CommunicationSite<datatype>::buf_size;
 
-//! Site communicator
-   MPI_Comm site_comm = MPI_COMM_NULL;
-
-//! Size of the site communicator
-   int site_comm_size = 0;
-
-//! MPI data type corresponding to the template type
-   MPI_Datatype mpi_datatype = MPI_DATATYPE_NULL;
-
-//! Shared buffer - should not be accessed directly by the caller, but via "buffer_entry"
-   datatype* buffer = nullptr;
-
-//! Send counts
-   int* sendcounts = nullptr;
-
-//! Displacements
-   int* sdispls = nullptr;
-
-//! Part index lookup map, accessed via labels
-   std::map<int, int> part_lookup;
-
-//! Entry points in the buffer, accessed via the part index
-   std::map<int, datatype*> buffer_entry;
+public:
 
 //! Default constructor
-   ExchangeSite(void) = default;
+   ExchangeSite(void);
 
-//! Destructor
-   ~ExchangeSite();
+//! Copy constructor - deleted because each site must be unique due to MPI restrictions
+   ExchangeSite(const ExchangeSite& other) = delete;
 
-//! Import lists of ranks and part labels
-   void SetUpProperties(int index_in, int n_parts_in, int buf_size_in, const int* ranks_in, const int* labels_in);
+//! Move constructor
+   ExchangeSite(ExchangeSite&& other);
+
+//! Assignment operator - deleted because we cannot have multiple copies of the MPI objects
+   ExchangeSite& operator =(const ExchangeSite& other) = delete;
 
 //! Perform the exchange
    void Exchange(void);
+
+#ifdef GEO_DEBUG
+
+//! Fill all buffers with the same value
+   void FillBuffers(datatype val);
+
+//! Print the participant information
+   void PrintParts(void) const;
+
+#endif
+
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/26/2024
-\param[in] index_in   Index of this exchange site
-\param[in] n_parts_in Number of participants
-\param[in] buf_size   Size of a single buffer in units of "datatype"
-\param[in] ranks_in   List of ranks (with possible repeats)
-\param[in] labels_in  List of labels
+\date 01/16/2025
 */
 template <typename datatype>
-inline void ExchangeSite<datatype>::SetUpProperties(int index_in, int n_parts_in, int buf_size, const int* ranks_in, const int* labels_in)
+inline ExchangeSite<datatype>::ExchangeSite(void)
+                             : CommunicationSite<datatype>()
 {
-   int newrank;
-   std::vector<int> unique_ranks;
-   std::vector<std::vector<int>> part_lists;
-   std::vector<int>::iterator it;
-
-   site_index = index_in;
-   n_parts = n_parts_in;
-
-// Generate a list of unique ranks
-   for (auto part = 0; part < n_parts; part++) {
-      newrank = ranks_in[part];
-
-// Generate the "parts_per_rank" table
-      it = std::find(unique_ranks.begin(), unique_ranks.end(), newrank);
-      if (it == unique_ranks.end()) {
-         unique_ranks.push_back(newrank);
-
-// This rank was not encountered before, so we create a new element in the part list vector for it
-         part_lists.emplace_back();
-         part_lists.back().push_back(part);
-      }
-      else {
-         part_lists[it - unique_ranks.begin()].push_back(part);
-      };
-   };
-
-// Create the site communicator. Every process must call "MPI_Comm_create", even if not in the group, so the code will not deadlock.
-   MPI_Group parent_group, site_group;
-   MPI_Comm_group(MPI_Config::glob_comm, &parent_group);
-   MPI_Group_incl(parent_group, unique_ranks.size(), unique_ranks.data(), &site_group);
-   MPI_Comm_create(MPI_Config::glob_comm, site_group, &site_comm);
-   MPI_Group_free(&site_group);
-   MPI_Group_free(&parent_group);
-
-// Not in the communicator - do not allocate storage
-   if (site_comm == MPI_COMM_NULL) return;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Create the MPI datatype
-   MPI_Type_contiguous(sizeof(datatype), MPI_BYTE, &mpi_datatype);
-   MPI_Type_commit(&mpi_datatype);
-
-// Allocate the shared buffer
-   buffer = new datatype[buf_size * n_parts];
-
-// Calculate the counts and displacements for MPI
-   MPI_Comm_size(site_comm, &site_comm_size);
-   sendcounts = new int[site_comm_size];
-   sdispls = new int[site_comm_size];
-   for (auto rank = 0; rank < site_comm_size; rank++) {
-      sendcounts[rank] = part_lists[rank].size() * buf_size;
-      sdispls[rank] = (rank == 0 ? 0 : sdispls[rank - 1]) + sendcounts[rank - 1];
-   };
-
-// Create map to pointers in buffer space
-   int idx = 0;
-   for (auto rank = 0; rank < site_comm_size; rank++) {
-      for (auto ppr = 0; ppr < part_lists[rank].size(); ppr++) {
-         buffer_entry.insert(std::make_pair(part_lists[rank][ppr], &buffer[buf_size * idx]));
-         idx++;
-      };
-   };
-
-// Create a map to find a part based on the label
-   for (auto part = 0; part < n_parts; part++) {
-      part_lookup.insert(std::make_pair(labels_in[part], part));
-   };
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/26/2024
+\date 01/16/2025
+\param[in] other Object to move into this
 */
 template <typename datatype>
-inline ExchangeSite<datatype>::~ExchangeSite()
+inline ExchangeSite<datatype>::ExchangeSite(ExchangeSite<datatype>&& other)
+                             : CommunicationSite<datatype>(std::move(static_cast<CommunicationSite<datatype>&&>(other)))
 {
-// Not safe to free a null MPI object
-   if (site_comm != MPI_COMM_NULL) MPI_Comm_free(&site_comm);
-   if (mpi_datatype != MPI_DATATYPE_NULL) MPI_Type_free(&mpi_datatype);
-
-// Always safe to delete a nullptr
-   delete[] sendcounts;
-   delete[] sdispls;
-   delete[] buffer;
 };
 
 /*!
@@ -198,18 +93,29 @@ template <typename datatype>
 inline void ExchangeSite<datatype>::Exchange(void)
 {
 // If this process is the only one participating, the data is accessible directly from the buffer.
-   if ((site_comm != MPI_COMM_NULL) && (site_comm_size > 1)) {
-      MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, buffer, sendcounts, sdispls, mpi_datatype, site_comm);
-   };
+   if ((site_comm == MPI_COMM_NULL) || (site_comm_size <= 1)) return;
+
+   MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, buffer, sendcounts, sdispls, mpi_datatype, site_comm);
 };
 
 #ifdef GEO_DEBUG
 
 /*!
+\author Vladimir Florinski
+\date 01/11/2025
+\param[in] val Value to fill the buffers with
+*/
+template <typename datatype>
+inline void ExchangeSite<datatype>::FillBuffers(datatype val)
+{
+   for(auto bufidx = 0; bufidx < buf_size * n_parts; bufidx++) buffer[bufidx] = val;
+};
+
+/*!
 \brief Test the functionality of this class
 \author Vladimir Florinski
-\date 06/26/2024
-\param[in] test_rank  Process rank that will do the testing
+\date 01/16/2025
+\param[in] test_rank Process rank that will do the testing
 */
 inline void TestExchange(int test_rank)
 {
@@ -218,10 +124,15 @@ inline void TestExchange(int test_rank)
    int ranks[n_parts];
    int labels[n_parts];
 
+// Make sure the user-supplied "test_rank" is sane
    if ((test_rank < 0) || (test_rank >= MPI_Config::glob_comm_size)) return;
 
    if (test_rank == MPI_Config::glob_comm_rank) {
-      std::cerr << "Testing exchange for rank " << test_rank << " (exchage has " << n_parts << " parts)\n";
+      std::cerr << std::endl;
+      std::cerr << "Testing exchange for global rank " << test_rank << std::endl;
+      std::cerr << "Global communicator size: " << MPI_Config::glob_comm_size << std::endl;
+      std::cerr << "--------------------------------------------------------------------------------\n";
+      std::cerr << "Printing input values before site initialization\n";
    };
 
 // Generate a test topology (some processes will not be in it)
@@ -234,20 +145,26 @@ inline void TestExchange(int test_rank)
 // Make labels complimentary to parts
       labels[part] = n_parts - part - 1;
       if (test_rank == MPI_Config::glob_comm_rank) {
-         std::cerr << "Part" << std::setw(3) << part << "   Rank" << std::setw(3) << ranks[part] << "   Label" << std::setw(3) << labels[part] << std::endl;
+         std::cerr << "Part" << std::setw(3) << part << "   Global rank" << std::setw(3) << ranks[part] << "   Label" << std::setw(3) << labels[part] << std::endl;
       };
    };
-   if (test_rank == MPI_Config::glob_comm_rank) std::cerr << std::endl;
 
 // Create and set up an instance of ExchangeSite
    ExchangeSite<int> exch_site;
+   int* buf_ptr;
    exch_site.SetUpProperties(0, n_parts, buf_size, ranks, labels);
 
+   if (test_rank == MPI_Config::glob_comm_rank) {
+      std::cerr << "--------------------------------------------------------------------------------\n";
+      exch_site.PrintSiteInfo(test_rank);
+   };
+
 // Fill the buffers with test data - can only do that on the ranks that own the respective part
-   if (exch_site.site_comm != MPI_COMM_NULL) {
+   if (exch_site.GetCommSize() > 0) {
       for (auto part = 0; part < n_parts; part++) {
-         if (MPI_Config::glob_comm_rank == ranks[part]) *exch_site.buffer_entry[part] = part;
-         else *exch_site.buffer_entry[part] = -1;
+         buf_ptr = exch_site.BufferAddress(part);
+         if (MPI_Config::glob_comm_rank == ranks[part]) *buf_ptr = part;
+         else *buf_ptr = -1;
       };
    }
    else if (test_rank == MPI_Config::glob_comm_rank) {
@@ -256,34 +173,27 @@ inline void TestExchange(int test_rank)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Test part lookup from label
-   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
-      std::cerr << "Part lookup test for this rank:\n";
-      for (auto part = 0; part < exch_site.n_parts; part++) {
-         if (MPI_Config::glob_comm_rank == ranks[part]) {
-            std::cerr << "Label" << std::setw(3) << labels[part] << "   Part" << std::setw(3) << exch_site.part_lookup[labels[part]] << std::endl;
-         };
-      };
-      std::cerr << std::endl;
-   };
-
 // Print buffers before the exchange
-   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
+   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.GetCommSize() > 0)) {
+      std::cerr << "--------------------------------------------------------------------------------\n";
       std::cerr << "Buffer before exchange:\n";
-      for (auto part = 0; part < exch_site.n_parts; part++) {
-         std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *exch_site.buffer_entry[part] << std::endl;
+      for (auto part = 0; part < exch_site.GetPartCount(); part++) {
+         buf_ptr = exch_site.BufferAddress(part);
+         std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *buf_ptr << std::endl;
       };
-      std::cerr << std::endl;
+//      std::cerr << std::endl;
    };      
 
 // To properly test we must call this on all processes, not just those in "site_comm".
    exch_site.Exchange();
 
 // Print buffers after the exchange
-   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.site_comm != MPI_COMM_NULL)) {
+   if ((test_rank == MPI_Config::glob_comm_rank) && (exch_site.GetCommSize() > 0)) {
+      std::cerr << "--------------------------------------------------------------------------------\n";
       std::cerr << "Buffer after exchange:\n";
-      for (auto part = 0; part < exch_site.n_parts; part++) {
-         std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *exch_site.buffer_entry[part] << std::endl;
+      for (auto part = 0; part < exch_site.GetPartCount(); part++) {
+         buf_ptr = exch_site.BufferAddress(part);
+         std::cerr << "Part" << std::setw(3) << part << "   Value" << std::setw(3) << *buf_ptr << std::endl;
       };
       std::cerr << std::endl;
    };      

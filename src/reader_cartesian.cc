@@ -36,14 +36,14 @@ void ReadCartesianHeader(const char* data_filename, int fname_len, int verbose)
    header_filename = header_filename.substr(0,header_filename.size()-4) + ".info";
    std::ifstream header_file (header_filename.c_str());
 
-   if(verbose) {
+   if (verbose) {
       std::setprecision(6);
       std::cerr << "Reading Cartesian header file: " << header_filename << std::endl;
    };
 
 // Read number of blocks per dimension
    header_file >> CartData.Nblocks[0] >> CartData.Nblocks[1] >> CartData.Nblocks[2];
-   if(verbose) {
+   if (verbose) {
       std::cerr << std::setw(8) << "Nx"
                 << std::setw(8) << "Ny"
                 << std::setw(8) << "Nz"
@@ -56,7 +56,7 @@ void ReadCartesianHeader(const char* data_filename, int fname_len, int verbose)
 
 // Read minimum domain coordinates
    header_file >> CartData.domain_min[0] >> CartData.domain_min[1] >> CartData.domain_min[2];
-   if(verbose) {
+   if (verbose) {
       std::cerr << std::setw(16) << "DomMin_x"
                 << std::setw(16) << "DomMin_y"
                 << std::setw(16) << "DomMin_z"
@@ -69,7 +69,7 @@ void ReadCartesianHeader(const char* data_filename, int fname_len, int verbose)
 
 // Read maximum domain coordinates
    header_file >> CartData.domain_max[0] >> CartData.domain_max[1] >> CartData.domain_max[2];
-   if(verbose) {
+   if (verbose) {
       std::cerr << std::setw(16) << "DomMax_x"
                 << std::setw(16) << "DomMax_y"
                 << std::setw(16) << "DomMax_z"
@@ -82,7 +82,7 @@ void ReadCartesianHeader(const char* data_filename, int fname_len, int verbose)
 
 // Read number of variables
    header_file >> CartData.Nvar;
-   if(verbose) {
+   if (verbose) {
       std::cerr << std::setw(8) << "Nvar"
                 << std::endl;
       std::cerr << std::setw(8) << CartData.Nvar
@@ -92,7 +92,7 @@ void ReadCartesianHeader(const char* data_filename, int fname_len, int verbose)
 // TODO: Adapt to work with ghost cells
 
 // Calculate additional quantities and allocate memory
-   for(xyz = 0; xyz < 3; xyz++) CartData.domain_size[xyz] = block_size_cartesian[xyz] * CartData.Nblocks[xyz];
+   for (xyz = 0; xyz < 3; xyz++) CartData.domain_size[xyz] = block_size_cartesian[xyz] * CartData.Nblocks[xyz];
    CartData.data_block_size = CartData.Nvar * block_size_cartesian.Prod();
    CartData.block_length = (CartData.domain_max - CartData.domain_min) / CartData.Nblocks;
    CartData.zone_length = (CartData.block_length) / block_size_cartesian;
@@ -119,11 +119,11 @@ void ReadCartesianData(const char* data_filename, int fname_len, int read_header
    int iz,jz,kz;     // zone indices
    MultiIndex zone_idx;
 
-   if(read_header) ReadCartesianHeader(data_filename, fname_len, verbose);
+   if (read_header) ReadCartesianHeader(data_filename, fname_len, verbose);
 
    std::ifstream data_file (data_filename);
 
-   if(verbose) {
+   if (verbose) {
       std::cerr << "Reading Cartesian data file: " << data_filename << std::endl;
       std::cerr << "Total number of variables to read: " << CartData.data_block_size * CartData.Nblocks.Prod();
       std::cerr << "\nProgress:     ";
@@ -131,21 +131,21 @@ void ReadCartesianData(const char* data_filename, int fname_len, int read_header
 
    data_file.read((char*)CartData.variables_by_block, CartData.data_block_size * CartData.Nblocks.Prod() * sizeof(double));
 
-   if(verbose) std::cerr << "\e[4D100%\n";
+   if (verbose) std::cerr << "\e[4D100%\n";
    data_file.close();
 
 // Reorganize data by dimension
    node = 0;
 // Iterate over blocks
-   for(kb = 0; kb < CartData.Nblocks.k; kb++) {
+   for (kb = 0; kb < CartData.Nblocks.k; kb++) {
       zone_idx.k = kb * block_size_cartesian.k;
-      for(jb = 0; jb < CartData.Nblocks.j; jb++) {
+      for (jb = 0; jb < CartData.Nblocks.j; jb++) {
          zone_idx.j = jb * block_size_cartesian.j;
-         for(ib = 0; ib < CartData.Nblocks.i; ib++) {
+         for (ib = 0; ib < CartData.Nblocks.i; ib++) {
             zone_idx.i = ib * block_size_cartesian.i;
 // Iterate over zones
-            for(kz = 0; kz < block_size_cartesian[2]; kz++) {
-               for(jz = 0; jz < block_size_cartesian[1]; jz++) {
+            for (kz = 0; kz < block_size_cartesian[2]; kz++) {
+               for (jz = 0; jz < block_size_cartesian[1]; jz++) {
                   memcpy(CartData.variables_by_dimen + CartData.Nvar * (zone_idx.i + CartData.domain_size[0] * (zone_idx.j + jz + CartData.domain_size[1] * (zone_idx.k + kz))),
                          CartData.variables_by_block + CartData.data_block_size * node + CartData.Nvar * block_size_cartesian[0] * (jz + block_size_cartesian[1] * kz),
                          CartData.Nvar * block_size_cartesian[0] * sizeof(double));
@@ -197,7 +197,7 @@ void ReadCartesianGetBlockData(const double* pos, double* vars, int* found)
    int iv, iz;
 
 // Get block ID containing position
-   if(   (pos[0] < CartData.domain_min[0]) || (pos[0] > CartData.domain_max[0])
+   if (   (pos[0] < CartData.domain_min[0]) || (pos[0] > CartData.domain_max[0])
       || (pos[1] < CartData.domain_min[1]) || (pos[1] > CartData.domain_max[1])
       || (pos[2] < CartData.domain_min[2]) || (pos[2] > CartData.domain_max[2]) ) {
       std::cerr << "ReadCartesianGetBlockData Error: Position out of domain bounds.\n";
@@ -244,9 +244,9 @@ void ReadCartesianGetBlockData(const double* pos, double* vars, int* found)
    weights[7] = offset_lo[0] * offset_lo[1] * offset_lo[2];
 
 // Interpolate
-   for(iv = 0; iv < CartData.Nvar; iv++) {
+   for (iv = 0; iv < CartData.Nvar; iv++) {
       vars[iv] = 0.0;
-      for(iz = 0; iz < 8; iz++) {
+      for (iz = 0; iz < 8; iz++) {
          var = CartData.variables_by_dimen[iv + CartData.Nvar * (zones[iz].i + CartData.domain_size[0] * (zones[iz].j + CartData.domain_size[1] * zones[iz].k))];
          vars[iv] += weights[iz] * var;
       };
@@ -265,9 +265,9 @@ void ReadCartesianGetNode(const double* pos, int* node_id)
 {
    MultiIndex node_idx; // Node indices
    
-   if(   (pos[0] < CartData.domain_min[0]) || (pos[0] > CartData.domain_max[0])
-      || (pos[1] < CartData.domain_min[1]) || (pos[1] > CartData.domain_max[1])
-      || (pos[2] < CartData.domain_min[2]) || (pos[2] > CartData.domain_max[2]) ) {
+   if ((pos[0] < CartData.domain_min[0]) || (pos[0] > CartData.domain_max[0])
+    || (pos[1] < CartData.domain_min[1]) || (pos[1] > CartData.domain_max[1])
+    || (pos[2] < CartData.domain_min[2]) || (pos[2] > CartData.domain_max[2])) {
       std::cerr << "ReadCartesianGetNode Error: Position outside of domain bounds.\n";
       *node_id = -1;
       return;
@@ -292,7 +292,7 @@ void ReadCartesianGetBlockCorners(int node, double* face_min, double* face_max)
    node_idx.j = ( (node - node_idx.i) / CartData.Nblocks.i ) % CartData.Nblocks.j;
    node_idx.k = ( (node - node_idx.i) / CartData.Nblocks.i - node_idx.j ) / CartData.Nblocks.j;
 
-   for(auto xyz = 0; xyz < 3; xyz++) {
+   for (auto xyz = 0; xyz < 3; xyz++) {
       face_min[xyz] = CartData.domain_min[xyz] + CartData.block_length[xyz] * node_idx[xyz];
       face_max[xyz] = face_min[xyz] + CartData.block_length[xyz];
    };
@@ -321,9 +321,9 @@ void ReadCartesianGetNodeNeighbors(int node, int* neighbor_nodes, int* neighbor_
 {
    int i,j,k,n = 0;
 
-   for(k = 0; k < max_neighbors_per_dim_cartesian; k++) { // iterate over z
-      for(j = 0; j < max_neighbors_per_dim_cartesian; j++) { // iterate over y
-         for(i = 0; i < max_neighbors_per_dim_cartesian; i++) { // iterate over x
+   for (k = 0; k < max_neighbors_per_dim_cartesian; k++) { // iterate over z
+      for (j = 0; j < max_neighbors_per_dim_cartesian; j++) { // iterate over y
+         for (i = 0; i < max_neighbors_per_dim_cartesian; i++) { // iterate over x
             neighbor_nodes[n] = node + (i - 1) + CartData.Nblocks.i * ( (j - 1) + CartData.Nblocks.j * (k - 1) ); // neighbor[13] = node
             neighbor_levels[0] = 0;
             n++; // Running index

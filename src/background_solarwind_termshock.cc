@@ -35,7 +35,7 @@ BackgroundSolarWindTermShock::BackgroundSolarWindTermShock(const BackgroundSolar
                             : BackgroundSolarWind(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -48,10 +48,10 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundSolarWind::SetupBackground(false);
-   container.Read(&r_TS);
-   container.Read(&w_TS);
-   container.Read(&s_TS);
+   if (!construct) BackgroundSolarWind::SetupBackground(false);
+   container.Read(r_TS);
+   container.Read(w_TS);
+   container.Read(s_TS);
 
    s_TS_inv = 1.0 / s_TS;
    dmax_TS = dmax_fraction * w_TS;
@@ -65,15 +65,34 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 */
 void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 {
-   if(r > r_TS) {
+   if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
-      if(r > r_TS + w_TS) ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
+      if (r > r_TS + w_TS) ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
 #elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
-      if(r > r_TS + w_TS) ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
+      if (r > r_TS + w_TS) ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
 #else
-      if(r > r_TS + w_TS) ur_mod *= s_TS_inv;
+      if (r > r_TS + w_TS) ur_mod *= s_TS_inv;
 #endif
       else ur_mod *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
+   };
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/03/2025
+\param[in]  r      radial distance
+*/
+double BackgroundSolarWindTermShock::dUrdr(const double r)
+{
+   if (r > r_TS) {
+#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
+      if (r > r_TS + w_TS) return -_spdata.Uvec.Norm() / r;
+#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
+      if (r > r_TS + w_TS) return -2.0 * _spdata.Uvec.Norm() / r;
+#else
+      if (r > r_TS + w_TS) return 0.0;
+#endif
+      else return -(s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
    };
 };
 
@@ -85,7 +104,7 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 */
 double BackgroundSolarWindTermShock::TimeLag(const double r)
 {
-   if(r < r_TS) return r / ur0;
+   if (r < r_TS) return r / ur0;
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
    else return (r_TS + s_TS * (Sqr(r) - Sqr(r_TS)) / (2.0 * r_TS)) / ur0;
 #elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
@@ -102,19 +121,26 @@ double BackgroundSolarWindTermShock::TimeLag(const double r)
 void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
+   double r;
+   GeoVector posprime;
+   GeoMatrix rr;
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+// Expression valid only for radial flow
+      posprime = _pos - r0;
+      r = posprime.Norm();
+      rr.Dyadic(posprime);
+      _spdata.gradUvec = dUrdr(r) * rr + (_spdata.Uvec.Norm() / r) * (gm_unit - rr);
+   };
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
 //TODO: complete
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-//TODO: complete
-   };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
    NumericalDerivatives();
@@ -131,9 +157,9 @@ void BackgroundSolarWindTermShock::EvaluateDmax(void)
 
 // Reduce "dmax" around the shock. This implemenation assumes that "dmax" = "dmax0" near "r_TS" by default.
    double r = (_pos - r0).Norm();
-   if(r_TS - dmax0 < r && r < r_TS + w_TS + dmax0) {
-      if(r < r_TS) _spdata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0) / dmax0;
-      else if(r > r_TS + w_TS) _spdata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0) / dmax0;
+   if (r_TS - dmax0 < r && r < r_TS + w_TS + dmax0) {
+      if (r < r_TS) _spdata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0) / dmax0;
+      else if (r > r_TS + w_TS) _spdata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0) / dmax0;
       else _spdata.dmax = dmax_TS;
    };
 };

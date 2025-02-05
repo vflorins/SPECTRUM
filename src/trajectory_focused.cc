@@ -153,8 +153,8 @@ inline void TrajectoryFocused::MomentumCorrection(void)
 #endif
 
 //Check to enforce |mu| <= 1.0
-   if(_mom[1] > 1.0) _mom[1] = 1.0;
-   else if(_mom[1] < -1.0) _mom[1] = -1.0;
+   if (_mom[1] > 1.0) _mom[1] = 1.0;
+   else if (_mom[1] < -1.0) _mom[1] = -1.0;
 };
 
 };

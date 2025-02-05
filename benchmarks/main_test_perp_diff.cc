@@ -244,7 +244,7 @@ int main(int argc, char** argv)
    simulation->PrintDistro1D(0, 0, simulation_files_prefix + "cumulative_distro1.dat", true);
    simulation->PrintDistro1D(1, 0, simulation_files_prefix + "cumulative_distro2.dat", true);
 
-   if(simulation->IsMaster()) {
+   if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "PERPENDICULAR DIFFUSION" << std::endl;
       std::cout << "=========================================================" << std::endl;

@@ -37,7 +37,7 @@ class SphericalSlab
 protected:
 
 //! Number of interior r-shells
-   int n_shells;
+   int n_shells = -1;
 
 //! Total number of r-shells, including ghost
    int n_shells_withghost;
@@ -65,6 +65,9 @@ public:
 //! Copy constructor
    SPECTRUM_DEVICE_FUNC SphericalSlab(const SphericalSlab& other);
 
+//! Move constructor
+   SPECTRUM_DEVICE_FUNC SphericalSlab(SphericalSlab&& other);
+
 //! Construtor with parameters
    SPECTRUM_DEVICE_FUNC SphericalSlab(int height, int hghost);
 
@@ -80,12 +83,25 @@ public:
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 01/08/2025
 \param[in] other Object to initialize from
 */
 SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
 {
+   if(other.n_shells != -1) SetDimensions(other.n_shells, other.ghost_height, true);
+};
+
+/*!
+\author Vladimir Florinski
+\date 01/08/2025
+\param[in] other Object to move into this
+*/
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other)
+{
+   if(other.n_shells == -1) return;
+
    SetDimensions(other.n_shells, other.ghost_height, true);
+   other.n_shells = -1;
 };
 
 /*!
@@ -127,7 +143,7 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShellOfSlab(int k) con
 \author Vladimir Florinski
 \date 02/19/2020
 \param[in] width     Height of the slab, without ghost cells
-\param[in] wgohst    Height of the ghost cell layer outside the slab
+\param[in] hghost    Height of the ghost cell layer outside the slab
 \param[in] construct Set to true when called from a constructor
 */
 SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)

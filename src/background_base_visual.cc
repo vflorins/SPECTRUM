@@ -47,7 +47,7 @@ void BackgroundBase::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_ma
 */
 void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int i, xyz;
    GeoVector incr;
@@ -56,21 +56,21 @@ void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 
 // Memory for nodes
    dims_n = dims_z + 1;
-   for(xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[dims_n[xyz]];
+   for (xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[dims_n[xyz]];
 
 // Compute coordinates of mesh points
    incr = (xyz_max - xyz_min) / dims_z;
-   for(xyz = 0; xyz < 3; xyz++) {
-      for(i = 0; i < dims_n[xyz]; i++) coords[xyz][i] = (xyz_min[xyz] + i * incr[xyz]) * (phys_units ? unit_length_fluid : 1.0);
+   for (xyz = 0; xyz < 3; xyz++) {
+      for (i = 0; i < dims_n[xyz]; i++) coords[xyz][i] = (xyz_min[xyz] + i * incr[xyz]) * (phys_units ? unit_length_fluid : 1.0);
    };
 
 // Generate SILO output 
    silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
-   if(!silofile) return;
+   if (!silofile) return;
    DBPutQuadmesh(silofile, mesh3d_name.c_str(), NULL, coords, dims_n.ijk, 3, DB_DOUBLE, DB_COLLINEAR, NULL);
 
 // Clean up
-   for(xyz = 0; xyz < 3; xyz++) delete[] coords[xyz];
+   for (xyz = 0; xyz < 3; xyz++) delete[] coords[xyz];
 };
 
 /*!
@@ -83,7 +83,7 @@ void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 */
 void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units, double t)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int ix, iy, iz, idx;
    double var_unit;
@@ -95,72 +95,72 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
    double* scl_field;
 
 // Parse the user input
-   if(var_name == "Umag") {
+   if (var_name == "Umag") {
       _spdata._mask = BACKGROUND_U;
       field_ptr = &_spdata.Uvec;
       var_unit = unit_velocity_fluid;
       is_vector = true;
    }
-   else if(var_name == "Ux") {
+   else if (var_name == "Ux") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[0];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Uy") {
+   else if (var_name == "Uy") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[1];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Uz") {
+   else if (var_name == "Uz") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[2];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Bmag") {
+   else if (var_name == "Bmag") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Bx") {
+   else if (var_name == "Bx") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[0];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "By") {
+   else if (var_name == "By") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[1];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "Bz") {
+   else if (var_name == "Bz") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[2];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "Region1") {
+   else if (var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
       is_vector = false;
    }
-   else if(var_name == "Region2") {
+   else if (var_name == "Region2") {
       scl_ptr = &_spdata.region[1];
       is_vector = false;
    }
-   else if(var_name == "Region3") {
+   else if (var_name == "Region3") {
       scl_ptr = &_spdata.region[2];
       is_vector = false;
    }
-   else if(var_name == "n_dens") {
+   else if (var_name == "n_dens") {
       scl_ptr = &_spdata.n_dens;
       var_unit = unit_number_density_fluid;
       is_vector = false;
    }
-   else if(var_name == "p_ther") {
+   else if (var_name == "p_ther") {
       scl_ptr = &_spdata.p_ther;
       var_unit = unit_pressure_fluid;
       is_vector = false;
@@ -176,14 +176,14 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
 // Mesh based output
    _t = t;
    idx = 0;
-   for(iz = 0; iz < dims_z[2]; iz++) {
+   for (iz = 0; iz < dims_z[2]; iz++) {
       _pos[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
-      for(iy = 0; iy < dims_z[1]; iy++) {
+      for (iy = 0; iy < dims_z[1]; iy++) {
          _pos[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
-         for(ix = 0; ix < dims_z[0]; ix++) {
+         for (ix = 0; ix < dims_z[0]; ix++) {
             _pos[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
             EvaluateBackground();
-            if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
+            if (is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
             else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
             idx++;
          };
@@ -210,7 +210,7 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
 */
 void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int xyz, ix, iy, iz, idx;
    double var_unit;
@@ -219,12 +219,12 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
    double* vec_field[3];
 
 // Parse the user input
-   if(var_name == "Uvec") {
+   if (var_name == "Uvec") {
       _spdata._mask = BACKGROUND_U;
       field_ptr = &_spdata.Uvec;
       var_unit = unit_velocity_fluid;
    }
-   else if(var_name == "Bvec") {
+   else if (var_name == "Bvec") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
@@ -232,7 +232,7 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
    else return;
 
 // Memory for zone var
-   for(xyz = 0; xyz < 3; xyz++) vec_field[xyz] = new double[dims_z.Prod()];
+   for (xyz = 0; xyz < 3; xyz++) vec_field[xyz] = new double[dims_z.Prod()];
    incr = (xyz_max - xyz_min) / dims_z;
 
    std::cerr << "Calculating the variable " << var_name << ":     ";
@@ -240,11 +240,11 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
 // Mesh based output
    _t = t;
    idx = 0;
-   for(iz = 0; iz < dims_z[2]; iz++) {
+   for (iz = 0; iz < dims_z[2]; iz++) {
       _pos[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
-      for(iy = 0; iy < dims_z[1]; iy++) {
+      for (iy = 0; iy < dims_z[1]; iy++) {
          _pos[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
-         for(ix = 0; ix < dims_z[0]; ix++) {
+         for (ix = 0; ix < dims_z[0]; ix++) {
             _pos[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
             EvaluateBackground();
             field = *field_ptr * (phys_units ? var_unit : 1.0);
@@ -265,7 +265,7 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
    DBPutQuadvar(silofile, var_name.c_str(), mesh3d_name.c_str(), 3, sub_names, vec_field, dims_z.ijk, 3, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
-   for(xyz = 0; xyz < 3; xyz++) delete[] vec_field[xyz];
+   for (xyz = 0; xyz < 3; xyz++) delete[] vec_field[xyz];
 };
 
 /*!
@@ -276,7 +276,7 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
 */
 void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int i, xyz;
    GeoVector incr;
@@ -285,21 +285,21 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 
 // Memory for nodes
    dims_n = dims_z + 1;
-   for(xyz = 0; xyz < 2; xyz++) coords[xyz] = new double[dims_n[xyz]];
+   for (xyz = 0; xyz < 2; xyz++) coords[xyz] = new double[dims_n[xyz]];
 
 // Compute coordinates of mesh points
    incr = (xyz_max - xyz_min) / dims_z;
-   for(xyz = 0; xyz < 2; xyz++) {
-      for(i = 0; i < dims_n[xyz]; i++) coords[xyz][i] = (xyz_min[xyz] + i * incr[xyz]) * (phys_units ? unit_length_fluid : 1.0);
+   for (xyz = 0; xyz < 2; xyz++) {
+      for (i = 0; i < dims_n[xyz]; i++) coords[xyz][i] = (xyz_min[xyz] + i * incr[xyz]) * (phys_units ? unit_length_fluid : 1.0);
    };
 
 // Generate SILO output 
    silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
-   if(!silofile) return;
+   if (!silofile) return;
    DBPutQuadmesh(silofile, mesh2d_name.c_str(), NULL, coords, dims_n.ijk, 2, DB_DOUBLE, DB_COLLINEAR, NULL);
 
 // Clean up
-   for(xyz = 0; xyz < 2; xyz++) delete[] coords[xyz];
+   for (xyz = 0; xyz < 2; xyz++) delete[] coords[xyz];
 };
 
 /*!
@@ -312,7 +312,7 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 */
 void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int xyz, ix, iy, idx;
    double var_unit;
@@ -324,72 +324,72 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
    double* scl_field;
 
 // Parse the user input
-   if(var_name == "Umag") {
+   if (var_name == "Umag") {
       _spdata._mask = BACKGROUND_U;
       field_ptr = &_spdata.Uvec;
       var_unit = unit_velocity_fluid;
       is_vector = true;
    }
-   else if(var_name == "Ux") {
+   else if (var_name == "Ux") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[0];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Uy") {
+   else if (var_name == "Uy") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[1];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Uz") {
+   else if (var_name == "Uz") {
       _spdata._mask = BACKGROUND_U;
       scl_ptr = &_spdata.Uvec[2];
       var_unit = unit_velocity_fluid;
       is_vector = false;
    }
-   else if(var_name == "Bmag") {
+   else if (var_name == "Bmag") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
       is_vector = true;
    }
-   else if(var_name == "Bx") {
+   else if (var_name == "Bx") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[0];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "By") {
+   else if (var_name == "By") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[1];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "Bz") {
+   else if (var_name == "Bz") {
       _spdata._mask = BACKGROUND_B;
       scl_ptr = &_spdata.Bvec[2];
       var_unit = unit_magnetic_fluid;
       is_vector = false;
    }
-   else if(var_name == "Region1") {
+   else if (var_name == "Region1") {
       scl_ptr = &_spdata.region[0];
       is_vector = false;
    }
-   else if(var_name == "Region2") {
+   else if (var_name == "Region2") {
       scl_ptr = &_spdata.region[1];
       is_vector = false;
    }
-   else if(var_name == "Region3") {
+   else if (var_name == "Region3") {
       scl_ptr = &_spdata.region[2];
       is_vector = false;
    }
-   else if(var_name == "n_dens") {
+   else if (var_name == "n_dens") {
       scl_ptr = &_spdata.n_dens;
       var_unit = unit_number_density_fluid;
       is_vector = false;
    }
-   else if(var_name == "p_ther") {
+   else if (var_name == "p_ther") {
       scl_ptr = &_spdata.p_ther;
       var_unit = unit_pressure_fluid;
       is_vector = false;
@@ -406,13 +406,13 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
 // Mesh based output
    _t = t;
    idx = 0;
-   for(iy = 0; iy < dims_z[1]; iy++) {
+   for (iy = 0; iy < dims_z[1]; iy++) {
       local_coord[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
-      for(ix = 0; ix < dims_z[0]; ix++) {
+      for (ix = 0; ix < dims_z[0]; ix++) {
          local_coord[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
-         for(xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
+         for (xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
          EvaluateBackground();
-         if(is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
+         if (is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
          else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
          idx++;
       };
@@ -438,7 +438,7 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
 */
 void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    int xyz, ix, iy, idx;
    double var_unit;
@@ -447,12 +447,12 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
    double* vec_field[2];
 
 // Parse the user input
-   if(var_name == "Uvec") {
+   if (var_name == "Uvec") {
       _spdata._mask = BACKGROUND_U;
       field_ptr = &_spdata.Uvec;
       var_unit = unit_velocity_fluid;
    }
-   else if(var_name == "Bvec") {
+   else if (var_name == "Bvec") {
       _spdata._mask = BACKGROUND_B;
       field_ptr = &_spdata.Bvec;
       var_unit = unit_magnetic_fluid;
@@ -460,7 +460,7 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
    else return;
 
 // Memory for zone var
-   for(xyz = 0; xyz < 2; xyz++) vec_field[xyz] = new double[dims_z[0] * dims_z[1]];
+   for (xyz = 0; xyz < 2; xyz++) vec_field[xyz] = new double[dims_z[0] * dims_z[1]];
    incr = (xyz_max - xyz_min) / dims_z;
    y_dir = plane ^ x_dir;
 
@@ -469,11 +469,11 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
 // Mesh based output
    _t = t;
    idx = 0;
-   for(iy = 0; iy < dims_z[1]; iy++) {
+   for (iy = 0; iy < dims_z[1]; iy++) {
       local_coord[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
-      for(ix = 0; ix < dims_z[0]; ix++) {
+      for (ix = 0; ix < dims_z[0]; ix++) {
          local_coord[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
-         for(xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
+         for (xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
          EvaluateBackground();
          field = *field_ptr * (phys_units ? var_unit : 1.0);
          vec_field[0][idx] += field * x_dir;
@@ -491,7 +491,7 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
    DBPutQuadvar(silofile, var_name.c_str(), mesh2d_name.c_str(), 2, sub_names, vec_field, dims_z.ijk, 2, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
-   for(xyz = 0; xyz < 2; xyz++) delete[] vec_field[xyz];
+   for (xyz = 0; xyz < 2; xyz++) delete[] vec_field[xyz];
 };
 
 /*!
@@ -500,8 +500,8 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
 */
 void BackgroundBase::BoxPlotFinalize(void)
 {
-   if(BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-   if(silofile) DBClose(silofile);
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
+   if (silofile) DBClose(silofile);
 };
 
 };

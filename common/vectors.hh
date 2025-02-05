@@ -524,6 +524,12 @@ SPECTRUM_DEVICE_FUNC void TriangleMoments(const GeoVector v[3], double& C0, doub
 //! Cosine of the vertex angle at the middle operand
 SPECTRUM_DEVICE_FUNC double VertexAngle(const GeoVector& vect_l, const GeoVector& vect_m, const GeoVector& vect_r);
 
+//! Length of a circular arc
+SPECTRUM_DEVICE_FUNC double CircArcLength(const GeoVector& vect1, const GeoVector& vect2);
+
+//! Geometric center of a circular arc
+SPECTRUM_DEVICE_FUNC GeoVector CircArcCenter(const GeoVector& vect1, const GeoVector& vect2);
+
 //! Area of a spherical triangle
 SPECTRUM_DEVICE_FUNC double SphTriArea(const GeoVector& vect1, const GeoVector& vect2, const GeoVector& vect3);
 

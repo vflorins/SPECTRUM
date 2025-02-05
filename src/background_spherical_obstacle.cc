@@ -43,7 +43,7 @@ BackgroundSphericalObstacle::BackgroundSphericalObstacle(const BackgroundSpheric
                            : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
 };
 
 /*!
@@ -56,7 +56,7 @@ This method's main role is to unpack the data container and set up the class dat
 void BackgroundSphericalObstacle::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if(!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(r_sphere);
    M = 0.5 * B0 * Cube(r_sphere);
    container.Read(dmax_fraction);
@@ -71,17 +71,17 @@ void BackgroundSphericalObstacle::EvaluateBackground(void)
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      if(posprimenorm < r_sphere) _spdata.Bvec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+      if (posprimenorm < r_sphere) _spdata.Bvec = gv_zeros;
       else {
          double r2 = Sqr(posprimenorm);
          double r5 = Cube(posprimenorm) * r2;
          _spdata.Bvec = B0 - (3.0 * (posprime * M) * posprime - r2 * M) / r5;
       };
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
-   if(posprimenorm < r_sphere) _spdata.region = 0.0;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
+   if (posprimenorm < r_sphere) _spdata.region = 0.0;
    else _spdata.region = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -97,9 +97,9 @@ void BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(void)
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
 
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      if(posprimenorm < r_sphere) _spdata.gradBvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+      if (posprimenorm < r_sphere) _spdata.gradBvec = gm_zeros;
       else {
          double r2 = Sqr(posprimenorm);
          double r5 = Cube(posprimenorm) * r2;
@@ -113,10 +113,10 @@ void BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(void)
          _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
       };
    };
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
 
 #else
    NumericalDerivatives(); 

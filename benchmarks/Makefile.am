@@ -59,15 +59,17 @@ main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_dipole_visualization_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -112,15 +114,17 @@ main_test_turb_waves_SOURCES = main_test_turb_waves.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_turb_waves_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -165,15 +169,17 @@ main_test_parker_spiral_SOURCES = main_test_parker_spiral.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_parker_spiral_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -218,6 +224,9 @@ main_test_init_cond_records_SOURCES = main_test_init_cond_records.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
@@ -226,9 +235,8 @@ main_test_init_cond_records_SOURCES = main_test_init_cond_records.cc \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_init_cond_records_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -273,15 +281,17 @@ main_test_dipole_periods_SOURCES = main_test_dipole_periods.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_dipole_periods_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -334,6 +344,9 @@ main_test_pa_distro_isotrop_SOURCES = main_test_pa_distro_isotrop.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
@@ -342,9 +355,8 @@ main_test_pa_distro_isotrop_SOURCES = main_test_pa_distro_isotrop.cc \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_pa_distro_isotrop_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -397,6 +409,9 @@ main_test_pa_scatt_SOURCES = main_test_pa_scatt.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
@@ -405,9 +420,8 @@ main_test_pa_scatt_SOURCES = main_test_pa_scatt.cc \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_pa_scatt_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -458,6 +472,9 @@ main_test_perp_diff_SOURCES = main_test_perp_diff.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
@@ -466,9 +483,8 @@ main_test_perp_diff_SOURCES = main_test_perp_diff.cc \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_perp_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -517,6 +533,9 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
@@ -525,9 +544,8 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_full_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -538,8 +556,8 @@ main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_p
    $(SPBL_SOURCE_DIR)/trajectory_parker.hh \
    $(SPBL_SOURCE_DIR)/trajectory_base.cc \
    $(SPBL_SOURCE_DIR)/trajectory_base.hh \
-   $(SPBL_SOURCE_DIR)/background_cartesian.cc \
-   $(SPBL_SOURCE_DIR)/background_cartesian.hh \
+   $(SPBL_SOURCE_DIR)/background_server_cartesian.cc \
+   $(SPBL_SOURCE_DIR)/background_server_cartesian.hh \
    $(SPBL_SOURCE_DIR)/background_server.cc \
    $(SPBL_SOURCE_DIR)/background_server.hh \
    $(SPBL_SOURCE_DIR)/background_base.cc \
@@ -594,15 +612,17 @@ main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_p
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/random.hh \
    $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_modulation_cartesian_parker_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
@@ -611,13 +631,15 @@ main_postprocess_modulation_cartesian_parker_SOURCES = main_postprocess_modulati
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/data_container.hh \
    $(SPBL_COMMON_DIR)/data_container.cc \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
@@ -633,14 +655,16 @@ main_generate_cartesian_solarwind_background_SOURCES = main_generate_cartesian_s
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/params.cc \
    $(SPBL_COMMON_DIR)/params.hh \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/data_container.cc \
    $(SPBL_COMMON_DIR)/data_container.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_generate_cartesian_solarwind_background_LDADD = $(MPI_LIBS) $(GSL_LIBS)

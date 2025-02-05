@@ -109,7 +109,7 @@ inline void BlockCache::Renew(int bidx)
 */
 inline int BlockCache::Present(int bidx)
 {
-   if(blocks.find(bidx) != blocks.cend()) {
+   if (blocks.find(bidx) != blocks.cend()) {
       Renew(bidx);
       return bidx;
    }
