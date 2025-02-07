@@ -560,126 +560,47 @@ double DiffusionFullConstant::GetMuDerivative(void)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionFlowPowerLaw methods
+// DiffusionFlowMomentumPowerLaw methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Juan G Alonso Guzman
 \author Swati Sharma
-\date 06/03/2024
+\date 01/03/2025
 */
-DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(void)
-                     : DiffusionBase(diff_name_flow_power_law, 0, STATE_NONE)
+DiffusionFlowMomentumPowerLaw::DiffusionFlowMomentumPowerLaw(void)
+                             : DiffusionBase(diff_name_flow_momentum_power_law, 0, STATE_NONE)
 {
 };
 
 /*!
-\author Juan G Alonso Guzman
 \author Swati Sharma
-\date 06/03/2024
+\date 01/03/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionFlowPowerLaw::DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other)
-                     : DiffusionBase(other)
+DiffusionFlowMomentumPowerLaw::DiffusionFlowMomentumPowerLaw(const DiffusionFlowMomentumPowerLaw& other)
+                             : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
 /*!
-\author Juan G Alonso Guzman
 \author Swati Sharma
-\date 06/03/2024
+\date 01/03/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionFlowPowerLaw::SetupDiffusion(bool construct)
+void DiffusionFlowMomentumPowerLaw::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
    container.Read(kappa0);
    container.Read(U0);
    container.Read(pow_law_U);
-   container.Read(kap_rat);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\author Swati Sharma
-\date 06/03/2024
-*/
-void DiffusionFlowPowerLaw::EvaluateDiffusion(void)
-{
-   if (comp_eval == 2) return;
-   Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U);
-   Kappa[0] = kap_rat * Kappa[1];
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 09/30/2024
-\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
-\return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
-*/
-double DiffusionFlowPowerLaw::GetDirectionalDerivative(int xyz)
-{
-// Note that this doesn't work in regions were the flow is nearly zero.
-   return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 06/03/2024
-\return double       Derivative in mu
-*/
-double DiffusionFlowPowerLaw::GetMuDerivative(void)
-{
-   return 0.0;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionMomentumPowerLaw methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/17/2023
-*/
-DiffusionMomentumPowerLaw::DiffusionMomentumPowerLaw(void)
-                         : DiffusionBase(diff_name_momentum_power_law, 0, DIFF_NOBACKGROUND)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/09/2022
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
-*/
-DiffusionMomentumPowerLaw::DiffusionMomentumPowerLaw(const DiffusionMomentumPowerLaw& other)
-                         : DiffusionBase(other)
-{
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/04/2024
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(kappa0);
    container.Read(p0);
    container.Read(pow_law_p);
    container.Read(kap_rat);
@@ -687,33 +608,36 @@ void DiffusionMomentumPowerLaw::SetupDiffusion(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\author Swati Sharma
+\date 01/03/2025
 */
-void DiffusionMomentumPowerLaw::EvaluateDiffusion(void)
+void DiffusionFlowMomentumPowerLaw::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   Kappa[1] = kappa0 * pow(_mom[0] / p0, pow_law_p);
+   Kappa[1] = kappa0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U) * pow(_mom[0] / p0, pow_law_p);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/13/2024
+\author Swati Sharma
+\date 01/03/2025
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-double DiffusionMomentumPowerLaw::GetDirectionalDerivative(int xyz)
+double DiffusionFlowMomentumPowerLaw::GetDirectionalDerivative(int xyz)
 {
-   return 0.0;
+// Note that this doesn't work in regions were the flow is nearly zero.
+   return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
 };
 
 /*!
-\author Juan G Alonso Guzman
-\date 05/13/2024
+\author Swati Sharma
+\date 01/03/2025
 \return double       Derivative in mu
 */
-double DiffusionMomentumPowerLaw::GetMuDerivative(void)
+double DiffusionFlowMomentumPowerLaw::GetMuDerivative(void)
 {
    return 0.0;
 };

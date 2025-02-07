@@ -393,20 +393,20 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionFlowPowerLaw class declaration
+// DiffusionFlowMomentumPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionFlowPowerLaw class
-const std::string diff_name_flow_power_law = "DiffusionFlowPowerLaw";
+//! Readable name of the DiffusionFlowMomentumPowerLaw class
+const std::string diff_name_flow_momentum_power_law = "DiffusionFlowMomentumPowerLaw";
 
 /*!
-\brief Diffusion as a power law of flow velocity magnitude
+\brief Diffusion as a power law of flow velocity magnitude and momentum
 \author Juan G Alonso Guzman
 \author Swati Sharma
 
-Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double kap_rat
+Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double p0, double power_law_p, double kap_rat
 */
-class DiffusionFlowPowerLaw : public DiffusionBase {
+class DiffusionFlowMomentumPowerLaw : public DiffusionBase {
 
 protected:
 
@@ -418,58 +418,8 @@ protected:
 
 //! Power law slope for flow velocity (persistent)
    double pow_law_U;
-
-//! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
-
-//! Set up the diffusion model based on "params"
-   void SetupDiffusion(bool construct) override;
-
-//! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
-
-public:
-
-//! Default constructor
-   DiffusionFlowPowerLaw(void);
-
-//! Copy constructor
-   DiffusionFlowPowerLaw(const DiffusionFlowPowerLaw& other);
-
-//! Destructor
-   ~DiffusionFlowPowerLaw() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionFlowPowerLaw);
-
-//! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
-
-//! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionMomentumPowerLaw class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionMomentumPowerLaw class
-const std::string diff_name_momentum_power_law = "DiffusionMomentumPowerLaw";
-
-/*!
-\brief Full (perpendicular + parallel) diffusion, momentum (magnitude) power law
-\author Juan G Alonso Guzman
-
-Parameters: (DiffusionBase), kappa0, double p0, double pow_law_p, double kap_rat
-*/
-class DiffusionMomentumPowerLaw : public DiffusionBase {
-
-protected:
-
-//! Reference diffusion coefficient (persistent)
-   double kappa0;
-
-//! Momentum normalization factor (persistent)
+   
+   //! Momentum normalization factor (persistent)
    double p0;
 
 //! Power law slope for momentum (persistent)
@@ -487,16 +437,16 @@ protected:
 public:
 
 //! Default constructor
-   DiffusionMomentumPowerLaw(void);
+   DiffusionFlowMomentumPowerLaw(void);
 
 //! Copy constructor
-   DiffusionMomentumPowerLaw(const DiffusionMomentumPowerLaw& other);
+   DiffusionFlowMomentumPowerLaw(const DiffusionFlowMomentumPowerLaw& other);
 
 //! Destructor
-   ~DiffusionMomentumPowerLaw() override = default;
+   ~DiffusionFlowMomentumPowerLaw() override = default;
 
 //! Clone function
-   CloneFunctionDiffusion(DiffusionMomentumPowerLaw);
+   CloneFunctionDiffusion(DiffusionFlowMomentumPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(int xyz) override;
