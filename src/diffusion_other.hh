@@ -404,14 +404,14 @@ const std::string diff_name_flow_momentum_power_law = "DiffusionFlowMomentumPowe
 \author Juan G Alonso Guzman
 \author Swati Sharma
 
-Parameters: (DiffusionBase), double kappa0, double u0, double power_law_U, double p0, double power_law_p, double kap_rat
+Parameters: (DiffusionBase), double kap0, double u0, double power_law_U, double p0, double power_law_p, double kap_rat
 */
 class DiffusionFlowMomentumPowerLaw : public DiffusionBase {
 
 protected:
 
 //! Reference diffusion coefficient (persistent)
-   double kappa0;
+   double kap0;
 
 //! Flow velocity normalization factor (persistent)
    double U0;
@@ -467,7 +467,7 @@ const std::string diff_name_kinetic_energy_radial_distance_power_law = "Diffusio
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 
-Parameters: (DiffusionBase), kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
+Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
 */
 class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
 
@@ -531,7 +531,7 @@ const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidi
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 
-Parameters: (DiffusionBase), lam0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
+Parameters: (DiffusionBase), double lam0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
 */
 class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase {
 
@@ -591,11 +591,10 @@ public:
 const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
 
 /*!
-\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Strauss et al 2013, with change in perpendicular diffusion according to a magnetic mixing indicator variable
+\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power laws according to Strauss et al 2013
 \author Juan G Alonso Guzman
-\author Vladimir Florinski
 
-Parameters: (DiffusionBase), lam_in, lam_out, double R0, double B0, double pow_law_R_low, double pow_law_R_high, double pow_law_B, double kap_rat_low, double kap_rat_high
+Parameters: (DiffusionBase), int LISM_idx, double lam_in, double lam_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
 class DiffusionStraussEtAl2013 : public DiffusionBase {
 
@@ -622,17 +621,8 @@ protected:
 //! Ratio of perpendicular to parallel diffusion outer heliosphere (persistent)
    double kap_rat_out;
 
-//! Index for magnetic mixing indicator variable (persistent)
-   int Bmix_idx;
-
-//! Reduction factor for kappa in unipolar regions (persistent)
-   double kap_rat_red;
-
 //! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
    double LISM_ind;
-
-//! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
-   double Bmix_ind;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -668,11 +658,10 @@ typedef DiffusionStraussEtAl2013 DiffusionGuoEtAl2014;
 const std::string diff_name_potgieter_et_al_2015 = "DiffusionPotgieterEtAl2015";
 
 /*!
-\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Potgieter et al 2015, with change in perpendicular diffusion according to a magnetic mixing indicator variable
+\brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power laws according to Potgieter et al 2015
 \author Juan G Alonso Guzman
-\author Vladimir Florinski
 
-Parameters: (DiffusionBase), lam_in, lam_out, double R0, double B0, double pow_law_R_low, double pow_law_R_high, double pow_law_B, double kap_rat_low, double kap_rat_high
+Parameters: (DiffusionBase), int LISM_idx, double kappa_in, double kappa_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
 class DiffusionPotgieterEtAl2015 : public DiffusionBase {
 
@@ -681,11 +670,11 @@ protected:
 //! Index for LISM indicator variable (persistent)
    int LISM_idx;
 
-//! Parallel inner heliosphere mean free path (persistent)
-   double lam_in;
+//! Parallel inner heliosphere diffusion coefficient (persistent)
+   double kappa_in;
 
-//! Parallel outer heliosphere mean free path (persistent)
-   double lam_out;
+//! Parallel outer heliosphere diffusion coefficient (persistent)
+   double kappa_out;
 
 //! Rigidity normalization factor (persistent)
    double R0;
@@ -699,17 +688,8 @@ protected:
 //! Ratio of perpendicular to parallel diffusion outer heliosphere (persistent)
    double kap_rat_out;
 
-//! Index for magnetic mixing indicator variable (persistent)
-   int Bmix_idx;
-
-//! Reduction factor for kappa in unipolar regions (persistent)
-   double kap_rat_red;
-
 //! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
    double LISM_ind;
-
-//! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
-   double Bmix_ind;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -730,6 +710,74 @@ public:
 
 //! Clone function
    CloneFunctionDiffusion(DiffusionPotgieterEtAl2015);
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(void) override;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionEmpiricalSOQLTandUNLT class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DiffusionEmpiricalSOQLTandUNLT class
+const std::string diff_name_empirical_soqlt_and_unlt = "DiffusionEmpiricalSOQLTandUNLT";
+
+/*!
+\brief Full (perpendicular + parallel) diffusion, parametrized empirical fit to SOQLT (parallel) and UNLT (perpendicular) using a bent power-law spectrum with change in perpendicular diffusion according to magnetic mixing and solar cycle indicator variables
+\author Juan G Alonso Guzman
+
+Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double B0, int Bmix_idx, double kap_rat_red, int solar_cycle_idx, double solar_cycle_effect
+*/
+class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase {
+
+protected:
+
+//! Parallel mean free path (persistent)
+   double lam_para;
+
+//! Perpendicular mean free path (persistent)
+   double lam_perp;
+
+//! Rigidity normalization factor (persistent)
+   double R0;
+
+//! Magnetic field normalization factor for inner heliosphere (persistent)
+   double B0;
+
+//! Index for magnetic mixing indicator variable (persistent)
+   int Bmix_idx;
+
+//! Reduction factor for kappa in unipolar regions (persistent)
+   double kap_rat_red;
+
+//! Index for solar cycle indicator variable (persistent)
+   int solar_cycle_idx;
+
+//! Solar cycle effect constant (persistent)
+   double solar_cycle_effect;
+
+//! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
+   double Bmix_ind;
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(void) override;
+
+public:
+
+//! Default constructor
+   DiffusionEmpiricalSOQLTandUNLT(void);
+
+//! Copy constructor
+   DiffusionEmpiricalSOQLTandUNLT(const DiffusionEmpiricalSOQLTandUNLT& other);
+
+//! Destructor
+   ~DiffusionEmpiricalSOQLTandUNLT() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionEmpiricalSOQLTandUNLT);
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
