@@ -213,7 +213,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
       phase0 = w0 * t_lag;
       sinphase = sin(phase0);
       cosphase = cos(phase0);
-      if (acos(costheta) > M_PI_2 + tilt_amp * (sinphi * cosphase + cosphi * sinphase)) _spdata.Bvec *= -1.0;
+      if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase))) _spdata.Bvec *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes
       if (sin(W0_sw * t_lag) > 0.0) _spdata.Bvec *= -1.0;
