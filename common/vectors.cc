@@ -126,7 +126,7 @@ SPECTRUM_DEVICE_FUNC void GeoVector::Rotate(const GeoVector& axis, double angle)
 /*!
 \author Vladimir Florinski
 \date 02/13/2024
-\param[in] axis  Unit vector whose normal space we project to \f$\sim\mathbf{n}\f$
+\param[in] axis Unit vector whose normal space we project to \f$\sim\mathbf{n}\f$
 */
 SPECTRUM_DEVICE_FUNC void GeoVector::SubtractParallel(const GeoVector& axis)
 {
