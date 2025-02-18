@@ -153,13 +153,13 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-      _spdata.dUdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+      _spdata.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.dBdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (b1 - b0);
+      _spdata.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEdt = -((_spdata.dUdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBdt)) / c_code;
+      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
    };
 #else
    NumericalDerivatives();
