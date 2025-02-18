@@ -631,7 +631,8 @@ void DiffusionFlowMomentumPowerLaw::EvaluateDiffusion(void)
 double DiffusionFlowMomentumPowerLaw::GetDirectionalDerivative(int xyz)
 {
 // Note that this doesn't work in regions were the flow is nearly zero.
-   return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
+   else return Kappa[comp_eval] * pow_law_U * (_spdata.dUvecdt * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
 };
 
 /*!
@@ -704,6 +705,20 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 
 /*!
 \author Juan G Alonso Guzman
+\date 02/18/2025
+\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return double       Directional derivative
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+*/
+double DiffusionKineticEnergyRadialDistancePowerLaw::GetDirectionalDerivative(int xyz)
+{
+// Note that this doesn't work near the origin where the radial distance is close to zero.
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(_pos.Norm());
+   else return 0.0;
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 05/13/2024
 \return double       Derivative in mu
 */
@@ -771,6 +786,20 @@ void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 
 /*!
 \author Juan G Alonso Guzman
+\date 02/18/2025
+\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return double       Directional derivative
+\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+*/
+double DiffusionRigidityMagneticFieldPowerLaw::GetDirectionalDerivative(int xyz)
+{
+// Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _spdata.gradBmag[xyz] / _spdata.Bvec.Norm();
+   else return Kappa[comp_eval] * pow_law_B * _spdata.dBmagdt / _spdata.Bvec.Norm();
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 05/13/2024
 \return double       Derivative in mu
 */
@@ -824,6 +853,8 @@ void DiffusionStraussEtAl2013::SetupDiffusion(bool construct)
    container.Read(B0);
    container.Read(kap_rat_in);
    container.Read(kap_rat_out);
+   container.Read(Bmix_idx);
+   container.Read(kap_rat_red);
 };
 
 /*!
@@ -834,19 +865,23 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
 
-// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
+// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
+//   LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
    if (LISM_idx < 0) LISM_ind = 0.0;
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
    double rig = Rigidity(_mom[0], specie);
-   double kap_rat;
-// Find diffusion coefficients
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _spdata.Bmag);
-   if (comp_eval == 0) {
-      kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
-      Kappa[0] = kap_rat * Kappa[1];
-   };
+
+// Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
+//   Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
+   if (Bmix_idx < 0) Bmix_ind = 1.0;
+   Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+   double kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
+// Reduction factor based on lack of magnetic mixing (i.e. unipolar regions)
+   kap_rat *= Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red;
+   Kappa[0] = kap_rat * Kappa[1];
 };
 
 /*!
@@ -898,12 +933,14 @@ void DiffusionPotgieterEtAl2015::SetupDiffusion(bool construct)
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
    container.Read(LISM_idx);
-   container.Read(kappa_in);
-   container.Read(kappa_out);
+   container.Read(lam_in);
+   container.Read(lam_out);
    container.Read(R0);
    container.Read(B0);
    container.Read(kap_rat_in);
    container.Read(kap_rat_out);
+   container.Read(Bmix_idx);
+   container.Read(kap_rat_red);
 };
 
 /*!
@@ -914,19 +951,23 @@ void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
 
-// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
+// Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities. The "Cube" is to bias the indicator variable towards zero (inner heliosphere).
+   // LISM_ind = Cube(fmin(fmax(0.0, -0.5 * _spdata.region[LISM_idx] + 0.5), 1.0));
    if (LISM_idx < 0) LISM_ind = 0.0;
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
-   double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
+   double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
    double rig = Rigidity(_mom[0], specie);
-   double kap_rat;
-// Find diffusion coefficients
-   Kappa[1] = kappa_para * (vmag / c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
-   if (comp_eval == 0) {
-      kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
-      Kappa[0] = kap_rat * Kappa[1];
-   };
+   Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
+
+// Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
+   // Bmix_ind = Cube(fmin(fmax(0.0, 0.5 * _spdata.region[Bmix_idx] + 0.5), 1.0));
+   if (Bmix_idx < 0) Bmix_ind = 1.0;
+   Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+   double kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
+// Reduction factor based on lack of magnetic mixing (i.e. unipolar regions)
+   kap_rat *= Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red;
+   Kappa[0] = kap_rat * Kappa[1];
 };
 
 /*!
@@ -935,92 +976,6 @@ void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 double DiffusionPotgieterEtAl2015::GetMuDerivative(void)
-{
-   return 0.0;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// DiffusionEmpiricalSOQLTandUNLT methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/09/2025
-*/
-DiffusionEmpiricalSOQLTandUNLT::DiffusionEmpiricalSOQLTandUNLT(void)
-                              : DiffusionBase(diff_name_empirical_soqlt_and_unlt, 0, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/09/2025
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
-*/
-DiffusionEmpiricalSOQLTandUNLT::DiffusionEmpiricalSOQLTandUNLT(const DiffusionEmpiricalSOQLTandUNLT& other)
-                              : DiffusionBase(other)
-{
-   RAISE_BITS(_status, STATE_NONE);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/09/2025
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-void DiffusionEmpiricalSOQLTandUNLT::SetupDiffusion(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(lam_para);
-   container.Read(lam_perp);
-   container.Read(R0);
-   container.Read(B0);
-   container.Read(Bmix_idx);
-   container.Read(kap_rat_red);
-   container.Read(solar_cycle_idx);
-   container.Read(solar_cycle_effect);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/09/2025
-*/
-void DiffusionEmpiricalSOQLTandUNLT::EvaluateDiffusion(void)
-{
-   if (comp_eval == 2) return;
-
-   double lam, rig_dep;
-   double rig = Rigidity(_mom[0], specie);
-
-   if (comp_eval == 1) {
-// Compute mean free path and rigidity dependance with a bent power law
-      rig_dep = cbrt((rig / R0) * (1.0 + Sqr(Sqr(rig / R0))));
-      lam = lam_para;
-   }
-   else if (comp_eval == 0) {
-// Compute mean free path and rigidity dependance with a bent power law
-      rig_dep = cbrt((rig / R0) * (1.0 + Sqr(rig / R0)));
-// Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
-      if (Bmix_idx < 0) Bmix_ind = 1.0;
-      Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
-      lam = lam_perp * (Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red);
-   };
-   Kappa[comp_eval] = (lam * vmag / 3.0) * rig_dep * (B0 / _spdata.Bmag);
-   Kappa[comp_eval] /= (1.0 + solar_cycle_effect * cos(_spdata.region[solar_cycle_idx]));
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 01/09/2025
-\return double       Derivative in mu
-*/
-double DiffusionEmpiricalSOQLTandUNLT::GetMuDerivative(void)
 {
    return 0.0;
 };
