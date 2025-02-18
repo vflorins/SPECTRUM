@@ -16,7 +16,7 @@ namespace Spectrum {
 //! Flag to control smoothness of shock
 #define SMOOTH_SHOCK_ORDER 4
 
-//! Method for computing derivatives (0: analytical, 1: Numerical)
+//! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHSHOCK_DERIVATIVE_METHOD 0
 
 //! Scaling factor to better match shock width when using smooth shock (tanh)
