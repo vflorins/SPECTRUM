@@ -120,7 +120,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
    double a1, a2;
-   ds_shock = (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock;
+   ds_shock = ((_pos - r0_shock) * n_shock - v_shock * _t) / width_shock;
 
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;
