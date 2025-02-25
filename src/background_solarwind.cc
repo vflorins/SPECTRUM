@@ -132,9 +132,11 @@ void BackgroundSolarWind::EvaluateBackground(void)
    double fs_theta_sym = acos(costheta);
    if (fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
-// indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1)
+// indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1); region[2] = time-lagged solar cycle phase
    _spdata.region[0] = (r < hp_rad_sw ? 1.0 : -1.0);
    _spdata.region[1] = -1.0;
+   _spdata.region[2] = arg;
+  
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
 // Constant tilt
