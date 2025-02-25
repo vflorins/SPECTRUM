@@ -725,7 +725,7 @@ const std::string diff_name_empirical_soqlt_and_unlt = "DiffusionEmpiricalSOQLTa
 /*!
 \brief Full (perpendicular + parallel) diffusion, parametrized empirical fit to SOQLT (parallel) and UNLT (perpendicular) using a bent power-law spectrum with change in perpendicular diffusion according to magnetic mixing and solar cycle indicator variables
 \author Juan G Alonso Guzman
-Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double B0, int Bmix_idx, double kap_rat_red, double radial_limit_perp, int solar_cycle_idx, double solar_cycle_effect
+Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double B0, int Bmix_idx, double kap_rat_red, double radial_limit_perp_red, int solar_cycle_idx, double solar_cycle_effect
 */
 
 class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase {
@@ -751,7 +751,7 @@ protected:
    double kap_rat_red;
 
 //! Radial limit to apply unipolar reduction factor (persistent)
-   double radial_limit_perp;
+   double radial_limit_perp_red;
 
 //! Index for solar cycle indicator variable (persistent)
    int solar_cycle_idx;
