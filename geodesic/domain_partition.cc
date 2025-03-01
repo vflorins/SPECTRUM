@@ -6,8 +6,11 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "domain_partition.hh"
-#include "fluid/variables.hh"
+#include "geodesic/domain_partition.hh"
+
+#ifdef USE_SILO
+#include <pmpio.h>
+#endif
 
 namespace Spectrum {
 
@@ -33,13 +36,18 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 // Perform domain decomposition based on sector size
    slab_height_fp = n_shells_global;
+   sector_division = 0;
    sector_width = Pow2(face_division - sector_division);
    n_sectors = tesselation.NFaces(sector_division);
-   sector_division = 0;
    n_slabs = 1;
    
 // This adjusts the sector and slab sizes to find the optimal values (roughly equal number of zones in each dimension)
+#ifdef USE_MPI
    while ((n_sectors * n_slabs < MPI_Config::n_workers) && (slab_height_fp >= min_block_height) && (sector_width >= min_block_width)) {
+#else
+   while ((n_sectors * n_slabs < 1) && (slab_height_fp >= min_block_height) && (sector_width >= min_block_width)) {
+#endif
+
       if (sector_width < slab_height_fp) {
          n_slabs++;
          slab_height_fp = n_shells_global / n_slabs;
@@ -57,14 +65,16 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 // Allocate space for slab interfaces and set up the radial limits
    slab_interfaces = new double[n_slabs + 1];
-   slab_interfaces[0] = distance_map->GetPhysical(0.0);
-   slab_interfaces[n_slabs] = distance_map->GetPhysical(1.0);
+   slab_interfaces[0] = 0.0;
+   slab_interfaces[n_slabs] = 1.0;
    for (auto slab_i = 1; slab_i < n_slabs; slab_i++) {
       shells_per_slab = (slab_i <= n_thinner_slabs ? thinner_slab_height : thinner_slab_height + 1);
       slab_interfaces[slab_i] = slab_interfaces[slab_i - 1] + (double)shells_per_slab / (double)n_shells_global;
    };
 
    block_ranks = new int[n_blocks];
+   blocks_in_rank = new int[MPI_Config::work_comm_size];
+   memset(blocks_in_rank, 0x0, MPI_Config::work_comm_size * sizeof(int));
    int* face_index;
    int* vert_index;
    GeoVector* vcart;
@@ -96,7 +106,7 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
             delete[] vert_index;
             delete[] vcart;
          };
-         bidx++;
+         blocks_in_rank[block_ranks[bidx++]]++;
       };
    };
 
@@ -127,6 +137,7 @@ DomainPartition<datatype, blocktype>::~DomainPartition()
 {
    delete[] slab_interfaces;
    delete[] block_ranks;
+   delete[] blocks_in_rank;
 };
 
 /*!
@@ -466,6 +477,82 @@ void DomainPartition<datatype, blocktype>::ExchangeAll(void)
    };
 };
 
-template class DomainPartition<ConservedVariables, BufferedBlock<VERTS_PER_FACE, ConservedVariables>>;
+#ifdef USE_SILO
+
+/*!
+\author Vladimir Florinski
+\date 02/28/2025
+*/
+template <typename datatype, typename blocktype>
+void DomainPartition<datatype, blocktype>::Save(int stamp)
+{
+// Character strings holding the numerical values of the time slice, file, directory, and block indices
+   char time_num[time_length + 1];
+   char file_num[file_length + 1];
+   char dirc_num[dirc_length + 1];
+   std::string file_name, dirc_name;
+
+// Initialize the SILO parallel subsystem
+   DBfile* data_file;
+   PMPIO_baton_t* bat = PMPIO_Init(n_silofiles, PMPIO_WRITE, MPI_Config::work_comm, pmpio_wtag, PMPIO_DefaultCreate, PMPIO_DefaultOpen, PMPIO_DefaultClose, NULL);
+
+// Compose the file and directory names based on our PMPIO group and time stamp
+   sprintf(time_num, time_format.c_str(), stamp);
+   sprintf(file_num, file_format.c_str(), PMPIO_GroupRank(bat, MPI_Config::work_comm_rank));
+   sprintf(dirc_num, dirc_format.c_str(), PMPIO_RankInGroup(bat, MPI_Config::work_comm_rank));
+   file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
+   dirc_name = dirc_base + dirc_num;
+
+   data_file = (DBfile*)PMPIO_WaitForBaton(bat, file_name.c_str(), dirc_name.c_str());
+
+// Each process writes its blocks sequentially
+   for (auto block = 0; block < blocks_local.size(); block++) blocks_local[block].WriteSilo(data_file, false);
+   PMPIO_HandOffBaton(bat, data_file);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Generate the SILO assembly file
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Name arrays used for both multimeshes and multivars
+   DBfile* assembly_file;
+   char** mmvnames;
+   int* mmvtypes;
+   char blck_num[blck_length + 1];
+   std::string assembled_name, long_name;
+   
+   if (MPI_Config::is_master) {
+      mmvnames = new char*[n_blocks];
+      for (auto bidx = 0; bidx < n_blocks; bidx++) mmvnames[bidx] = new char[path_length];
+      mmvtypes = new int[n_blocks];
+
+// Form block, directory, and file names
+      for (auto bidx = 0; bidx < n_blocks; bidx++) {
+         sprintf(file_num, file_format.c_str(), PMPIO_GroupRank(bat, block_ranks[bidx]));
+         sprintf(dirc_num, dirc_format.c_str(), PMPIO_RankInGroup(bat, block_ranks[bidx]));
+         sprintf(blck_num, blck_format.c_str(), bidx);
+         file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
+         dirc_name = dirc_base + dirc_num;
+         long_name = file_name + ":/" + dirc_name + "/" + um_base + "_" + blck_num;
+         strcpy(mmvnames[bidx], long_name.c_str());
+         mmvtypes[bidx] = DB_UCDMESH;
+      };
+
+      assembled_name = assembled_base + time_num + geofile_ext;
+      assembly_file = DBCreate(assembled_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
+      DBPutMultimesh(assembly_file, asmb_mesh_name.c_str(), n_blocks, mmvnames, mmvtypes, NULL);
+      DBClose(assembly_file);
+
+      for (auto bidx = 0; bidx < n_blocks; bidx++) delete[] mmvnames[bidx];
+      delete[] mmvnames;
+      delete[] mmvtypes;
+   };
+
+// Close the PMPIO subsystem. One could in principle do this right after the blocks have been written, but then we would not have the PMPIO ranks and groups that are used to name the meshes and variables that are entered into the assembly file.
+   PMPIO_Finish(bat);
+};
+
+#endif
+
+template class DomainPartition<int, BufferedBlock<VERTS_PER_FACE, int>>;
 
 };

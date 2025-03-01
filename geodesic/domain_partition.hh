@@ -9,6 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DOMAIN_PARTITION_HH
 #define SPECTRUM_DOMAIN_PARTITION_HH
 
+#include "config.h"
+
 #include "geodesic/traversable_tesselation.hh"
 #include "geodesic/buffered_block.hh"
 #include "common/exchange_site.hh"
@@ -33,22 +35,31 @@ namespace Spectrum {
 #ifdef USE_SILO
 
 //! The number of files for PMPIO
-const int n_silofiles = 4;
+constexpr int n_silofiles = 4;
+
+//! Write tag for PMPIO
+constexpr int pmpio_wtag = 1001;
+
+//! Read tag for PMPIO
+constexpr int pmpio_rtag = 1002;
 
 //! The length, in characters,  of the time stamp
-const int time_length = 3;
+constexpr int time_length = 3;
 
 //! The length, in characters, of the file index
-const int file_length = 3;
+constexpr int file_length = 3;
 
 //! The length, in characters, of the directory index
-const int dirc_length = 5;
+constexpr int dirc_length = 5;
+
+//! Full path name length
+constexpr int path_length = 256;
+
+//! The separator of file and time indices
+constexpr char ft_separator = '_';
 
 //! File name prefix
 const std::string datafile_base = "pltf";
-
-//! The separator of file and time indices
-const char ft_separator = '_';
 
 //! File name extension
 const std::string geofile_ext = ".silo";
@@ -61,15 +72,6 @@ const std::string assembled_base = "imgf";
 
 //! The assembled mesh name
 const std::string asmb_mesh_name = "geomesh";
-
-//! Write tag for PMPIO
-const int pmpio_wtag = 1001;
-
-//! Read tag for PMPIO
-const int pmpio_rtag = 1002;
-
-//! Full path name length
-const int path_length = 256;
 
 //! The format for the time stamp
 const std::string time_format = "%0" + std::to_string(time_length) + 'i';
@@ -155,6 +157,9 @@ protected:
 //! Ranks of processes owning each block
    int* block_ranks = nullptr;
 
+//! Number of blocks in each rank
+   int* blocks_in_rank = nullptr;
+
 //! Global array of exchange sites
    std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites[N_NBRTYPES];
 
@@ -207,6 +212,9 @@ public:
 
 //! Perform the exchange
    void ExchangeAll(void);
+
+//! Save the data
+   void Save(int stamp);
 };
 
 /*!
