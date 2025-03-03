@@ -288,6 +288,68 @@ void DistributionMomentumUniform::EvaluateValue(void)
    };
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionPositionMomentumUniform methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2025
+*/
+DistributionPositionMomentumUniform::DistributionPositionMomentumUniform(void)
+                                   : DistributionUniform<double>(dist_name_position_momentum_uniform, 0, DISTRO_MOMENTUM)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2025
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
+*/
+DistributionPositionMomentumUniform::DistributionPositionMomentumUniform(const DistributionPositionMomentumUniform& other)
+                                   : DistributionUniform<double>(other)
+{
+   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2025
+\param[in] construct Whether called from a copy constructor or separately
+*/
+void DistributionPositionMomentumUniform::SetupDistribution(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if (!construct) DistributionUniform<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+
+   this->container.Read(val_time);
+   this->container.Read(pos_idx);
+   this->container.Read(mom_idx);
+
+// Check that ALL three dimensions are active.
+   if (this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2025
+*/
+void DistributionPositionMomentumUniform::EvaluateValue(void)
+{
+   if (val_time == 0) {
+      this->_value[0] = this->_pos[pos_idx];
+      this->_value[1] = this->_mom[mom_idx];
+   }
+   else {
+      this->_value[0] = this->_pos2[pos_idx];
+      this->_value[1] = this->_mom2[mom_idx];
+   };
+};
+
 #if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

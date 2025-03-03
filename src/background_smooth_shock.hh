@@ -33,7 +33,7 @@ const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 \brief Constant EM field with a smooth transition region
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundShock), width_shock
+Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
 class BackgroundSmoothShock : public BackgroundShock {
 
@@ -41,6 +41,12 @@ protected:
 
 //! Width of shock transition region (persistent)
    double width_shock;
+
+//! Fraction of the shock width to assign to dmax near shock (persistent)
+   double dmax_fraction;
+
+//! Distance from shock within which to modify dmax
+   double dmax_limit;
 
 //! Relative distance to shock (transient)
    double ds_shock;
@@ -59,6 +65,9 @@ protected:
 
 //! Compute the internal u, B, and E derivatives
    void EvaluateBackgroundDerivatives(void) override;
+
+//! Compute the maximum distance per time step
+   void EvaluateDmax(void) override;
 
 public:
 
