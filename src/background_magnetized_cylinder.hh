@@ -14,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: Numerical)
+//! Method for computing derivatives of B (0: analytical, 1: numerical)
 #define MAGNETIZED_CYLINDER_DERIVATIVE_METHOD 0
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

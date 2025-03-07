@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes"
+abstract: "Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes (SPECTRUM) is a suite of scientific numerical simulation codes designed to efficiently perform test-particle simulations, classical or relativistic, in virtually any astrophysical environment. In addition, ongoing development seeks to extend the utility of SPECTRUM by equipping it with MHD simulation capabilities."
+authors:
+  - family-names: Florinski
+    given-names: Vladimir
+    orcid: "https://orcid.org/0000-0001-5485-2872"
+  - family-names: Alonso Guzman
+    given-names: Juan Gabriel
+    orcid: "https://orcid.org/0000-0001-9581-3167"
+repository-code: "https://github.com/vflorins/SPECTRUM"
+license: Apache-2.0
+version: 1.0.0
+date-released: "2024-04-18"
+identifiers:
+  - description: "This is the archived snapshot of version 1.0.0 of SPECTRUM"
+    type: doi
+    value: 10.5281/zenodo.10994173
+keywords:
+  - "Monte Carlo method"
+  - "method of stochastic characteristics"
+  - "charged particle transport"
+  - "MPI parallelization"
+contact:
+  - affiliation: "University of Alabama in Huntsville (UAH)"
+    email: vaf0001@uah.edu
+    family-names: Florinski
+    given-names: Vladimir

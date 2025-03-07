@@ -99,7 +99,7 @@ double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 02/28/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -111,6 +111,8 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 
 // Unpack parameters
    container.Read(width_shock);
+   container.Read(dmax_fraction);
+   dmax_limit = dmax0 / (dmax_fraction * width_shock);
 };
 
 /*!
@@ -120,7 +122,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
    double a1, a2;
-   ds_shock = (_pos - r0_shock - v_shock * n_shock * _t) * n_shock / width_shock;
+   ds_shock = ((_pos - r0_shock) * n_shock - v_shock * _t) / width_shock;
 
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;
@@ -153,17 +155,27 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-      _spdata.dUdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+      _spdata.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.dBdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (b1 - b0);
+      _spdata.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEdt = -((_spdata.dUdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBdt)) / c_code;
+      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
    };
 #else
    NumericalDerivatives();
 #endif
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 02/28/2025
+*/
+void BackgroundSmoothShock::EvaluateDmax(void)
+{
+   _spdata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
+   LOWER_BITS(_status, STATE_INVALID);
 };
 
 };

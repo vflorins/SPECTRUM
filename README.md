@@ -1,3 +1,5 @@
+Persistent identifier for latest release (archived through Zenodo): [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10994172.svg)](https://doi.org/10.5281/zenodo.10994172)
+
 # SPECTRUM
 
 Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes (SPECTRUM) is a suite of scientific numerical simulation codes designed to efficiently perform test-particle simulations, classical or relativistic, in virtually any astrophysical environment. In addition, ongoing development seeks to extend the utility of SPECTRUM by equipping it with MHD simulation capabilities. 
