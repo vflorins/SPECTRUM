@@ -220,7 +220,7 @@ protected:
 //! Which component of position to use for value[0] (persistent)
    int pos_idx;
 
-//! Which component of position to use for value[1] (persistent)
+//! Which component of momentum to use for value[1] (persistent)
    int mom_idx;
 
 //! Set up the distribution accumulator based on "params"
