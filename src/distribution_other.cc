@@ -330,7 +330,7 @@ void DistributionPositionMomentumUniform::SetupDistribution(bool construct)
    this->container.Read(pos_idx);
    this->container.Read(mom_idx);
 
-// Check that ALL three dimensions are active.
+// Check that ONLY the first two dimensions are active.
    if (this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
 };
 
