@@ -121,6 +121,11 @@ constexpr double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_partic
                        2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
                             -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 
+//! Masses of particles comprising the fluids
+constexpr double mass_fluid[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
+                                 GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
+                           2.0 * GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion
 //----------------------------------------------------------------------------------------------------------------------------------------------------
