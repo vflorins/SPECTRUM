@@ -64,6 +64,9 @@ public:
 
 };
 
+//! Dummy specialization for void datatype
+template <> class ExchangeSite<void> {};
+
 /*!
 \author Vladimir Florinski
 \date 01/16/2025

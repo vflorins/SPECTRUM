@@ -6,14 +6,10 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
+#include <cstring>
 #include <utility>
 
-#ifdef GEO_DEBUG
-#include <iostream>
-#include <iomanip>
-#endif
-
-#include "geodesic/buffered_block.hh"
+#include <geodesic/buffered_block.hh>
 
 namespace Spectrum {
 
@@ -66,16 +62,19 @@ BufferedBlock<verts_per_face, datatype>::BufferedBlock(const BufferedBlock& othe
 \param[in] other Object to move into this
 */
 template <int verts_per_face, typename datatype>
-BufferedBlock<verts_per_face, datatype>::BufferedBlock(BufferedBlock&& other)
+BufferedBlock<verts_per_face, datatype>::BufferedBlock(BufferedBlock&& other) noexcept
                                        : StenciledBlock<verts_per_face>(std::move(static_cast<StenciledBlock<verts_per_face>&&>(other)))
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Move constructing a BufferedBlock\n";
+   std::cerr << "Move constructing a BufferedBlock (moving the content)\n";
 #endif
 #endif
 
-   if (other.side_length == -1) return;
+   if (other.side_length == -1) {
+      PrintMessage(__FILE__, __LINE__, "Move constructor called, but the dimension of the moved object was not set", true);
+      return;
+   };
 
 // Move the variables
    zone_cons = other.zone_cons;
@@ -155,7 +154,7 @@ void BufferedBlock<verts_per_face, datatype>::SetDimensions(int width, int wghos
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Setting dimensions for a BufferedBlock\n";
+   std::cerr << "Setting dimensions " << width << " by " << height << " for a BufferedBlock\n";
 #endif
 #endif
 
@@ -800,25 +799,25 @@ template <>
 void BufferedBlock<3, int>::PrintContents(void)
 {
    int face;
-   std::cout << std::endl;
+   std::cerr << std::endl;
    std::cerr << "Printing the contents of block " << block_index << std::endl;
    for (auto shell = 0; shell < n_shells_withghost; shell++) {
       for (auto twoj = total_length - 1; twoj >= 0; twoj--) {
-         for (auto k = 0; k < total_length - twoj; k++) std::cout << "    ";
+         for (auto k = 0; k < total_length - twoj; k++) std::cerr << "    ";
 
          for (auto i = 0; i < total_length; i++) {
             if(i) {
                face = face_index_sector[i][2 * twoj + 1];
-               if(face == -1) std::cout << "    ";
-               else std::cout << std::setw(4) << zone_cons[shell][face];
+               if(face == -1) std::cerr << "    ";
+               else std::cerr << std::setw(4) << zone_cons[shell][face];
             };
             face = face_index_sector[i][2 * twoj];
-            if(face == -1) std::cout << "    ";
-            else std::cout << std::setw(4) << zone_cons[shell][face];
+            if(face == -1) std::cerr << "    ";
+            else std::cerr << std::setw(4) << zone_cons[shell][face];
          };
-         std::cout << std::endl;
+         std::cerr << std::endl;
       };
-      std::cout << std::endl;
+      std::cerr << std::endl;
    };
 };
 
@@ -829,16 +828,16 @@ void BufferedBlock<3, int>::PrintContents(void)
 template <>
 void BufferedBlock<4, int>::PrintContents(void)
 {
-   std::cout << std::endl;
+   std::cerr << std::endl;
    std::cerr << "Printing the contents of block " << block_index << std::endl;
    for (auto shell = 0; shell < n_shells_withghost; shell++) {
       for (auto i = 0; i < total_length; i++) {
-         std::cout << std::endl;
+         std::cerr << std::endl;
          for (auto j = 0; j <= MaxFaceJ(total_length, i); j++) {
-            std::cout << std::setw(4) << zone_cons[shell][face_index_sector[i][j]];
+            std::cerr << std::setw(4) << zone_cons[shell][face_index_sector[i][j]];
          };
       };
-      std::cout << std::endl;
+      std::cerr << std::endl;
    };
 };
 

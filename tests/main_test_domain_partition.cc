@@ -25,7 +25,10 @@ int main(int argc, char *argv[])
    dist_map->SetupObject(container);
 
 // Create the simulation object
-   DomainPartition<int, BufferedBlock<VERTS_PER_FACE, int>> domain_partition(n_shells, dist_map, face_div);
+//   DomainPartition<GridBlock<VERTS_PER_FACE>> domain_partition(n_shells, dist_map, face_div);
+//   DomainPartition<StenciledBlock<VERTS_PER_FACE>> domain_partition(n_shells, dist_map, face_div);
+   DomainPartition<BufferedBlock<VERTS_PER_FACE, int>> domain_partition(n_shells, dist_map, face_div);
+
+   domain_partition.PrintTopology();
    domain_partition.Save(0);
 };
-

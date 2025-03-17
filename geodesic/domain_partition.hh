@@ -104,7 +104,7 @@ SPECTRUM_DEVICE_FUNC inline std::pair<int, int> DistributeEvenly(int n, int m)
 
 This is a base class of a simulation control program. It assembles the mesh out of individual grid blocks and tells the blocks which data operations to perform. Only a single instance per process is permitted.
 */
-template <typename datatype, typename blocktype>
+template <typename blocktype>
 class DomainPartition
 {
 protected:
@@ -160,10 +160,10 @@ protected:
 //! Number of blocks in each rank
    int* blocks_in_rank = nullptr;
 
-//! Global array of exchange sites
-   std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites[N_NBRTYPES];
+//! Global array of exchange sites. This works even if "datatype" is void because "ExchangeSite" is specialized to do nothing in that case.
+   std::vector<std::shared_ptr<ExchangeSite<typename blocktype::datatype>>> exch_sites[N_NBRTYPES];
 
-//! Local simulation blocks 
+//! Local blocks
    std::vector<blocktype> blocks_local;
 
 //! Local exchange sites indices
@@ -204,17 +204,25 @@ public:
 //! Set up block geometric properties
    void SetUpBlockGeometry(void);
 
-//! Set up the exchange sites
+//! Set up the exchange sites (only enabled if "datatype" is avaliable)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
    void SetUpExchangeSites(void);
 
-//! Assign exchange site objects to blocks
+//! Assign exchange site objects to blocks (only enabled if "datatype" is avaliable)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
    void ExportExchangeSites(void);
 
-//! Perform the exchange
+//! Perform the exchange (only enabled if "datatype" is avaliable)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
    void ExchangeAll(void);
 
 //! Save the data
    void Save(int stamp);
+
+#ifdef GEO_DEBUG
+//! Print the block assignment to ranks
+   void PrintTopology(void) const;
+#endif
 };
 
 /*!
@@ -222,8 +230,8 @@ public:
 \param[in] sector Sector index
 \return The global block index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetBlockIndex(int slab, int sector) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetBlockIndex(int slab, int sector) const
 {
    return slab * n_sectors + sector;
 };
@@ -232,8 +240,8 @@ inline int DomainPartition<datatype, blocktype>::GetBlockIndex(int slab, int sec
 \param[in] bidx Block index
 \return Slab index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetSlab(int bidx) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetSlab(int bidx) const
 {
    return bidx / n_slabs;
 };
@@ -242,8 +250,8 @@ inline int DomainPartition<datatype, blocktype>::GetSlab(int bidx) const
 \param[in] bidx Block index
 \return Sector index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetSector(int bidx) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetSector(int bidx) const
 {
    return bidx % n_sectors;
 };

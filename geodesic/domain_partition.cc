@@ -21,8 +21,8 @@ namespace Spectrum {
 \param[in[ dist_map   Distance scaling function
 \param[in[ face_div   Face division
 */
-template <typename datatype, typename blocktype>
-DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::shared_ptr<DistanceBase> dist_map, double face_div)
+template <typename blocktype>
+DomainPartition<blocktype>::DomainPartition(int n_shells, const std::shared_ptr<DistanceBase> dist_map, double face_div)
 {
    int shells_per_slab, sector_width, bidx;
    double slab_height_fp;
@@ -130,10 +130,10 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 03/14/2025
 */
-template <typename datatype, typename blocktype>
-DomainPartition<datatype, blocktype>::~DomainPartition()
+template <typename blocktype>
+DomainPartition<blocktype>::~DomainPartition()
 {
    delete[] slab_interfaces;
    delete[] block_ranks;
@@ -142,12 +142,12 @@ DomainPartition<datatype, blocktype>::~DomainPartition()
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 03/14/2025
 \param[in] pos Vector position
 \return The block global index, -1 if vector is outside the boundaries
 */
-template <typename datatype, typename blocktype>
-int DomainPartition<datatype, blocktype>::LocateBlock(const GeoVector& pos) const
+template <typename blocktype>
+int DomainPartition<blocktype>::LocateBlock(const GeoVector& pos) const
 {
    int slab, sect;
    
@@ -162,10 +162,12 @@ int DomainPartition<datatype, blocktype>::LocateBlock(const GeoVector& pos) cons
 
 /*!
 \author Vladimir Florinski
-\date 06/28/2024
+\author Lucius Schoenbaum
+\date 03/14/2025
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::SetUpExchangeSites(void)
 {
    int sector_width, n_slab_parts_actual, n_sect_parts_actual, buf_size, sidx, part;
 
@@ -389,8 +391,9 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 \author Vladimir Florinski
 \date 07/02/2024
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::ExportExchangeSites(void)
 {
    int slab, sector, sidx, n_sites_sect;
    int edges[verts_per_face], verts[verts_per_face];
@@ -459,8 +462,9 @@ void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
 \author Vladimir Florinski
 \date 06/27/2024
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::ExchangeAll(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::ExchangeAll(void)
 {
    for (auto ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
 
@@ -481,10 +485,10 @@ void DomainPartition<datatype, blocktype>::ExchangeAll(void)
 
 /*!
 \author Vladimir Florinski
-\date 02/28/2025
+\date 03/14/2025
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::Save(int stamp)
+template <typename blocktype>
+void DomainPartition<blocktype>::Save(int stamp)
 {
 // Character strings holding the numerical values of the time slice, file, directory, and block indices
    char time_num[time_length + 1];
@@ -553,6 +557,30 @@ void DomainPartition<datatype, blocktype>::Save(int stamp)
 
 #endif
 
-template class DomainPartition<int, BufferedBlock<VERTS_PER_FACE, int>>;
+#ifdef GEO_DEBUG
+
+/*!
+\author Vladimir Florinski
+\date 03/16/2025
+*/
+template <typename blocktype>
+void DomainPartition<blocktype>::PrintTopology(void) const
+{
+   for (auto proc = 0; proc < MPI_Config::work_comm_size; proc++) {
+      if(proc == MPI_Config::work_comm_rank) {
+         std::cerr << "Printing process " << proc << " topology\n";
+         for (auto block = 0; block < blocks_local.size(); block++) {
+            std::cerr << "   Block " << block << " has index " << blocks_local[block].GetIndex() << std::endl;
+         };
+      };
+      MPI_Barrier(MPI_Config::work_comm);
+   };
+};
+
+#endif
+
+template class DomainPartition<GridBlock<VERTS_PER_FACE>>;
+template class DomainPartition<StenciledBlock<VERTS_PER_FACE>>;
+template class DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>;
 
 };

@@ -9,16 +9,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_GRID_BLOCK_HH
 #define SPECTRUM_GRID_BLOCK_HH
 
-#include "config.h"
+#include <config.h>
 
 #ifdef USE_SILO
 #include <silo.h>
 #endif
 
-#include "common/vectors.hh"
-#include "geometry/distance_map.hh"
-#include "geodesic/geodesic_sector.hh"
-#include "geodesic/spherical_slab.hh"
+#include <common/vectors.hh>
+#include <geometry/distance_map.hh>
+#include <geodesic/geodesic_sector.hh>
+#include <geodesic/spherical_slab.hh>
 
 namespace Spectrum {
 
@@ -53,6 +53,20 @@ The grid block is the smallest computational unit that must reside on a single c
 template <int verts_per_face>
 class GridBlock : public SphericalSlab, public GeodesicSector<verts_per_face>
 {
+private:
+
+//! Calculate the increments for each object type
+   static void StaticSetup(void);
+
+//! Structure to enable static initialization before "main()"
+   struct StaticInitializer
+   {
+      StaticInitializer(void) {StaticSetup();};
+   };
+   
+//! Static initializer
+   static inline StaticInitializer si{};
+
 protected:
 
    using PolygonalAddressing<verts_per_face>::edges_per_vert;
@@ -93,16 +107,16 @@ protected:
    using GeodesicSector<verts_per_face>::CornerVert;
 
 //! Rotations of the corner ghost blocks
-   int corner_rotation[verts_per_face];
+   static inline int corner_rotation[verts_per_face];
 
 //! Translation between rotated and normal TAS/QAS for faces
-   int rotated_verts[edges_per_vert][2][2];
+   static inline int rotated_verts[edges_per_vert][2][2];
 
 //! Constant shifts for rotated edge indices
-   int rotated_shift[edges_per_vert][cardinal_directions][2];
+   static inline int rotated_shift[edges_per_vert][cardinal_directions][2];
 
 //! Translation between rotated and normal TAS/QAS for faces
-   int rotated_faces[edges_per_vert][2][1 + square_fill];
+   static inline int rotated_faces[edges_per_vert][2][1 + square_fill];
 
 //! Unique numerical index of the block
    int block_index = -1;
@@ -121,12 +135,6 @@ protected:
 
 //! List of duplicate vertices at cut lines
    int** dup_vert[verts_per_face] = {nullptr};
-
-//! List of duplicate edges at cut lines
-   int** dup_edge[verts_per_face] = {nullptr};
-
-//! Mapping of the existing faces into the missing block at singular corners
-   int** missing_faces = nullptr;
 
 //! Radial distance of the lower boundary of the entire domain
    double Rmin;
@@ -162,6 +170,7 @@ protected:
 //! Shell widths
    double* dr = nullptr;
 
+// FIXME - check if this is needed
 //! Shell midpoints, \f$(r_1+r_2)/2\f$
    double* r_mp = nullptr;
 
@@ -177,10 +186,10 @@ protected:
 #ifdef USE_SILO
 
 //! Zone type
-   int silo_zonetype;
+   static inline int silo_zonetype;
 
 //! Vertex numbering in a zone
-   int zv_silo[2 * verts_per_face][2];
+   static inline int zv_silo[2 * verts_per_face][2];
 
 //! Number of SILO vertices
    int n_verts_silo;
@@ -217,13 +226,12 @@ protected:
 //! Determine whether a face is in the sector's interior - face version
    bool IsInteriorFaceOfSector(int face) const;
 
-//! Calculate the increments for each object type
-   constexpr void Setup(void);
-
 //! Correct the connectivity at the singular corners
    void FixSingularCorners(void);
 
 public:
+
+   using datatype = void;
 
 //! Default constructor
    GridBlock(void);
@@ -232,13 +240,13 @@ public:
    GridBlock(const GridBlock& other);
 
 //! Move constructor
-   GridBlock(GridBlock&& other);
+   GridBlock(GridBlock&& other) noexcept;
 
 //! Constructor with arguments
    GridBlock(int width, int wghost, int height, int hghost);
 
 //! Destructor
-   ~GridBlock();
+   ~GridBlock(void);
 
 //! Allocate memory
    void SetDimensions(int width, int wghost, int height, int hghost, bool construct);
@@ -251,7 +259,7 @@ public:
                       const GeoVector* vcart, std::shared_ptr<DistanceBase> dist_map_in, bool construct);
 
 //! Assign the block index
-   void SetIndex(int index) {block_index = index;};
+   void SetIndex(int index);
 
 //! Retrieve the block index
    int GetIndex(void) const {return block_index;};

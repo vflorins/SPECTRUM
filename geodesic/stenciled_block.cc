@@ -6,16 +6,10 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include <cmath>
 #include <cstring>
 #include <utility>
 
-#ifdef GEO_DEBUG
-#include <iostream>
-#include <iomanip>
-#endif
-
-#include "geodesic/stenciled_block.hh"
+#include <geodesic/stenciled_block.hh>
 
 namespace Spectrum {
 
@@ -26,7 +20,6 @@ namespace Spectrum {
 /*!
 \author Vladimir Florinski
 \date 01/08/2025
-\note The default constructor for "GridBlock" calls its "Setup()" method
 */
 template <int verts_per_face>
 StenciledBlock<verts_per_face>::StenciledBlock(void)
@@ -43,7 +36,7 @@ StenciledBlock<verts_per_face>::StenciledBlock(void)
 \author Vladimir Florinski
 \date 01/08/2025
 \param[in] other Object to initialize from
-\note The copy constructor for "GridBlock" calls its "Setup()", "SetDimensions()", and "AssociateMesh()" methods
+\note The copy constructor for "GridBlock" calls its "SetDimensions()", and "AssociateMesh()" methods
 */
 template <int verts_per_face>
 StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
@@ -55,32 +48,33 @@ StenciledBlock<verts_per_face>::StenciledBlock(const StenciledBlock& other)
 #endif
 #endif
 
-   if (other.side_length != -1) {
-      SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
-   };
+   if (other.side_length == -1) return;
+   SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   this->SetIndex(other.block_index);
 
-   if (other.mesh_associated) {
-      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
-   };
+   if (!other.mesh_associated) return;
+   AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
 };
 
 /*!
 \author Vladimir Florinski
 \date 01/08/2025
 \param[in] other Object to move into this
-\note The move constructor for "GridBlock" calls its "Setup()" method
 */
 template <int verts_per_face>
-StenciledBlock<verts_per_face>::StenciledBlock(StenciledBlock&& other)
+StenciledBlock<verts_per_face>::StenciledBlock(StenciledBlock&& other) noexcept
                               : GridBlock<verts_per_face>(std::move(static_cast<GridBlock<verts_per_face>&&>(other)))
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Move constructing a StenciledBlock\n";
+   std::cerr << "Move constructing a StenciledBlock (moving the content)\n";
 #endif
 #endif
 
-   if (other.side_length == -1) return;
+   if (other.side_length == -1) {
+      PrintMessage(__FILE__, __LINE__, "Move constructor called, but the dimension of the moved object was not set", true);
+      return;
+   };
 
 // Move the area/length arrays
    face_area = other.face_area;
@@ -154,7 +148,7 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Setting dimensions for a StenciledBlock\n";
+   std::cerr << "Setting dimensions " << width << " by " << height << " for a StenciledBlock\n";
 #endif
 #endif
 
@@ -184,6 +178,12 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
 template <int verts_per_face>
 void StenciledBlock<verts_per_face>::FreeStorage(void)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Freeing storage for a StenciledBlock\n";
+#endif
+#endif
+
    Delete2D(geom_matr_At);
    Delete2D(geom_matr_LU);
 
@@ -344,13 +344,13 @@ void StenciledBlock<verts_per_face>::MarkStenciledArea(void)
 template <int verts_per_face>
 void StenciledBlock<verts_per_face>::BuildAllStencils(void)
 {
-   int ic, nface, face;
-
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
    std::cerr << "Building stencils for a StenciledBlock\n";
 #endif
 #endif
+
+   int ic, nface, face;
 
    zones_per_stencil[0] = verts_per_face + 2;
    for (auto stencil = 1; stencil < n_stencils; stencil++) zones_per_stencil[stencil] = 4;
@@ -365,20 +365,21 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
       };
    };
 
-//                                                 -----------
-//          ---------------------                  |.........|                            -
-//           \......./ \......./                   |.........|                           / \
-//            \...../   \...../                    |.........|                          /   \
-//             \.../ U+D \.../           ----------+---------+----------               /     \                         -----------
-//              \./       \./            |.........|         |.........|              /       \                        |         |
-//               -----------             |.........|   U+D   |.........|             -----------                       |         |
-//                \......./              |.........|         |........ |            /.\......./.\                      |         |
-//                 \...../               ----------+---------+----------           /...\.U/D./...\           ----------+---------+----------
-//                  \.../                          |.........|                    /.....\.../.....\          |.........|.........|.........|
-//                   \./                           |.........|                   /.......\./.......\         |.........|...U/D...|.........|
-//                    -                            |.........|                  ---------------------        |.........|.........|.........|
-//                                                 -----------                                               -------------------------------
-
+/*
+                                                   -----------
+            ---------------------                  |.........|                            -
+             \......./ \......./                   |.........|                           / \
+              \...../   \...../                    |.........|                          /   \
+               \.../ U+D \.../           ----------+---------+----------               /     \                         -----------
+                \./       \./            |.........|         |.........|              /       \                        |         |
+                 -----------             |.........|   U+D   |.........|             -----------                       |         |
+                  \......./              |.........|         |........ |            /.\......./.\                      |         |
+                   \...../               ----------+---------+----------           /...\.U/D./...\           ----------+---------+----------
+                    \.../                          |.........|                    /.....\.../.....\          |.........|.........|.........|
+                     \./                           |.........|                   /.......\./.......\         |.........|...U/D...|.........|
+                      -                            |.........|                  ---------------------        |.........|.........|.........|
+                                                  -----------                                               -------------------------------
+*/
 // Calculate the zone lists
    for (auto pface = 0; pface < n_faces_withghost; pface++) {
       if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
