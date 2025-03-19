@@ -121,7 +121,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
    r_mns = r - r_ref;
 
 // Compute time lag due to solar wind propagation.
-   t_lag = TimeLag(r) - (_t - t0);
+   t_lag = (_t - t0) - TimeLag(r);
 
 // Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
 #if SOLARWIND_CURRENT_SHEET == 3
@@ -222,7 +222,7 @@ void BackgroundSolarWind::EvaluateBackground(void)
       if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase))) _spdata.Bvec *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes
-      if (sin(W0_sw * t_lag) > 0.0) _spdata.Bvec *= -1.0;
+      if (sin(W0_sw * t_lag) < 0.0) _spdata.Bvec *= -1.0;
 #endif
 #endif
       _spdata.Bvec.ChangeFromBasis(eprime);
