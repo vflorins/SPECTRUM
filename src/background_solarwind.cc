@@ -124,9 +124,13 @@ void BackgroundSolarWind::EvaluateBackground(void)
    t_lag = TimeLag(r) - (_t - t0);
 
 // Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
+#if SOLARWIND_CURRENT_SHEET == 3
    arg = 2.0 * W0_sw * t_lag;
    Br0 = B0[0] + B0[1] * cos(arg);
-
+#else
+   Br0 = B0[0];
+#endif
+  
 // Compute latitude and enforce equatorial symmetry.
    costheta = posprime[2] / r;
    double fs_theta_sym = acos(costheta);
