@@ -146,20 +146,28 @@ void DistributionTemplated<distroClass>::AddEvent(void)
 {
    int ijk, lin_bin;
    MultiIndex bin = mi_zeros;
+   double val;
 
 // The event has been already processed and "_values" and "_weight" computed
    for (ijk = 0; ijk < 3; ijk++) {
 
 // Skip if dimension is ignorable
       if (BITS_LOWERED(dims, 1 << ijk)) continue;
-      bin[ijk] = ((log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk]) / bin_size[ijk];
 
-// Check for outlying events
-      if (bin[ijk] < 0) {
+// Shift value relative to lower limit
+      val = (log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk];
+     
+// Check for "left" outlier event
+      if (val < 0.0) {
          if (bin_outside[ijk]) bin[ijk] = 0;
          else return;
-      }
-      else if (bin[ijk] >= n_bins[ijk]) {
+      };
+
+// Compute bin for shifted value. Bin will not be negative but could be >= "n_bins".
+      bin[ijk] = val / bin_size[ijk];
+
+// Check for "right" outlier events
+      if (bin[ijk] >= n_bins[ijk]) {
          if (bin_outside[ijk]) bin[ijk] = n_bins[ijk] - 1;
          else return;
       };
