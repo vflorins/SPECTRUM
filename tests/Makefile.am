@@ -8,7 +8,9 @@ AM_CXXFLAGS = $(MPI_CFLAGS) -DGEO_DEBUG -Wall -Wno-comment
 AM_FCFLAGS = -J$(BATL_HOME)/share/include
 
 bin_PROGRAMS = main_test_mpi_config \
+               main_test_data_container \
                main_test_physics \
+               main_test_background_bochum \
                main_test_drawable_tesselation \
                main_test_drawable_sector \
                main_test_exchange_site \
@@ -18,8 +20,7 @@ bin_PROGRAMS = main_test_mpi_config \
                main_test_geodesic_sector \
                main_test_grid_block \
                main_test_buffered_block \
-               main_test_domain_partition \
-               main_test_trajectory_mswave
+               main_test_domain_partition
 
 SPBL_COMMON_DIR = ../common
 SPBL_SOURCE_DIR = ../src
@@ -37,14 +38,52 @@ main_test_mpi_config_LDADD = $(MPI_LIBS)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 
+main_test_data_container_SOURCES = main_test_data_container.cc \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/gpu_config.hh   
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
+
 main_test_physics_SOURCES = main_test_physics.cc \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+main_test_background_bochum_SOURCES = main_test_background_bochum.cc \
+   $(SPBL_SOURCE_DIR)/background_vlism_bochum.cc \
+   $(SPBL_SOURCE_DIR)/background_vlism_bochum.hh \
+   $(SPBL_SOURCE_DIR)/background_base_visual.cc \
+   $(SPBL_SOURCE_DIR)/background_base.cc \
+   $(SPBL_SOURCE_DIR)/background_base.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/spatial_data.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
+   $(SPBL_COMMON_DIR)/gpu_config.hh
+
+main_test_background_bochum_LDADD = $(GSL_LIBS)
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -57,6 +96,7 @@ main_test_drawable_tesselation_SOURCES = main_test_drawable_tesselation.cc \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh
@@ -199,6 +239,7 @@ main_test_buffered_block_SOURCES = main_test_buffered_block.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
    $(SPBL_COMMON_DIR)/mpi_config.cc \
    $(SPBL_COMMON_DIR)/mpi_config.hh \
+   $(SPBL_COMMON_DIR)/communication_site.hh \
    $(SPBL_COMMON_DIR)/exchange_site.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
    $(SPBL_COMMON_DIR)/simple_array.hh \
@@ -252,74 +293,4 @@ main_test_domain_partition_SOURCES = main_test_domain_partition.cc \
    $(SPBL_COMMON_DIR)/gpu_config.hh
 
 main_test_domain_partition_LDADD = $(MPI_LIBS) $(GSL_LIBS)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-main_test_trajectory_mswave_SOURCES = main_test_trajectory_mswave.cc \
-   $(SPBL_SOURCE_DIR)/trajectory_fieldline.cc \
-   $(SPBL_SOURCE_DIR)/trajectory_fieldline.hh \
-   $(SPBL_SOURCE_DIR)/trajectory_base.cc \
-   $(SPBL_SOURCE_DIR)/trajectory_base.hh \
-   $(SPBL_SOURCE_DIR)/background_mswave.cc \
-   $(SPBL_SOURCE_DIR)/background_mswave.hh \
-   $(SPBL_SOURCE_DIR)/background_base_visual.cc \
-   $(SPBL_SOURCE_DIR)/background_base.cc \
-   $(SPBL_SOURCE_DIR)/background_base.hh \
-   $(SPBL_SOURCE_DIR)/initial_time.cc \
-   $(SPBL_SOURCE_DIR)/initial_time.hh \
-   $(SPBL_SOURCE_DIR)/initial_space.cc \
-   $(SPBL_SOURCE_DIR)/initial_space.hh \
-   $(SPBL_SOURCE_DIR)/initial_momentum.cc \
-   $(SPBL_SOURCE_DIR)/initial_momentum.hh \
-   $(SPBL_SOURCE_DIR)/initial_base.cc \
-   $(SPBL_SOURCE_DIR)/initial_base.hh \
-   $(SPBL_SOURCE_DIR)/boundary_time.cc \
-   $(SPBL_SOURCE_DIR)/boundary_time.hh \
-   $(SPBL_SOURCE_DIR)/boundary_space.cc \
-   $(SPBL_SOURCE_DIR)/boundary_space.hh \
-   $(SPBL_SOURCE_DIR)/boundary_base.cc \
-   $(SPBL_SOURCE_DIR)/boundary_base.hh \
-   $(SPBL_SOURCE_DIR)/diffusion_base.cc \
-   $(SPBL_SOURCE_DIR)/diffusion_base.hh \
-   $(SPBL_SOURCE_DIR)/distribution_base.cc \
-   $(SPBL_SOURCE_DIR)/distribution_base.hh \
-   $(SPBL_FLUID_DIR)/hall_mhd_waves.cc \
-   $(SPBL_FLUID_DIR)/hall_mhd_waves.hh \
-   $(SPBL_COMMON_DIR)/params.cc \
-   $(SPBL_COMMON_DIR)/params.hh \
-   $(SPBL_COMMON_DIR)/spatial_data.hh \
-   $(SPBL_COMMON_DIR)/data_container.cc \
-   $(SPBL_COMMON_DIR)/data_container.hh \
-   $(SPBL_COMMON_DIR)/matrix.cc \
-   $(SPBL_COMMON_DIR)/matrix.hh \
-   $(SPBL_COMMON_DIR)/complex_vectors.hh \
-   $(SPBL_COMMON_DIR)/vectors.cc \
-   $(SPBL_COMMON_DIR)/vectors.hh \
-   $(SPBL_COMMON_DIR)/physics.hh \
-   $(SPBL_COMMON_DIR)/multi_index.hh \
-   $(SPBL_COMMON_DIR)/arithmetic.hh \
-   $(SPBL_COMMON_DIR)/simple_array.hh \
-   $(SPBL_COMMON_DIR)/definitions.hh \
-   $(SPBL_COMMON_DIR)/print_warn.hh \
-   $(SPBL_COMMON_DIR)/random.hh \
-   $(SPBL_COMMON_DIR)/rk_config.hh \
-   $(SPBL_COMMON_DIR)/gpu_config.hh
-
-main_test_trajectory_mswave_LDADD = $(GSL_LIBS)
 

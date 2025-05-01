@@ -38,14 +38,15 @@ SPECTRUM_DEVICE_FUNC double GeoVector::Phi(void) const
 
 /*!
 \author Vladimir Florinski
-\date 11/28/2024
+\date 04/30/2025
 */
 SPECTRUM_DEVICE_FUNC void GeoVector::RTP_XYZ(void)
 {
-   double xy = data[0] * sin(data[1]);
-   x = xy * cos(data[2]);
-   y = xy * sin(data[2]);
-   z = data[0] * cos(data[1]);
+   double r = data[0];
+   double sintheta = sin(data[1]);
+   x = r * sintheta * cos(data[2]);
+   y = r * sintheta * sin(data[2]);
+   z = r * sqrt(1.0 - Sqr(sintheta));
 };
 
 /*!
