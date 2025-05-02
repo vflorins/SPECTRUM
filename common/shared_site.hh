@@ -114,6 +114,9 @@ public:
    void Share(void);
 };
 
+//! Dummy specialization for void datatype
+template <> class SharedSite<void> {};
+
 /*!
 \author Vladimir Florinski
 \date 01/16/2025

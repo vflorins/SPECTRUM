@@ -64,9 +64,13 @@ inline void ExchangePartCount(int q, int* part_count)
 
 Extends the StencilBlock class with (a) storage for conserved variables and (b) buffers for variable exchange between neighboring blocks
 */
-template <int verts_per_face, typename datatype>
+template <int verts_per_face, typename _datatype>
 class BufferedBlock : public StenciledBlock<verts_per_face>
 {
+public:
+
+   using datatype = _datatype;
+
 protected:
 
    using SphericalSlab::n_shells;
@@ -137,7 +141,7 @@ public:
    BufferedBlock(const BufferedBlock& other);
 
 //! Move constructor
-   BufferedBlock(BufferedBlock&& other);
+   BufferedBlock(BufferedBlock&& other) noexcept;
 
 //! Constructor with arguments
    BufferedBlock(int width, int wghost, int height, int hghost);

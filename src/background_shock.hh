@@ -24,7 +24,7 @@ const std::string bg_name_shock = "BackgroundShock";
 \brief Constant EM field, mainly for testing
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase), r0_shock, n_shock, v_shock, u1, B1
+Parameters: (BackgroundBase), GeoVector r0_shock, GeoVector n_shock, double v_shock, GeoVector u1, GeoVector B1
 */
 class BackgroundShock : public BackgroundBase {
 

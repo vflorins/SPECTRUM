@@ -9,9 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMPLEX_VECTORS_HH
 #define SPECTRUM_COMPLEX_VECTORS_HH
 
-#include "common/simple_array.hh"
-#include "common/vectors.hh"
-#include "common/print_warn.hh"
+#include <common/simple_array.hh>
+#include <common/vectors.hh>
+#include <common/print_warn.hh>
 
 namespace Spectrum {
 
@@ -40,8 +40,17 @@ struct ComplexVector : public SimpleArray<std::complex<double>, 3>
 //! Computes the norm of this vector
    SPECTRUM_DEVICE_FUNC double Norm(void) const;
 
-//! Vector-multiply this by another vector
-   SPECTRUM_DEVICE_FUNC ComplexVector& operator ^=(const ComplexVector& other);
+//! Get the real part
+   SPECTRUM_DEVICE_FUNC GeoVector real(void) const;
+
+//! Get the imaginary part
+   SPECTRUM_DEVICE_FUNC GeoVector imag(void) const;
+
+//! Convert components from the standard basis to a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeToBasis(const GeoVector* basis);
+
+//! Convert components to the standard basis from a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeFromBasis(const GeoVector* basis);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -94,6 +103,54 @@ SPECTRUM_DEVICE_FUNC inline double ComplexVector::Norm(void) const
    return sqrt(std::norm(x) + std::norm(y) + std::norm(z));
 };
 
+/*!
+\author Vladimir Florinski
+\date 02/20/2025
+\return Real part
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector ComplexVector::real(void) const
+{
+   return GeoVector(x.real(), y.real(), z.real());
+};
+
+/*!
+\author Vladimir Florinski
+\date 02/20/2025
+\return Imaginary part
+*/
+SPECTRUM_DEVICE_FUNC inline GeoVector ComplexVector::imag(void) const
+{
+   return GeoVector(x.imag(), y.imag(), z.imag());
+};
+
+/*!
+\author Vladimir Florinski
+\date 02/21/2025
+\param[in] basis Three new basis vectors
+*/
+SPECTRUM_DEVICE_FUNC inline void ComplexVector::ChangeToBasis(const GeoVector* basis)
+{
+   ComplexVector vect_dif;
+   vect_dif.x = x * basis[0].x + y * basis[0].y + z * basis[0].z;
+   vect_dif.y = x * basis[1].x + y * basis[1].y + z * basis[1].z;
+   vect_dif.z = x * basis[2].x + y * basis[2].y + z * basis[2].z;
+   std::memcpy(data, vect_dif.data, sizeof(ComplexVector));
+};
+
+/*!
+\author Vladimir Florinski
+\date 02/20/2025
+\param[in] basis Three new basis vectors
+*/
+SPECTRUM_DEVICE_FUNC inline void ComplexVector::ChangeFromBasis(const GeoVector* basis)
+{
+   ComplexVector vect_std;
+   vect_std.x = x * basis[0].x + y * basis[1].x + z * basis[2].x;
+   vect_std.y = x * basis[0].y + y * basis[1].y + z * basis[2].y;
+   vect_std.z = x * basis[0].z + y * basis[1].z + z * basis[2].z;
+   std::memcpy(data, vect_std.data, sizeof(ComplexVector));
+};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Other methods operating on vectors
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,39 +166,39 @@ SPECTRUM_DEVICE_FUNC inline double ComplexVector::Norm(void) const
 SPECTRUM_DEVICE_FUNC inline ComplexVector operator *(std::complex<double> a, const GeoVector& vect_r)
 {
    ComplexVector retval(vect_r);
-   retval[0] *= a;
-   retval[1] *= a;
-   retval[2] *= a;
+   retval.x *= a;
+   retval.y *= a;
+   retval.z *= a;
    return retval;
 };
 
 /*!
-\brief Return a scalar product of two complex vectors
+\brief Return a scalar product of a complex and a real vector
 \author Vladimir Florinski
-\date 12/09/2024
+\date 02/20/2025
 \param[in] cvec_l Left operand \f$\mathbf{v}_1\f$
-\param[in] cvec_r Right operand \f$\mathbf{v}_2\f$
+\param[in] vec_r  Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
 */
-SPECTRUM_DEVICE_FUNC inline std::complex<double> operator *(const ComplexVector& cvec_l, const ComplexVector& cvec_r)
+SPECTRUM_DEVICE_FUNC inline std::complex<double> operator *(const ComplexVector& cvec_l, const GeoVector& vec_r)
 {
-   return cvec_l.ScalarProd(cvec_r);
+   return cvec_l.x * vec_r.x + cvec_l.y * vec_r.y + cvec_l.z * vec_r.z;
 };
 
 /*!
-\brief Compute a vector product of two complex vectors
+\brief Compute a vector product of a complex and a real vector
 \author Vladimir Florinski
 \date 12/09/2024
 \param[in] cvec_l Left operand \f$\mathbf{v}_1\f$
-\param[in] cvec_r Right operand \f$\mathbf{v}_2\f$
+\param[in] vec_r  Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
 */
-SPECTRUM_DEVICE_FUNC inline ComplexVector operator ^(const ComplexVector& cvec_l, const ComplexVector& cvec_r)
+SPECTRUM_DEVICE_FUNC inline ComplexVector operator ^(const ComplexVector& cvec_l, const GeoVector& vec_r)
 {
    ComplexVector retval;
-   retval.x = cvec_l.y * cvec_r.z - cvec_l.z * cvec_r.y;
-   retval.y = cvec_l.z * cvec_r.x - cvec_l.x * cvec_r.z;
-   retval.z = cvec_l.x * cvec_r.y - cvec_l.y * cvec_r.x;
+   retval.x = cvec_l.y * vec_r.z - cvec_l.z * vec_r.y;
+   retval.y = cvec_l.z * vec_r.x - cvec_l.x * vec_r.z;
+   retval.z = cvec_l.x * vec_r.y - cvec_l.y * vec_r.x;
    return retval;
 };
 
@@ -150,9 +207,9 @@ SPECTRUM_DEVICE_FUNC inline ComplexVector operator ^(const ComplexVector& cvec_l
 \author Vladimir Florinski
 \date 12/09/2024
 \param[in] M Three row vectors representing the matrix
-\return Null vector of the matrix
+\return Null vector of the matrix with unit complex amplitude
 */
-SPECTRUM_DEVICE_FUNC inline ComplexVector NullVector(const ComplexVector M[3])
+SPECTRUM_DEVICE_FUNC inline ComplexVector NullVectorZ(const ComplexVector M[3])
 {
    std::complex<double> m1, m2;
    ComplexVector null_vec(0.0, 0.0, 0.0);

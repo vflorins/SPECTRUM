@@ -56,7 +56,7 @@ protected:
    void ModifyUr(const double r, double &ur_mod) override;
 
 //! Radial derivative of radial flow
-   double dUrdr(const double r)
+   double dUrdr(const double r);
 
 //! Get time lag for time dependent current sheet (if necessary)
    double TimeLag(const double r) override;

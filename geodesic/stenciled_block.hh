@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <eigen3/Eigen/Dense>
 
-#include "geodesic/grid_block.hh"
+#include <geodesic/grid_block.hh>
 
 namespace Spectrum {
 
@@ -118,7 +118,7 @@ public:
    StenciledBlock(const StenciledBlock& other);
 
 //! Move constructor
-   StenciledBlock(StenciledBlock&& other);
+   StenciledBlock(StenciledBlock&& other) noexcept;
 
 //! Constructor with arguments
    StenciledBlock(int width, int wghost, int height, int hghost);

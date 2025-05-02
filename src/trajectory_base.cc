@@ -7,15 +7,14 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "trajectory_base.hh"
-#include "common/print_warn.hh"
-#include <fstream>
+#include <common/print_warn.hh>
+#include <src/trajectory_base.hh>
 
 namespace Spectrum {
 
 #ifdef GEO_DEBUG
 //! Upper limit on the number of steps in debug mode, use -1 for unlimited
-const unsigned int n_max_calls = -1;
+constexpr unsigned int n_max_calls = -1;
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,7 +244,7 @@ catch (ExBoundaryError& exception) {
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/08/2024
+\date 02/21/2025
 */
 void TrajectoryBase::CommonFields(void)
 try {
@@ -262,12 +261,14 @@ catch (ExCoordinates& exception) {
    throw;
 }
 
-catch (ExFieldError& exception) {
+#if SERVER_TYPE != SERVER_SELF
+catch (ExServerError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
+#endif
 
-catch (ExServerError& exception) {
+catch (ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -275,7 +276,7 @@ catch (ExServerError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 10/08/2024
+\date 02/21/2025
 \param[in]  t_in   Time at which to compute fields
 \param[in]  pos_in Position at which to compute fields
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
@@ -296,12 +297,14 @@ catch (ExCoordinates& exception) {
    throw;
 }
 
-catch (ExFieldError& exception) {
+#if SERVER_TYPE != SERVER_SELF
+catch (ExServerError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 }
+#endif
 
-catch (ExServerError& exception) {
+catch (ExFieldError& exception) {
    RAISE_BITS(_status, TRAJ_DISCARD);
    throw;
 };
@@ -804,7 +807,7 @@ GeoVector TrajectoryBase::GetPosition(double t_in) const
    if (pt < 0) return traj_pos[0];
    else return weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
 #else
-   std::cout << "Cannot get position with respect to time because it is not being recorded." << std::endl;
+   std::cerr << "Cannot get position with respect to time because it is not being recorded." << std::endl;
    return gv_zeros;
 #endif
 };
@@ -837,7 +840,7 @@ GeoVector TrajectoryBase::GetVelocity(double t_in) const
       return weight * (vel1 / mom1) * traj_mom[pt] + (1.0 - weight) * (vel2 / mom2) * traj_mom[pt + 1];
    };
 #else
-   std::cout << "Cannot get velocity with respect to time because it is not being recorded." << std::endl;
+   std::cerr << "Cannot get velocity with respect to time because it is not being recorded." << std::endl;
    return gv_zeros;
 #endif
 };
@@ -858,7 +861,7 @@ double TrajectoryBase::GetEnergy(double t_in) const
    if (pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
    else return weight * EnrKin(traj_mom[pt].Norm(), specie) + (1.0 - weight) * EnrKin(traj_mom[pt + 1].Norm(), specie);
 #else
-   std::cout << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
+   std::cerr << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
    return 0.0;
 #endif
 };
@@ -885,7 +888,7 @@ double TrajectoryBase::GetDistance(double t_in) const
 
    return length;
 #else
-   std::cout << "Cannot get distance along trajectory because it is not being recorded." << std::endl;
+   std::cerr << "Cannot get distance along trajectory because it is not being recorded." << std::endl;
    return 0.0;
 #endif
 };
@@ -1113,7 +1116,7 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
 
    trajfile.close();
 #else
-   std::cout << "Cannot print trajectory because it is not being recorded." << std::endl;
+   std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
    return;
 #endif
 };
@@ -1146,7 +1149,7 @@ void TrajectoryBase::PrintCSV(const std::string traj_name, bool phys_units, unsi
 
    trajfile.close();
 #else
-   std::cout << "Cannot print trajectory because it is not being recorded." << std::endl;
+   std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
    return;
 #endif
 };

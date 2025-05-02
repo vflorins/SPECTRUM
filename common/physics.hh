@@ -121,6 +121,11 @@ constexpr double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_partic
                        2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
                             -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
 
+//! Masses of particles comprising the fluids
+constexpr double mass_fluid[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
+                                 GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
+                           2.0 * GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle};
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -412,7 +417,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp
 */
 SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = 0)
 {
-   return mom * c_code / charge[isp];
+   return mom * c_code / fabs(charge[isp]);
 };
 
 /*!
@@ -466,7 +471,7 @@ SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B, unsi
 */
 SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B, unsigned int isp = 0)
 {
-   return mom * c_code / (charge_mass_particle * charge[isp] * B);
+   return mom * c_code / (charge_mass_particle * fabs(charge[isp]) * B);
 };
 
 /*!
@@ -511,7 +516,7 @@ SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsign
 */
 SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp = 0)
 {
-   return sqrt(M_4PI * den) * charge_mass_particle * charge[isp] / mass[isp];
+   return sqrt(M_4PI * den) * charge_mass_particle * fabs(charge[isp]) / mass[isp];
 };
 
 /*!

@@ -14,9 +14,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <iomanip>
 #endif
 
-#include "common/definitions.hh"
-#include "common/print_warn.hh"
-#include "geodesic/geodesic_sector.hh"
+#include <common/definitions.hh>
+#include <common/print_warn.hh>
+#include <geodesic/geodesic_sector.hh>
 
 namespace Spectrum {
 
@@ -27,11 +27,9 @@ namespace Spectrum {
 /*!
 \author Vladimir Florinski
 \date 01/08/2025
-\note The default constructor for "PolygonalAddressing" calls its "Setup()" method
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(void)
-                                                   : PolygonalAddressing<verts_per_face>()
+GeodesicSector<verts_per_face>::GeodesicSector(void)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -44,11 +42,9 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(void)
 \author Vladimir Florinski
 \date 01/08/2025
 \param[in] other Object to initialize from
-\note The copy constructor for "PolygonalAddressing" calls its "Setup()" method
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(const GeodesicSector& other)
-                                                   : PolygonalAddressing<verts_per_face>(static_cast<const PolygonalAddressing<verts_per_face>&>(other))
+GeodesicSector<verts_per_face>::GeodesicSector(const GeodesicSector& other)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -63,24 +59,24 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(const Geodes
 \author Vladimir Florinski
 \date 01/08/2025
 \param[in] other Object to move into this
-\note The move constructor for "PolygonalAddressing" calls its "Setup()" method
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(GeodesicSector&& other)
-                                                   : PolygonalAddressing<verts_per_face>(std::move(static_cast<PolygonalAddressing<verts_per_face>&&>(other)))
+GeodesicSector<verts_per_face>::GeodesicSector(GeodesicSector&& other) noexcept
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Move constructing a GeodesicSector\n";
+   std::cerr << "Move constructing a GeodesicSector (moving the content)\n";
 #endif
 #endif
 
-   if (other.side_length == -1) return;
+   if (other.side_length == -1) {
+      PrintMessage(__FILE__, __LINE__, "Move constructor called, but the dimension of the moved object was not set", true);
+      return;
+   };
 
    side_length = other.side_length;
    ghost_width = other.ghost_width;
    total_length = other.total_length;
-   other.side_length = -1;
 
    n_verts = other.n_verts;
    n_verts_withghost = other.n_verts_withghost;
@@ -145,8 +141,7 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(GeodesicSect
 \param[in] wgohst Width of the ghost cell layer outside the sector
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(int width, int wghost)
-                                                   : PolygonalAddressing<verts_per_face>()
+GeodesicSector<verts_per_face>::GeodesicSector(int width, int wghost)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -162,7 +157,7 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::GeodesicSector(int width, i
 \date 07/23/2019
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::~GeodesicSector()
+GeodesicSector<verts_per_face>::~GeodesicSector(void)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -181,11 +176,11 @@ SPECTRUM_DEVICE_FUNC GeodesicSector<verts_per_face>::~GeodesicSector()
 \param[in] construct Unused, but included for consistency with derived classes
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::SetDimensions(int width, int wghost, bool construct)
+void GeodesicSector<verts_per_face>::SetDimensions(int width, int wghost, bool construct)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Setting dimensions for a GeodesicSector\n";
+   std::cerr << "Setting dimension of " << width << " for a GeodesicSector\n";
 #endif
 #endif
 
@@ -260,8 +255,14 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::SetDimensions(int widt
 \date 07/23/2019
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FreeStorage(void)
+void GeodesicSector<verts_per_face>::FreeStorage(void)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Freeing storage for a GeodesicSector\n";
+#endif
+#endif
+
 // Free up masks
    delete[] vert_mask;
    delete[] edge_mask;
@@ -302,7 +303,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FreeStorage(void)
 \date 05/21/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::ComputeIndices(void)
+void GeodesicSector<verts_per_face>::ComputeIndices(void)
 {
    int i, j, etype, vert, edge, face;
    std::pair base_vert = std::make_pair(0, 0);
@@ -395,7 +396,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::ComputeIndices(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertVertConn(void)
+void GeodesicSector<verts_per_face>::VertVertConn(void)
 {
    int i, j, i1, j1, vert, iv;
 
@@ -433,7 +434,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertVertConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertEdgeConn(void)
+void GeodesicSector<verts_per_face>::VertEdgeConn(void)
 {
    int i, j, i1, j1, vert, ie, etype;
 
@@ -465,7 +466,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertEdgeConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertFaceConn(void)
+void GeodesicSector<verts_per_face>::VertFaceConn(void)
 {
    int i, j, i1, j1, vert, it;
 
@@ -496,7 +497,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::VertFaceConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::EdgeVertConn(void)
+void GeodesicSector<verts_per_face>::EdgeVertConn(void)
 {
    int i, j, i1, j1, edge, iv, etype;
 
@@ -535,7 +536,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::EdgeVertConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::EdgeFaceConn(void)
+void GeodesicSector<verts_per_face>::EdgeFaceConn(void)
 {
    int i, j, i1, j1, edge, it, etype;
 
@@ -568,7 +569,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::EdgeFaceConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FaceVertConn(void)
+void GeodesicSector<verts_per_face>::FaceVertConn(void)
 {
    int i, j, i1, j1, face, iv;
    
@@ -604,7 +605,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FaceVertConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FaceEdgeConn(void)
+void GeodesicSector<verts_per_face>::FaceEdgeConn(void)
 {
    int i, j, i1, j1, face, ie, etype;
 
@@ -635,7 +636,7 @@ SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FaceEdgeConn(void)
 \date 05/07/2024
 */
 template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC void GeodesicSector<verts_per_face>::FaceFaceConn(void)
+void GeodesicSector<verts_per_face>::FaceFaceConn(void)
 {
    int i, j, i1, j1, face, it;
    
@@ -678,19 +679,19 @@ void GeodesicSector<verts_per_face>::PrintAddresses(int type) const
    switch (type) {
 
    case 1:
-      std::cout << "Printing vertex addresses\n";
+      std::cerr << "Printing vertex addresses\n";
       PrintConnectivity(total_length + 1, total_length + 1, 0, vert_index_sector);
       break;
 
    case 2:
-      std::cout << "Printing edge addresses\n";
+      std::cerr << "Printing edge addresses\n";
       for(auto etype = 0; etype < cardinal_directions; etype++) {
          PrintConnectivity(total_length + 1, total_length + 1, 0, edge_index_sector[etype]);
       };
       break;
 
    case 3:
-      std::cout << "Printing face addresses\n";
+      std::cerr << "Printing face addresses\n";
       PrintConnectivity(total_length, square_fill * total_length - 1, 0, face_index_sector);
       break;
    };
@@ -709,42 +710,42 @@ void GeodesicSector<verts_per_face>::PrintConn(int type) const
    switch (type) {
 
    case 1:
-      std::cout << "Printing vert-vert connectivity\n";
+      std::cerr << "Printing vert-vert connectivity\n";
       PrintConnectivity(n_verts_withghost, edges_per_vert, 0, vv_local);
       break;
 
    case 2:
-      std::cout << "Printing vert-edge connectivity\n";
+      std::cerr << "Printing vert-edge connectivity\n";
       PrintConnectivity(n_verts_withghost, edges_per_vert, 0, ve_local);
       break;
 
    case 3:
-      std::cout << "Printing vert-face connectivity\n";
+      std::cerr << "Printing vert-face connectivity\n";
       PrintConnectivity(n_verts_withghost, edges_per_vert, 0, vf_local);
       break;
 
    case 4:
-      std::cout << "Printing edge-vert connectivity for block\n";
+      std::cerr << "Printing edge-vert connectivity for block\n";
       PrintConnectivity(n_edges_withghost, 2, 0, ev_local);
       break;
 
    case 6:
-      std::cout << "Printing edge-face connectivity for block\n";
+      std::cerr << "Printing edge-face connectivity for block\n";
       PrintConnectivity(n_edges_withghost, 2, 0, ef_local);
       break;
 
    case 7:
-      std::cout << "Printing face-vert connectivity for block\n";
+      std::cerr << "Printing face-vert connectivity for block\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, fv_local);
       break;
 
    case 8:
-      std::cout << "Printing face-edge connectivity for block\n";
+      std::cerr << "Printing face-edge connectivity for block\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, fe_local);
       break;
 
    case 9:
-      std::cout << "Printing face-face connectivity for block\n";
+      std::cerr << "Printing face-face connectivity for block\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, ff_local);
       break;
    };
@@ -763,41 +764,41 @@ void GeodesicSector<verts_per_face>::PrintMask(int type) const
    switch (type) {
 
    case 1:
-      std::cout << "Printing vertex mask\n";
+      std::cerr << "Printing vertex mask\n";
       for (auto vert = 0; vert < n_verts_withghost; vert++) {
-         std::cout << std::setw(6) << vert << " | ";
+         std::cerr << std::setw(6) << vert << " | ";
          bitselect = 1;
          while (bitselect) {
-            std::cout << std::setw(2) << bool(vert_mask[vert] & bitselect);
+            std::cerr << std::setw(2) << bool(vert_mask[vert] & bitselect);
             bitselect <<= 1;
          };
-         std::cout << std::endl;
+         std::cerr << std::endl;
       };
       break;
 
    case 2:
-      std::cout << "Printing edge mask\n";
+      std::cerr << "Printing edge mask\n";
       for (auto edge = 0; edge < n_edges_withghost; edge++) {
-         std::cout << std::setw(6) << edge << " | ";
+         std::cerr << std::setw(6) << edge << " | ";
          bitselect = 1;
          while (bitselect) {
-            std::cout << std::setw(2) << bool(edge_mask[edge] & bitselect);
+            std::cerr << std::setw(2) << bool(edge_mask[edge] & bitselect);
             bitselect <<= 1;
          };
-         std::cout << std::endl;
+         std::cerr << std::endl;
       };
       break;
 
    case 3:
-      std::cout << "Printing face mask\n";
+      std::cerr << "Printing face mask\n";
       for (auto face = 0; face < n_faces_withghost; face++) {
-         std::cout << std::setw(6) << face << " | ";
+         std::cerr << std::setw(6) << face << " | ";
          bitselect = 1;
          while (bitselect) {
-            std::cout << std::setw(2) << bool(face_mask[face] & bitselect);
+            std::cerr << std::setw(2) << bool(face_mask[face] & bitselect);
             bitselect <<= 1;
          };
-         std::cout << std::endl;
+         std::cerr << std::endl;
       };
       break;
    };

@@ -125,6 +125,9 @@ public:
 
 };
 
+//! Dummy specialization for void datatype
+template <> class CommunicationSite<void> {};
+
 /*!
 \author Vladimir Florinski
 \date 01/16/2025

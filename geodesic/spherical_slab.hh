@@ -9,8 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SPHERICAL_SLAB_HH
 #define SPECTRUM_SPHERICAL_SLAB_HH
 
-#include "common/gpu_config.hh"
-#include "common/print_warn.hh"
+#include <common/print_warn.hh>
 
 namespace Spectrum {
 
@@ -60,25 +59,41 @@ protected:
 public:
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC SphericalSlab(void) = default;
+   SPECTRUM_DEVICE_FUNC SphericalSlab(void);
 
 //! Copy constructor
    SPECTRUM_DEVICE_FUNC SphericalSlab(const SphericalSlab& other);
 
 //! Move constructor
-   SPECTRUM_DEVICE_FUNC SphericalSlab(SphericalSlab&& other);
+   SPECTRUM_DEVICE_FUNC SphericalSlab(SphericalSlab&& other) noexcept;
 
-//! Construtor with parameters
+//! Constructor with parameters
    SPECTRUM_DEVICE_FUNC SphericalSlab(int height, int hghost);
+
+//! Destructor
+   SPECTRUM_DEVICE_FUNC ~SphericalSlab(void);
+
+//! Set the slab dimensions
+   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
 
 //! Return the number of r-shells excluding ghost
    SPECTRUM_DEVICE_FUNC int InteriorShells(void) const {return n_shells;};
 
 //! Return the number of r-shells including ghost
    SPECTRUM_DEVICE_FUNC int TotalShells(void) const {return n_shells_withghost;};
+};
 
-//! Set the slab dimensions
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
+/*!
+\author Vladimir Florinski
+\date 03/07/2025
+*/
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(void)
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Default constructing a SphericalSlab\n";
+#endif
+#endif
 };
 
 /*!
@@ -88,6 +103,11 @@ public:
 */
 SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Copy constructing a SphericalSlab\n";
+#endif
+#endif
    if(other.n_shells != -1) SetDimensions(other.n_shells, other.ghost_height, true);
 };
 
@@ -96,8 +116,14 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& ot
 \date 01/08/2025
 \param[in] other Object to move into this
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other)
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other) noexcept
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Move constructing a SphericalSlab\n";
+#endif
+#endif
+
    if(other.n_shells == -1) return;
 
    SetDimensions(other.n_shells, other.ghost_height, true);
@@ -112,7 +138,54 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other)
 */
 SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Argument constructing a SphericalSlab\n";
+#endif
+#endif
+
    SetDimensions(height, hghost, true);
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/07/2025
+*/
+SPECTRUM_DEVICE_FUNC inline SphericalSlab::~SphericalSlab(void)
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Destructing a SphericalSlab\n";
+#endif
+#endif
+};
+
+/*!
+\author Vladimir Florinski
+\date 02/19/2020
+\param[in] width     Height of the slab, without ghost cells
+\param[in] hghost    Height of the ghost cell layer outside the slab
+\param[in] construct Set to true when called from a constructor
+*/
+SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Setting dimension of " << height << " for a SphericalSlab\n";
+#endif
+#endif
+
+   if ((height < min_block_height) || (height > max_block_height) || (hghost < min_ghost_height) || (hghost > max_ghost_height)) {
+      PrintError(__FILE__, __LINE__, "Cannot allocate a slab with these dimensions", true);
+      return;
+   };
+
+// Set up the grid dimensions
+   n_shells = height;
+   n_ifaces = n_shells + 1;
+   ghost_height = hghost;
+   n_shells_withghost = n_shells + 2 * ghost_height;
+   n_ifaces_withghost = n_shells_withghost + 1;
 };
 
 /*!
@@ -137,28 +210,6 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell(int kstart, int 
 SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShellOfSlab(int k) const
 {
    return (k >= ghost_height) && (k <= n_shells_withghost - 1 - ghost_height);
-};
-
-/*!
-\author Vladimir Florinski
-\date 02/19/2020
-\param[in] width     Height of the slab, without ghost cells
-\param[in] hghost    Height of the ghost cell layer outside the slab
-\param[in] construct Set to true when called from a constructor
-*/
-SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
-{
-   if ((height < min_block_height) || (height > max_block_height) || (hghost < min_ghost_height) || (hghost > max_ghost_height)) {
-      PrintError(__FILE__, __LINE__, "Cannot allocate a slab with these dimensions", true);
-      return;
-   };
-
-// Set up the grid dimensions
-   n_shells = height;
-   n_ifaces = n_shells + 1;
-   ghost_height = hghost;
-   n_shells_withghost = n_shells + 2 * ghost_height;
-   n_ifaces_withghost = n_shells_withghost + 1;
 };
 
 };

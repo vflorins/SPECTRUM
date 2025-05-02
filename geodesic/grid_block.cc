@@ -9,13 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#ifdef GEO_DEBUG
-#include <iostream>
-#include <iomanip>
-#endif
-
-#include "common/physics.hh"
-#include "geodesic/grid_block.hh"
+#include <common/physics.hh>
+#include <geodesic/grid_block.hh>
 
 namespace Spectrum {
 
@@ -37,8 +32,6 @@ GridBlock<verts_per_face>::GridBlock(void)
    std::cerr << "Default constructing a GridBlock\n";
 #endif
 #endif
-
-   Setup();
 };
 
 /*!
@@ -59,12 +52,12 @@ GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
 #endif
 #endif
 
-   Setup();
-   if (other.side_length != -1) SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
-   block_index = other.block_index;
-   if (other.mesh_associated) {
-      AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
-   };
+   if (other.side_length == -1) return;
+   SetDimensions(other.side_length, other.ghost_width, other.n_shells, other.ghost_height, true);
+   SetIndex(other.block_index);
+
+   if (!other.mesh_associated) return;
+   AssociateMesh(other.xi_in[0], other.xi_in[n_shells_withghost], other.corner_type, other.border_type, other.block_vert_cart, other.dist_map, true);
 };
 
 /*!
@@ -74,18 +67,20 @@ GridBlock<verts_per_face>::GridBlock(const GridBlock& other)
 \note The move constructor for "SphericalSlab" calls its "SetDimensions()" method
 */
 template <int verts_per_face>
-GridBlock<verts_per_face>::GridBlock(GridBlock&& other)
+GridBlock<verts_per_face>::GridBlock(GridBlock&& other) noexcept
                          : SphericalSlab(std::move(static_cast<SphericalSlab&&>(other))),
                            GeodesicSector<verts_per_face>(std::move(static_cast<GeodesicSector<verts_per_face>&&>(other)))
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Move constructing a GridBlock\n";
+   std::cerr << "Move constructing a GridBlock (moving the content)\n";
 #endif
 #endif
 
-   Setup();
-   if (other.side_length == -1) return;
+   if (other.side_length == -1) {
+      PrintMessage(__FILE__, __LINE__, "Move constructor called, but the dimension of the moved object was not set", true);
+      return;
+   };
 
 // Copy the radial grid properties
    Rmin = other.Rmin;
@@ -115,26 +110,24 @@ GridBlock<verts_per_face>::GridBlock(GridBlock&& other)
    dist_map = std::move(other.dist_map);
 
 // Copy the geodesic mesh properties
-   block_index = other.block_index;
+   SetIndex(other.block_index);
    mesh_associated = other.mesh_associated;
    n_singular = other.n_singular;
    std::memcpy(border_type, other.border_type, 2 * sizeof(bool));
    std::memcpy(corner_type, other.corner_type, verts_per_face * sizeof(bool));
-   other.block_index = -1;
 
 // Move the duplicate element arrays
    std::memcpy(dup_vert, other.dup_vert, verts_per_face * sizeof(int**));
-   std::memcpy(dup_edge, other.dup_edge, verts_per_face * sizeof(int**));
-   missing_faces = other.missing_faces;
    other.dup_vert[0] = nullptr;
-   other.dup_edge[0] = nullptr;
-   other.missing_faces = nullptr;
 
 // Move the vertex coordinates
    block_vert_cart = other.block_vert_cart;
    other.block_vert_cart = nullptr;
    
 #ifdef USE_SILO
+
+   n_verts_silo = other.n_verts_silo;
+   n_faces_silo = other.n_faces_silo;
 
 // Move the SILO index arrays
    vert_to_silo = other.vert_to_silo;
@@ -168,7 +161,6 @@ GridBlock<verts_per_face>::GridBlock(int width, int wghost, int height, int hgho
 #endif
 #endif
 
-   Setup();
    SetDimensions(width, wghost, height, hghost, true);
 };
 
@@ -177,7 +169,7 @@ GridBlock<verts_per_face>::GridBlock(int width, int wghost, int height, int hgho
 \date 05/16/2018
 */
 template <int verts_per_face>
-GridBlock<verts_per_face>::~GridBlock()
+GridBlock<verts_per_face>::~GridBlock(void)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -202,7 +194,7 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Setting dimensions for a GridBlock\n";
+   std::cerr << "Setting dimensions " << width << " by " << height << " for a GridBlock\n";
 #endif
 #endif
 
@@ -217,12 +209,7 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
 
 // Allocate duplicate element lists (used for singular corners). We use contiguous storage so that the corners are stored in sequence and can be addressed as a single array.
    dup_vert[0] = Create2D<int>(verts_per_face * (ghost_width + 1), 2);
-   dup_edge[0] = Create2D<int>(verts_per_face * ghost_width, 2);
-   for (auto corner = 1; corner < verts_per_face; corner++) {
-      dup_vert[corner] = dup_vert[corner - 1] + ghost_width + 1;
-      dup_edge[corner] = dup_edge[corner - 1] + ghost_width;
-   };
-   missing_faces = Create2D<int>(3, verts_per_face * FaceCount(ghost_width));
+   for (auto corner = 1; corner < verts_per_face; corner++) dup_vert[corner] = dup_vert[corner - 1] + ghost_width + 1;
 
 // Allocate coordinates
    block_vert_cart = new GeoVector[n_verts_withghost];
@@ -253,6 +240,12 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
 template <int verts_per_face>
 void GridBlock<verts_per_face>::FreeStorage()
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Freeing storage for a GridBlock\n";
+#endif
+#endif
+
 // Free up radial arrays
    delete[] xi_in;
    delete[] r_in;
@@ -278,8 +271,6 @@ void GridBlock<verts_per_face>::FreeStorage()
 
 // Free up duplicate element lists
    Delete2D(dup_vert[0]);
-   Delete2D(dup_edge[0]);
-   Delete2D(missing_faces);
 };
 
 /*!
@@ -304,14 +295,15 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
 #endif
 
 // The dimensions were not set, cannot proceed.
-   if (side_length == -1) return;
-
-   int k, iv;
+   if (side_length == -1) {
+      PrintError(__FILE__, __LINE__, "Cannot associate mesh: block is not initialized", true);
+      return;
+   };
 
 // Copy border information and correct connectivity at singular corners
    memcpy(corner_type, corners, verts_per_face * sizeof(bool));
    n_singular = 0;
-   for (iv = 0; iv < verts_per_face; iv++) {
+   for (auto iv = 0; iv < verts_per_face; iv++) {
       if (corners[iv]) n_singular++;
    };
    memcpy(border_type, borders, 2 * sizeof(bool));
@@ -326,7 +318,7 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
    dxi = (ximax - ximin) / n_shells;
 
 // Compute the interface coordinates using the supplied distance map
-   for (k = 0; k <= n_shells_withghost; k++) {
+   for (auto k = 0; k <= n_shells_withghost; k++) {
       xi_in[k] = ximin + (k - ghost_height) * dxi;
       r_in[k] = dist_map->GetPhysical(xi_in[k]);
       r2_in[k] = Sqr(r_in[k]);
@@ -334,7 +326,7 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
    };
 
 // Compute the midpoints and shell widths
-   for (k = 0; k < n_shells_withghost; k++) {
+   for (auto k = 0; k < n_shells_withghost; k++) {
       dr[k] = r_in[k + 1] - r_in[k];
       r_mp[k] = (r_in[k + 1] + r_in[k]) / 2.0;
    };
@@ -343,19 +335,30 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
    Rmin = dist_map->GetPhysical(0.0);
    Rmax = dist_map->GetPhysical(1.0);
    LogRmax_Rmin = log(Rmax / Rmin);
-   for (k = 0; k <= n_shells_withghost; k++) {
-      rp_in[k] = Rmin * pow(Rmax / Rmin, xi_in[k]);
-   };
-
-// Compute the EC shell widths
-   for (k = 0; k < n_shells_withghost; k++) {
-      drp[k] = rp_in[k + 1] - rp_in[k];
-   };
+   for (auto k = 0; k <= n_shells_withghost; k++) rp_in[k] = Rmin * pow(Rmax / Rmin, xi_in[k]);
+   for (auto k = 0; k < n_shells_withghost; k++) drp[k] = rp_in[k + 1] - rp_in[k];
    drp_ratio = drp[0] / rp_in[0];
 
 // Copy vertex coordinates
    memcpy(block_vert_cart, vcart, n_verts_withghost * sizeof(GeoVector));
    mesh_associated = true;
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/14/2025
+\param[in] index New block index
+*/
+template <int verts_per_face>
+void GridBlock<verts_per_face>::SetIndex(int index)
+{
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Setting index " << index << " for a GridBlock\n";
+#endif
+#endif
+
+   block_index = index;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -367,14 +370,14 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
 \date 05/08/2024
 */
 template <>
-constexpr void GridBlock<3>::Setup(void)
+constexpr void GridBlock<3>::StaticSetup(void)
 {
 //          2          2---------1          1          1---------0          0          0---------2
-//         / \          \       /          / \          \       /          / \          \       / 
-//        /   \          \     /          /   \          \     /          /   \          \     /  
-//       /     \          \   /          /     \          \   /          /     \          \   /   
-//      /       \          \ /          /       \          \ /          /       \          \ /    
-//     0---------1          0          2---------0          2          1---------2          1     
+//         / \          \       /          / \          \       /          / \          \       /
+//        /   \          \     /          /   \          \     /          /   \          \     /
+//       /     \          \   /          /     \          \   /          /     \          \   /
+//      /       \          \ /          /       \          \ /          /       \          \ /
+//     0---------1          0          2---------0          2          1---------2          1
 //
 //        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
 
@@ -435,9 +438,9 @@ constexpr void GridBlock<3>::Setup(void)
    rotated_faces[5][1][0] = -2; rotated_faces[5][1][1] =  1; rotated_faces[5][1][2] =  1;
 
 //                 5
-//               . . .     
-//             .   .   .   
-//           .     .     . 
+//               . . .
+//             .   .   .
+//           .     .     .
 //          1-------------2
 //          |      4      |
 //          |     . .     |
@@ -460,7 +463,7 @@ constexpr void GridBlock<3>::Setup(void)
 \date 05/08/2024
 */
 template <>
-constexpr void GridBlock<4>::Setup(void)
+constexpr void GridBlock<4>::StaticSetup(void)
 {
 //     3---------2     2---------1     1---------0     0---------3
 //     |         |     |         |     |         |     |         |
@@ -531,17 +534,21 @@ constexpr void GridBlock<4>::Setup(void)
 template <int verts_per_face>
 void GridBlock<verts_per_face>::FixSingularCorners(void)
 {
-   int i, j, i1, j1, i2, j2, etype, i_origin, j_origin, i_origin1, j_origin1, i_origin2, j_origin2;
-   int iv, iv1, iv2, iv3, iv4, ie, it, it1, it2;
-   int vert, vert1, vert2, edge, edge1, edge2, face, face1, face2, rot, vert_origin, face_origin, bl_side, bl_corner, n_mf;
-   bool dup_found;
-   std::pair base_vert = std::make_pair(0, 0);
-
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
    std::cerr << "Fixing singular corners for a GridBlock\n";
 #endif
 #endif
+
+   int i, j, i1, j1, i2, j2, etype, i_origin, j_origin, i_origin1, j_origin1, i_origin2, j_origin2;
+   int iv, iv1, iv2, iv3, iv4, ie, it, it1, it2;
+   int vert, vert1, vert2, edge, edge1, edge2, face, face1, face2, rot, vert_origin, face_origin, bl_side, bl_corner, n_mf;
+   bool dup_found;
+   std::pair base_vert = std::make_pair(0, 0);
+   int** dup_edge[verts_per_face];
+
+   dup_edge[0] = Create2D<int>(verts_per_face * ghost_width, 2);
+   for (auto corner = 1; corner < verts_per_face; corner++) dup_edge[corner] = dup_edge[corner - 1] + ghost_width;
 
 // Reset the "dup" arrays
    for (auto corner = 0; corner < verts_per_face; corner++) {
@@ -667,11 +674,6 @@ void GridBlock<verts_per_face>::FixSingularCorners(void)
             for (iv = 0; iv < verts_per_face; iv++) fv_local[face][iv] = -1;
             for (ie = 0; ie < verts_per_face; ie++) fe_local[face][ie] = -1;
             for (it = 0; it < verts_per_face; it++) ff_local[face][it] = -1;
-
-// Store the replacement faces. The first replacement face is clock-wise, and the second is counter-clockwise from the mising face.
-            missing_faces[0][n_mf] = face;
-            missing_faces[1][n_mf] = face_index_sector[i1][j1];
-            missing_faces[2][n_mf] = face_index_sector[i2][j2];
             n_mf++;
 
 // The steps in i and j are different in TAS for odd and even j_rot, but the same in QAS.
@@ -762,6 +764,8 @@ void GridBlock<verts_per_face>::FixSingularCorners(void)
          ff_local[face2][InList(verts_per_face, fe_local[face2], edge2)] = face1;
       };
    };
+
+   Delete2D(dup_edge[0]);
 };
 
 #ifdef USE_SILO
@@ -775,6 +779,12 @@ Grid blocks are saved as individual mesh objects. A visualizer (VisIt) must be a
 template <int verts_per_face>
 void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 3
+   std::cerr << "Generating SILO indexing for a GridBlock\n";
+#endif
+#endif
+
    int iv, it, vert, vert_silo, face, face_silo, idx_dup, imax, jmax;
    bool include_ghost;
    std::pair<int, int> base_vert = std::make_pair(square_fill * (ghost_width - 1), ghost_width - 1);
@@ -869,6 +879,12 @@ void GridBlock<verts_per_face>::GenerateSiloIndexing(void)
 template <int verts_per_face>
 int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) const
 {
+#ifdef GEO_DEBUG
+#if GEO_DEBUG_LEVEL >= 2
+   std::cerr << "Writing mesh for block " << block_index << "\n";
+#endif
+#endif
+
    int err, k, k1, k2, vert, vert_silo, face, face_silo, idx1, idx2, idx_dup, ivz, n_nodes, n_zones, n_intzones, lznodelist, xyz;
 
 // Total number of elements in the block. Notice that ghost cells are not added at the physical domain boundaries (innermost and outermost slabs) as required by SILO and VisIt.
