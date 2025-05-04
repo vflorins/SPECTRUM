@@ -45,9 +45,9 @@ function make_and_run {
 	make $1
 	if [ $2 -eq 1 ]
 	then
-		./$1 >> $results_file
+		cd output_data && ../$1 >> $results_file
 	else
-		mpirun -np $2 $1 $3 $4 >> $results_file
+		cd output_data && mpirun -np $2 ../$1 $3 $4 >> $results_file
 	fi
 }
 
