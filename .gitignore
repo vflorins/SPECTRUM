@@ -1,0 +1,20 @@
+
+# output
+benchmarks/output_data/
+
+# editor
+.idea/
+.vscode/
+*.user
+
+# build
+build/
+**/.deps/
+
+# autotools config
+config.h
+configure.ac
+*.log
+config.status
+configure
+Makefile
