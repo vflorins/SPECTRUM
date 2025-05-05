@@ -76,27 +76,27 @@ foreach(DIR IN LISTS PROJECT_WORKING_DIRS)
         endif()
     endforeach()
 endforeach()
-#message("The local files are: ${LOCAL_FILES}")
 
 
 # > SPECTRUM location
 if(EXISTS $ENV{SPECTRUM_HOME})
     set(SPECTRUM_HOME $ENV{SPECTRUM_HOME})
-    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}")
-    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}")
 else()
-    message("[spectrum.cmake] SPECTRUM_HOME is not defined.")
-    # > relative solution to find spectrum - assume we are in the spectrum tree somewhere and chop the curdir
-    set(SPECTRUM_HOME "/the/path/to/spectrum/")
-    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}")
-    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}")
+    if(EXISTS $ENV{SPECTRUM})
+        set(SPECTRUM_HOME $ENV{SPECTRUM})
+    else()
+        message("[spectrum.cmake] SPECTRUM_HOME is not defined.")
+        # > relative solution to find spectrum - assume we are in the spectrum tree somewhere and chop the curdir
+        set(SPECTRUM_HOME "/path/to/spectrum/")
+    endif()
 endif()
+set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}")
+set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}")
 # > build SPECTRUM source files list
 set(SPECTRUM_SOURCE_FILES)
 foreach(item IN LISTS SPECTRUM_FILES)
     list(APPEND SPECTRUM_SOURCE_FILES "${SPECTRUM_SOURCE_DIR}/${item}")
 endforeach()
-#message("The SPECTRUM files are: ${SPECTRUM_SOURCE_FILES}")
 
 
 add_executable(${PROJECT_NAME} ${LOCAL_FILES} ${SPECTRUM_SOURCE_FILES})
