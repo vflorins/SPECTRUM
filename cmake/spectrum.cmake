@@ -117,34 +117,41 @@ endif()
 
 
 set(BINARY_FULLNAME "${CMAKE_BINARY_DIR}/${PROJECT_NAME}")
+string(REPLACE ";" " " ARGS "${SPECTRUM_ARGS}")
+set(ARGS_ "${SPECTRUM_ARGS}")
+set(CONFIGURE_ "${SPECTRUM_CONFIGURE}")
+add_custom_target(autoconf
+    COMMAND cd ${SPECTRUM_HOME} && aclocal && autoconf && automake --add-missing
+    COMMENT "[autoreconf] > aclocal && autoconf && automake --add-missing"
+)
 add_custom_target(autoreconf
     COMMAND cd ${SPECTRUM_HOME} && autoreconf && automake --add-missing
     COMMENT "[autoreconf] > autoreconf && automake --add-missing"
 )
 add_custom_target(configure
-    COMMAND cd ${SPECTRUM_HOME} && ./configure CXXFLAGS=\"-Ofast\" ${SPECTRUM_CONFIGURE}
-    COMMENT "[configure] > configure ${SPECTRUM_CONFIGURE}"
+    COMMAND cd ${SPECTRUM_HOME} && ./configure CXXFLAGS=\"-Ofast\" ${CONFIGURE_}
+    COMMENT "[configure] > configure ${CONFIGURE_}"
 )
 add_custom_target(distclean
     COMMAND cd ${SPECTRUM_HOME} && make distclean
     COMMAND "[distclean] > make distclean"
 )
 add_custom_target(cpurun
-        COMMAND cd ${WORKING_DIR} && [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME}
-        COMMENT "[cpurun] > ${PROJECT_NAME}"
+        COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+        COMMENT "[cpurun] > ${PROJECT_NAME} ${ARGS}"
 )
 add_custom_target(cpurunhere
-        COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME}
-        COMMENT "[cpurunhere] > ${PROJECT_NAME}"
+        COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+        COMMENT "[cpurunhere] > ${PROJECT_NAME} ${ARGS}"
 )
 if(NUM_PROCESSES)
     add_custom_target(mpirun
-            COMMAND cd ${WORKING_DIR} && [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME}
-            COMMENT "[mpirun] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME}"
+            COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+            COMMENT "[mpirun] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
     )
     add_custom_target(mpirunhere
-            COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME}
-            COMMENT "[mpirunhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME}"
+            COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+            COMMENT "[mpirunhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
     )
 else()
     add_custom_target(mpirun

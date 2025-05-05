@@ -18,8 +18,13 @@ configure.ac
 *.log
 *.in
 config.status
+config.guess
+config.sub
 configure
 Makefile
+Makefile.in
+missing
+install-sh
 autom4te.cache/
 
 # other
