@@ -13,11 +13,14 @@ build/
 
 # autotools config
 config.h
+stamp-h1
 configure.ac
 *.log
+*.in
 config.status
 configure
 Makefile
+autom4te.cache/
 
 # other
 .DS_Store

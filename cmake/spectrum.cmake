@@ -44,7 +44,7 @@ endfunction()
 # > build local source files list
 set(WORKING_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(OUTPUT_STEM "output")
-# User can add directories to this list - but the local directory (where this file is included from)
+# User can add directories to this list - but the local directory (from where this file is included)
 # will always be used, recursing over its entire tree.
 set(PROJECT_WORKING_DIRS ${PROJECT_WORKING_DIRS} ${WORKING_DIR})
 foreach(DIR IN LISTS PROJECT_WORKING_DIRS)
@@ -52,17 +52,17 @@ foreach(DIR IN LISTS PROJECT_WORKING_DIRS)
     foreach(FILE1 IN LISTS FILES1)
         string(REPLACE "${DIR}/" "" FILE0 "${FILE1}")
         string(SUBSTRING ${FILE0} 0 1 HIDDEN_DOT)
-        # quick fix for now
+        # quick fixes for now
         if(FILE0 STREQUAL "CMakeLists.txt")
-            #            message("skipping CMakeLists...")
+#            message("skipping CMakeLists...")
         elseif(HIDDEN_DOT STREQUAL ".")
-            #            message("skipping hidden file...")
+#            message("skipping hidden file...")
         else()
             if(IS_DIRECTORY ${FILE1})
                 if(FILE1 STREQUAL ${CMAKE_BINARY_DIR})
-                    #                    message("skipping build directory...")
+#                    message("skipping build directory...")
                 elseif(FILE1 STREQUAL ${OUTPUT_STEM})
-                    message("skipping output directory...")
+#                    message("skipping output directory...")
                 else()
                     file(GLOB_RECURSE FILES
                             ${FILE1}/*.h ${FILE1}/*.hh ${FILE1}/*.hpp ${FILE1}/*.cuh
@@ -82,14 +82,14 @@ endforeach()
 # > SPECTRUM location
 if(EXISTS $ENV{SPECTRUM_HOME})
     set(SPECTRUM_HOME $ENV{SPECTRUM_HOME})
-    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}/SPECTRUM")
-    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}/SPECTRUM")
+    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}")
+    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}")
 else()
-    message("I think SPECTRUM_HOME is not defined...$ENV{SPECTRUM_HOME}")
+    message("[spectrum.cmake] SPECTRUM_HOME is not defined.")
     # > relative solution to find spectrum - assume we are in the spectrum tree somewhere and chop the curdir
     set(SPECTRUM_HOME "/the/path/to/spectrum/")
-    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}/SPECTRUM")
-    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}/SPECTRUM")
+    set(SPECTRUM_INCLUDE_DIR "${SPECTRUM_HOME}")
+    set(SPECTRUM_SOURCE_DIR "${SPECTRUM_HOME}")
 endif()
 # > build SPECTRUM source files list
 set(SPECTRUM_SOURCE_FILES)
@@ -111,19 +111,46 @@ if(USE_SILO)
     add_compile_definitions(USE_SILO)
     link_dependency(siloh5)
 endif()
+if(GEO_DEBUG)
+    add_compile_definitions(GEO_DEBUG)
+endif()
+
 
 set(BINARY_FULLNAME "${CMAKE_BINARY_DIR}/${PROJECT_NAME}")
+add_custom_target(autoreconf
+    COMMAND cd ${SPECTRUM_HOME} && autoreconf && automake --add-missing
+    COMMENT "[autoreconf] > autoreconf && automake --add-missing"
+)
+add_custom_target(configure
+    COMMAND cd ${SPECTRUM_HOME} && ./configure CXXFLAGS=\"-Ofast\" ${SPECTRUM_CONFIGURE}
+    COMMENT "[configure] > configure ${SPECTRUM_CONFIGURE}"
+)
+add_custom_target(distclean
+    COMMAND cd ${SPECTRUM_HOME} && make distclean
+    COMMAND "[distclean] > make distclean"
+)
 add_custom_target(cpurun
         COMMAND cd ${WORKING_DIR} && [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME}
         COMMENT "[cpurun] > ${PROJECT_NAME}"
+)
+add_custom_target(cpurunhere
+        COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME}
+        COMMENT "[cpurunhere] > ${PROJECT_NAME}"
 )
 if(NUM_PROCESSES)
     add_custom_target(mpirun
             COMMAND cd ${WORKING_DIR} && [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME}
             COMMENT "[mpirun] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME}"
     )
+    add_custom_target(mpirunhere
+            COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME}
+            COMMENT "[mpirunhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME}"
+    )
 else()
     add_custom_target(mpirun
             COMMAND echo "[mpirun] The number of processes `NUM_PROCESSES` is not set. Exit."
+    )
+    add_custom_target(mpirunhere
+            COMMAND echo "[mpirunhere] The number of processes `NUM_PROCESSES` is not set. Exit."
     )
 endif()
