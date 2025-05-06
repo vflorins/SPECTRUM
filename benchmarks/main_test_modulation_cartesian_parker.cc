@@ -54,7 +54,7 @@ int main(int argc, char** argv)
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-   std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
+   std::string fname_pattern = "../cartesian_backgrounds/parker_20_20_20";
    simulation->AddBackground(BackgroundServerCartesian(), container, fname_pattern);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -270,7 +270,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "output_data/test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();

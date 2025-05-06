@@ -218,7 +218,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "output_data/main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "DIPOLE FIELD DRIFT PERIODS" << std::endl;
    std::cout << "=========================================================" << std::endl;

@@ -12,7 +12,7 @@ int main(void)
    SpatialData spdata;
    int Nb = 20;
    std::string Nbs = std::to_string(Nb);
-   std::string fname_pattern = "cartesian_backgrounds/parker_" + Nbs + "_" + Nbs + "_" + Nbs;
+   std::string fname_pattern = "parker_" + Nbs + "_" + Nbs + "_" + Nbs;
 
 // Block configuration
    MultiIndex block_size (4, 4, 4); // Number of zones per block in each dimension

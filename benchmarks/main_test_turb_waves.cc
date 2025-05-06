@@ -176,7 +176,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
    
-   std::string trajectory_file = "output_data/main_test_turb_waves_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_turb_waves_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "TURBULENCE VIA SUPERPOSITION OF WAVES" << std::endl;
    std::cout << "=========================================================" << std::endl;
