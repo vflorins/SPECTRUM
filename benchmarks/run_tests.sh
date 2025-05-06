@@ -12,7 +12,7 @@ short_batch_size=100
 
 # Flags to select which tests to run
 # VISUAL TESTS
-dipole_visual_test=false
+dipole_visual_test=true
 turb_waves_test=false
 parker_spiral_test=false
 init_cond_record_test=false
@@ -45,10 +45,10 @@ function make_and_run {
 	make $1
 	if [ $2 -eq 1 ]
 	then
-		cd output_data && ../$1 >> $results_file
+		[ -d output_data ] || mkdir output_data && cd output_data && ../$1 >> $results_file
 	else
-		cd output_data && mpirun -np $2 ../$1 $3 $4 >> $results_file
-	fi
+		[ -d output_data ] || mkdir output_data && cd output_data && mpirun -np $2 ../$1 $3 $4 >> $results_file
+  fi
 }
 
 # Function to return exit code
