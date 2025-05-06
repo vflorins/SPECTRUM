@@ -171,7 +171,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "output_data/main_test_parker_spiral_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_parker_spiral_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
    std::cout << "=========================================================" << std::endl;
