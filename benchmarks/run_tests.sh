@@ -51,6 +51,7 @@ function make_and_run {
 	else
 		mpirun -np $3 ../$2 $4 $5 >> ../$results_file
 	fi
+	cd -
 }
 
 # Function to return exit code
