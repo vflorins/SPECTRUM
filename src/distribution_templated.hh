@@ -114,10 +114,6 @@ public:
    void PrintRecords(const std::string& file_name, bool phys_units) const override;
 };
 
-template class DistributionTemplated<double>;
-template class DistributionTemplated<GeoVector>;
-template class DistributionTemplated<GeoMatrix>;
-
 };
 
 #endif
