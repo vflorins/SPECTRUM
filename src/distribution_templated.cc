@@ -685,4 +685,8 @@ void DistributionTemplated<distroClass>::PrintRecords(const std::string& dist_na
    };
 };
 
+template class DistributionTemplated<double>;
+template class DistributionTemplated<GeoVector>;
+template class DistributionTemplated<GeoMatrix>;
+
 };
