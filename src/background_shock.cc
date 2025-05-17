@@ -48,7 +48,7 @@ BackgroundShock::BackgroundShock(const std::string& name_in, unsigned int specie
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/14/2022
+\date 05/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -59,7 +59,6 @@ void BackgroundShock::SetupBackground(bool construct)
    if (!construct) BackgroundBase::SetupBackground(false);
 
 // Unpack parameters
-   container.Read(r0_shock);
    container.Read(n_shock);
    container.Read(v_shock);
    container.Read(u1);
@@ -71,12 +70,12 @@ void BackgroundShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/14/2022
+\date 05/14/2025
 */
 void BackgroundShock::EvaluateBackground(void)
 {
 // Upstream
-   if ((_pos - r0_shock - v_shock * n_shock * _t) * n_shock > 0) {
+   if ((_pos - r0 - v_shock * n_shock * _t) * n_shock > 0) {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
       _spdata.region = 1.0;
