@@ -170,9 +170,11 @@ protected:
 //! Shell widths
    double* dr = nullptr;
 
-// FIXME - check if this is needed
 //! Shell midpoints, \f$(r_1+r_2)/2\f$
    double* r_mp = nullptr;
+
+//! Shell centroids
+   double* r_ct = nullptr;
 
 //! Shell widths in exponential coordinates
    double* drp = nullptr;

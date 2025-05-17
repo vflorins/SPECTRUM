@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cmath>
 #include <complex>
 
-#include "common/gpu_config.hh"
+#include <common/gpu_config.hh>
 
 namespace Spectrum {
 
@@ -411,6 +411,18 @@ SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T 
 
 // The interval has the same index as the _left_ interface
    return i1;
+};
+
+/*!
+\brief Number of edges at a vertex in an infinite tesselation
+\author Vladimir Florinski
+\date 07/02/2024
+\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC static constexpr int EdgesAtVert(void)
+{
+   return 2 * verts_per_face / (verts_per_face - 2);
 };
 
 /*!

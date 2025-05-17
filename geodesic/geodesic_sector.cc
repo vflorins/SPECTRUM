@@ -184,7 +184,7 @@ void GeodesicSector<verts_per_face>::SetDimensions(int width, int wghost, bool c
 #endif
 #endif
 
-   if ((width < min_block_width) || (width > max_block_width) || (wghost < min_ghost_width) || (wghost > max_ghost_width)) {
+   if ((wghost < min_ghost_width) || (wghost > max_ghost_width) || (width < min_width_to_ghost * wghost)) {
       PrintError(__FILE__, __LINE__, "Cannot allocate a sector with these dimensions", true);
       return;
    };
@@ -309,18 +309,19 @@ void GeodesicSector<verts_per_face>::ComputeIndices(void)
    std::pair base_vert = std::make_pair(0, 0);
 
 // Count all vertices (even non-existing)
-//
-//                    5 
-//                   / \                   2---------5---------8
-//                  /   \                  |         |         |
-//                 /     \                 |         |         |
-//                /       \                |         |         |
-//               2---------4               1---------4---------7
-//              / \       / \              |         |         |
-//             /   \     /   \             |         |         |
-//            /     \   /     \            |         |         |
-//           /       \ /       \           0---------3---------6
-//          0---------1---------3
+/*
+                      5 
+                     / \                   2---------5---------8
+                    /   \                  |         |         |
+                   /     \                 |         |         |
+                  /       \                |         |         |
+                 2---------4               1---------4---------7
+                / \       / \              |         |         |
+               /   \     /   \             |         |         |
+              /     \   /     \            |         |         |
+             /       \ /       \           0---------3---------6
+            0---------1---------3
+*/
 
    vert = 0;
    for (i = 0; i <= total_length; i++) {
@@ -338,17 +339,18 @@ void GeodesicSector<verts_per_face>::ComputeIndices(void)
 // TAS: S (type 0), NE (type 1), NW (type 2)
 // QAS: Horizontal (type 0), Vertical (type 1)
 //
-//                    -
-//                   / \                   -----2---------5-----
-//                  /   \                  |         |         |
-//                 8     5                 7         9        11
-//                /       \                |         |         |
-//               -----2-----               |----1----+----4----|
-//              / \       / \              |         |         |
-//             /   \     /   \             6         8        10
-//            6     3   7     4            |         |         |
-//           /       \ /       \           -----0---------3-----
-//          -----0---------1-----
+/*                    -
+                     / \                   -----2---------5-----
+                    /   \                  |         |         |
+                   8     5                 7         9        11
+                  /       \                |         |         |
+                 -----2-----               |----1----+----4----|
+                / \       / \              |         |         |
+               /   \     /   \             6         8        10
+              6     3   7     4            |         |         |
+             /       \ /       \           -----0---------3-----
+            -----0---------1-----
+*/
 
    edge = 0;
    for (etype = 0; etype < cardinal_directions; etype++) {
@@ -366,17 +368,18 @@ void GeodesicSector<verts_per_face>::ComputeIndices(void)
 
 // Count all faces (even non-existing).
 //
-//                    - 
-//                   / \                   ---------------------
-//                  /   \                  |         |         |
-//                 /  3  \                 |    1    |    3    |
-//                /       \                |         |         |
-//               -----------               |---------+---------|
-//              / \       / \              |         |         |
-//             /   \  2  /   \             |    0    |    2    |
-//            /  0  \   /  1  \            |         |         |
-//           /       \ /       \           ---------------------
-//          ---------------------
+/*                    - 
+                     / \                   ---------------------
+                    /   \                  |         |         |
+                   /  3  \                 |    1    |    3    |
+                  /       \                |         |         |
+                 -----------               |---------+---------|
+                / \       / \              |         |         |
+               /   \  2  /   \             |    0    |    2    |
+              /  0  \   /  1  \            |         |         |
+             /       \ /       \           ---------------------
+            ---------------------
+*/
 
    face = 0;
    for (i = 0; i < total_length; i++) {

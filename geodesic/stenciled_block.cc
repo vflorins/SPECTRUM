@@ -453,7 +453,38 @@ void StenciledBlock<verts_per_face>::ComputeOneMatrix(int pface, int stencil)
    geom_matr_LU[pface][stencil].compute(geom_matr_AtA);
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// StenciledBlock debug/testing methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
 #ifdef GEO_DEBUG
+
+/*!
+\author Vladimir Florinski
+\date 05/14/2025
+*/
+template <int verts_per_face>
+void StenciledBlock<verts_per_face>::PrintZoneCentroids(const std::string& fname) const
+{
+   size_t file_size = 0;
+   std::ofstream zcfile;
+   zcfile.open(fname, std::ios_base::out | std::ios_base::binary);
+
+   for(auto face = 0; face < n_faces_withghost; face++) {
+      if(BITS_RAISED(face_mask[face], GEOELM_INTR)) {
+         zcfile.write((const char*)(&face_cmass[face]), 3 * sizeof(double));
+         file_size += 3 * sizeof(double);
+      };
+   };
+
+   for(auto k = ghost_height; k < n_shells_withghost - ghost_height; k++) {
+      zcfile.write((const char*)(&this->r_ct[k]), sizeof(double));
+      file_size += sizeof(double);
+   };
+   zcfile.close();
+
+   std::cerr << "Wrote zone centers for block " << this->block_index << ", file size should be " << file_size << " bytes\n";
+};
 
 /*!
 \author Vladimir Florinski

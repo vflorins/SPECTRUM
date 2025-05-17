@@ -138,6 +138,9 @@ public:
 
 #ifdef GEO_DEBUG
 
+//! Print all zone centroid coordinates (without ghost zones)
+   void PrintZoneCentroids(const std::string& fname) const;
+
 //! Print the properties of a stencil
    void PrintStencilProps(int pface, int stencil) const;
 

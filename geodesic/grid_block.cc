@@ -97,6 +97,7 @@ GridBlock<verts_per_face>::GridBlock(GridBlock&& other) noexcept
    rp_in = other.rp_in;
    dr = other.dr;
    r_mp = other.r_mp;
+   r_ct = other.r_ct;
    drp = other.drp;
    other.xi_in = nullptr;
    other.r_in = nullptr;
@@ -105,6 +106,7 @@ GridBlock<verts_per_face>::GridBlock(GridBlock&& other) noexcept
    other.rp_in = nullptr;
    other.dr = nullptr;
    other.r_mp = nullptr;
+   other.r_ct = nullptr;
    other.drp = nullptr;
 
    dist_map = std::move(other.dist_map);
@@ -230,6 +232,7 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
    rp_in  = new double[n_shells_withghost + 1];
    dr     = new double[n_shells_withghost];
    r_mp   = new double[n_shells_withghost];
+   r_ct   = new double[n_shells_withghost];
    drp    = new double[n_shells_withghost];
 };
 
@@ -254,6 +257,7 @@ void GridBlock<verts_per_face>::FreeStorage()
    delete[] rp_in;
    delete[] dr;
    delete[] r_mp;
+   delete[] r_ct;
    delete[] drp;
 
 #ifdef USE_SILO
@@ -325,10 +329,11 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
       r3_in[k] = Cube(r_in[k]);
    };
 
-// Compute the midpoints and shell widths
+// Compute shell widths, midpoints, and centroids
    for (auto k = 0; k < n_shells_withghost; k++) {
       dr[k] = r_in[k + 1] - r_in[k];
       r_mp[k] = (r_in[k + 1] + r_in[k]) / 2.0;
+      r_ct[k] = r_mp[k] * (1.0 + Sqr(dr[k] / 4.0 / r_mp[k])) / (1.0 + Sqr(dr[k] / 12.0 / r_mp[k]));
    };
 
 // Set up the radial mesh in EC. The domain extents are retrieved from the radial map (they correspond to xi=0 and xi=1).
@@ -372,14 +377,15 @@ void GridBlock<verts_per_face>::SetIndex(int index)
 template <>
 constexpr void GridBlock<3>::StaticSetup(void)
 {
-//          2          2---------1          1          1---------0          0          0---------2
-//         / \          \       /          / \          \       /          / \          \       /
-//        /   \          \     /          /   \          \     /          /   \          \     /
-//       /     \          \   /          /     \          \   /          /     \          \   /
-//      /       \          \ /          /       \          \ /          /       \          \ /
-//     0---------1          0          2---------0          2          1---------2          1
-//
-//        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
+/*
+            2          2---------1          1          1---------0          0          0---------2
+           / \          \       /          / \          \       /          / \          \       /
+          /   \          \     /          /   \          \     /          /   \          \     /
+         /     \          \   /          /     \          \   /          /     \          \   /
+        /       \          \ /          /       \          \ /          /       \          \ /
+       0---------1          0          2---------0          2          1---------2          1
+          rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
+*/
 
 // Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 3; corner_rotation[1] = 5; corner_rotation[2] = 1;
@@ -437,17 +443,19 @@ constexpr void GridBlock<3>::StaticSetup(void)
    rotated_faces[5][0][0] =  0; rotated_faces[5][0][1] =  0; rotated_faces[5][0][2] =  1;
    rotated_faces[5][1][0] = -2; rotated_faces[5][1][1] =  1; rotated_faces[5][1][2] =  1;
 
-//                 5
-//               . . .
-//             .   .   .
-//           .     .     .
-//          1-------------2
-//          |      4      |
-//          |     . .     |
-//          |   .     .   |
-//          | .         . |
-//          0-------------3
+/*
+                   5
+                 . . .
+               .   .   .
+             .     .     .
+            1-------------2
+            |      4      |
+            |     . .     |
+            |   .     .   |
+            | .         . |
+            0-------------3
 
+*/
 #ifdef USE_SILO
 
    silo_zonetype = DB_ZONETYPE_PRISM;
@@ -465,13 +473,14 @@ constexpr void GridBlock<3>::StaticSetup(void)
 template <>
 constexpr void GridBlock<4>::StaticSetup(void)
 {
-//     3---------2     2---------1     1---------0     0---------3
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     0---------1     3---------0     2---------3     1---------2
-//
-//        rot=0           rot=1           rot=2           rot=3
+/*
+       3---------2     2---------1     1---------0     0---------3
+       |         |     |         |     |         |     |         |
+       |         |     |         |     |         |     |         |
+       |         |     |         |     |         |     |         |
+       0---------1     3---------0     2---------3     1---------2
+          rot=0           rot=1           rot=2           rot=3
+*/
 
 // Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 2; corner_rotation[1] = 3; corner_rotation[2] = 0; corner_rotation[3] = 1;
@@ -505,15 +514,17 @@ constexpr void GridBlock<4>::StaticSetup(void)
    rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0; rotated_faces[2][1][1] = -1;
    rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1; rotated_faces[3][1][1] =  0;
 
-//               7-------------6
-//             . .           . |
-//           .   .         .   |
-//          4-------------5    |
-//          |    .        |    |
-//          |    3 . . . .|. . 2
-//          |  .          |  .
-//          |.            |.
-//          0-------------1
+/*
+                 7-------------6
+               . .           . |
+             .   .         .   |
+            4-------------5    |
+            |    .        |    |
+            |    3 . . . .|. . 2
+            |  .          |  .
+            |.            |.
+            0-------------1
+*/
 
 #ifdef USE_SILO
 
@@ -904,7 +915,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
    double* coords[3];
    for (xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[n_nodes];
 
-// Calcutate vertex Cartesian coordinates (with ghost vertices)
+// Calculate vertex Cartesian coordinates (with ghost vertices)
    idx1 = 0;
    k1 = (border_type[0] ? ghost_height : ghost_height - 1);
    k2 = (border_type[1] ? n_shells_withghost - ghost_height : n_shells_withghost - ghost_height + 1);
@@ -1011,6 +1022,10 @@ int GridBlock<verts_per_face>::WriteSilo(DBfile* silofile, bool phys_units) cons
 };
 
 #endif
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// GridBlock debug/testing methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef GEO_DEBUG
 

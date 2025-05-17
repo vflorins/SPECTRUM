@@ -13,17 +13,14 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Smallest height of a block
-#define min_block_height 2
-
-//! Largest height of a block
-#define max_block_height 1000
-
 //! Smallest number of ghost shells
 #define min_ghost_height 1
 
 //! Largest number of ghost shells
-#define max_ghost_height 5
+#define max_ghost_height 4
+
+//! Smallest ratio between block height and ghost height
+#define min_height_to_ghost 2
 
 /*!
 \brief A class describing slabs in the mesh
@@ -51,43 +48,43 @@ protected:
    int ghost_height;
 
 //! Determine whether a shell index falls in a given range
-   SPECTRUM_DEVICE_FUNC bool IsInteriorShell(int kstart, int height, int k) const;
+   bool IsInteriorShell(int kstart, int height, int k) const;
 
 //! Determine whether a shell belongs to the interior of the slab
-   SPECTRUM_DEVICE_FUNC bool IsInteriorShellOfSlab(int k) const;
+   bool IsInteriorShellOfSlab(int k) const;
 
 public:
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC SphericalSlab(void);
+   SphericalSlab(void);
 
 //! Copy constructor
-   SPECTRUM_DEVICE_FUNC SphericalSlab(const SphericalSlab& other);
+   SphericalSlab(const SphericalSlab& other);
 
 //! Move constructor
-   SPECTRUM_DEVICE_FUNC SphericalSlab(SphericalSlab&& other) noexcept;
+   SphericalSlab(SphericalSlab&& other) noexcept;
 
 //! Constructor with parameters
-   SPECTRUM_DEVICE_FUNC SphericalSlab(int height, int hghost);
+   SphericalSlab(int height, int hghost);
 
 //! Destructor
-   SPECTRUM_DEVICE_FUNC ~SphericalSlab(void);
+   ~SphericalSlab(void);
 
 //! Set the slab dimensions
-   SPECTRUM_DEVICE_FUNC void SetDimensions(int height, int hghost, bool construct);
+   void SetDimensions(int height, int hghost, bool construct);
 
 //! Return the number of r-shells excluding ghost
-   SPECTRUM_DEVICE_FUNC int InteriorShells(void) const {return n_shells;};
+   int InteriorShells(void) const {return n_shells;};
 
 //! Return the number of r-shells including ghost
-   SPECTRUM_DEVICE_FUNC int TotalShells(void) const {return n_shells_withghost;};
+   int TotalShells(void) const {return n_shells_withghost;};
 };
 
 /*!
 \author Vladimir Florinski
 \date 03/07/2025
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(void)
+inline SphericalSlab::SphericalSlab(void)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -101,7 +98,7 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(void)
 \date 01/08/2025
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
+inline SphericalSlab::SphericalSlab(const SphericalSlab& other)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -116,7 +113,7 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(const SphericalSlab& ot
 \date 01/08/2025
 \param[in] other Object to move into this
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other) noexcept
+inline SphericalSlab::SphericalSlab(SphericalSlab&& other) noexcept
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -124,10 +121,12 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other) 
 #endif
 #endif
 
-   if(other.n_shells == -1) return;
+   if (other.n_shells == -1) {
+      PrintMessage(__FILE__, __LINE__, "Move constructor called, but the dimension of the moved object was not set", true);
+      return;
+   };
 
    SetDimensions(other.n_shells, other.ghost_height, true);
-   other.n_shells = -1;
 };
 
 /*!
@@ -136,7 +135,7 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(SphericalSlab&& other) 
 \param[in] width  Height of the slab, without ghost cells
 \param[in] wgohst Height of the ghost cell layer outside the slab
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
+inline SphericalSlab::SphericalSlab(int height, int hghost)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -151,7 +150,7 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::SphericalSlab(int height, int hghost)
 \author Vladimir Florinski
 \date 03/07/2025
 */
-SPECTRUM_DEVICE_FUNC inline SphericalSlab::~SphericalSlab(void)
+inline SphericalSlab::~SphericalSlab(void)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -162,12 +161,12 @@ SPECTRUM_DEVICE_FUNC inline SphericalSlab::~SphericalSlab(void)
 
 /*!
 \author Vladimir Florinski
-\date 02/19/2020
+\date 03/21/2025
 \param[in] width     Height of the slab, without ghost cells
 \param[in] hghost    Height of the ghost cell layer outside the slab
 \param[in] construct Set to true when called from a constructor
 */
-SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
+inline void SphericalSlab::SetDimensions(int height, int hghost, bool construct)
 {
 #ifdef GEO_DEBUG
 #if GEO_DEBUG_LEVEL >= 3
@@ -175,7 +174,7 @@ SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hg
 #endif
 #endif
 
-   if ((height < min_block_height) || (height > max_block_height) || (hghost < min_ghost_height) || (hghost > max_ghost_height)) {
+   if ((hghost < min_ghost_height) || (hghost > max_ghost_height) || (height < min_height_to_ghost * hghost)) {
       PrintError(__FILE__, __LINE__, "Cannot allocate a slab with these dimensions", true);
       return;
    };
@@ -196,7 +195,7 @@ SPECTRUM_DEVICE_FUNC inline void SphericalSlab::SetDimensions(int height, int hg
 \param[in] k      Shell index
 \return True if the shell is between "kstart" and "kstart+height"
 */
-SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell(int kstart, int height, int k) const
+inline bool SphericalSlab::IsInteriorShell(int kstart, int height, int k) const
 {
    return (k >= kstart) && (k < kstart + height);
 };
@@ -207,7 +206,7 @@ SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShell(int kstart, int 
 \param[in] k Shell index
 \return True if the shell is interior to the slab
 */
-SPECTRUM_DEVICE_FUNC inline bool SphericalSlab::IsInteriorShellOfSlab(int k) const
+inline bool SphericalSlab::IsInteriorShellOfSlab(int k) const
 {
    return (k >= ghost_height) && (k <= n_shells_withghost - 1 - ghost_height);
 };

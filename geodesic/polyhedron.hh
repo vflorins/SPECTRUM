@@ -2,6 +2,7 @@
 \file polyhedron.hh
 \brief Properties of regular convex polyhedra (Platonic solids)
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -10,211 +11,127 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_POLYHEDRON_HH
 
 #include <string>
-#include "common/definitions.hh"
+
+#include <common/definitions.hh>
 
 namespace Spectrum {
 
-//! Schlafli symbol {p,q}
+//! Number of polyhedron types
+#define N_POLYTYPES 5
+
+//! Polyhedron types
+enum PolyType {
+   POLY_TETRAHEDRON,
+   POLY_HEXAHEDRON,
+   POLY_OCTAHEDRON,
+   POLY_DODECAHEDRON,
+   POLY_ICOSAHEDRON
+};
+
+/*!
+\brief Schlafli symbol {p,q}
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+*/
+template <int p, int q>
 struct Schlafli
 {
-//! Vertices per face
-   int p;
-
-//! Edges meeting at a vertex
-   int q;
-
-//! Default constructor
-   SPECTRUM_DEVICE_FUNC Schlafli(void) = default;
-
-//! Constructor
-   SPECTRUM_DEVICE_FUNC constexpr Schlafli(int p_in, int q_in);
-
 //! Number of vertices
-   SPECTRUM_DEVICE_FUNC constexpr int NVerts(void) const;
+   SPECTRUM_DEVICE_FUNC static constexpr int NVerts(void) {return 4 * p / (4 - (p - 2) * (q - 2));};
 
 //! Number of edges
-   SPECTRUM_DEVICE_FUNC constexpr int NEdges(void) const;
+   SPECTRUM_DEVICE_FUNC static constexpr int NEdges(void) {return 2 * p * q / (4 - (p - 2) * (q - 2));};
 
 //! Number of faces
-   SPECTRUM_DEVICE_FUNC constexpr int NFaces(void) const;
+   SPECTRUM_DEVICE_FUNC static constexpr int NFaces(void) {return 4 * q / (4 - (p - 2) * (q - 2));};
 };
 
-/*!
-\author Vladimir Florinski
-\date 01/05/2024
-\param[in] p_in Number of vertices of each face
-\param[in] q_in Number of edges that meet at each vertex
-*/
-SPECTRUM_DEVICE_FUNC inline constexpr Schlafli::Schlafli(int p_in, int q_in)
-                                              : p(p_in),
-                                                q(q_in)
-{};
+//! All p indices
+constexpr int poly_p[] = {3, 4, 3, 5, 3};
 
-/*!
-\author Vladimir Florinski
-\date 01/05/2024
-\return Number of vertices
-*/
-SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NVerts(void) const
-{
-   return 4 * p / (4 - (p - 2) * (q - 2));
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/05/2024
-\return Number of edges
-*/
-SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NEdges(void) const
-{
-   return 2 * p * q / (4 - (p - 2) * (q - 2));
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/05/2024
-\return Number of faces
-*/
-SPECTRUM_DEVICE_FUNC inline constexpr int Schlafli::NFaces(void) const
-{
-   return 4 * q / (4 - (p - 2) * (q - 2));
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Platonic solids
-#define POLY_TETRAHEDRON    4
-#define POLY_HEXAHEDRON     6
-#define POLY_OCTAHEDRON     8
-#define POLY_DODECAHEDRON  12
-#define POLY_ICOSAHEDRON   20
-
-//! Human readable names (host only)
-const std::string poly_names[] = {"tetrahedron", "hexahedron", "octahedron", "dodecahedron", "icosahedron"};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
+//! All q indices
+constexpr int poly_q[] = {3, 3, 4, 3, 5};
 
 /*!
 \brief A class describing a convex regular polyhedron
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 */
-template <int poly_type>
-class Polyhedron : public Schlafli
+template <PolyType poly_type>
+class Polyhedron
 {
 protected:
 
 //! Number of vertices
-   int Nv;
+   static constexpr int Nv = Schlafli<poly_p[poly_type], poly_q[poly_type]>::NVerts(); 
 
 //! Number of edges
-   int Ne;
+   static constexpr int Ne = Schlafli<poly_p[poly_type], poly_q[poly_type]>::NEdges();
 
 //! Bumber of faces
-   int Nf;
-
-//! Length of each edge
-   double edge_length;
+   static constexpr int Nf = Schlafli<poly_p[poly_type], poly_q[poly_type]>::NFaces();
 
 //! Vertex latitudes
-   double* vlat = nullptr;
+   static inline double vlat[Nv];
 
 //! Vertex longitudes
-   double* vlon = nullptr;
+   static inline double vlon[Nv];
 
 //! Vertex-vertex connectivity array (ordered counter-clockwise)
-   int** vert_vert = nullptr;
+   static inline int vert_vert[Nv][poly_q[poly_type]];
 
 //! Face-vertex connectivity array (ordered counter-clockwise)
-   int** face_vert = nullptr;
-
-//! Calculate the number of elements
-   SPECTRUM_DEVICE_FUNC constexpr void Setup(void);
+   static inline int face_vert[Nf][poly_p[poly_type]];
 
 //! Coordinates of the vertices
-   SPECTRUM_DEVICE_FUNC void VertexCoords(void);
+   SPECTRUM_DEVICE_FUNC static constexpr void VertexCoords(void);
 
 //! VV and FV connectivity
-   SPECTRUM_DEVICE_FUNC constexpr void SetConnectivity(void);
+   SPECTRUM_DEVICE_FUNC static constexpr void SetConnectivity(void);
 
 public:
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC Polyhedron(void);
-
-//! Copy constructor is not needed because the class is fully specified by its template arguments
-   SPECTRUM_DEVICE_FUNC Polyhedron(const Polyhedron& other) = delete;
-
-//! Destructor
-   SPECTRUM_DEVICE_FUNC ~Polyhedron();
+   SPECTRUM_DEVICE_FUNC constexpr Polyhedron(void);
 };
 
 /*!
 \author Vladimir Florinski
-\date 05/01/2024
+\author Lucius Schoenbaum
+\date 03/17/2025
 */
-template <int poly_type>
-SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::Polyhedron(void)
+template <PolyType poly_type>
+SPECTRUM_DEVICE_FUNC inline constexpr Polyhedron<poly_type>::Polyhedron(void)
 {
-   Setup();
-   Nv = NVerts();
-   Ne = NEdges();
-   Nf = NFaces();
-   
-   vlat = new double[Nv];
-   vlon = new double[Nv];
    VertexCoords();
-
-   vert_vert = Create2D<int>(Nv, q);
-   face_vert = Create2D<int>(Nf, p);
    SetConnectivity();
 };
 
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
-*/
-template <int poly_type>
-SPECTRUM_DEVICE_FUNC inline Polyhedron<poly_type>::~Polyhedron()
-{
-   delete[] vlat;
-   delete[] vlon;
-   Delete2D(vert_vert);
-   Delete2D(face_vert);
-};
-
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Tetrahedron
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//                    0
-//                  . | .
-//                .   |   .
-//              .     |1    .
-//            .       |       .
-//          3 . . . . | . . . . 2
-//            .   2   |   0   .
-//              .     |3    .
-//                .   |   .
-//                  . | . 
-//                    1 
+/*
+                      0
+                    . | .
+                  .   |   .
+                .     |1    .
+              .       |       .
+            3 . . . . | . . . . 2
+              .   2   |   0   .
+                .     |3    .
+                  .   |   .
+                    . | . 
+                      1 
+*/
 
 /*!
 \author Vladimir Florinski
 \date 05/01/2024
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::Setup(void)
+SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
 {
-   p = 3;
-   q = 3;
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_TETRAHEDRON>::VertexCoords(void)
-{
-   edge_length = 2.0 * sqrt(2.0 / 3.0);
    double poly_ang = asin(1.0 / 3.0);
 
    vlat[0] = 0.5 * M_PI;
@@ -243,30 +160,23 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_TETRAHEDRON>::SetConn
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Hexahedron
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//                 3---------------2
-//               . .             . |
-//             .   .   0       .   |
-//           .     .         .     |   front face = 1
-//          0---------------1      |   rear  face = 3
-//          |   4  .        |   2  |
-//          |      .        |      |
-//          |      7 . . . .|. . . 6
-//          |    .          |    .
-//          |  .       5    |  .
-//          |.              |.
-//          4---------------5
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
+/*
+                   3---------------2
+                 . .             . |
+               .   .   0       .   |
+             .     .         .     |   front face = 1
+            0---------------1      |   rear  face = 3
+            |   4  .        |   2  |
+            |      .        |      |
+            |      7 . . . .|. . . 6
+            |    .          |    .
+            |  .       5    |  .
+            |.              |.
+            4---------------5
 */
-template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_HEXAHEDRON>::Setup(void)
-{
-   p = 4;
-   q = 3;
-};
 
 /*!
 \author Vladimir Florinski
@@ -275,7 +185,6 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_HEXAHEDRON>::Setup(vo
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_HEXAHEDRON>::VertexCoords(void)
 {
-   edge_length = 2.0 / sqrt(3.0);
    double poly_ang = asin(1.0 / sqrt(3.0));
 
    vlat[0] =  poly_ang;   vlat[1] =  poly_ang;   vlat[2] =  poly_ang;   vlat[3] =  poly_ang;
@@ -310,33 +219,26 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_HEXAHEDRON>::SetConne
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Octahedron
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//                           0
-//                         . ...
-//                       . .  .    .
-//                     .  .    .       .
-//                   .   .     .    1      .
-//                 .    4 . . . . . . . . . . 3
-//               .   .   .0     .          . .
-//             .  .      .       .      .  .
-//           . .          .      .   .   .        top    faces: 2, 3
-//          1---------------------2    .          bottom faces: 6, 7
-//             .           .     /  5.
-//                 .      4.    /  .
-//                     .     . / .
-//                         . ./.
-//                           5
-
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
+/*
+                             0
+                           . ...
+                         . .  .    .
+                       .  .    .       .
+                     .   .     .    1      .
+                   .    4 . . . . . . . . . . 3
+                 .   .   .0     .          . .
+               .  .      .       .      .  .
+             . .          .      .   .   .        top    faces: 2, 3
+            1---------------------2    .          bottom faces: 6, 7
+               .           .     /  5.
+                   .      4.    /  .
+                       .     . / .
+                           . ./.
+                             5
 */
-template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_OCTAHEDRON>::Setup(void)
-{
-   p = 3;
-   q = 4;
-};
 
 /*!
 \author Vladimir Florinski
@@ -345,8 +247,6 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_OCTAHEDRON>::Setup(vo
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_OCTAHEDRON>::VertexCoords(void)
 {
-   edge_length = sqrt(2.0);
-
    vlat[0] =  0.5 * M_PI;
    vlat[1] =  0.0 * M_PI; vlat[2] = 0.0 * M_PI; vlat[3] = 0.0 * M_PI; vlat[4] = 0.0 * M_PI;
    vlat[5] = -0.5 * M_PI;
@@ -381,72 +281,65 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_OCTAHEDRON>::SetConne
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Dodecahedron
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//             14-----------13        13-----------12
-//              |             \       /             |
-//              |              \     /              |
-//              |               \   /               |
-//              |        5       \ /       4        |
-//              5                 3                11
-//                .             .   .             .
-//                   .        .       .        .
-//                      .   .           .   .
-//              5---------4       0       2--------11       View from outside
-//             /           \             /           \
-//            /             \           /             \
-//           /               \         /               \
-//          6        1        0-------1         3      10
-//            .             ./         \.             .
-//              .        .  /           \  .        .
-//                .   .    /             \    .   .
-//                  7     7       2       9     9
-//                          .           .
-//                            .       .
-//                              .   .
-//                                8
-//
-//                               13
-//                             .     .
-//                           .         .
-//                         .             .
-//                 14    14      10      12    12
-//                .   .    \             /    .   .
-//              .        .  \           /  .        .
-//            .             .\         /.             .
-//          5        6       15------19        9      11
-//           \               /         \               /
-//            \             /           \             /
-//             \           /     11      \           /
-//              6--------16              18--------10       View from inside
-//                      .   .           .   .
-//                   .        .       .        .
-//                .             .   .             .
-//              6                17                10
-//              |        7       / \        8       |
-//              |               /   \               |
-//              |              /     \              |
-//              |             /       \             |
-//              7------------8         8------------9
+/*
+               14-----------13        13-----------12
+                |             \       /             |
+                |              \     /              |
+                |               \   /               |
+                |        5       \ /       4        |
+                5                 3                11
+                  .             .   .             .
+                     .        .       .        .
+                        .   .           .   .
+                5---------4       0       2--------11       View from outside
+               /           \             /           \
+              /             \           /             \
+             /               \         /               \
+            6        1        0-------1         3      10
+              .             ./         \.             .
+                .        .  /           \  .        .
+                  .   .    /             \    .   .
+                    7     7       2       9     9
+                            .           .
+                              .       .
+                                .   .
+                                  8
 
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
+                                 13
+                               .     .
+                             .         .
+                           .             .
+                   14    14      10      12    12
+                  .   .    \             /    .   .
+                .        .  \           /  .        .
+              .             .\         /.             .
+            5        6       15------19        9      11
+             \               /         \               /
+              \             /           \             /
+               \           /     11      \           /
+                6--------16              18--------10       View from inside
+                        .   .           .   .
+                     .        .       .        .
+                  .             .   .             .
+                6                17                10
+                |        7       / \        8       |
+                |               /   \               |
+                |              /     \              |
+                |             /       \             |
+                7------------8         8------------9
 */
-template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_DODECAHEDRON>::Setup(void)
-{
-   p = 5;
-   q = 3;
-};
 
 /*!
 \author Vladimir Florinski
-\date 05/01/2024
+\date 03/17/2025
 */
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_DODECAHEDRON>::VertexCoords(void)
 {
-   edge_length = 4.0 / M_SQRT3 / (1.0 + M_SQRT5);
+   double edge_length = 4.0 / M_SQRT3 / (1.0 + M_SQRT5);
    double poly_ang1 = acos(edge_length * M_SQRT2 / sqrt(5.0 - M_SQRT5));
    double poly_ang2 = poly_ang1 - 2.0 * asin(0.5 * edge_length);
 
@@ -504,65 +397,58 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_DODECAHEDRON>::SetCon
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Icosahedron
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//                                    10
-//                                   .   .
-//                                 .       .
-//                               .           .
-//                             .      13       .
-//                           .                   .
-//                      .  5-----------------------4  .
-//                  .      . .                   . .      .
-//              .              .       3       .              .
-//          6             .      .           .      .             9
-//            .      5             .       .            11      .
-//              .            4       .   .       2            .
-//                .      .          .  0  .          .      .         View from outside
-//                  .           .      |      .           .
-//                    . .   .          |          .   . .
-//                      1         0    |    1         3
-//                      |  .           |           .  |
-//                      |      .       |       .      |
-//                      |          .   |   .          |
-//                      |   7       .  2  .       9   |
-//                      |       .             .       |
-//                      |   .                     .   |
-//                      7                             8
-//
-//                      5                             4
-//                      |   .                     .   |
-//                      |       .             .       |
-//                      |           . 10  .           |
-//                      |   14     .   |   .    12    |
-//                      |      .       |       .      |
-//                      |  .           |           .  |
-//                      6         15   |   19         9
-//                    . .   .          |          .   . .
-//                  .           .      |      .           .
-//                .      .          . 11  .          .      .         View from inside
-//              .           16       .   .      18            .
-//            .      6             .       .             10     .
-//          1             .      .           .      .             3
-//              .              .      17       .              .
-//                  .      . .                   . .      .
-//                      .  7-----------------------8  .
-//                           .                   .
-//                             .       8       .
-//                               .          .
-//                                 .       .
-//                                   .   .
-//                                     2
+/*
+                                      10
+                                     .   .
+                                   .       .
+                                 .           .
+                               .      13       .
+                             .                   .
+                        .  5-----------------------4  .
+                    .      . .                   . .      .
+                .              .       3       .              .
+            6             .      .           .      .             9
+              .      5             .       .            11      .
+                .            4       .   .       2            .
+                  .      .          .  0  .          .      .         View from outside
+                    .           .      |      .           .
+                      . .   .          |          .   . .
+                        1         0    |    1         3
+                        |  .           |           .  |
+                        |      .       |       .      |
+                        |          .   |   .          |
+                        |   7       .  2  .       9   |
+                        |       .             .       |
+                        |   .                     .   |
+                        7                             8
 
-/*!
-\author Vladimir Florinski
-\date 05/01/2024
+                        5                             4
+                        |   .                     .   |
+                        |       .             .       |
+                        |           . 10  .           |
+                        |   14     .   |   .    12    |
+                        |      .       |       .      |
+                        |  .           |           .  |
+                        6         15   |   19         9
+                      . .   .          |          .   . .
+                    .           .      |      .           .
+                  .      .          . 11  .          .      .         View from inside
+                .           16       .   .      18            .
+              .      6             .       .             10     .
+            1             .      .           .      .             3
+                .              .      17       .              .
+                    .      . .                   . .      .
+                        .  7-----------------------8  .
+                             .                   .
+                               .       8       .
+                                 .          .
+                                   .       .
+                                     .   .
+                                       2
 */
-template <>
-SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_ICOSAHEDRON>::Setup(void)
-{
-   p = 3;
-   q = 5;
-};
 
 /*!
 \author Vladimir Florinski
@@ -571,7 +457,6 @@ SPECTRUM_DEVICE_FUNC inline constexpr void Polyhedron<POLY_ICOSAHEDRON>::Setup(v
 template <>
 SPECTRUM_DEVICE_FUNC inline void Polyhedron<POLY_ICOSAHEDRON>::VertexCoords(void)
 {
-   edge_length = 1.0 / sin(0.4 * M_PI);
    double poly_ang = atan(0.5);
 
    vlat[ 0] =  0.5 * M_PI;

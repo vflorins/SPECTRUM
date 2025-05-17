@@ -23,7 +23,7 @@ namespace Spectrum {
 
 This function performs a basic move that allow visiting every face in the tesselation. The base vertex ("vert1") determines the base edge (CC from the base vertex). The moves are defined for the t-face resting on its base edge, so that the base vertex is in the SW corner. They are S (dir=1), NE (dir=2), and NW (dir=3).
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC void TraversableTesselation<poly_type, max_division>::Step(int div, int face1, int vert1, int dir, int& face2, int& vert2) const
 {
    int iv1, iv2;
@@ -36,17 +36,19 @@ SPECTRUM_DEVICE_FUNC void TraversableTesselation<poly_type, max_division>::Step(
    if (iv1 < 0) PrintError(__FILE__, __LINE__, "Incorrect base vertex", true);
 #endif
 
-//               -
-//              / \
-//             /   \                  ----------2          ----------2
-//            /  1  \	             / \       /            \       / \
-//           /       \	    	    /   \  2  /              \  2  /   \
-//          1---------2            /  1  \   /                \   /  1  \
-//           \       /            /       \ /                  \ /       \
-//            \  2  /            1---------*                    1----------
-//             \   / 
-//              \ /
-//               -
+/*
+                 -
+                / \
+               /   \                  ----------2          ----------2
+              /  1  \	             / \       /            \       / \
+             /       \	            /   \  2  /              \  2  /   \
+            1---------2            /  1  \   /                \   /  1  \
+             \       /            /       \ /                  \ /       \
+              \  2  /            1---------*                    1----------
+               \   /
+                \ /
+                 -
+*/
 
 // Common to all cases "face2" is neighbor "iv1+dir" of "face1"
    face2 = ff_con[div][face1][(iv1 + dir) % verts_per_face[div]];
@@ -99,15 +101,17 @@ SPECTRUM_DEVICE_FUNC void TraversableTesselation<POLY_HEXAHEDRON, max_division>:
    if (iv1 < 0) PrintError(__FILE__, __LINE__, "Incorrect base vertex", true);
 #endif
 
-//          -----------                                         -----------
-//          |	      |                                         |         |
-//          |	 1    |          ---------------------          |    2    |          ---------------------
-//          |	      |          |         |         |          |         |          |         |         |
-//          1----------          |    1    |    2    |          2----------          |    2    |    1    |
-//          |	      |          |         |         |          |         |          |         |         |
-//          |    2    |          1---------2----------          |    1    |          2---------1----------
-//          |	      |                                         |         |
-//          2----------                                         1----------
+/*
+            -----------                                        -----------
+            |	      |                                         |         |
+            |	 1    |          ---------------------          |    2    |          ---------------------
+            |	      |          |         |         |          |         |          |         |         |
+            1----------         |    1    |    2    |          2----------          |    2    |    1    |
+            |	      |          |         |         |          |         |          |         |         |
+            |   2    |          1---------2----------          |    1    |          2---------1----------
+            |	      |                                         |         |
+            2----------                                        1----------
+*/
 
 // Common to all cases "face2" is neighbor "iv1+dir" of "face1"
    face2 = ff_con[div][face1][(iv1 + dir) % verts_per_face[div]];
@@ -154,7 +158,7 @@ SPECTRUM_DEVICE_FUNC void TraversableTesselation<POLY_HEXAHEDRON, max_division>:
 
 A crawler through a triangular region consisting of a sector surrounded by a layer of ghost faces on each side. The crawl is performed in the TAS pattern starting from the base (SW) corner, and the index of each t-face visited and each vertex encountered are recorded. NB: The TAS is the addressing systems used by grid blocks.
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int divs, int sect, int divf, int nghost,
                                                                              int* flist, int* vlist, bool* corners) const
 {
@@ -207,27 +211,28 @@ void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 1: leftmost "nghost" diagonals
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//                             /\
-//                            /  \
-//                           /    \
-//                          /      \
-//                         /--------\
-//                        / \      / \
-//                       /   \    /   \
-//                      /     \  /     \
-//                     /       \/       \
-//                    /--------/\--------\
-//                   /\       /  \       /\
-//                  /**\     /    \     /  \
-//                 /****\   /      \   /    \
-//                /******\ /        \ /      \
-//               /********\----------\--------\
-//              /\*********\        / \       /\
-//             /  \*********\      /   \     /  \
-//            /    \*********\    /     \   /    \
-//           /      \*********\  /       \ /      \
-//          ----------------------------------------
+/*
+                               /\
+                              /  \
+                             /    \
+                            /      \
+                           /--------\
+                          / \      / \
+                         /   \    /   \
+                        /     \  /     \
+                       /       \/       \
+                      /--------/\--------\
+                     /\       /  \       /\
+                    /..\     /    \     /  \
+                   /....\   /      \   /    \
+                  /......\ /        \ /      \
+                 /........\----------\--------\
+                /\.........\        / \       /\
+               /  \.........\      /   \     /  \
+              /    \.........\    /     \   /    \
+             /      \.........\  /       \ /      \
+            ----------------------------------------
+*/
 
 // We record three things per step: (1) the bottom-left vertex of the unshaded face, (2) the unshaded face, and (3) the neighbor shaded face. At the top of each diagonal, we record one extra bottom-left vertex and unshaded face.
    for (i = nghost; i < 2 * nghost; i++) {
@@ -297,27 +302,28 @@ void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 2: middle "side_length" diagonals
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//                             /\
-//                            /  \
-//                           /    \
-//                          /      \
-//                         /--------\
-//                        /*\      / \
-//                       /***\    /   \
-//                      /*****\  /     \
-//                     /*******\/       \
-//                    /*********\--------\
-//                   /\**********\       /\
-//                  /  \**********\     /  \
-//                 /    \**********\   /    \
-//                /      \**********\ /      \
-//               /--------\**********\--------\
-//              /\       / \**********\       /\
-//             /  \     /   \**********\     /  \
-//            /    \   /     \**********\   /    \
-//           /      \ /       \**********\ /      \
-//          ----------------------------------------
+/*
+                               /\
+                              /  \
+                             /    \
+                            /      \
+                           /--------\
+                          /.\      / \
+                         /...\    /   \
+                        /.....\  /     \
+                       /.......\/       \
+                      /.........\--------\
+                     /\..........\       /\
+                    /  \..........\     /  \
+                   /    \..........\   /    \
+                  /      \..........\ /      \
+                 /--------\..........\--------\
+                /\       / \..........\       /\
+               /  \     /   \..........\     /  \
+              /    \   /     \..........\   /    \
+             /      \ /       \..........\ /      \
+            ----------------------------------------
+*/
 
 // We record three things per step: (1) the bottom-left vertex of the unshaded face, (2) the unshaded face, and (3) the neighbor shaded face. At the top of each diagonal, we record one extra bottom-left vertex and unshaded face. After reaching the last diagonal we record an extra diagonal of bottom-right vertices. Finally, at the top of that extra diagonal the top vertex of the unshaded face is also recorded.
    for (i = 2 * nghost; i < 2 * nghost + side_length; i++) {
@@ -368,27 +374,28 @@ void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 3: rightmost nghost diagonals
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//                             /\
-//                            /  \
-//                           /    \
-//                          /      \
-//                         /--------\
-//                        / \********\
-//                       /   \********\
-//                      /     \********\
-//                     /       \********\
-//                    /--------/\********\
-//                   /\       /  \********\
-//                  /  \     /    \********\
-//                 /    \   /      \********\
-//                /      \ /        \********\
-//               /--------/----------\********\
-//              /\       / \        / \*******/\
-//             /  \     /   \      /   \*****/  \
-//            /    \   /     \    /     \***/    \
-//           /      \ /       \  /       \*/      \
-//          ----------------------------------------
+/*
+                               /\
+                              /  \
+                             /    \
+                            /      \
+                           /--------\
+                          / \........\
+                         /   \........\
+                        /     \........\
+                       /       \........\
+                      /--------/\........\
+                     /\       /  \........\
+                    /  \     /    \........\
+                   /    \   /      \........\
+                  /      \ /        \........\
+                 /--------/----------\........\
+                /\       / \        / \......./\
+               /  \     /   \      /   \...../  \
+              /    \   /     \    /     \.../    \
+             /      \ /       \  /       \./      \
+            ----------------------------------------
+*/
 
 // We record three things per step: (1) the top-right vertex of the shaded face, (2) the shaded face, and (3) the neighbor unshaded face (except in unused triangles).
    for (i = 2 * nghost + side_length; i < 3 * nghost + side_length; i++) {
@@ -537,22 +544,23 @@ void TraversableTesselation<POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNati
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 1: leftmost "nghost" columns
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
+/*
 //          --------------------------------
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|------------+--------|
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|------------+--------|
-//          |********|  	  |	   |
-//          |********|  	  |	   |
-//          |********|  	  |	   |
+//          |........|            |        |
+//          |........|            |        |
+//          |........|            |        |
+//          |........|------------+--------|
+//          |........|            |        |
+//          |........|            |        |
+//          |........|            |        |
+//          |........|            |        |
+//          |........|            |        |
+//          |........|------------+--------|
+//          |........|            |        |
+//          |........|            |        |
+//          |........|            |        |
 //          --------------------------------
+*/
 
 // We record two things per step: (1) the bottom-left vertex of the face and (2) the face. At the top of each columns, we also record the top-left vertex.
    for (i = 0; i < nghost; i++) {
@@ -617,22 +625,23 @@ void TraversableTesselation<POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNati
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 2: middle "side_length" columns
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
+/*
 //          --------------------------------
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |--------|************|--------|
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |--------|************|--------|
-//          |	     |************|	   |
-//          |	     |************|	   |
-//          |	     |************|	   |
+//          |        |............|        |
+//          |        |............|        |
+//          |        |............|        |
+//          |--------|............|--------|
+//          |        |............|        |
+//          |        |............|        |
+//          |        |............|        |
+//          |        |............|        |
+//          |        |............|        |
+//          |--------|............|--------|
+//          |        |............|        |
+//          |        |............|        |
+//          |        |............|        |
 //          --------------------------------
+*/
 
 // We record two things per step: (1) the bottom-left vertex of the face and (2) the face. At the top of each columns, we also record the top-left vertex. After reaching the last column we record an extra column of bottom-right vertices. Finally, at the top of that extra column the top-right vertex is also recorded.
    for (i = nghost; i < nghost + side_length; i++) {
@@ -676,22 +685,23 @@ void TraversableTesselation<POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNati
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Region 3: rightmost nghost columns
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
+/*
 //          --------------------------------
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |--------+------------|********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |--------+------------|********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
-//          |	     |  	  |********|
+//          |        |            |........|
+//          |        |            |........|
+//          |        |            |........|
+//          |--------+------------|........|
+//          |        |            |........|
+//          |        |            |........|
+//          |        |            |........|
+//          |        |            |........|
+//          |        |            |........|
+//          |--------+------------|........|
+//          |        |            |........|
+//          |        |            |........|
+//          |        |            |........|
 //          --------------------------------
+*/
 
 // We record two things per step: (1) the bottom-right vertex of the face and (2) the face. At the top of each columns, we also record the top-right vertex.
    for (i = nghost + side_length; i < 2 * nghost + side_length; i++) {

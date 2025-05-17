@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "geodesic/spherical_tesselation.hh"
+#include <geodesic/spherical_tesselation.hh>
 
 namespace Spectrum {
 
@@ -83,7 +83,7 @@ TERR_TYPE BuildReverse(int n_nodes1, int n_nbrs1, int n_sing1, int n_nbrs1s, int
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SphericalTesselation<poly_type, max_division>::SphericalTesselation(void)
                                              : Polyhedron<poly_type>()
 {
@@ -95,7 +95,7 @@ SphericalTesselation<poly_type, max_division>::SphericalTesselation(void)
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SphericalTesselation<poly_type, max_division>::~SphericalTesselation()
 {
    FreeStorage();
@@ -105,16 +105,15 @@ SphericalTesselation<poly_type, max_division>::~SphericalTesselation()
 \author Vladimir Florinski
 \date 05/01/2024
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 {
 // Number of elements at division 0
+   verts_per_face[0] = poly_p[poly_type];
+   edges_per_vert[0] = poly_q[poly_type];
    nverts[0] = Polyhedron<poly_type>::Nv;
    nedges[0] = Polyhedron<poly_type>::Ne;
    nfaces[0] = Polyhedron<poly_type>::Nf;
-   verts_per_face[0] = Polyhedron<poly_type>::p;
-   edges_per_vert[0] = Polyhedron<poly_type>::q;
-
    children_per_face[0] = (poly_type == POLY_DODECAHEDRON ? 5 : 4);
    newverts_at_edge[0] = (poly_type == POLY_DODECAHEDRON ? false : true);
    newverts_at_face[0] = ((poly_type == POLY_HEXAHEDRON) || (poly_type == POLY_DODECAHEDRON) ? true : false);
@@ -130,14 +129,12 @@ void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 
       nfaces[div] = nfaces[div - 1] * children_per_face[div - 1];
       nverts[div] = nverts[div - 1];
-      if(newverts_at_edge[div - 1]) nverts[div] += nedges[div - 1];
-      if(newverts_at_face[div - 1]) nverts[div] += nfaces[div - 1];
+      if (newverts_at_edge[div - 1]) nverts[div] += nedges[div - 1];
+      if (newverts_at_face[div - 1]) nverts[div] += nfaces[div - 1];
       nedges[div] = nverts[div] + nfaces[div] - 2;
    };
 
 // Allocate memory for vertex coordinates. Vertices at lower divisions are subsets of vertices at higher divisions, so a single array is sufficient.
-   vert_lat  = new double[nverts[max_division]];
-   vert_lon  = new double[nverts[max_division]];
    vert_cart = new GeoVector[nverts[max_division]];
 
 // Allocate memory for the connectivity arrays
@@ -154,14 +151,11 @@ void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
       ff_con[div] = Create2D<int>(nfaces[div], verts_per_face[div]);
    };
 
-// Copy base polyhedron coordinates
-   memcpy(vert_lat, Polyhedron<poly_type>::vlat, nverts[0] * sizeof(double));
-   memcpy(vert_lon, Polyhedron<poly_type>::vlon, nverts[0] * sizeof(double));
-
 // Calculate Cartesian vertex coordinates at division 0
    for (auto vert = 0; vert < nverts[0]; vert++) {
       vert_cart[vert] = gv_nr;
-      vert_cart[vert].ToCartesian(cos(vert_lat[vert]), sin(vert_lat[vert]), sin(vert_lon[vert]), cos(vert_lon[vert]));
+      vert_cart[vert].ToCartesian(cos(Polyhedron<poly_type>::vlat[vert]), sin(Polyhedron<poly_type>::vlat[vert]),
+                                  sin(Polyhedron<poly_type>::vlon[vert]), cos(Polyhedron<poly_type>::vlon[vert]));
    };
 
 // Copy base polyhedron connectivity
@@ -173,7 +167,7 @@ void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 \author Vladimir Florinski
 \date 08/30/2019
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::ComputeAll(void)
 try {
    for (auto div = 0; div <= max_division; div++) {
@@ -197,12 +191,10 @@ catch(const TessError& err) {
 \author Vladimir Florinski
 \date 07/23/2019
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FreeStorage(void)
 {
 // Free memory used for vertex coordinates
-   delete[] vert_lat;
-   delete[] vert_lon;
    delete[] vert_cart;
 
 // Release connectivity array memory
@@ -227,11 +219,11 @@ void SphericalTesselation<poly_type, max_division>::FreeStorage(void)
 \date 04/13/2020
 \param[in] div Division (daughter)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 {
 // May only be called for division 1 or higher.
-   if(div == 0) return;
+   if (div == 0) return;
 
    static const std::string callerID = "RefineVert";
    if ((div < 1) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
@@ -253,8 +245,6 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 
 // Insert a new vertex between "vert0" and "vert1".
       vert_cart[vert_new] = Bisect(vert_cart[vert0], vert_cart[vert1]);
-      vert_lat [vert_new] = M_PI_2 - vert_cart[vert_new].Theta();
-      vert_lon [vert_new] = vert_cart[vert_new].Phi();
       vert_new++;
    };
 
@@ -276,11 +266,8 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
       };
       if ((vert0 < 0) || (vert0 >= nverts[div]) || (vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
       if ((vert2 < 0) || (vert2 >= nverts[div]) || (vert3 < 0) || (vert3 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
-
       if (div == 1) vert_cart[vert_new] = PlaneNormal(vert_cart[vert0], vert_cart[vert1], vert_cart[vert2]);
       else vert_cart[vert_new] = GreatCircleInt(vert_cart[vert0], vert_cart[vert2], vert_cart[vert1], vert_cart[vert3]);
-      vert_lat [vert_new] = M_PI_2 - vert_cart[vert_new].Theta();
-      vert_lon [vert_new] = vert_cart[vert_new].Phi();
       vert_new++;
    };
 
@@ -412,11 +399,11 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 \date 04/13/2020
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::AddEdges(int div)
 {
    static const std::string callerID = "AddEdges";
-   if((div < 0) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
+   if ((div < 0) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
    int vert1, vert2, edge = 0, iv;
 
 // Loop over vertices. An edge is created for each _unique_ connection in VV. Because there are two connections between each pair of vertices ("vert1"->"vert2" and "vert2"->"vert1"), an edge is only created if "vert1" is greater than "vert2".
@@ -446,30 +433,31 @@ void SphericalTesselation<poly_type, max_division>::AddEdges(int div)
 \date 04/13/2020
 \param[in] div Division (daughter)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 {
 // May only be called for division 1 or higher.
-   if(div == 0) return;
+   if (div == 0) return;
 
    static const std::string callerID = "RefineFace";
    if ((div < 1) || (div > max_division)) throw TessError(callerID, div, TESERR_INPUT, __LINE__);
    int vert1, vert2, edge1, edge2, face, face_new, ie;
 
 // Each parent face is divided into four. One of the daughter faces (diagram) inherits the index of the parent.
-//
-//                    2
-//                   /0\                   3----------2----------2
-//                  /   \                  |0        3|1        0|
-//                 /  3  \                 |    3     |    2     |
-//                /1     2\                |1        2|2        3|
-//               2---------1               3----------+----------1
-//              /2\2     1/1\              |3        2|2        1|
-//             /   \0=par/   \             |  0=par   |    1     |
-//            /  1  \   /  2  \            |0        1|3        0|
-//           /0     1\0/2     0\           0----------0----------1
-//          0---------0---------1
-//
+
+/*
+                      2
+                     /0\                   3----------2----------2
+                    /   \                  |0        3|1        0|
+                   /  3  \                 |    3     |    2     |
+                  /1     2\                |1        2|2        3|
+                 2---------1               3----------+----------1
+                /2\2     1/1\              |3        2|2        1|
+               /   \0=par/   \             |  0=par   |    1     |
+              /  1  \   /  2  \            |0        1|3        0|
+             /0     1\0/2     0\           0----------0----------1
+            0---------0---------1
+*/
 
    for (face = 0; face < nfaces[div - 1]; face++) {
 
@@ -488,12 +476,12 @@ void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
       for (ie = 0; ie < verts_per_face[div - 1]; ie++) {
          edge1 = fe_con[div - 1][face][ie];
          edge2 = EdgeCC(div - 1, face, edge1, -1);
-         if((edge1 < 0) || (edge1 >= nedges[div - 1]) || (edge2 < 0) || (edge2 >= nedges[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((edge1 < 0) || (edge1 >= nedges[div - 1]) || (edge2 < 0) || (edge2 >= nedges[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
 // Corner vertex between "edge1" and "edge2"
          vert1 = fv_con[div - 1][face][ie];
          vert2 = VertCC(div - 1, face, vert1, 1);
-         if((vert1 < 0) || (vert1 >= nverts[div - 1]) || (vert2 < 0) || (vert2 >= nverts[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((vert1 < 0) || (vert1 >= nverts[div - 1]) || (vert2 < 0) || (vert2 >= nverts[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
 // Triangle parent faces
          if (newverts_at_edge[div - 1] && !newverts_at_face[div - 1]) {
@@ -507,7 +495,7 @@ void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 
 // Quad parent faces
          else if (newverts_at_edge[div - 1]) {
-            if(!ie) face_new = face;
+            if (!ie) face_new = face;
             else face_new = nfaces[div - 1] + (children_per_face[div - 1] - 1) * face + ie - 1;
 
 // Corner, edge, center, edge
@@ -519,7 +507,7 @@ void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 
 // Penta parent faces
          else if (newverts_at_face[div - 1]) {
-            if(!ie) face_new = face;
+            if (!ie) face_new = face;
             else face_new = nfaces[div - 1] + (children_per_face[div - 1] - 1) * face + ie - 1;
          
 // Corner, corner, center
@@ -536,7 +524,7 @@ void SphericalTesselation<poly_type, max_division>::RefineFace(int div)
 \date 05/02/2024
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::VertEdgeConn(int div)
 {
    static const std::string callerID = "VertEdgeConn";
@@ -601,7 +589,7 @@ void SphericalTesselation<poly_type, max_division>::VertEdgeConn(int div)
 \date 05/02/2024
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
 {
    static const std::string callerID = "VertFaceConn";
@@ -642,19 +630,20 @@ void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
       };
 
 // Sort in ascending order. At the end of this loop VV, VE, and VF tables for "vert" are fully synchronized as shown in the diagram below.
-//
-//               4---------3
-//              / \       / \              ----------2----------
-//             /   \  4  /   \             |         |         |
-//            /  5  4   3  3  \            |    3    2    2    |
-//           /       \ /       \           |         |         |
-//          5----5----X----2----2          3----3----+----1----1
-//           \       / \       /           |         |         |
-//            \  0  0   1  2  /            |    0    0    1    |
-//             \   /  1  \   /             |         |         |
-//              \ /       \ /              ----------0----------
-//               0---------1
-//
+
+/*
+                 4---------3
+                / \       / \              ----------2----------
+               /   \  4  /   \             |         |         |
+              /  5  4   3  3  \            |    3    2    2    |
+             /       \ /       \           |         |         |
+            5----5----X----2----2          3----3----+----1----1
+             \       / \       /           |         |         |
+              \  0  0   1  2  /            |    0    0    1    |
+               \   /  1  \   /             |         |         |
+                \ /       \ /              ----------0----------
+                 0---------1
+*/
 
       iv = 0;
       while (iv < NVertNbrs(div, vert) - 1) {
@@ -679,7 +668,7 @@ void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
 \date 08/30/2019
 \param[in] div The division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
 {
    static const std::string callerID = "EdgeFaceConn";
@@ -690,26 +679,28 @@ void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
    for (edge = 0; edge < nedges[div]; edge++) {
       vert0 = ev_con[div][edge][0];
       vert1 = ev_con[div][edge][1];
-      if((vert0 < 0) || (vert0 >= nverts[div]) || (vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+      if ((vert0 < 0) || (vert0 >= nverts[div]) || (vert1 < 0) || (vert1 >= nverts[div])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
       
       Match2vf(div, vert0, vert1, face1, face2);
       if ((face1 < 0) || (face1 >= nfaces[div]) || (face2 < 0) || (face2 >= nfaces[div])) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
-// We must synchronize EV and EF such that EF[0] is on the left and EF[1] on the right of the vector from EV[0] to EV[1] as shown in the diagram below. We rely on CC ordering of the FV table.
+// Synchronize EV and EF such that EF[0] is on the left and EF[1] on the right of the vector from EV[0] to EV[1] as shown in the diagram below. We rely on CC ordering of the FV table.
 //
-//               -
-//              / \              -----------
-//             /   \             |         |
-//            /  0  \            |    0    |
-//           /       \           |         |
-//          0---------1          0---------1
-//           \       /           |         |
-//            \  1  /            |    1    |
-//             \   /             |         |
-//              \ /              -----------
-//               -
+/*
+                 -
+                / \              -----------
+               /   \             |         |
+              /  0  \            |    0    |
+             /       \           |         |
+            0---------1          0---------1
+             \       /           |         |
+              \  1  /            |    1    |
+               \   /             |         |
+                \ /              -----------
+                 -
+*/
 
-     if (VertCC(div, face1, vert0, 1) == vert1) {
+      if (VertCC(div, face1, vert0, 1) == vert1) {
          ef_con[div][edge][0] = face1;
          ef_con[div][edge][1] = face2;
       }
@@ -725,7 +716,7 @@ void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
 \date 04/13/2020
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FaceEdgeConn(int div)
 {
    static const std::string callerID = "EdgeFaceConn";
@@ -752,7 +743,7 @@ void SphericalTesselation<poly_type, max_division>::FaceEdgeConn(int div)
 \date 08/30/2019
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
 {
    static const std::string callerID = "FaceFaceConn";
@@ -761,19 +752,21 @@ void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
 
 // Use FE to find the edge, then pick the appropriate neighbor face. By the end of this loop FV, FE, anf FF tables are all synchronized as shown in the diagram below.
 //
-//                                                   -----------
-//          ----------2----------                    |         |
-//           \       / \       /                     |    2    |
-//            \  2  /   \  1  /                      |         |
-//             \   2     1   /             ----------3----2----2----------
-//              \ /       \ /              |         |         |         |
-//               0----0----1               |    3    3         1    1    |
-//                \       /                |         |         |         |
-//                 \  0  /                 ----------0----0----1----------
-//                  \   /                            |         |
-//                   \ /                             |    0    |
-//                    -                              |         |
-//                                                   -----------
+/*
+                                                     -----------
+            ----------2----------                    |         |
+             \       / \       /                     |    2    |
+              \  2  /   \  1  /                      |         |
+               \   2     1   /             ----------3----2----2----------
+                \ /       \ /              |         |         |         |
+                 0----0----1               |    3    3         1    1    |
+                  \       /                |         |         |         |
+                   \  0  /                 ----------0----0----1----------
+                    \   /                            |         |
+                     \ /                             |    0    |
+                      -                              |         |
+                                                     -----------
+*/
 
    for (face = 0; face < nfaces[div]; face++) {
       for (it = 0; it < verts_per_face[div]; it++) {
@@ -790,19 +783,22 @@ void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
    };
 };
 
-template class SphericalTesselation<POLY_TETRAHEDRON, 3>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 3>;
-template class SphericalTesselation<POLY_OCTAHEDRON, 3>;
-template class SphericalTesselation<POLY_DODECAHEDRON, 3>;
-template class SphericalTesselation<POLY_ICOSAHEDRON, 3>;
-
-template class SphericalTesselation<POLY_HEXAHEDRON, 4>;
+template class SphericalTesselation<POLY_TETRAHEDRON, 5>;
 template class SphericalTesselation<POLY_HEXAHEDRON, 5>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 6>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 7>;
-template class SphericalTesselation<POLY_ICOSAHEDRON, 4>;
+template class SphericalTesselation<POLY_OCTAHEDRON, 5>;
+template class SphericalTesselation<POLY_DODECAHEDRON, 5>;
 template class SphericalTesselation<POLY_ICOSAHEDRON, 5>;
+
+template class SphericalTesselation<POLY_TETRAHEDRON, 6>;
+template class SphericalTesselation<POLY_HEXAHEDRON, 6>;
+template class SphericalTesselation<POLY_OCTAHEDRON, 6>;
+template class SphericalTesselation<POLY_DODECAHEDRON, 6>;
 template class SphericalTesselation<POLY_ICOSAHEDRON, 6>;
+
+template class SphericalTesselation<POLY_TETRAHEDRON, 7>;
+template class SphericalTesselation<POLY_HEXAHEDRON, 7>;
+template class SphericalTesselation<POLY_OCTAHEDRON, 7>;
+template class SphericalTesselation<POLY_DODECAHEDRON, 7>;
 template class SphericalTesselation<POLY_ICOSAHEDRON, 7>;
 
 };
