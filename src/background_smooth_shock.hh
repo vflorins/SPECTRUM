@@ -1,6 +1,6 @@
 /*!
 \file background_smooth_shock.hh
-\brief Declares a smooth shock field background
+\brief Declares a smooth MHD shock field background
 \author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
@@ -30,7 +30,7 @@ const double tanh_width_factor = 4.0;
 const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 /*!
-\brief Constant EM field with a smooth transition region
+\brief Planar MHD shock with a smooth transition region
 \author Juan G Alonso Guzman
 
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
