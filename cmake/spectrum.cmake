@@ -107,28 +107,77 @@ add_custom_target(distclean
     COMMAND cd ${SPECTRUM_HOME} && make distclean
     COMMAND "[distclean] > make distclean"
 )
-add_custom_target(cpurun
-        COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
-        COMMENT "[cpurun] > ${PROJECT_NAME} ${ARGS}"
-)
-add_custom_target(cpurunhere
-        COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
-        COMMENT "[cpurunhere] > ${PROJECT_NAME} ${ARGS}"
-)
 if(NUM_PROCESSES)
-    add_custom_target(mpirun
-            COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
-            COMMENT "[mpirun] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
-    )
-    add_custom_target(mpirunhere
-            COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
-            COMMENT "[mpirunhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
-    )
+    if(OUTPUT_STDOUT_FILE)
+        if(OUTPUT_STDOUT_TERMINAL)
+            # output to file and to terminal
+            # The error is still routed to the usual file.
+            message("[run] mpi file+terminal")
+            add_custom_target(run
+                    COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log && cat ${PROJECT_NAME}.out
+                    COMMENT "[run] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+            )
+            add_custom_target(runhere
+                    COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log && cat ${PROJECT_NAME}.out
+                    COMMENT "[runhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+            )
+        else()
+            message("[run] mpi file only")
+            # output to file only
+            add_custom_target(run
+                    COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+                    COMMENT "[run] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+            )
+            add_custom_target(runhere
+                    COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+                    COMMENT "[runhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+            )
+        endif()
+    else()
+        # output to terminal only
+        message("[run] mpi terminal only")
+        add_custom_target(run
+                COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_}
+                COMMENT "[run] > mpirun -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+        )
+        add_custom_target(runhere
+                COMMAND cd ${WORKING_DIR} && mpirun -n ${NUM_PROCESSES} ${BINARY_FULLNAME} ${ARGS_}
+                COMMENT "[runhere] > mpirunhere -n ${NUM_PROCESSES} ${PROJECT_NAME} ${ARGS}"
+        )
+    endif()
 else()
-    add_custom_target(mpirun
-            COMMAND echo "[mpirun] The number of processes `NUM_PROCESSES` is not set. Exit."
-    )
-    add_custom_target(mpirunhere
-            COMMAND echo "[mpirunhere] The number of processes `NUM_PROCESSES` is not set. Exit."
-    )
+    if(OUTPUT_STDOUT_FILE)
+        if(OUTPUT_STDOUT_TERMINAL)
+            message("[run] file+terminal")
+            add_custom_target(run
+                    COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${WORKING_DIR}/${OUTPUT_STEM} && ${BINARY_FULLNAME} ${ARGS_} > ${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log && cat ${PROJECT_NAME}.out
+                    COMMENT "[run] > ${PROJECT_NAME} ${ARGS}"
+            )
+            add_custom_target(runhere
+                    COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log && cat ${PROJECT_NAME}.out
+                    COMMENT "[runhere] > ${PROJECT_NAME} ${ARGS}"
+            )
+        else()
+            message("[run] file only")
+            add_custom_target(run
+                    COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+                    COMMENT "[run] > ${PROJECT_NAME} ${ARGS}"
+            )
+            add_custom_target(runhere
+                    COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME} ${ARGS_} 1>${PROJECT_NAME}.out 2>${PROJECT_NAME}.err.log
+                    COMMENT "[runhere] > ${PROJECT_NAME} ${ARGS}"
+            )
+        endif()
+    else()
+        message("[run] terminal only")
+        add_custom_target(run
+                COMMAND cd ${WORKING_DIR} &&  [ -d ${OUTPUT_STEM} ] || mkdir ${OUTPUT_STEM} && rm -f ${OUTPUT_STEM}/* && cd ${OUTPUT_STEM} && ${BINARY_FULLNAME} ${ARGS_}
+                COMMENT "[run] > ${PROJECT_NAME} ${ARGS}"
+        )
+        add_custom_target(runhere
+                COMMAND cd ${WORKING_DIR} && ${BINARY_FULLNAME} ${ARGS_}
+                COMMENT "[runhere] > ${PROJECT_NAME} ${ARGS}"
+        )
+    endif()
 endif()
+
