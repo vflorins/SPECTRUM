@@ -127,6 +127,7 @@ void BackgroundSmoothShock::EvaluateBackground(void)
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;
 
+// TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
    if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;

@@ -1,6 +1,6 @@
 /*!
 \file background_shock.hh
-\brief Declares a simple shock field background
+\brief Declares a simple planar shock field background
 \author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
@@ -21,10 +21,10 @@ namespace Spectrum {
 const std::string bg_name_shock = "BackgroundShock";
 
 /*!
-\brief Constant EM field, mainly for testing
+\brief Planar MHD shock
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundBase), GeoVector n_shock, double v_shock, GeoVector u1, GeoVector B1
+Parameters: (BackgroundBase), GeoVector n_shock, double v_shock, double compression
 */
 class BackgroundShock : public BackgroundBase {
 
@@ -36,11 +36,14 @@ protected:
 //! Shock velocity (persistent)
    double v_shock;
 
-//! Downstream flow vector (persistent), "u0" is upstream flow vector
-   GeoVector u1;
+//! Compression ratio (persistent)
+   double compression;
+
+//! Downstream velocity (persistent), "u0" is upstream flow vector
+   double u1;
 
 //! Downstream magnetic field (persistent), "B0" is upstream magnetic field
-   GeoVector B1;
+   double B1;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
