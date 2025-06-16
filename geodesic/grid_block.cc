@@ -85,29 +85,13 @@ GridBlock<verts_per_face>::GridBlock(GridBlock&& other) noexcept
 // Copy the radial grid properties
    Rmin = other.Rmin;
    Rmax = other.Rmax;
-   LogRmax_Rmin = other.LogRmax_Rmin;
-   drp_ratio = other.drp_ratio;
    dxi = other.dxi;
    
 // Move the radial grid
    xi_in = other.xi_in;
    r_in = other.r_in;
-   r2_in = other.r2_in;
-   r3_in = other.r3_in;
-   rp_in = other.rp_in;
-   dr = other.dr;
-   r_mp = other.r_mp;
-   r_ct = other.r_ct;
-   drp = other.drp;
    other.xi_in = nullptr;
    other.r_in = nullptr;
-   other.r2_in = nullptr;
-   other.r3_in = nullptr;
-   other.rp_in = nullptr;
-   other.dr = nullptr;
-   other.r_mp = nullptr;
-   other.r_ct = nullptr;
-   other.drp = nullptr;
 
    dist_map = std::move(other.dist_map);
 
@@ -225,15 +209,8 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
 #endif
 
 // Allocate radial grid
-   xi_in  = new double[n_shells_withghost + 1];
-   r_in   = new double[n_shells_withghost + 1];
-   r2_in  = new double[n_shells_withghost + 1];
-   r3_in  = new double[n_shells_withghost + 1];
-   rp_in  = new double[n_shells_withghost + 1];
-   dr     = new double[n_shells_withghost];
-   r_mp   = new double[n_shells_withghost];
-   r_ct   = new double[n_shells_withghost];
-   drp    = new double[n_shells_withghost];
+   xi_in = new double[n_shells_withghost + 1];
+   r_in = new double[n_shells_withghost + 1];
 };
 
 /*!
@@ -252,13 +229,6 @@ void GridBlock<verts_per_face>::FreeStorage()
 // Free up radial arrays
    delete[] xi_in;
    delete[] r_in;
-   delete[] r2_in;
-   delete[] r3_in;
-   delete[] rp_in;
-   delete[] dr;
-   delete[] r_mp;
-   delete[] r_ct;
-   delete[] drp;
 
 #ifdef USE_SILO
 
@@ -325,24 +295,11 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
    for (auto k = 0; k <= n_shells_withghost; k++) {
       xi_in[k] = ximin + (k - ghost_height) * dxi;
       r_in[k] = dist_map->GetPhysical(xi_in[k]);
-      r2_in[k] = Sqr(r_in[k]);
-      r3_in[k] = Cube(r_in[k]);
-   };
-
-// Compute shell widths, midpoints, and centroids
-   for (auto k = 0; k < n_shells_withghost; k++) {
-      dr[k] = r_in[k + 1] - r_in[k];
-      r_mp[k] = (r_in[k + 1] + r_in[k]) / 2.0;
-      r_ct[k] = r_mp[k] * (1.0 + Sqr(dr[k] / 4.0 / r_mp[k])) / (1.0 + Sqr(dr[k] / 12.0 / r_mp[k]));
    };
 
 // Set up the radial mesh in EC. The domain extents are retrieved from the radial map (they correspond to xi=0 and xi=1).
    Rmin = dist_map->GetPhysical(0.0);
    Rmax = dist_map->GetPhysical(1.0);
-   LogRmax_Rmin = log(Rmax / Rmin);
-   for (auto k = 0; k <= n_shells_withghost; k++) rp_in[k] = Rmin * pow(Rmax / Rmin, xi_in[k]);
-   for (auto k = 0; k < n_shells_withghost; k++) drp[k] = rp_in[k + 1] - rp_in[k];
-   drp_ratio = drp[0] / rp_in[0];
 
 // Copy vertex coordinates
    memcpy(block_vert_cart, vcart, n_verts_withghost * sizeof(GeoVector));
@@ -896,7 +853,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 #endif
 #endif
 
-   int err, k, k1, k2, vert, vert_silo, face, face_silo, idx1, idx2, idx_dup, ivz, n_nodes, n_zones, n_intzones, lznodelist, xyz;
+   int k, k1, k2, vert, vert_silo, face, face_silo, idx1, idx2, idx_dup, ivz, n_nodes, n_zones, n_intzones, lznodelist, xyz;
 
 // Total number of elements in the block. Notice that ghost cells are not added at the physical domain boundaries (innermost and outermost slabs) as required by SILO and VisIt.
    n_nodes = n_verts_silo * (n_shells + 1);
@@ -987,6 +944,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 
 // Build the list of external faces of the block if it has a physical boundary.
    bool ext_faces = border_type[0] || border_type[1];
+   int err = 0;
    DBfacelist* fl;
    if (ext_faces) {
       fl = DBCalcExternalFacelist2(znodelist, n_nodes, 0, n_zones - n_intzones, 0, zshapetype, zshapesize, zshapecnt, 1, NULL, 0);

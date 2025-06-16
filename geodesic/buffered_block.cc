@@ -619,9 +619,9 @@ int BufferedBlock<verts_per_face, _datatype>::WriteSiloData(DBfile* silofile, bo
 
    int err, k, k1, k2, face, face_silo, idx1, idx2, n_zones, n_intzones;
 
-   n_zones = n_faces_silo * n_shells;
-   if (!border_type[0]) n_zones += n_faces_silo;
-   if (!border_type[1]) n_zones += n_faces_silo;
+   n_zones = this->n_faces_silo * n_shells;
+   if (!border_type[0]) n_zones += this->n_faces_silo;
+   if (!border_type[1]) n_zones += this->n_faces_silo;
    n_intzones = n_faces * n_shells;
 
 // A 1D array containing all data in the radial-index-first format.
@@ -635,8 +635,8 @@ int BufferedBlock<verts_per_face, _datatype>::WriteSiloData(DBfile* silofile, bo
 
 // Copy the variable into the 1D "linear_data" array for SILO consumption.
    for (k = k1; k <= k2; k++) {
-      for (face_silo = 0; face_silo < n_faces_silo; face_silo++) {      
-         face = silo_to_face[face_silo];
+      for (face_silo = 0; face_silo < this->n_faces_silo; face_silo++) {      
+         face = this->silo_to_face[face_silo];
 
 // Add to the appropriate place in the array
          if (IsInteriorShellOfSlab(k) && IsInteriorFaceOfSector(face)) linear_data[idx1++] = zone_cons[k][face];
@@ -784,8 +784,14 @@ void BufferedBlock<4, int>::PrintContents(void) const
 #endif
 
 template class BufferedBlock<3, int>;
+
+#ifdef USE_SILO
 template int BufferedBlock<3, int>::WriteSilo(DBfile* silofile, bool phys_units) const;
+#endif
+
+#ifdef GEO_DEBUG
 template void BufferedBlock<3, int>::FillUniform(int val);
+#endif
 
 
 //template class BufferedBlock<4, int>;

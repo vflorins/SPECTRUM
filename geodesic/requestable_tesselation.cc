@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "geodesic/requestable_tesselation.hh"
+#include <geodesic/requestable_tesselation.hh>
 
 namespace Spectrum {
 
@@ -92,7 +92,7 @@ SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::GetCh
 template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC bool RequestableTesselation<poly_type, max_division>::IsInside(int divs, int sect, int divf, int face) const
 {
-   if(face == -1) return false;
+   if (face == -1) return false;
 
 // The sector must be the (grand)parent of the face. This also covers the trivial case of divf=divs.
    int parent = face;

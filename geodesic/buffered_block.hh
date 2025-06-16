@@ -94,15 +94,10 @@ protected:
 //! Starting shell indices for each buffer (site, part), accessed through a pointer
    int** buf_shell_start[N_NBRTYPES] = {nullptr};
 
-#ifdef USE_SILO
-
-   using GridBlock<verts_per_face>::n_faces_silo;
-   using GridBlock<verts_per_face>::silo_to_face;
-
 //! Write the data description to a SILO database
+#ifdef USE_SILO
    template <typename datatype = _datatype, std::enable_if_t<std::is_arithmetic<datatype>::value, bool> = true>
    int WriteSiloData(DBfile* silofile, bool phys_units) const;
-
 #endif
 
 public:

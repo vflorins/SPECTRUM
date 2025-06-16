@@ -288,7 +288,7 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
          edge0 = vert_new - nverts[div - 1];
          vert0 = ev_con[div - 1][edge0][0];
          vert1 = ev_con[div - 1][edge0][1];
-         if((vert0 < 0) || (vert0 >= nverts[div - 1]) || (vert1 < 0) || (vert1 >= nverts[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((vert0 < 0) || (vert0 >= nverts[div - 1]) || (vert1 < 0) || (vert1 >= nverts[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
          vv_con[div][vert_new][ie0] = vert0;
          vv_con[div][vert_new][ie2] = vert1;
@@ -296,7 +296,7 @@ void SphericalTesselation<poly_type, max_division>::RefineVert(int div)
 // Find two lower division faces sharing "edge0".
          face0 = ef_con[div - 1][edge0][0];
          face1 = ef_con[div - 1][edge0][1];
-         if ((face0 < 0) || (face0 >= nfaces[div - 1]) || (face1 < 0) || (face1 > nfaces[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
+         if ((face0 < 0) || (face0 >= nfaces[div - 1]) || (face1 < 0) || (face1 >= nfaces[div - 1])) throw TessError(callerID, div, TESERR_INDEX, __LINE__);
 
 // For quad meshes neighbors 1 and 3 are vertices at the centers of the adjacent parent faces.
          if (newverts_at_face[div - 1]) {

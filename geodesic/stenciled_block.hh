@@ -49,11 +49,27 @@ protected:
    using GeodesicSector<verts_per_face>::face_mask;
    using GeodesicSector<verts_per_face>::MaxVertJ;
    using GeodesicSector<verts_per_face>::MaxFaceJ;
-   using GridBlock<verts_per_face>::drp_ratio;
    using GridBlock<verts_per_face>::block_vert_cart;
+   using GridBlock<verts_per_face>::xi_in;
+   using GridBlock<verts_per_face>::r_in;
 
-//! A local Polynomial object
-//   Polynomial poly;
+//! ENC scaling factor 
+   double rho;
+
+//! ENC volume factor 
+   double lambda;
+
+//! Shell widths
+   double* dr = nullptr;
+
+//! Shell midpoints, \f$(r_1+r_2)/2\f$
+   double* r_mp = nullptr;
+
+//! Shell centroids
+   double* r_ct = nullptr;
+
+//! Conversion factors from U to W
+   double* UW_conv = nullptr;
 
 //! The total number of stencils
    static constexpr int n_stencils = 1 + 2 * verts_per_face;
@@ -76,7 +92,7 @@ protected:
 //! Edge centers of mass for the US (do _not_ lie on the US)
    GeoVector* edge_cmass = nullptr;
 
-//! Stencil zonelists
+//! Stencil zonelists: addressing as [stencil][pface][st_zone]
    int*** stencil_zonelist = nullptr;
 
 //! Transposed geometry matrices

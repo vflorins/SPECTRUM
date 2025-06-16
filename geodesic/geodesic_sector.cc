@@ -9,11 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#ifdef GEO_DEBUG
-#include <iostream>
-#include <iomanip>
-#endif
-
 #include <common/definitions.hh>
 #include <common/print_warn.hh>
 #include <geodesic/geodesic_sector.hh>

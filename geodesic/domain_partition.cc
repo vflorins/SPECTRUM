@@ -6,11 +6,11 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
+#include <geodesic/domain_partition.hh>
+
 #ifdef USE_SILO
 #include <pmpio.h>
 #endif
-
-#include <geodesic/domain_partition.hh>
 
 namespace Spectrum {
 
@@ -527,7 +527,7 @@ void DomainPartition<blocktype>::Save(int stamp)
          sprintf(blck_num, blck_format.c_str(), bidx);
          file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
          dirc_name = dirc_base + dirc_num;
-         long_name = file_name + ":/" + dirc_name + "/" + uv_base + "_" + blck_num;
+         long_name = file_name + ":/" + dirc_name + "/" + um_base + "_" + blck_num;
          strcpy(mmvnames[bidx], long_name.c_str());
          mmvtypes[bidx] = DB_UCDVAR;
       };

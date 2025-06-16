@@ -25,8 +25,9 @@ int main(int argc, char *argv[])
    dist_map->SetupObject(container);
 
    DomainPartition<StenciledBlock<VERTS_PER_FACE>> domain_partition(n_shells, dist_map, face_div);
+   domain_partition.PrintTopology();
 
-   for(auto block = 0; block < domain_partition.GetNBlocks(); block++) {
+   for (auto block = 0; block < domain_partition.GetNBlocks(); block++) {
       fname = "zone_centers_" + std::to_string(domain_partition.GetBlock(block).GetIndex()) + ".dat";
       domain_partition.GetBlock(block).PrintZoneCentroids(fname);
    };
