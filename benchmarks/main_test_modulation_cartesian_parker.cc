@@ -54,7 +54,7 @@ int main(int argc, char** argv)
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-   std::string fname_pattern = "cartesian_backgrounds/parker_20_20_20";
+   std::string fname_pattern = "../cartesian_backgrounds/parker_20_20_20";
    simulation->AddBackground(BackgroundServerCartesian(), container, fname_pattern);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

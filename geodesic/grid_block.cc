@@ -85,27 +85,13 @@ GridBlock<verts_per_face>::GridBlock(GridBlock&& other) noexcept
 // Copy the radial grid properties
    Rmin = other.Rmin;
    Rmax = other.Rmax;
-   LogRmax_Rmin = other.LogRmax_Rmin;
-   drp_ratio = other.drp_ratio;
    dxi = other.dxi;
    
 // Move the radial grid
    xi_in = other.xi_in;
    r_in = other.r_in;
-   r2_in = other.r2_in;
-   r3_in = other.r3_in;
-   rp_in = other.rp_in;
-   dr = other.dr;
-   r_mp = other.r_mp;
-   drp = other.drp;
    other.xi_in = nullptr;
    other.r_in = nullptr;
-   other.r2_in = nullptr;
-   other.r3_in = nullptr;
-   other.rp_in = nullptr;
-   other.dr = nullptr;
-   other.r_mp = nullptr;
-   other.drp = nullptr;
 
    dist_map = std::move(other.dist_map);
 
@@ -223,14 +209,8 @@ void GridBlock<verts_per_face>::SetDimensions(int width, int wghost, int height,
 #endif
 
 // Allocate radial grid
-   xi_in  = new double[n_shells_withghost + 1];
-   r_in   = new double[n_shells_withghost + 1];
-   r2_in  = new double[n_shells_withghost + 1];
-   r3_in  = new double[n_shells_withghost + 1];
-   rp_in  = new double[n_shells_withghost + 1];
-   dr     = new double[n_shells_withghost];
-   r_mp   = new double[n_shells_withghost];
-   drp    = new double[n_shells_withghost];
+   xi_in = new double[n_shells_withghost + 1];
+   r_in = new double[n_shells_withghost + 1];
 };
 
 /*!
@@ -249,12 +229,6 @@ void GridBlock<verts_per_face>::FreeStorage()
 // Free up radial arrays
    delete[] xi_in;
    delete[] r_in;
-   delete[] r2_in;
-   delete[] r3_in;
-   delete[] rp_in;
-   delete[] dr;
-   delete[] r_mp;
-   delete[] drp;
 
 #ifdef USE_SILO
 
@@ -321,23 +295,11 @@ void GridBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, const 
    for (auto k = 0; k <= n_shells_withghost; k++) {
       xi_in[k] = ximin + (k - ghost_height) * dxi;
       r_in[k] = dist_map->GetPhysical(xi_in[k]);
-      r2_in[k] = Sqr(r_in[k]);
-      r3_in[k] = Cube(r_in[k]);
-   };
-
-// Compute the midpoints and shell widths
-   for (auto k = 0; k < n_shells_withghost; k++) {
-      dr[k] = r_in[k + 1] - r_in[k];
-      r_mp[k] = (r_in[k + 1] + r_in[k]) / 2.0;
    };
 
 // Set up the radial mesh in EC. The domain extents are retrieved from the radial map (they correspond to xi=0 and xi=1).
    Rmin = dist_map->GetPhysical(0.0);
    Rmax = dist_map->GetPhysical(1.0);
-   LogRmax_Rmin = log(Rmax / Rmin);
-   for (auto k = 0; k <= n_shells_withghost; k++) rp_in[k] = Rmin * pow(Rmax / Rmin, xi_in[k]);
-   for (auto k = 0; k < n_shells_withghost; k++) drp[k] = rp_in[k + 1] - rp_in[k];
-   drp_ratio = drp[0] / rp_in[0];
 
 // Copy vertex coordinates
    memcpy(block_vert_cart, vcart, n_verts_withghost * sizeof(GeoVector));
@@ -372,14 +334,15 @@ void GridBlock<verts_per_face>::SetIndex(int index)
 template <>
 constexpr void GridBlock<3>::StaticSetup(void)
 {
-//          2          2---------1          1          1---------0          0          0---------2
-//         / \          \       /          / \          \       /          / \          \       /
-//        /   \          \     /          /   \          \     /          /   \          \     /
-//       /     \          \   /          /     \          \   /          /     \          \   /
-//      /       \          \ /          /       \          \ /          /       \          \ /
-//     0---------1          0          2---------0          2          1---------2          1
-//
-//        rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
+/*
+            2          2---------1          1          1---------0          0          0---------2
+           / \          \       /          / \          \       /          / \          \       /
+          /   \          \     /          /   \          \     /          /   \          \     /
+         /     \          \   /          /     \          \   /          /     \          \   /
+        /       \          \ /          /       \          \ /          /       \          \ /
+       0---------1          0          2---------0          2          1---------2          1
+          rot=0           rot=1           rot=2           rot=3           rot=4           rot=5
+*/
 
 // Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 3; corner_rotation[1] = 5; corner_rotation[2] = 1;
@@ -437,17 +400,19 @@ constexpr void GridBlock<3>::StaticSetup(void)
    rotated_faces[5][0][0] =  0; rotated_faces[5][0][1] =  0; rotated_faces[5][0][2] =  1;
    rotated_faces[5][1][0] = -2; rotated_faces[5][1][1] =  1; rotated_faces[5][1][2] =  1;
 
-//                 5
-//               . . .
-//             .   .   .
-//           .     .     .
-//          1-------------2
-//          |      4      |
-//          |     . .     |
-//          |   .     .   |
-//          | .         . |
-//          0-------------3
+/*
+                   5
+                 . . .
+               .   .   .
+             .     .     .
+            1-------------2
+            |      4      |
+            |     . .     |
+            |   .     .   |
+            | .         . |
+            0-------------3
 
+*/
 #ifdef USE_SILO
 
    silo_zonetype = DB_ZONETYPE_PRISM;
@@ -465,13 +430,14 @@ constexpr void GridBlock<3>::StaticSetup(void)
 template <>
 constexpr void GridBlock<4>::StaticSetup(void)
 {
-//     3---------2     2---------1     1---------0     0---------3
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     |         |     |         |     |         |     |         |
-//     0---------1     3---------0     2---------3     1---------2
-//
-//        rot=0           rot=1           rot=2           rot=3
+/*
+       3---------2     2---------1     1---------0     0---------3
+       |         |     |         |     |         |     |         |
+       |         |     |         |     |         |     |         |
+       |         |     |         |     |         |     |         |
+       0---------1     3---------0     2---------3     1---------2
+          rot=0           rot=1           rot=2           rot=3
+*/
 
 // Rotation of the sub-blocks located _diagonally_ from each corner vertex
    corner_rotation[0] = 2; corner_rotation[1] = 3; corner_rotation[2] = 0; corner_rotation[3] = 1;
@@ -505,15 +471,17 @@ constexpr void GridBlock<4>::StaticSetup(void)
    rotated_faces[2][0][0] = -1; rotated_faces[2][0][1] =  0; rotated_faces[2][1][0] =  0; rotated_faces[2][1][1] = -1;
    rotated_faces[3][0][0] =  0; rotated_faces[3][0][1] =  1; rotated_faces[3][1][0] = -1; rotated_faces[3][1][1] =  0;
 
-//               7-------------6
-//             . .           . |
-//           .   .         .   |
-//          4-------------5    |
-//          |    .        |    |
-//          |    3 . . . .|. . 2
-//          |  .          |  .
-//          |.            |.
-//          0-------------1
+/*
+                 7-------------6
+               . .           . |
+             .   .         .   |
+            4-------------5    |
+            |    .        |    |
+            |    3 . . . .|. . 2
+            |  .          |  .
+            |.            |.
+            0-------------1
+*/
 
 #ifdef USE_SILO
 
@@ -885,7 +853,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 #endif
 #endif
 
-   int err, k, k1, k2, vert, vert_silo, face, face_silo, idx1, idx2, idx_dup, ivz, n_nodes, n_zones, n_intzones, lznodelist, xyz;
+   int k, k1, k2, vert, vert_silo, face, face_silo, idx1, idx2, idx_dup, ivz, n_nodes, n_zones, n_intzones, lznodelist, xyz;
 
 // Total number of elements in the block. Notice that ghost cells are not added at the physical domain boundaries (innermost and outermost slabs) as required by SILO and VisIt.
    n_nodes = n_verts_silo * (n_shells + 1);
@@ -904,7 +872,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
    double* coords[3];
    for (xyz = 0; xyz < 3; xyz++) coords[xyz] = new double[n_nodes];
 
-// Calcutate vertex Cartesian coordinates (with ghost vertices)
+// Calculate vertex Cartesian coordinates (with ghost vertices)
    idx1 = 0;
    k1 = (border_type[0] ? ghost_height : ghost_height - 1);
    k2 = (border_type[1] ? n_shells_withghost - ghost_height : n_shells_withghost - ghost_height + 1);
@@ -976,6 +944,7 @@ int GridBlock<verts_per_face>::WriteSiloMesh(DBfile* silofile, bool phys_units) 
 
 // Build the list of external faces of the block if it has a physical boundary.
    bool ext_faces = border_type[0] || border_type[1];
+   int err = 0;
    DBfacelist* fl;
    if (ext_faces) {
       fl = DBCalcExternalFacelist2(znodelist, n_nodes, 0, n_zones - n_intzones, 0, zshapetype, zshapesize, zshapecnt, 1, NULL, 0);
@@ -1011,6 +980,10 @@ int GridBlock<verts_per_face>::WriteSilo(DBfile* silofile, bool phys_units) cons
 };
 
 #endif
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// GridBlock debug/testing methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef GEO_DEBUG
 

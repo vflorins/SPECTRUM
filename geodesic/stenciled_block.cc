@@ -76,7 +76,19 @@ StenciledBlock<verts_per_face>::StenciledBlock(StenciledBlock&& other) noexcept
       return;
    };
 
-// Move the area/length arrays
+// Move radial grid
+   rho = other.rho;
+   lambda = other.lambda;
+   dr = other.dr;
+   r_mp = other.r_mp;
+   r_ct = other.r_ct;
+   UW_conv = other.UW_conv;
+   other.dr = nullptr;
+   other.r_mp = nullptr;
+   other.r_ct = nullptr;
+   other.UW_conv = nullptr;
+
+// Move the length and area arrays
    face_area = other.face_area;
    face_cmass = other.face_cmass;
    edge_length = other.edge_length;
@@ -158,6 +170,13 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
 // Free up storage (not that of the base class) because this could be a repeat call
    FreeStorage();
 
+// Radial grid
+   dr = new double[n_shells_withghost];
+   r_mp = new double[n_shells_withghost];
+   r_ct = new double[n_shells_withghost];
+   UW_conv = new double[n_shells_withghost];
+
+// Length and area arrays
    face_area = new double[n_faces_withghost];
    face_cmass = new GeoVector[n_faces_withghost];
    edge_length = new double[n_edges_withghost];
@@ -188,7 +207,7 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
    Delete2D(geom_matr_LU);
 
 // Free up stencils. A test for "stencil_zonelist" is required because of a possible creation via a move constructor.
-   if(stencil_zonelist) {
+   if (stencil_zonelist) {
       for (auto pface = 0; pface < n_faces_withghost; pface++) {
          if (BITS_RAISED(face_mask[pface], GEOELM_STEN)) {
             for (auto stencil = 0; stencil < n_stencils; stencil++) {
@@ -199,7 +218,13 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
       Delete2D(stencil_zonelist);
    };
 
-// Free up storage for geometric properties
+// Free up radial grid
+   delete[] dr;
+   delete[] r_mp;
+   delete[] r_ct;
+   delete[] UW_conv;
+
+// Free up length and area arrays
    delete[] face_area;
    delete[] face_cmass;
    delete[] edge_length;
@@ -208,7 +233,7 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 05/20/2025
 \param[in] ximin       Smallest reference distance of the block (without ghost)
 \param[in] ximax       Largest reference distance of the block (without ghost)
 \param[in] corners     Corner type, true for singular corners
@@ -228,7 +253,31 @@ void StenciledBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, c
 #endif
 
 // Call base method.
-   if(!construct) GridBlock<verts_per_face>::AssociateMesh(ximin, ximax, corners, borders, vcart, dist_map_in, false);
+   if (!construct) GridBlock<verts_per_face>::AssociateMesh(ximin, ximax, corners, borders, vcart, dist_map_in, false);
+
+// Create a helper exponential map
+   DataContainer container;
+   container.Insert(this->Rmin);
+   container.Insert(this->Rmax);
+   DistanceExponential exp_map;
+   exp_map.SetupObject(container);
+
+   double delta_breve, rprime, vol, vol_breve;
+
+   delta_breve = 2.0 * (exp_map.GetPhysical(xi_in[3]) - exp_map.GetPhysical(xi_in[2])) / (exp_map.GetPhysical(xi_in[3]) + exp_map.GetPhysical(xi_in[2]));
+   rho = (1.0 + 0.5 * delta_breve) / (1.0 - 0.5 * delta_breve);
+   lambda = (1.0 + Sqr(delta_breve) / 4.0) / (1.0 + Sqr(delta_breve) / 12.0);
+
+// Compute shell widths, midpoints, and centroids
+   for (auto shell = 0; shell < n_shells_withghost; shell++) {
+      dr[shell] = r_in[shell + 1] - r_in[shell];
+      r_mp[shell] = (r_in[shell + 1] + r_in[shell]) / 2.0;
+      r_ct[shell] = r_mp[shell] * (1.0 + Sqr(dr[shell] / r_mp[shell]) / 4.0) / (1.0 + Sqr(dr[shell] / r_mp[shell]) / 12.0);
+      rprime = (exp_map.GetPhysical(xi_in[shell + 1]) + exp_map.GetPhysical(xi_in[shell])) / 2.0;
+      vol = Sqr(r_mp[shell]) * dr[shell] * (1.0 + Sqr(dr[shell] / r_mp[shell]) / 12.0);
+      vol_breve = delta_breve * (1.0 + Sqr(delta_breve) / 12.0);
+      UW_conv[shell] = vol / Cube(rprime) * log(this->Rmax / this->Rmin) / vol_breve;
+   };
 
    BuildAllStencils();
    ComputeMoments();
@@ -373,12 +422,12 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
                \.../ U+D \.../           ----------+---------+----------               /     \                         -----------
                 \./       \./            |.........|         |.........|              /       \                        |         |
                  -----------             |.........|   U+D   |.........|             -----------                       |         |
-                  \......./              |.........|         |........ |            /.\......./.\                      |         |
+                  \......./              |.........|         |.........|            /.\......./.\                      |         |
                    \...../               ----------+---------+----------           /...\.U/D./...\           ----------+---------+----------
                     \.../                          |.........|                    /.....\.../.....\          |.........|.........|.........|
                      \./                           |.........|                   /.......\./.......\         |.........|...U/D...|.........|
                       -                            |.........|                  ---------------------        |.........|.........|.........|
-                                                  -----------                                               -------------------------------
+                                                   -----------                                               -------------------------------
 */
 // Calculate the zone lists
    for (auto pface = 0; pface < n_faces_withghost; pface++) {
@@ -417,6 +466,7 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
 
 /*!
 \author Vladimir Florinski
+\date 05/20/2025
 \param[in] pface Principal face
 \param[in] stencil Stencil (central, dir1, dir2, etc.)
 */
@@ -431,19 +481,9 @@ void StenciledBlock<verts_per_face>::ComputeOneMatrix(int pface, int stencil)
 // Generate the geometry matrix. Each row corresponds to one zone in the stencil.
    for (auto row = 0; row < zones_per_stencil[stencil]; row++) {
       face = stencil_zonelist[pface][stencil][2 * row];
-      switch(stencil_zonelist[pface][stencil][2 * row + 1]) {
-      case -1:
-         rp_factor = (1.0 + drp_ratio);
-         break;
-      case 1:
-         rp_factor = 1.0 / (1.0 + drp_ratio);
-         break;
-      default:
-         rp_factor = 1.0;
-         break;
-      };
+      rp_factor = pow(rho, stencil_zonelist[pface][stencil][2 * row + 1]);
       for (auto col = 0; col < 3; col++) {
-         geom_matr_A(row, col) = rp_factor * face_cmass[face][col] - face_cmass[pface][col];
+         geom_matr_A(row, col) = lambda * (rp_factor * face_cmass[face][col] - face_cmass[pface][col]);
       };
    };
 
@@ -453,7 +493,39 @@ void StenciledBlock<verts_per_face>::ComputeOneMatrix(int pface, int stencil)
    geom_matr_LU[pface][stencil].compute(geom_matr_AtA);
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// StenciledBlock debug/testing methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
 #ifdef GEO_DEBUG
+
+/*!
+\author Vladimir Florinski
+\date 05/14/2025
+\param[in] fname File name
+*/
+template <int verts_per_face>
+void StenciledBlock<verts_per_face>::PrintZoneCentroids(const std::string& fname) const
+{
+   size_t file_size = 0;
+   std::ofstream zcfile;
+   zcfile.open(fname, std::ios_base::out | std::ios_base::binary);
+
+   for (auto face = 0; face < n_faces_withghost; face++) {
+      if (BITS_RAISED(face_mask[face], GEOELM_INTR)) {
+         zcfile.write((const char*)(&face_cmass[face]), 3 * sizeof(double));
+         file_size += 3 * sizeof(double);
+      };
+   };
+
+   for (auto k = ghost_height; k < n_shells_withghost - ghost_height; k++) {
+      zcfile.write((const char*)(&this->r_ct[k]), sizeof(double));
+      file_size += sizeof(double);
+   };
+   zcfile.close();
+
+   std::cerr << "Wrote zone centers for block " << this->block_index << ", file size should be " << file_size << " bytes\n";
+};
 
 /*!
 \author Vladimir Florinski

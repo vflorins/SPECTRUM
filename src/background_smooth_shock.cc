@@ -117,12 +117,12 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/30/2024
+\date 05/14/2025
 */
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
    double a1, a2;
-   ds_shock = ((_pos - r0_shock) * n_shock - v_shock * _t) / width_shock;
+   ds_shock = ((_pos - r0) * n_shock - v_shock * _t) / width_shock;
 
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;

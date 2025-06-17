@@ -79,7 +79,7 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 
 /*!
 \author Juan G Alonso Guzman
-\date 02/03/2025
+\date 05/14/2025
 \param[in]  r      radial distance
 */
 double BackgroundSolarWindTermShock::dUrdr(const double r)
@@ -92,8 +92,9 @@ double BackgroundSolarWindTermShock::dUrdr(const double r)
 #else
       if (r > r_TS + w_TS) return 0.0;
 #endif
-      else return -(s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
-   };
+      else return (s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
+   }
+   else return 0.0;
 };
 
 /*!
@@ -116,7 +117,7 @@ double BackgroundSolarWindTermShock::TimeLag(const double r)
 
 /*!
 \author Juan G Alonso Guzman
-\date 02/22/2023
+\date 05/14/2023
 */
 void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 {
@@ -129,7 +130,7 @@ void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 // Expression valid only for radial flow
       posprime = _pos - r0;
       r = posprime.Norm();
-      rr.Dyadic(posprime);
+      rr.Dyadic(posprime / r);
       _spdata.gradUvec = dUrdr(r) * rr + (_spdata.Uvec.Norm() / r) * (gm_unit - rr);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {

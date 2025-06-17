@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "geodesic/requestable_tesselation.hh"
+#include <geodesic/requestable_tesselation.hh>
 
 namespace Spectrum {
 
@@ -20,7 +20,7 @@ namespace Spectrum {
 \param[in] face Face index
 \return The lowest division that can have this face index
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC int RequestableTesselation<poly_type, max_division>::GetMinDivision(int face) const
 {
    if ((face < 0) || (face >= nfaces[max_division])) return -1;
@@ -37,7 +37,7 @@ SPECTRUM_DEVICE_FUNC int RequestableTesselation<poly_type, max_division>::GetMin
 \param[in] face Face
 \return The immediate parent of this face (-1 if face is division 0)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC int RequestableTesselation<poly_type, max_division>::GetParent(int div, int face) const
 {
    int mindiv = GetMinDivision(face);
@@ -64,7 +64,7 @@ SPECTRUM_DEVICE_FUNC int RequestableTesselation<poly_type, max_division>::GetPar
 \param[in]  face     Face
 \param[out] children Daughter faces in an array
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::GetChildren(int div, int face, int* children) const
 {
    int mindiv = GetMinDivision(face);
@@ -89,10 +89,10 @@ SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::GetCh
 \param[in] face Face
 \return True if "face" is inside this sector
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC bool RequestableTesselation<poly_type, max_division>::IsInside(int divs, int sect, int divf, int face) const
 {
-   if(face == -1) return false;
+   if (face == -1) return false;
 
 // The sector must be the (grand)parent of the face. This also covers the trivial case of divf=divs.
    int parent = face;
@@ -109,7 +109,7 @@ SPECTRUM_DEVICE_FUNC bool RequestableTesselation<poly_type, max_division>::IsIns
 \param[in] v    Vector from the origin to the point
 \return True if the point lies inside, false otherwise
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC bool RequestableTesselation<poly_type, max_division>::VectorInsideFace(int div, int face, const GeoVector& v) const
 {
 // In the interest of speed we do not check if "face" and "div" are valid.
@@ -133,7 +133,7 @@ SPECTRUM_DEVICE_FUNC bool RequestableTesselation<poly_type, max_division>::Vecto
 \param[in,out] index Current position in the "list"
 \note This is a recursive function
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::DescendTree(int divr, int root, int divl, int* list, int& index) const
 {
    int br, branches[5];
@@ -162,7 +162,7 @@ SPECTRUM_DEVICE_FUNC void RequestableTesselation<poly_type, max_division>::Desce
 \param[out] edges The edges of this face
 \return Number of edge neighbors
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 int RequestableTesselation<poly_type, max_division>::EdgeNeighborsOfFace(int div, int face, int* edges) const
 {
    memcpy(edges, fe_con[div][face], verts_per_face[div] * SZINT);
@@ -177,7 +177,7 @@ int RequestableTesselation<poly_type, max_division>::EdgeNeighborsOfFace(int div
 \param[out] verts The vertices of this face
 \return Number of vertex neighbors
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 int RequestableTesselation<poly_type, max_division>::VertNeighborsOfFace(int div, int face, int* verts) const
 {
    memcpy(verts, fv_con[div][face], verts_per_face[div] * SZINT);
@@ -192,7 +192,7 @@ int RequestableTesselation<poly_type, max_division>::VertNeighborsOfFace(int div
 \param[out] faces Two faces that share this edge
 \return Number of face neighbors
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfEdge(int div, int edge, int* faces) const
 {
    memcpy(faces, ef_con[div][edge], 2 * SZINT);
@@ -207,7 +207,7 @@ int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfEdge(int div
 \param[out] faces List of faces that share this vertex
 \return Number of face neighbors
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfVert(int div, int vert, int* faces) const
 {
    memcpy(faces, vf_con[div][vert], NVertNbrs(div, vert) * SZINT);
@@ -221,7 +221,7 @@ int RequestableTesselation<poly_type, max_division>::FaceNeighborsOfVert(int div
 \param[in]  face Face
 \param[out] v    Cartesian coordinates of the vertices
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void RequestableTesselation<poly_type, max_division>::FaceVertCoords(int div, int face, GeoVector* v) const
 {
    for (auto iv = 0; iv < verts_per_face[div]; iv++) v[iv] = vert_cart[fv_con[div][face][iv]];
@@ -234,7 +234,7 @@ void RequestableTesselation<poly_type, max_division>::FaceVertCoords(int div, in
 \param[in] v   Vector from the origin to the point
 \return Index of the t-face where this point lies
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 int RequestableTesselation<poly_type, max_division>::Locate(int div, const GeoVector& v) const
 {
    double sp, spmax = 0.0;
@@ -275,7 +275,7 @@ int RequestableTesselation<poly_type, max_division>::Locate(int div, const GeoVe
 \param[in]  divf Division of the faces in the mesh
 \param[out] list An array of faces at divf inside the sector in tree format
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void RequestableTesselation<poly_type, max_division>::GetAllInsideFaceTree(int divs, int sect, int divf, int* list) const
 {
    int idx = 0;
@@ -292,7 +292,7 @@ void RequestableTesselation<poly_type, max_division>::GetAllInsideFaceTree(int d
 \param[in]  list   The list of indices
 \param[out] vcart  Array of vertex coordinates
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void RequestableTesselation<poly_type, max_division>::FillVertCoordArrays(int length, const int* list, GeoVector* vcart) const
 {
    int vert;

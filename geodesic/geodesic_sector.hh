@@ -27,17 +27,14 @@ namespace Spectrum {
 //! Mask for the sector boundary (EV)
 #define GEOELM_BNDR 0x0008
 
-//! Smallest interior block side width
-#define min_block_width 4
-
-//! Largest interior block side width
-#define max_block_width 256
-
 //! Smallest number of ghost t-faces
 #define min_ghost_width 1
 
 //! Largest number of ghost t-faces
-#define max_ghost_width 5
+#define max_ghost_width 4
+
+//! Smallest ratio between block width and ghost width
+#define min_width_to_ghost 4
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAVERSABLE_TESSELATION_HH
 #define SPECTRUM_TRAVERSABLE_TESSELATION_HH
 
-#include "geodesic/requestable_tesselation.hh"
+#include <geodesic/requestable_tesselation.hh>
 
 namespace Spectrum {
 
@@ -21,7 +21,7 @@ namespace Spectrum {
 \brief A SphericalTesselation derived class that can generate flat addressing for the elements suitable for sectors
 \author Vladimir Florinski
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 class TraversableTesselation : public RequestableTesselation<poly_type, max_division>
 {
    using RequestableTesselation<poly_type, max_division>::verts_per_face;

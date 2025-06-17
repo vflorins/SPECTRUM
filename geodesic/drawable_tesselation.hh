@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DRAWABLE_TESSELATION_HH
 #define SPECTRUM_DRAWABLE_TESSELATION_HH
 
-#include "geodesic/spherical_tesselation.hh"
+#include <geodesic/spherical_tesselation.hh>
 
 namespace Spectrum {
 
@@ -21,7 +21,7 @@ namespace Spectrum {
 \brief An extension of SphericalTesselation to generate figures and print debug information
 \author Vladimir Florinski
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 class DrawableTesselation : public SphericalTesselation<poly_type, max_division>
 {
 protected:

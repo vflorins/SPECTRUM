@@ -11,8 +11,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <iostream>
 #include <cstdint>
-#include "common/vectors.hh"
-#include "geodesic/polyhedron.hh"
+
+#include <common/vectors.hh>
+#include <geodesic/polyhedron.hh>
 
 namespace Spectrum {
 
@@ -122,7 +123,7 @@ inline void TessError::PrintErrors(void) const
 
 Tesselation is a partitioning of the surface of a sphere into spherical polygons. This class defines data structures to store corrdinates and methods to compute mesh connectivity.
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 class SphericalTesselation : public Polyhedron<poly_type>
 {
 protected:
@@ -150,12 +151,6 @@ protected:
 
 //! New vertices are added for each parent _face_
    bool newverts_at_face[max_division + 1];
-
-//! Vertex latitudes
-   double* vert_lat = nullptr;
-
-//! Vertex longitudes
-   double* vert_lon = nullptr;
 
 //! Cartesian coordinates of vertices on a unit sphere
    GeoVector* vert_cart = nullptr;
@@ -268,7 +263,7 @@ v\param[in] div  Division
 \\param[in] vert Vertex
 return Number of neighbor vertices (same as edges and faces)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NVertNbrs(int div, int vert) const
 {
    if (poly_type == POLY_DODECAHEDRON) {
@@ -289,7 +284,7 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::N
 \param[in] rot  Amount of rotation in the CC direction
 \return Another vertex that belongs to "face"
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::VertCC(int div, int face, int vert, int rot) const
 {
    auto iv = InList(verts_per_face[div], fv_con[div][face], vert);
@@ -306,7 +301,7 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::V
 \param[in] rot  Amount of rotation in the CC direction
 \return Another edge that belongs to "face"
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::EdgeCC(int div, int face, int edge, int rot) const
 {
    auto ie = InList(verts_per_face[div], fe_con[div][face], edge);
@@ -323,7 +318,7 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::E
 \param[out] face1 First  common face (-1 if vertices are not connected)
 \param[out] face2 Second common face (-1 if vertices are not connected)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline void SphericalTesselation<poly_type, max_division>::Match2vf(int div, int vert1, int vert2, int& face1, int& face2) const
 {
    bool found_two = false;
@@ -352,7 +347,7 @@ SPECTRUM_DEVICE_FUNC inline void SphericalTesselation<poly_type, max_division>::
 \param[in] vert2 Second vertex
 \return Edge connecting "vert1" and "vert2" (-1 if vertices are not connected)
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::Match2ve(int div, int vert1, int vert2) const
 {
    bool found_one = false;
@@ -371,4 +366,3 @@ SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::M
 };
 
 #endif
-

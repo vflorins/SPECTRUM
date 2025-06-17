@@ -142,14 +142,7 @@ protected:
 //! Radial distance of the upper boundary of the entire domain
    double Rmax;
 
-// FIXME - check if this is needed
-//! Logarithmic ratio of radial boundaries
-   double LogRmax_Rmin;
-
-//! Constant radio of EC shell width to EC radius of bottom of zone
-   double drp_ratio;
-
-//! LUC shell width
+//! Shell width in index coordinates
    double dxi;
 
 //! Reference radial coordinates of shell interfaces
@@ -157,25 +150,6 @@ protected:
 
 //! Radial coordinates of shell interfaces
    double* r_in = nullptr;
-
-//! Square of the radial coordinates of shell interfaces
-   double* r2_in = nullptr;
-
-//! Cube of the radial coordinates of shell interfaces
-   double* r3_in = nullptr;
-
-//! Exponential radial coordinates of shell interfaces
-   double* rp_in = nullptr;
-
-//! Shell widths
-   double* dr = nullptr;
-
-// FIXME - check if this is needed
-//! Shell midpoints, \f$(r_1+r_2)/2\f$
-   double* r_mp = nullptr;
-
-//! Shell widths in exponential coordinates
-   double* drp = nullptr;
 
 //! Distance map object
    std::shared_ptr<DistanceBase> dist_map = nullptr;
