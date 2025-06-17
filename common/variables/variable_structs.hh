@@ -1,0 +1,144 @@
+/*!
+\file variable_structs.hh
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\author Juan G Alonso Guzman
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
+*/
+
+#ifndef SPECTRUM_VARIABLE_STRUCTS_HH
+#define SPECTRUM_VARIABLE_STRUCTS_HH
+
+#include "generate/variable_lists.hh"
+#include <common/matrix.hh>
+
+namespace Spectrum {
+
+/*!
+\brief Scalar with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct NamedScalar {
+
+//! static fields
+   static constexpr const std::string_view name = VariableNames[nameid];
+    static const int reconstructible = reconstructible_;
+    static const int solvable = solvable_;
+
+//! data field
+   double value;
+   
+   NamedScalar(double value = 0):
+      value(value)
+   {}
+
+   operator double&() {
+      return value;
+   }
+
+   operator double() const {
+      return value;
+   }
+
+//! print string
+   std::string str() const {
+      std::string tmp = std::string(VariableNames[nameid]) + "[" + std::to_string(value) + "]";
+      return tmp;
+   }
+
+};
+
+
+/*!
+\brief GeoVector with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct NamedGeoVector : public GeoVector {
+
+//! static fields
+   static constexpr const std::string_view name = VariableNames[nameid];
+   static const int reconstructible = reconstructible_;
+   static const int solvable = solvable_;
+
+   NamedGeoVector() {}
+
+   // todo review
+   NamedGeoVector(GeoVector vec):
+      GeoVector(vec)
+   {}
+
+//! print string
+   std::string str() const {
+      std::string tmp = std::string(VariableNames[nameid]) + "[";
+      // quick lazy impl
+      tmp += std::to_string(x) + " ";
+      tmp += std::to_string(y) + " ";
+      tmp += std::to_string(z) + "]";
+      return tmp;
+   }
+
+};
+
+
+
+template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
+inline GeoVector operator*(const NamedScalar<nameid2, R2, S2>& lhs, const NamedGeoVector<nameid, R, S>& rhs) {
+   return lhs.value*static_cast<const GeoVector&>(rhs);
+}
+
+template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
+inline GeoVector operator*(const NamedGeoVector<nameid, R, S>& lhs, const NamedScalar<nameid2, R2, S2>& rhs) {
+   return rhs.value*static_cast<const GeoVector&>(lhs);
+}
+
+template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
+inline GeoVector operator/(const NamedGeoVector<nameid, R, S>& lhs, const NamedScalar<nameid2, R2, S2>& rhs) {
+   return (1.0/rhs.value)*static_cast<const GeoVector&>(lhs);
+}
+
+
+/*!
+\brief GeoMatrix with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct NamedGeoMatrix : public GeoMatrix {
+
+//! static fields
+   static constexpr const std::string_view name = VariableNames[nameid];
+    static const int reconstructible = reconstructible_;
+    static const int solvable = solvable_;
+
+   NamedGeoMatrix() {}
+
+   // todo review
+   NamedGeoMatrix(GeoMatrix mat):
+      GeoMatrix(mat)
+   {}
+
+//! print string
+   std::string str() const {
+      // quick lazy impl
+      std::string tmp = std::string(VariableNames[nameid]) + "[ ";
+      for (int i = 0; i < 3; ++i) {
+         tmp += "[";
+         for (int j = 0; j < 3; ++j) {
+            tmp += std::to_string(row[i][j]) + " ";
+         }
+         tmp += "] ";
+      }
+      tmp += "]";
+      return tmp;
+   }
+
+};
+
+}
+
+#endif
