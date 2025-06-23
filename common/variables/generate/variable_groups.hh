@@ -24,84 +24,84 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using PrimitiveStateGASDYNT = NamedMHDtuple<VariableId::PrimitiveStateGASDYN, denT, velT, prsT>;
+using PrimitiveStateGASDYN_t = NamedMHDtuple<VariableId::PrimitiveStateGASDYN, den_t, vel_t, prs_t>;
 
 /*!
 \brief Variables of the conserved form for a gas dynamics model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ConservedStateGASDYNT = NamedMHDtuple<VariableId::ConservedStateGASDYN, denT, momT, enrT>;
+using ConservedStateGASDYN_t = NamedMHDtuple<VariableId::ConservedStateGASDYN, den_t, mom_t, enr_t>;
 
 /*!
 \brief Variables of the flux function for a gas dynamics model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FluxFunctionGASDYNT = NamedMHDtuple<VariableId::FluxFunctionGASDYN, fdenT, fmomT, fenrT>;
+using FluxFunctionGASDYN_t = NamedMHDtuple<VariableId::FluxFunctionGASDYN, fden_t, fmom_t, fenr_t>;
 
 /*!
 \brief Variables of the primitive form for an MHD model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using PrimitiveStateMHDT = NamedMHDtuple<VariableId::PrimitiveStateMHD, denT, velT, prsT, magT>;
+using PrimitiveStateMHD_t = NamedMHDtuple<VariableId::PrimitiveStateMHD, den_t, vel_t, prs_t, mag_t>;
 
 /*!
 \brief Variables of the conserved form for an MHD model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ConservedStateMHDT = NamedMHDtuple<VariableId::ConservedStateMHD, denT, momT, enrT, magT>;
+using ConservedStateMHD_t = NamedMHDtuple<VariableId::ConservedStateMHD, den_t, mom_t, enr_t, mag_t>;
 
 /*!
 \brief Variables of the flux function for an MHD model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FluxFunctionMHDT = NamedMHDtuple<VariableId::FluxFunctionMHD, fdenT, fmomT, fenrT, fmagT>;
+using FluxFunctionMHD_t = NamedMHDtuple<VariableId::FluxFunctionMHD, fden_t, fmom_t, fenr_t, fmag_t>;
 
 /*!
 \brief Variables of the primitive form for an MHD-GLM model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using PrimitiveStateMHD_GLMT = NamedMHDtuple<VariableId::PrimitiveStateMHD_GLM, denT, velT, prsT, magT, glmT>;
+using PrimitiveStateMHD_GLM_t = NamedMHDtuple<VariableId::PrimitiveStateMHD_GLM, den_t, vel_t, prs_t, mag_t, glm_t>;
 
 /*!
 \brief Variables of the conserved form for an MHD-GLM model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ConservedStateMHD_GLMT = NamedMHDtuple<VariableId::ConservedStateMHD_GLM, denT, momT, enrT, magT, glmT>;
+using ConservedStateMHD_GLM_t = NamedMHDtuple<VariableId::ConservedStateMHD_GLM, den_t, mom_t, enr_t, mag_t, glm_t>;
 
 /*!
 \brief Variables of the flux function for an MHD-GLM model type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FluxFunctionMHD_GLMT = NamedMHDtuple<VariableId::FluxFunctionMHD_GLM, fdenT, fmomT, fenrT, fmagT, fglmT>;
+using FluxFunctionMHD_GLM_t = NamedMHDtuple<VariableId::FluxFunctionMHD_GLM, fden_t, fmom_t, fenr_t, fmag_t, fglm_t>;
 
 /*!
 \brief Magnetic field data group type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using BdataT = NamedMHDtuple<VariableId::Bdata, magT, MmagT, DmagT>;
+using Bdata_t = NamedMHDtuple<VariableId::Bdata, mag_t, Mmag_t, Dmag_t>;
 
 /*!
 \brief Magnetic field data group (gradients) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GBdataT = NamedMHDtuple<VariableId::GBdata, GmagT, GMmagT, GDmagT>;
+using GBdata_t = NamedMHDtuple<VariableId::GBdata, Gmag_t, GMmag_t, GDmag_t>;
 
 /*!
 \brief Magnetic field data group (time derivatives) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TBdataT = NamedMHDtuple<VariableId::TBdata, TmagT, TMmagT, TDmagT>;
+using TBdata_t = NamedMHDtuple<VariableId::TBdata, Tmag_t, TMmag_t, TDmag_t>;
 
 };
 

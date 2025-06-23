@@ -192,8 +192,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   denT& den(void) {
-      if constexpr (std::is_same<T, denT>::value)
+   den_t& den(void) {
+      if constexpr (std::is_same<T, den_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::den();
@@ -204,8 +204,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const denT& den(void) const {
-      if constexpr (std::is_same<T, denT>::value)
+   const den_t& den(void) const {
+      if constexpr (std::is_same<T, den_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::den();
@@ -218,7 +218,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool den_found(void) {
-      if constexpr (std::is_same<T, denT>::value)
+      if constexpr (std::is_same<T, den_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::den_found();
@@ -230,8 +230,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   fdenT& fden(void) {
-      if constexpr (std::is_same<T, fdenT>::value)
+   fden_t& fden(void) {
+      if constexpr (std::is_same<T, fden_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fden();
@@ -242,8 +242,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const fdenT& fden(void) const {
-      if constexpr (std::is_same<T, fdenT>::value)
+   const fden_t& fden(void) const {
+      if constexpr (std::is_same<T, fden_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fden();
@@ -256,7 +256,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool fden_found(void) {
-      if constexpr (std::is_same<T, fdenT>::value)
+      if constexpr (std::is_same<T, fden_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::fden_found();
@@ -268,8 +268,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   prsT& prs(void) {
-      if constexpr (std::is_same<T, prsT>::value)
+   prs_t& prs(void) {
+      if constexpr (std::is_same<T, prs_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::prs();
@@ -280,8 +280,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const prsT& prs(void) const {
-      if constexpr (std::is_same<T, prsT>::value)
+   const prs_t& prs(void) const {
+      if constexpr (std::is_same<T, prs_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::prs();
@@ -294,7 +294,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool prs_found(void) {
-      if constexpr (std::is_same<T, prsT>::value)
+      if constexpr (std::is_same<T, prs_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::prs_found();
@@ -306,8 +306,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   enrT& enr(void) {
-      if constexpr (std::is_same<T, enrT>::value)
+   enr_t& enr(void) {
+      if constexpr (std::is_same<T, enr_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::enr();
@@ -318,8 +318,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const enrT& enr(void) const {
-      if constexpr (std::is_same<T, enrT>::value)
+   const enr_t& enr(void) const {
+      if constexpr (std::is_same<T, enr_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::enr();
@@ -332,7 +332,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool enr_found(void) {
-      if constexpr (std::is_same<T, enrT>::value)
+      if constexpr (std::is_same<T, enr_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::enr_found();
@@ -344,8 +344,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   fenrT& fenr(void) {
-      if constexpr (std::is_same<T, fenrT>::value)
+   fenr_t& fenr(void) {
+      if constexpr (std::is_same<T, fenr_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fenr();
@@ -356,8 +356,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const fenrT& fenr(void) const {
-      if constexpr (std::is_same<T, fenrT>::value)
+   const fenr_t& fenr(void) const {
+      if constexpr (std::is_same<T, fenr_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fenr();
@@ -370,7 +370,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool fenr_found(void) {
-      if constexpr (std::is_same<T, fenrT>::value)
+      if constexpr (std::is_same<T, fenr_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::fenr_found();
@@ -382,8 +382,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   velT& vel(void) {
-      if constexpr (std::is_same<T, velT>::value)
+   vel_t& vel(void) {
+      if constexpr (std::is_same<T, vel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::vel();
@@ -394,8 +394,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const velT& vel(void) const {
-      if constexpr (std::is_same<T, velT>::value)
+   const vel_t& vel(void) const {
+      if constexpr (std::is_same<T, vel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::vel();
@@ -408,7 +408,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool vel_found(void) {
-      if constexpr (std::is_same<T, velT>::value)
+      if constexpr (std::is_same<T, vel_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::vel_found();
@@ -420,8 +420,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   momT& mom(void) {
-      if constexpr (std::is_same<T, momT>::value)
+   mom_t& mom(void) {
+      if constexpr (std::is_same<T, mom_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::mom();
@@ -432,8 +432,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const momT& mom(void) const {
-      if constexpr (std::is_same<T, momT>::value)
+   const mom_t& mom(void) const {
+      if constexpr (std::is_same<T, mom_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::mom();
@@ -446,7 +446,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool mom_found(void) {
-      if constexpr (std::is_same<T, momT>::value)
+      if constexpr (std::is_same<T, mom_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::mom_found();
@@ -458,8 +458,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   fmomT& fmom(void) {
-      if constexpr (std::is_same<T, fmomT>::value)
+   fmom_t& fmom(void) {
+      if constexpr (std::is_same<T, fmom_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fmom();
@@ -470,8 +470,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const fmomT& fmom(void) const {
-      if constexpr (std::is_same<T, fmomT>::value)
+   const fmom_t& fmom(void) const {
+      if constexpr (std::is_same<T, fmom_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fmom();
@@ -484,7 +484,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool fmom_found(void) {
-      if constexpr (std::is_same<T, fmomT>::value)
+      if constexpr (std::is_same<T, fmom_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::fmom_found();
@@ -496,8 +496,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   magT& mag(void) {
-      if constexpr (std::is_same<T, magT>::value)
+   mag_t& mag(void) {
+      if constexpr (std::is_same<T, mag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::mag();
@@ -508,8 +508,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const magT& mag(void) const {
-      if constexpr (std::is_same<T, magT>::value)
+   const mag_t& mag(void) const {
+      if constexpr (std::is_same<T, mag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::mag();
@@ -522,7 +522,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool mag_found(void) {
-      if constexpr (std::is_same<T, magT>::value)
+      if constexpr (std::is_same<T, mag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::mag_found();
@@ -534,8 +534,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   fmagT& fmag(void) {
-      if constexpr (std::is_same<T, fmagT>::value)
+   fmag_t& fmag(void) {
+      if constexpr (std::is_same<T, fmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fmag();
@@ -546,8 +546,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const fmagT& fmag(void) const {
-      if constexpr (std::is_same<T, fmagT>::value)
+   const fmag_t& fmag(void) const {
+      if constexpr (std::is_same<T, fmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fmag();
@@ -560,7 +560,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool fmag_found(void) {
-      if constexpr (std::is_same<T, fmagT>::value)
+      if constexpr (std::is_same<T, fmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::fmag_found();
@@ -572,8 +572,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   glmT& glm(void) {
-      if constexpr (std::is_same<T, glmT>::value)
+   glm_t& glm(void) {
+      if constexpr (std::is_same<T, glm_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::glm();
@@ -584,8 +584,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const glmT& glm(void) const {
-      if constexpr (std::is_same<T, glmT>::value)
+   const glm_t& glm(void) const {
+      if constexpr (std::is_same<T, glm_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::glm();
@@ -598,7 +598,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool glm_found(void) {
-      if constexpr (std::is_same<T, glmT>::value)
+      if constexpr (std::is_same<T, glm_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::glm_found();
@@ -610,8 +610,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   fglmT& fglm(void) {
-      if constexpr (std::is_same<T, fglmT>::value)
+   fglm_t& fglm(void) {
+      if constexpr (std::is_same<T, fglm_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fglm();
@@ -622,8 +622,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const fglmT& fglm(void) const {
-      if constexpr (std::is_same<T, fglmT>::value)
+   const fglm_t& fglm(void) const {
+      if constexpr (std::is_same<T, fglm_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::fglm();
@@ -636,7 +636,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool fglm_found(void) {
-      if constexpr (std::is_same<T, fglmT>::value)
+      if constexpr (std::is_same<T, fglm_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::fglm_found();
@@ -648,8 +648,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   eleT& ele(void) {
-      if constexpr (std::is_same<T, eleT>::value)
+   ele_t& ele(void) {
+      if constexpr (std::is_same<T, ele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::ele();
@@ -660,8 +660,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const eleT& ele(void) const {
-      if constexpr (std::is_same<T, eleT>::value)
+   const ele_t& ele(void) const {
+      if constexpr (std::is_same<T, ele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::ele();
@@ -674,7 +674,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool ele_found(void) {
-      if constexpr (std::is_same<T, eleT>::value)
+      if constexpr (std::is_same<T, ele_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::ele_found();
@@ -686,8 +686,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   MmagT& Mmag(void) {
-      if constexpr (std::is_same<T, MmagT>::value)
+   Mmag_t& Mmag(void) {
+      if constexpr (std::is_same<T, Mmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Mmag();
@@ -698,8 +698,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const MmagT& Mmag(void) const {
-      if constexpr (std::is_same<T, MmagT>::value)
+   const Mmag_t& Mmag(void) const {
+      if constexpr (std::is_same<T, Mmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Mmag();
@@ -712,7 +712,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Mmag_found(void) {
-      if constexpr (std::is_same<T, MmagT>::value)
+      if constexpr (std::is_same<T, Mmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Mmag_found();
@@ -724,8 +724,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DmagT& Dmag(void) {
-      if constexpr (std::is_same<T, DmagT>::value)
+   Dmag_t& Dmag(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Dmag();
@@ -736,8 +736,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DmagT& Dmag(void) const {
-      if constexpr (std::is_same<T, DmagT>::value)
+   const Dmag_t& Dmag(void) const {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Dmag();
@@ -750,7 +750,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Dmag_found(void) {
-      if constexpr (std::is_same<T, DmagT>::value)
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Dmag_found();
@@ -762,8 +762,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GvelT& Gvel(void) {
-      if constexpr (std::is_same<T, GvelT>::value)
+   Gvel_t& Gvel(void) {
+      if constexpr (std::is_same<T, Gvel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gvel();
@@ -774,8 +774,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GvelT& Gvel(void) const {
-      if constexpr (std::is_same<T, GvelT>::value)
+   const Gvel_t& Gvel(void) const {
+      if constexpr (std::is_same<T, Gvel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gvel();
@@ -788,7 +788,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Gvel_found(void) {
-      if constexpr (std::is_same<T, GvelT>::value)
+      if constexpr (std::is_same<T, Gvel_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Gvel_found();
@@ -800,8 +800,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeleT& Gele(void) {
-      if constexpr (std::is_same<T, GeleT>::value)
+   Gele_t& Gele(void) {
+      if constexpr (std::is_same<T, Gele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gele();
@@ -812,8 +812,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeleT& Gele(void) const {
-      if constexpr (std::is_same<T, GeleT>::value)
+   const Gele_t& Gele(void) const {
+      if constexpr (std::is_same<T, Gele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gele();
@@ -826,7 +826,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Gele_found(void) {
-      if constexpr (std::is_same<T, GeleT>::value)
+      if constexpr (std::is_same<T, Gele_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Gele_found();
@@ -838,8 +838,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GmagT& Gmag(void) {
-      if constexpr (std::is_same<T, GmagT>::value)
+   Gmag_t& Gmag(void) {
+      if constexpr (std::is_same<T, Gmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gmag();
@@ -850,8 +850,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GmagT& Gmag(void) const {
-      if constexpr (std::is_same<T, GmagT>::value)
+   const Gmag_t& Gmag(void) const {
+      if constexpr (std::is_same<T, Gmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Gmag();
@@ -864,7 +864,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Gmag_found(void) {
-      if constexpr (std::is_same<T, GmagT>::value)
+      if constexpr (std::is_same<T, Gmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Gmag_found();
@@ -876,8 +876,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GMmagT& GMmag(void) {
-      if constexpr (std::is_same<T, GMmagT>::value)
+   GMmag_t& GMmag(void) {
+      if constexpr (std::is_same<T, GMmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::GMmag();
@@ -888,8 +888,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GMmagT& GMmag(void) const {
-      if constexpr (std::is_same<T, GMmagT>::value)
+   const GMmag_t& GMmag(void) const {
+      if constexpr (std::is_same<T, GMmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::GMmag();
@@ -902,7 +902,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool GMmag_found(void) {
-      if constexpr (std::is_same<T, GMmagT>::value)
+      if constexpr (std::is_same<T, GMmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::GMmag_found();
@@ -914,8 +914,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GDmagT& GDmag(void) {
-      if constexpr (std::is_same<T, GDmagT>::value)
+   GDmag_t& GDmag(void) {
+      if constexpr (std::is_same<T, GDmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::GDmag();
@@ -926,8 +926,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GDmagT& GDmag(void) const {
-      if constexpr (std::is_same<T, GDmagT>::value)
+   const GDmag_t& GDmag(void) const {
+      if constexpr (std::is_same<T, GDmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::GDmag();
@@ -940,7 +940,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool GDmag_found(void) {
-      if constexpr (std::is_same<T, GDmagT>::value)
+      if constexpr (std::is_same<T, GDmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::GDmag_found();
@@ -952,8 +952,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TvelT& Tvel(void) {
-      if constexpr (std::is_same<T, TvelT>::value)
+   Tvel_t& Tvel(void) {
+      if constexpr (std::is_same<T, Tvel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tvel();
@@ -964,8 +964,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TvelT& Tvel(void) const {
-      if constexpr (std::is_same<T, TvelT>::value)
+   const Tvel_t& Tvel(void) const {
+      if constexpr (std::is_same<T, Tvel_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tvel();
@@ -978,7 +978,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Tvel_found(void) {
-      if constexpr (std::is_same<T, TvelT>::value)
+      if constexpr (std::is_same<T, Tvel_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Tvel_found();
@@ -990,8 +990,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TeleT& Tele(void) {
-      if constexpr (std::is_same<T, TeleT>::value)
+   Tele_t& Tele(void) {
+      if constexpr (std::is_same<T, Tele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tele();
@@ -1002,8 +1002,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TeleT& Tele(void) const {
-      if constexpr (std::is_same<T, TeleT>::value)
+   const Tele_t& Tele(void) const {
+      if constexpr (std::is_same<T, Tele_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tele();
@@ -1016,7 +1016,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Tele_found(void) {
-      if constexpr (std::is_same<T, TeleT>::value)
+      if constexpr (std::is_same<T, Tele_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Tele_found();
@@ -1028,8 +1028,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TmagT& Tmag(void) {
-      if constexpr (std::is_same<T, TmagT>::value)
+   Tmag_t& Tmag(void) {
+      if constexpr (std::is_same<T, Tmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tmag();
@@ -1040,8 +1040,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TmagT& Tmag(void) const {
-      if constexpr (std::is_same<T, TmagT>::value)
+   const Tmag_t& Tmag(void) const {
+      if constexpr (std::is_same<T, Tmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::Tmag();
@@ -1054,7 +1054,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool Tmag_found(void) {
-      if constexpr (std::is_same<T, TmagT>::value)
+      if constexpr (std::is_same<T, Tmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::Tmag_found();
@@ -1066,8 +1066,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TMmagT& TMmag(void) {
-      if constexpr (std::is_same<T, TMmagT>::value)
+   TMmag_t& TMmag(void) {
+      if constexpr (std::is_same<T, TMmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::TMmag();
@@ -1078,8 +1078,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TMmagT& TMmag(void) const {
-      if constexpr (std::is_same<T, TMmagT>::value)
+   const TMmag_t& TMmag(void) const {
+      if constexpr (std::is_same<T, TMmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::TMmag();
@@ -1092,7 +1092,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool TMmag_found(void) {
-      if constexpr (std::is_same<T, TMmagT>::value)
+      if constexpr (std::is_same<T, TMmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::TMmag_found();
@@ -1104,8 +1104,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TDmagT& TDmag(void) {
-      if constexpr (std::is_same<T, TDmagT>::value)
+   TDmag_t& TDmag(void) {
+      if constexpr (std::is_same<T, TDmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::TDmag();
@@ -1116,8 +1116,8 @@ If this is not the case, use get<index>(mhdtuple).
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TDmagT& TDmag(void) const {
-      if constexpr (std::is_same<T, TDmagT>::value)
+   const TDmag_t& TDmag(void) const {
+      if constexpr (std::is_same<T, TDmag_t>::value)
          return data;
       else
          return NamedMHDtuple<nameid, Ts...>::TDmag();
@@ -1130,7 +1130,7 @@ If this is not the case, use get<index>(mhdtuple).
 \date 3/25/2025
 */
    bool TDmag_found(void) {
-      if constexpr (std::is_same<T, TDmagT>::value)
+      if constexpr (std::is_same<T, TDmag_t>::value)
          return true;
       else
          return NamedMHDtuple<nameid, Ts...>::TDmag_found();
@@ -1245,526 +1245,526 @@ public:
 
    // BEGIN(variables/generate, base)
 
-   denT& den(void) {
-      if constexpr (std::is_same<T, denT>::value)
+   den_t& den(void) {
+      if constexpr (std::is_same<T, den_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const denT& den(void) const {
-   if constexpr (std::is_same<T, denT>::value)
+  const den_t& den(void) const {
+   if constexpr (std::is_same<T, den_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool den_found(void) {
-      if constexpr (std::is_same<T, denT>::value)
+      if constexpr (std::is_same<T, den_t>::value)
          return true;
       else
          return false;
    };
 
-   fdenT& fden(void) {
-      if constexpr (std::is_same<T, fdenT>::value)
+   fden_t& fden(void) {
+      if constexpr (std::is_same<T, fden_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] fden (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const fdenT& fden(void) const {
-   if constexpr (std::is_same<T, fdenT>::value)
+  const fden_t& fden(void) const {
+   if constexpr (std::is_same<T, fden_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] fden (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool fden_found(void) {
-      if constexpr (std::is_same<T, fdenT>::value)
+      if constexpr (std::is_same<T, fden_t>::value)
          return true;
       else
          return false;
    };
 
-   prsT& prs(void) {
-      if constexpr (std::is_same<T, prsT>::value)
+   prs_t& prs(void) {
+      if constexpr (std::is_same<T, prs_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const prsT& prs(void) const {
-   if constexpr (std::is_same<T, prsT>::value)
+  const prs_t& prs(void) const {
+   if constexpr (std::is_same<T, prs_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool prs_found(void) {
-      if constexpr (std::is_same<T, prsT>::value)
+      if constexpr (std::is_same<T, prs_t>::value)
          return true;
       else
          return false;
    };
 
-   enrT& enr(void) {
-      if constexpr (std::is_same<T, enrT>::value)
+   enr_t& enr(void) {
+      if constexpr (std::is_same<T, enr_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const enrT& enr(void) const {
-   if constexpr (std::is_same<T, enrT>::value)
+  const enr_t& enr(void) const {
+   if constexpr (std::is_same<T, enr_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool enr_found(void) {
-      if constexpr (std::is_same<T, enrT>::value)
+      if constexpr (std::is_same<T, enr_t>::value)
          return true;
       else
          return false;
    };
 
-   fenrT& fenr(void) {
-      if constexpr (std::is_same<T, fenrT>::value)
+   fenr_t& fenr(void) {
+      if constexpr (std::is_same<T, fenr_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] fenr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const fenrT& fenr(void) const {
-   if constexpr (std::is_same<T, fenrT>::value)
+  const fenr_t& fenr(void) const {
+   if constexpr (std::is_same<T, fenr_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] fenr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool fenr_found(void) {
-      if constexpr (std::is_same<T, fenrT>::value)
+      if constexpr (std::is_same<T, fenr_t>::value)
          return true;
       else
          return false;
    };
 
-   velT& vel(void) {
-      if constexpr (std::is_same<T, velT>::value)
+   vel_t& vel(void) {
+      if constexpr (std::is_same<T, vel_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const velT& vel(void) const {
-   if constexpr (std::is_same<T, velT>::value)
+  const vel_t& vel(void) const {
+   if constexpr (std::is_same<T, vel_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool vel_found(void) {
-      if constexpr (std::is_same<T, velT>::value)
+      if constexpr (std::is_same<T, vel_t>::value)
          return true;
       else
          return false;
    };
 
-   momT& mom(void) {
-      if constexpr (std::is_same<T, momT>::value)
+   mom_t& mom(void) {
+      if constexpr (std::is_same<T, mom_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const momT& mom(void) const {
-   if constexpr (std::is_same<T, momT>::value)
+  const mom_t& mom(void) const {
+   if constexpr (std::is_same<T, mom_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool mom_found(void) {
-      if constexpr (std::is_same<T, momT>::value)
+      if constexpr (std::is_same<T, mom_t>::value)
          return true;
       else
          return false;
    };
 
-   fmomT& fmom(void) {
-      if constexpr (std::is_same<T, fmomT>::value)
+   fmom_t& fmom(void) {
+      if constexpr (std::is_same<T, fmom_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] fmom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const fmomT& fmom(void) const {
-   if constexpr (std::is_same<T, fmomT>::value)
+  const fmom_t& fmom(void) const {
+   if constexpr (std::is_same<T, fmom_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] fmom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool fmom_found(void) {
-      if constexpr (std::is_same<T, fmomT>::value)
+      if constexpr (std::is_same<T, fmom_t>::value)
          return true;
       else
          return false;
    };
 
-   magT& mag(void) {
-      if constexpr (std::is_same<T, magT>::value)
+   mag_t& mag(void) {
+      if constexpr (std::is_same<T, mag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const magT& mag(void) const {
-   if constexpr (std::is_same<T, magT>::value)
+  const mag_t& mag(void) const {
+   if constexpr (std::is_same<T, mag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool mag_found(void) {
-      if constexpr (std::is_same<T, magT>::value)
+      if constexpr (std::is_same<T, mag_t>::value)
          return true;
       else
          return false;
    };
 
-   fmagT& fmag(void) {
-      if constexpr (std::is_same<T, fmagT>::value)
+   fmag_t& fmag(void) {
+      if constexpr (std::is_same<T, fmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] fmag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const fmagT& fmag(void) const {
-   if constexpr (std::is_same<T, fmagT>::value)
+  const fmag_t& fmag(void) const {
+   if constexpr (std::is_same<T, fmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] fmag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool fmag_found(void) {
-      if constexpr (std::is_same<T, fmagT>::value)
+      if constexpr (std::is_same<T, fmag_t>::value)
          return true;
       else
          return false;
    };
 
-   glmT& glm(void) {
-      if constexpr (std::is_same<T, glmT>::value)
+   glm_t& glm(void) {
+      if constexpr (std::is_same<T, glm_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const glmT& glm(void) const {
-   if constexpr (std::is_same<T, glmT>::value)
+  const glm_t& glm(void) const {
+   if constexpr (std::is_same<T, glm_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool glm_found(void) {
-      if constexpr (std::is_same<T, glmT>::value)
+      if constexpr (std::is_same<T, glm_t>::value)
          return true;
       else
          return false;
    };
 
-   fglmT& fglm(void) {
-      if constexpr (std::is_same<T, fglmT>::value)
+   fglm_t& fglm(void) {
+      if constexpr (std::is_same<T, fglm_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] fglm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const fglmT& fglm(void) const {
-   if constexpr (std::is_same<T, fglmT>::value)
+  const fglm_t& fglm(void) const {
+   if constexpr (std::is_same<T, fglm_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] fglm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool fglm_found(void) {
-      if constexpr (std::is_same<T, fglmT>::value)
+      if constexpr (std::is_same<T, fglm_t>::value)
          return true;
       else
          return false;
    };
 
-   eleT& ele(void) {
-      if constexpr (std::is_same<T, eleT>::value)
+   ele_t& ele(void) {
+      if constexpr (std::is_same<T, ele_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const eleT& ele(void) const {
-   if constexpr (std::is_same<T, eleT>::value)
+  const ele_t& ele(void) const {
+   if constexpr (std::is_same<T, ele_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool ele_found(void) {
-      if constexpr (std::is_same<T, eleT>::value)
+      if constexpr (std::is_same<T, ele_t>::value)
          return true;
       else
          return false;
    };
 
-   MmagT& Mmag(void) {
-      if constexpr (std::is_same<T, MmagT>::value)
+   Mmag_t& Mmag(void) {
+      if constexpr (std::is_same<T, Mmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Mmag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const MmagT& Mmag(void) const {
-   if constexpr (std::is_same<T, MmagT>::value)
+  const Mmag_t& Mmag(void) const {
+   if constexpr (std::is_same<T, Mmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Mmag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Mmag_found(void) {
-      if constexpr (std::is_same<T, MmagT>::value)
+      if constexpr (std::is_same<T, Mmag_t>::value)
          return true;
       else
          return false;
    };
 
-   DmagT& Dmag(void) {
-      if constexpr (std::is_same<T, DmagT>::value)
+   Dmag_t& Dmag(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Dmag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DmagT& Dmag(void) const {
-   if constexpr (std::is_same<T, DmagT>::value)
+  const Dmag_t& Dmag(void) const {
+   if constexpr (std::is_same<T, Dmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Dmag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Dmag_found(void) {
-      if constexpr (std::is_same<T, DmagT>::value)
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return true;
       else
          return false;
    };
 
-   GvelT& Gvel(void) {
-      if constexpr (std::is_same<T, GvelT>::value)
+   Gvel_t& Gvel(void) {
+      if constexpr (std::is_same<T, Gvel_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Gvel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GvelT& Gvel(void) const {
-   if constexpr (std::is_same<T, GvelT>::value)
+  const Gvel_t& Gvel(void) const {
+   if constexpr (std::is_same<T, Gvel_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Gvel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Gvel_found(void) {
-      if constexpr (std::is_same<T, GvelT>::value)
+      if constexpr (std::is_same<T, Gvel_t>::value)
          return true;
       else
          return false;
    };
 
-   GeleT& Gele(void) {
-      if constexpr (std::is_same<T, GeleT>::value)
+   Gele_t& Gele(void) {
+      if constexpr (std::is_same<T, Gele_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Gele (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GeleT& Gele(void) const {
-   if constexpr (std::is_same<T, GeleT>::value)
+  const Gele_t& Gele(void) const {
+   if constexpr (std::is_same<T, Gele_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Gele (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Gele_found(void) {
-      if constexpr (std::is_same<T, GeleT>::value)
+      if constexpr (std::is_same<T, Gele_t>::value)
          return true;
       else
          return false;
    };
 
-   GmagT& Gmag(void) {
-      if constexpr (std::is_same<T, GmagT>::value)
+   Gmag_t& Gmag(void) {
+      if constexpr (std::is_same<T, Gmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Gmag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GmagT& Gmag(void) const {
-   if constexpr (std::is_same<T, GmagT>::value)
+  const Gmag_t& Gmag(void) const {
+   if constexpr (std::is_same<T, Gmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Gmag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Gmag_found(void) {
-      if constexpr (std::is_same<T, GmagT>::value)
+      if constexpr (std::is_same<T, Gmag_t>::value)
          return true;
       else
          return false;
    };
 
-   GMmagT& GMmag(void) {
-      if constexpr (std::is_same<T, GMmagT>::value)
+   GMmag_t& GMmag(void) {
+      if constexpr (std::is_same<T, GMmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] GMmag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GMmagT& GMmag(void) const {
-   if constexpr (std::is_same<T, GMmagT>::value)
+  const GMmag_t& GMmag(void) const {
+   if constexpr (std::is_same<T, GMmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] GMmag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool GMmag_found(void) {
-      if constexpr (std::is_same<T, GMmagT>::value)
+      if constexpr (std::is_same<T, GMmag_t>::value)
          return true;
       else
          return false;
    };
 
-   GDmagT& GDmag(void) {
-      if constexpr (std::is_same<T, GDmagT>::value)
+   GDmag_t& GDmag(void) {
+      if constexpr (std::is_same<T, GDmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] GDmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GDmagT& GDmag(void) const {
-   if constexpr (std::is_same<T, GDmagT>::value)
+  const GDmag_t& GDmag(void) const {
+   if constexpr (std::is_same<T, GDmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] GDmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool GDmag_found(void) {
-      if constexpr (std::is_same<T, GDmagT>::value)
+      if constexpr (std::is_same<T, GDmag_t>::value)
          return true;
       else
          return false;
    };
 
-   TvelT& Tvel(void) {
-      if constexpr (std::is_same<T, TvelT>::value)
+   Tvel_t& Tvel(void) {
+      if constexpr (std::is_same<T, Tvel_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Tvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TvelT& Tvel(void) const {
-   if constexpr (std::is_same<T, TvelT>::value)
+  const Tvel_t& Tvel(void) const {
+   if constexpr (std::is_same<T, Tvel_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Tvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Tvel_found(void) {
-      if constexpr (std::is_same<T, TvelT>::value)
+      if constexpr (std::is_same<T, Tvel_t>::value)
          return true;
       else
          return false;
    };
 
-   TeleT& Tele(void) {
-      if constexpr (std::is_same<T, TeleT>::value)
+   Tele_t& Tele(void) {
+      if constexpr (std::is_same<T, Tele_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Tele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TeleT& Tele(void) const {
-   if constexpr (std::is_same<T, TeleT>::value)
+  const Tele_t& Tele(void) const {
+   if constexpr (std::is_same<T, Tele_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Tele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Tele_found(void) {
-      if constexpr (std::is_same<T, TeleT>::value)
+      if constexpr (std::is_same<T, Tele_t>::value)
          return true;
       else
          return false;
    };
 
-   TmagT& Tmag(void) {
-      if constexpr (std::is_same<T, TmagT>::value)
+   Tmag_t& Tmag(void) {
+      if constexpr (std::is_same<T, Tmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] Tmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TmagT& Tmag(void) const {
-   if constexpr (std::is_same<T, TmagT>::value)
+  const Tmag_t& Tmag(void) const {
+   if constexpr (std::is_same<T, Tmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] Tmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool Tmag_found(void) {
-      if constexpr (std::is_same<T, TmagT>::value)
+      if constexpr (std::is_same<T, Tmag_t>::value)
          return true;
       else
          return false;
    };
 
-   TMmagT& TMmag(void) {
-      if constexpr (std::is_same<T, TMmagT>::value)
+   TMmag_t& TMmag(void) {
+      if constexpr (std::is_same<T, TMmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] TMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TMmagT& TMmag(void) const {
-   if constexpr (std::is_same<T, TMmagT>::value)
+  const TMmag_t& TMmag(void) const {
+   if constexpr (std::is_same<T, TMmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] TMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool TMmag_found(void) {
-      if constexpr (std::is_same<T, TMmagT>::value)
+      if constexpr (std::is_same<T, TMmag_t>::value)
          return true;
       else
          return false;
    };
 
-   TDmagT& TDmag(void) {
-      if constexpr (std::is_same<T, TDmagT>::value)
+   TDmag_t& TDmag(void) {
+      if constexpr (std::is_same<T, TDmag_t>::value)
          return data;
       else
         throw std::invalid_argument( "[NamedMHDtuple] TDmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TDmagT& TDmag(void) const {
-   if constexpr (std::is_same<T, TDmagT>::value)
+  const TDmag_t& TDmag(void) const {
+   if constexpr (std::is_same<T, TDmag_t>::value)
       return data;
    else
       throw std::invalid_argument( "[NamedMHDtuple] TDmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool TDmag_found(void) {
-      if constexpr (std::is_same<T, TDmagT>::value)
+      if constexpr (std::is_same<T, TDmag_t>::value)
          return true;
       else
          return false;

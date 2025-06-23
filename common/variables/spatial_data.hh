@@ -64,11 +64,14 @@ public:
         dmax = other.dmax;
         // todo fix _________________________________
         if (/* variables: D, d/dt */ true) {
+           // Needed if and only if time derivatives are computed numerically
             _dt = other._dt;
             _dt_forw_fail = other._dt_forw_fail;
             _dt_back_fail = other._dt_back_fail;
         }
         if (/* variables: G, d/dr */ true) {
+           // Needed if and only if spatial derivatives (gradients) are computed numerically
+           // cf. trajectory_parker.cc
             _dr = other._dr;
             for (int xyz = 0; xyz < 3; ++xyz) {
                 _dr_forw_fail[xyz] = other._dr_forw_fail[xyz];
@@ -223,10 +226,10 @@ public:
 };
 
 
-using SpatialDataU = SpatialData<velT>;
-using SpatialDataUE = SpatialData<velT, eleT>;
-using SpatialDataUEB = SpatialData<velT, eleT, BdataT>;
-using SpatialDataALL = SpatialData<denT,velT, eleT, BdataT,GvelT, GeleT, GBdataT,TvelT, TeleT, TBdataT>;
+using SpatialDataU = SpatialData<vel_t>;
+using SpatialDataUE = SpatialData<vel_t, ele_t>;
+using SpatialDataUEB = SpatialData<vel_t, ele_t, Bdata_t>;
+using SpatialDataALL = SpatialData<den_t,vel_t, ele_t, Bdata_t,Gvel_t, Gele_t, GBdata_t,Tvel_t, Tele_t, TBdata_t>;
 
 
 };

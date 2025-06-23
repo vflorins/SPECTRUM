@@ -87,10 +87,10 @@ if empty_variable_lists:
 else:
     variables = [
         # Fluid variables:
-        Variable("den", "Scalar", "Fluid density field", R = 1, S = 0),
-        Variable("fden", "Scalar", "Fluid density flux function", R = 1, S = 0),
-        Variable("prs", "Scalar", "Fluid pressure field", R = 1, S = 0),
-        Variable("enr", "Scalar", "Fluid energy field", R = 1, S = 0),
+        Variable("den", "Scalar", "Fluid density field", R = 1, S = 1),
+        Variable("fden", "Scalar", "Fluid density flux function", R = 1, S = 1),
+        Variable("prs", "Scalar", "Fluid pressure field", R = 1, S = 1),
+        Variable("enr", "Scalar", "Fluid energy field", R = 1, S = 1),
         Variable("fenr", "Scalar", "Fluid energy flux function", R = 1, S = 0),
         Variable("vel", "GeoVector", "Fluid velocity field", R = 1, S = 0),
         Variable("mom", "GeoVector", "Fluid momentum field", R = 1, S = 0),
@@ -117,20 +117,20 @@ else:
     ]
     groups = [
         # Fluid groups:
-        VariableGroup("PrimitiveStateGASDYN", "denT, velT, prsT", "Variables of the primitive form for a gas dynamics model"),
-        VariableGroup("ConservedStateGASDYN", "denT, momT, enrT", "Variables of the conserved form for a gas dynamics model"),
-        VariableGroup("FluxFunctionGASDYN", "fdenT, fmomT, fenrT", "Variables of the flux function for a gas dynamics model"),
+        VariableGroup("PrimitiveStateGASDYN", "den_t, vel_t, prs_t", "Variables of the primitive form for a gas dynamics model"),
+        VariableGroup("ConservedStateGASDYN", "den_t, mom_t, enr_t", "Variables of the conserved form for a gas dynamics model"),
+        VariableGroup("FluxFunctionGASDYN", "fden_t, fmom_t, fenr_t", "Variables of the flux function for a gas dynamics model"),
         # MHD groups:
-        VariableGroup("PrimitiveStateMHD", "denT, velT, prsT, magT", "Variables of the primitive form for an MHD model"),
-        VariableGroup("ConservedStateMHD", "denT, momT, enrT, magT", "Variables of the conserved form for an MHD model"),
-        VariableGroup("FluxFunctionMHD", "fdenT, fmomT, fenrT, fmagT", "Variables of the flux function for an MHD model"),
-        VariableGroup("PrimitiveStateMHD_GLM", "denT, velT, prsT, magT, glmT", "Variables of the primitive form for an MHD-GLM model"),
-        VariableGroup("ConservedStateMHD_GLM", "denT, momT, enrT, magT, glmT", "Variables of the conserved form for an MHD-GLM model"),
-        VariableGroup("FluxFunctionMHD_GLM", "fdenT, fmomT, fenrT, fmagT, fglmT", "Variables of the flux function for an MHD-GLM model"),
+        VariableGroup("PrimitiveStateMHD", "den_t, vel_t, prs_t, mag_t", "Variables of the primitive form for an MHD model"),
+        VariableGroup("ConservedStateMHD", "den_t, mom_t, enr_t, mag_t", "Variables of the conserved form for an MHD model"),
+        VariableGroup("FluxFunctionMHD", "fden_t, fmom_t, fenr_t, fmag_t", "Variables of the flux function for an MHD model"),
+        VariableGroup("PrimitiveStateMHD_GLM", "den_t, vel_t, prs_t, mag_t, glm_t", "Variables of the primitive form for an MHD-GLM model"),
+        VariableGroup("ConservedStateMHD_GLM", "den_t, mom_t, enr_t, mag_t, glm_t", "Variables of the conserved form for an MHD-GLM model"),
+        VariableGroup("FluxFunctionMHD_GLM", "fden_t, fmom_t, fenr_t, fmag_t, fglm_t", "Variables of the flux function for an MHD-GLM model"),
         # Tracer groups:
-        VariableGroup("Bdata", "magT, MmagT, DmagT", "Magnetic field data group"),
-        VariableGroup("GBdata", "GmagT, GMmagT, GDmagT", "Magnetic field data group (gradients)"),
-        VariableGroup("TBdata", "TmagT, TMmagT, TDmagT", "Magnetic field data group (time derivatives)"),
+        VariableGroup("Bdata", "mag_t, Mmag_t, Dmag_t", "Magnetic field data group"),
+        VariableGroup("GBdata", "Gmag_t, GMmag_t, GDmag_t", "Magnetic field data group (gradients)"),
+        VariableGroup("TBdata", "Tmag_t, TMmag_t, TDmag_t", "Magnetic field data group (time derivatives)"),
     ]
 
 generator = "generate.py"
@@ -239,7 +239,7 @@ namespace Spectrum {
     x = file_header(fname) + variable_types_parts[0]
     for variable in variables:
         x += f"/*!\n\\brief {variable.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {variable.name}T = Named{variable.datatype}<VariableId::{variable.name}, {variable.R}, {variable.S}>;\n\n"
+        x += f"using {variable.name}_t = Named{variable.datatype}<VariableId::{variable.name}, {variable.R}, {variable.S}>;\n\n"
     x += variable_types_parts[1]
     with open(fname, 'w') as f:
         f.write(x)
@@ -274,7 +274,7 @@ namespace Spectrum {{
     x = file_header(fname) + variable_groups_parts[0]
     for grp in groups:
         x += f"/*!\n\\brief {grp.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {grp.name}T = NamedMHDtuple<VariableId::{grp.name}, {grp.typelist}>;\n\n"
+        x += f"using {grp.name}_t = NamedMHDtuple<VariableId::{grp.name}, {grp.typelist}>;\n\n"
     x += variable_groups_parts[1]
     with open(fname, 'w') as f:
         f.write(x)
@@ -340,8 +340,8 @@ def get_injectee(injectee_label, named, variableid):
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   {name}T& {name}(void) {{
-      if constexpr (std::is_same<T, {name}T>::value)
+   {name}_t& {name}(void) {{
+      if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
          return {named}MHDtuple<{variableid}Ts...>::{name}();
@@ -352,8 +352,8 @@ def get_injectee(injectee_label, named, variableid):
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   const {name}T& {name}(void) const {{
-      if constexpr (std::is_same<T, {name}T>::value)
+   const {name}_t& {name}(void) const {{
+      if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
          return {named}MHDtuple<{variableid}Ts...>::{name}();
@@ -366,7 +366,7 @@ def get_injectee(injectee_label, named, variableid):
 \\date 3/25/2025
 */
    bool {name}_found(void) {{
-      if constexpr (std::is_same<T, {name}T>::value)
+      if constexpr (std::is_same<T, {name}_t>::value)
          return true;
       else
          return {named}MHDtuple<{variableid}Ts...>::{name}_found();
@@ -378,22 +378,22 @@ def get_injectee(injectee_label, named, variableid):
             name = variable.name
             description = variable.description
             x += f"""
-   {name}T& {name}(void) {{
-      if constexpr (std::is_same<T, {name}T>::value)
+   {name}_t& {name}(void) {{
+      if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
         throw std::invalid_argument( "[{named}MHDtuple] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    }};
    
-  const {name}T& {name}(void) const {{
-   if constexpr (std::is_same<T, {name}T>::value)
+  const {name}_t& {name}(void) const {{
+   if constexpr (std::is_same<T, {name}_t>::value)
       return data;
    else
       throw std::invalid_argument( "[{named}MHDtuple] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    }};
    
    bool {name}_found(void) {{
-      if constexpr (std::is_same<T, {name}T>::value)
+      if constexpr (std::is_same<T, {name}_t>::value)
          return true;
       else
          return false;

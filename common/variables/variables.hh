@@ -21,13 +21,13 @@ namespace Spectrum {
 
 // QUASI-REALISTIC STUB - set up all fluid species that you wish to be handled by the solver
 
-#define SPECIES_HYDROGEN 0
-#define SPECIES_HELIUM 1
+#define SPECIES_MHD 0
+#define SPECIES_GASDYN 1
 #define SPECIES_PICKUP_ION 2
 
 const constexpr std::array<std::string_view, 12> SpeciesNames = {
-      std::string_view("Hydrogen"),
-      std::string_view("Helium"),
+      std::string_view("MHD"),
+      std::string_view("GasDyn"),
       std::string_view("Pickup-Ion"),
 };
 
@@ -90,7 +90,7 @@ The flux function for all conserved variables is obtained by calling
 `getFluxFunction`.
  */
 template <unsigned int fluid_>
-struct VariablesGASDYN: ConservedStateGASDYNT {
+struct VariablesGASDYN: ConservedStateGASDYN_t {
 
    static constexpr const unsigned int fluid = fluid_;
    static constexpr const std::string_view name = SpeciesNames[fluid];
@@ -100,11 +100,11 @@ struct VariablesGASDYN: ConservedStateGASDYNT {
 \author Lucius Schoenbaum
 \author Vladimir Florinski
 */
-   velT vel() const {
+   vel_t vel() const {
       return mom() / den();
    }
 
-   void vel_assign(velT vel) {
+   void vel_assign(vel_t vel) {
       mom() = vel*den();
    }
 
@@ -113,11 +113,11 @@ struct VariablesGASDYN: ConservedStateGASDYNT {
 \author Lucius Schoenbaum
 \author Vladimir Florinski
 */
-   prsT prs() const {
+   prs_t prs() const {
       return Pressure(den(), vel().Norm2(), 0.0, enr(), fluid);
    }
 
-   void prs_assign(prsT prs) {
+   void prs_assign(prs_t prs) {
       enr() = Energy(den(), vel().Norm2(), 0.0, prs, fluid);;
    }
 
@@ -132,17 +132,17 @@ public: // ctor:
 
 public: // getters:
 
-   ConservedStateGASDYNT getConservedState() {
-      return static_cast<ConservedStateGASDYNT>(*this);
+   ConservedStateGASDYN_t getConservedState() {
+      return static_cast<ConservedStateGASDYN_t>(*this);
    }
 
-   PrimitiveStateGASDYNT getPrimitiveState() {
+   PrimitiveStateGASDYN_t getPrimitiveState() {
       return PrimitiveStateGASDYNT(den(),vel(),prs());
    }
 
-   FluxFunctionGASDYNT getFluxFunction() {
+   FluxFunctionGASDYN_t getFluxFunction() {
       // todo __________________________________________________________________
-      return FluxFunctionGASDYNT();
+      return FluxFunctionGASDYN_t();
    }
 
 

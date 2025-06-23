@@ -24,175 +24,175 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using denT = NamedScalar<VariableId::den, 1, 0>;
+using den_t = NamedScalar<VariableId::den, 1, 1>;
 
 /*!
 \brief Fluid density flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using fdenT = NamedScalar<VariableId::fden, 1, 0>;
+using fden_t = NamedScalar<VariableId::fden, 1, 1>;
 
 /*!
 \brief Fluid pressure field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using prsT = NamedScalar<VariableId::prs, 1, 0>;
+using prs_t = NamedScalar<VariableId::prs, 1, 1>;
 
 /*!
 \brief Fluid energy field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using enrT = NamedScalar<VariableId::enr, 1, 0>;
+using enr_t = NamedScalar<VariableId::enr, 1, 1>;
 
 /*!
 \brief Fluid energy flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using fenrT = NamedScalar<VariableId::fenr, 1, 0>;
+using fenr_t = NamedScalar<VariableId::fenr, 1, 0>;
 
 /*!
 \brief Fluid velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using velT = NamedGeoVector<VariableId::vel, 1, 0>;
+using vel_t = NamedGeoVector<VariableId::vel, 1, 0>;
 
 /*!
 \brief Fluid momentum field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using momT = NamedGeoVector<VariableId::mom, 1, 0>;
+using mom_t = NamedGeoVector<VariableId::mom, 1, 0>;
 
 /*!
 \brief Fluid momentum flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using fmomT = NamedGeoVector<VariableId::fmom, 1, 0>;
+using fmom_t = NamedGeoVector<VariableId::fmom, 1, 0>;
 
 /*!
 \brief Magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using magT = NamedGeoVector<VariableId::mag, 1, 0>;
+using mag_t = NamedGeoVector<VariableId::mag, 1, 0>;
 
 /*!
 \brief Magnetic field flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using fmagT = NamedGeoVector<VariableId::fmag, 1, 0>;
+using fmag_t = NamedGeoVector<VariableId::fmag, 1, 0>;
 
 /*!
 \brief Lagrange multiplier field of GLM MHD type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using glmT = NamedScalar<VariableId::glm, 1, 0>;
+using glm_t = NamedScalar<VariableId::glm, 1, 0>;
 
 /*!
 \brief Lagrange mutlipler flux function of GLM MHD type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using fglmT = NamedScalar<VariableId::fglm, 1, 0>;
+using fglm_t = NamedScalar<VariableId::fglm, 1, 0>;
 
 /*!
 \brief Electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using eleT = NamedGeoVector<VariableId::ele, 1, 0>;
+using ele_t = NamedGeoVector<VariableId::ele, 1, 0>;
 
 /*!
 \brief Magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using MmagT = NamedScalar<VariableId::Mmag, 1, 0>;
+using Mmag_t = NamedScalar<VariableId::Mmag, 1, 0>;
 
 /*!
 \brief Magnetic field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DmagT = NamedGeoVector<VariableId::Dmag, 1, 0>;
+using Dmag_t = NamedGeoVector<VariableId::Dmag, 1, 0>;
 
 /*!
 \brief Gradient of velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GvelT = NamedGeoMatrix<VariableId::Gvel, 1, 0>;
+using Gvel_t = NamedGeoMatrix<VariableId::Gvel, 1, 0>;
 
 /*!
 \brief Gradient of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GeleT = NamedGeoMatrix<VariableId::Gele, 1, 0>;
+using Gele_t = NamedGeoMatrix<VariableId::Gele, 1, 0>;
 
 /*!
 \brief Gradient of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GmagT = NamedGeoMatrix<VariableId::Gmag, 1, 0>;
+using Gmag_t = NamedGeoMatrix<VariableId::Gmag, 1, 0>;
 
 /*!
 \brief Gradient of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GMmagT = NamedGeoVector<VariableId::GMmag, 1, 0>;
+using GMmag_t = NamedGeoVector<VariableId::GMmag, 1, 0>;
 
 /*!
 \brief Gradient of magnetic field direction  type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GDmagT = NamedGeoMatrix<VariableId::GDmag, 1, 0>;
+using GDmag_t = NamedGeoMatrix<VariableId::GDmag, 1, 0>;
 
 /*!
 \brief Time derivative of velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TvelT = NamedGeoVector<VariableId::Tvel, 1, 0>;
+using Tvel_t = NamedGeoVector<VariableId::Tvel, 1, 0>;
 
 /*!
 \brief Time derivative of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TeleT = NamedGeoVector<VariableId::Tele, 1, 0>;
+using Tele_t = NamedGeoVector<VariableId::Tele, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TmagT = NamedGeoVector<VariableId::Tmag, 1, 0>;
+using Tmag_t = NamedGeoVector<VariableId::Tmag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TMmagT = NamedScalar<VariableId::TMmag, 1, 0>;
+using TMmag_t = NamedScalar<VariableId::TMmag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TDmagT = NamedGeoVector<VariableId::TDmag, 1, 0>;
+using TDmag_t = NamedGeoVector<VariableId::TDmag, 1, 0>;
 
 };
 
