@@ -40,10 +40,10 @@ protected:
    double compression;
 
 //! Downstream velocity (persistent), "u0" is upstream flow vector
-   double u1;
+   GeoVector u1;
 
 //! Downstream magnetic field (persistent), "B0" is upstream magnetic field
-   double B1;
+   GeoVector B1;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
