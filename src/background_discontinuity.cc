@@ -75,7 +75,7 @@ void BackgroundDiscontinuity::SetupBackground(bool construct)
 void BackgroundDiscontinuity::EvaluateBackground(void)
 {
 // Upstream
-   if ((_pos - r0 - v_discont * n_discont * _t) * n_discont > 0) {
+   if ((_pos - r0) * n_discont - v_discont * _t > 0) {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
       _spdata.region = 1.0;
