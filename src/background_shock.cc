@@ -94,8 +94,8 @@ void BackgroundShock::EvaluateBackground(void)
    }
 // Downstream
    else {
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1;
       _spdata.region = 2.0;
    };
 
