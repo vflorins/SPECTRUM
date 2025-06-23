@@ -87,7 +87,7 @@ void BackgroundShock::SetupBackground(bool construct)
 void BackgroundShock::EvaluateBackground(void)
 {
 // Upstream
-   if ((_pos - r0 - v_shock * n_shock * _t) * n_shock > 0) {
+   if ((_pos - r0) * n_shock - v_shock * _t > 0) {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
       _spdata.region = 1.0;
