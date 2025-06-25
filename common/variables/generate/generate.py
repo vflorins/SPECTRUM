@@ -103,17 +103,17 @@ else:
         # Tracer variables:
         Variable("ele", "GeoVector", "Electric field", R = 1, S = 0),
         Variable("Mmag", "Scalar", "Magnetic field magnitude", R = 1, S = 0),
-        Variable("Dmag", "GeoVector", "Magnetic field direction", R = 1, S = 0),
+        Variable("Umag", "GeoVector", "Magnetic field direction", R = 1, S = 0),
         Variable("Gvel", "GeoMatrix", "Gradient of velocity field", R = 1, S = 0),
         Variable("Gele", "GeoMatrix", "Gradient of electric field", R = 1, S = 0),
         Variable("Gmag", "GeoMatrix", "Gradient of magnetic field", R = 1, S = 0),
         Variable("GMmag", "GeoVector", "Gradient of magnetic field magnitude", R = 1, S = 0),
-        Variable("GDmag", "GeoMatrix", "Gradient of magnetic field direction ", R = 1, S = 0),
-        Variable("Tvel", "GeoVector", "Time derivative of velocity field", R = 1, S = 0),
-        Variable("Tele", "GeoVector", "Time derivative of electric field", R = 1, S = 0),
-        Variable("Tmag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0),
-        Variable("TMmag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0),
-        Variable("TDmag", "GeoVector", "Time derivative of magnetic field direction", R = 1, S = 0),
+        Variable("GUmag", "GeoMatrix", "Gradient of magnetic field direction ", R = 1, S = 0),
+        Variable("Dvel", "GeoVector", "Time derivative of velocity field", R = 1, S = 0),
+        Variable("Dele", "GeoVector", "Time derivative of electric field", R = 1, S = 0),
+        Variable("Dmag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0),
+        Variable("DMmag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0),
+        Variable("DUmag", "GeoVector", "Time derivative of magnetic field direction", R = 1, S = 0),
     ]
     groups = [
         # Fluid groups:
@@ -128,9 +128,9 @@ else:
         VariableGroup("ConservedStateMHD_GLM", "den_t, mom_t, enr_t, mag_t, glm_t", "Variables of the conserved form for an MHD-GLM model"),
         VariableGroup("FluxFunctionMHD_GLM", "fden_t, fmom_t, fenr_t, fmag_t, fglm_t", "Variables of the flux function for an MHD-GLM model"),
         # Tracer groups:
-        VariableGroup("Bdata", "mag_t, Mmag_t, Dmag_t", "Magnetic field data group"),
-        VariableGroup("GBdata", "Gmag_t, GMmag_t, GDmag_t", "Magnetic field data group (gradients)"),
-        VariableGroup("TBdata", "Tmag_t, TMmag_t, TDmag_t", "Magnetic field data group (time derivatives)"),
+        VariableGroup("Bdata", "mag_t, Mmag_t, Umag_t", "Magnetic field data group"),
+        VariableGroup("GBdata", "Gmag_t, GMmag_t, GUmag_t", "Magnetic field data group (gradients/spatial derivatives)"),
+        VariableGroup("DBdata", "Dmag_t, DMmag_t, DUmag_t", "Magnetic field data group (time derivatives)"),
     ]
 
 generator = "generate.py"

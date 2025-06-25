@@ -229,7 +229,7 @@ public:
 using SpatialDataU = SpatialData<vel_t>;
 using SpatialDataUE = SpatialData<vel_t, ele_t>;
 using SpatialDataUEB = SpatialData<vel_t, ele_t, Bdata_t>;
-using SpatialDataALL = SpatialData<den_t,vel_t, ele_t, Bdata_t,Gvel_t, Gele_t, GBdata_t,Tvel_t, Tele_t, TBdata_t>;
+using SpatialDataALL = SpatialData<den_t,vel_t, ele_t, Bdata_t,Gvel_t, Gele_t, GBdata_t,Dvel_t, Dele_t, DBdata_t>;
 
 
 };

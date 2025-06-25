@@ -719,40 +719,40 @@ If this is not the case, use get<index>(mhdtuple).
    
 
 /*!
-\brief Get Dmag (Magnetic field direction) from the data type, as lvalue.
+\brief Get Umag (Magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Dmag_t& Dmag(void) {
-      if constexpr (std::is_same<T, Dmag_t>::value)
+   Umag_t& Umag(void) {
+      if constexpr (std::is_same<T, Umag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Dmag();
+         return MHDtuple<Ts...>::Umag();
    };
 
 /*!
-\brief Get Dmag (Magnetic field direction) from the data type, as const rvalue.
+\brief Get Umag (Magnetic field direction) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Dmag_t& Dmag(void) const {
-      if constexpr (std::is_same<T, Dmag_t>::value)
+   const Umag_t& Umag(void) const {
+      if constexpr (std::is_same<T, Umag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Dmag();
+         return MHDtuple<Ts...>::Umag();
    };
 
 
 /*!
-\brief Whether Dmag (Magnetic field direction) is in the data type.
+\brief Whether Umag (Magnetic field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Dmag_found(void) {
-      if constexpr (std::is_same<T, Dmag_t>::value)
+   bool Umag_found(void) {
+      if constexpr (std::is_same<T, Umag_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::Dmag_found();
+         return MHDtuple<Ts...>::Umag_found();
    };
    
 
@@ -909,230 +909,230 @@ If this is not the case, use get<index>(mhdtuple).
    
 
 /*!
-\brief Get GDmag (Gradient of magnetic field direction ) from the data type, as lvalue.
+\brief Get GUmag (Gradient of magnetic field direction ) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GDmag_t& GDmag(void) {
-      if constexpr (std::is_same<T, GDmag_t>::value)
+   GUmag_t& GUmag(void) {
+      if constexpr (std::is_same<T, GUmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::GDmag();
+         return MHDtuple<Ts...>::GUmag();
    };
 
 /*!
-\brief Get GDmag (Gradient of magnetic field direction ) from the data type, as const rvalue.
+\brief Get GUmag (Gradient of magnetic field direction ) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GDmag_t& GDmag(void) const {
-      if constexpr (std::is_same<T, GDmag_t>::value)
+   const GUmag_t& GUmag(void) const {
+      if constexpr (std::is_same<T, GUmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::GDmag();
+         return MHDtuple<Ts...>::GUmag();
    };
 
 
 /*!
-\brief Whether GDmag (Gradient of magnetic field direction ) is in the data type.
+\brief Whether GUmag (Gradient of magnetic field direction ) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool GDmag_found(void) {
-      if constexpr (std::is_same<T, GDmag_t>::value)
+   bool GUmag_found(void) {
+      if constexpr (std::is_same<T, GUmag_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::GDmag_found();
+         return MHDtuple<Ts...>::GUmag_found();
    };
    
 
 /*!
-\brief Get Tvel (Time derivative of velocity field) from the data type, as lvalue.
+\brief Get Dvel (Time derivative of velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Tvel_t& Tvel(void) {
-      if constexpr (std::is_same<T, Tvel_t>::value)
+   Dvel_t& Dvel(void) {
+      if constexpr (std::is_same<T, Dvel_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tvel();
+         return MHDtuple<Ts...>::Dvel();
    };
 
 /*!
-\brief Get Tvel (Time derivative of velocity field) from the data type, as const rvalue.
+\brief Get Dvel (Time derivative of velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Tvel_t& Tvel(void) const {
-      if constexpr (std::is_same<T, Tvel_t>::value)
+   const Dvel_t& Dvel(void) const {
+      if constexpr (std::is_same<T, Dvel_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tvel();
+         return MHDtuple<Ts...>::Dvel();
    };
 
 
 /*!
-\brief Whether Tvel (Time derivative of velocity field) is in the data type.
+\brief Whether Dvel (Time derivative of velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Tvel_found(void) {
-      if constexpr (std::is_same<T, Tvel_t>::value)
+   bool Dvel_found(void) {
+      if constexpr (std::is_same<T, Dvel_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::Tvel_found();
+         return MHDtuple<Ts...>::Dvel_found();
    };
    
 
 /*!
-\brief Get Tele (Time derivative of electric field) from the data type, as lvalue.
+\brief Get Dele (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Tele_t& Tele(void) {
-      if constexpr (std::is_same<T, Tele_t>::value)
+   Dele_t& Dele(void) {
+      if constexpr (std::is_same<T, Dele_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tele();
+         return MHDtuple<Ts...>::Dele();
    };
 
 /*!
-\brief Get Tele (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get Dele (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Tele_t& Tele(void) const {
-      if constexpr (std::is_same<T, Tele_t>::value)
+   const Dele_t& Dele(void) const {
+      if constexpr (std::is_same<T, Dele_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tele();
+         return MHDtuple<Ts...>::Dele();
    };
 
 
 /*!
-\brief Whether Tele (Time derivative of electric field) is in the data type.
+\brief Whether Dele (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Tele_found(void) {
-      if constexpr (std::is_same<T, Tele_t>::value)
+   bool Dele_found(void) {
+      if constexpr (std::is_same<T, Dele_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::Tele_found();
+         return MHDtuple<Ts...>::Dele_found();
    };
    
 
 /*!
-\brief Get Tmag (Time derivative of magnetic field) from the data type, as lvalue.
+\brief Get Dmag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Tmag_t& Tmag(void) {
-      if constexpr (std::is_same<T, Tmag_t>::value)
+   Dmag_t& Dmag(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tmag();
+         return MHDtuple<Ts...>::Dmag();
    };
 
 /*!
-\brief Get Tmag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get Dmag (Time derivative of magnetic field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Tmag_t& Tmag(void) const {
-      if constexpr (std::is_same<T, Tmag_t>::value)
+   const Dmag_t& Dmag(void) const {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::Tmag();
+         return MHDtuple<Ts...>::Dmag();
    };
 
 
 /*!
-\brief Whether Tmag (Time derivative of magnetic field) is in the data type.
+\brief Whether Dmag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Tmag_found(void) {
-      if constexpr (std::is_same<T, Tmag_t>::value)
+   bool Dmag_found(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::Tmag_found();
+         return MHDtuple<Ts...>::Dmag_found();
    };
    
 
 /*!
-\brief Get TMmag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\brief Get DMmag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TMmag_t& TMmag(void) {
-      if constexpr (std::is_same<T, TMmag_t>::value)
+   DMmag_t& DMmag(void) {
+      if constexpr (std::is_same<T, DMmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TMmag();
+         return MHDtuple<Ts...>::DMmag();
    };
 
 /*!
-\brief Get TMmag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DMmag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TMmag_t& TMmag(void) const {
-      if constexpr (std::is_same<T, TMmag_t>::value)
+   const DMmag_t& DMmag(void) const {
+      if constexpr (std::is_same<T, DMmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TMmag();
+         return MHDtuple<Ts...>::DMmag();
    };
 
 
 /*!
-\brief Whether TMmag (Time derivative of magnetic field magnitude) is in the data type.
+\brief Whether DMmag (Time derivative of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool TMmag_found(void) {
-      if constexpr (std::is_same<T, TMmag_t>::value)
+   bool DMmag_found(void) {
+      if constexpr (std::is_same<T, DMmag_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::TMmag_found();
+         return MHDtuple<Ts...>::DMmag_found();
    };
    
 
 /*!
-\brief Get TDmag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Get DUmag (Time derivative of magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TDmag_t& TDmag(void) {
-      if constexpr (std::is_same<T, TDmag_t>::value)
+   DUmag_t& DUmag(void) {
+      if constexpr (std::is_same<T, DUmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TDmag();
+         return MHDtuple<Ts...>::DUmag();
    };
 
 /*!
-\brief Get TDmag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\brief Get DUmag (Time derivative of magnetic field direction) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TDmag_t& TDmag(void) const {
-      if constexpr (std::is_same<T, TDmag_t>::value)
+   const DUmag_t& DUmag(void) const {
+      if constexpr (std::is_same<T, DUmag_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TDmag();
+         return MHDtuple<Ts...>::DUmag();
    };
 
 
 /*!
-\brief Whether TDmag (Time derivative of magnetic field direction) is in the data type.
+\brief Whether DUmag (Time derivative of magnetic field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool TDmag_found(void) {
-      if constexpr (std::is_same<T, TDmag_t>::value)
+   bool DUmag_found(void) {
+      if constexpr (std::is_same<T, DUmag_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::TDmag_found();
+         return MHDtuple<Ts...>::DUmag_found();
    };
    
 
@@ -1517,7 +1517,7 @@ If this is not the case, use get<index>(mhdtuple).
    
 
 /*!
-\brief Get GBdata (Magnetic field data group (gradients)) from the data type, as lvalue.
+\brief Get GBdata (Magnetic field data group (gradients/spatial derivatives)) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -1529,7 +1529,7 @@ If this is not the case, use get<index>(mhdtuple).
    };
 
 /*!
-\brief Get GBdata (Magnetic field data group (gradients)) from the data type, as const rvalue.
+\brief Get GBdata (Magnetic field data group (gradients/spatial derivatives)) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -1542,7 +1542,7 @@ If this is not the case, use get<index>(mhdtuple).
 
 
 /*!
-\brief Whether GBdata (Magnetic field data group (gradients)) is in the data type.
+\brief Whether GBdata (Magnetic field data group (gradients/spatial derivatives)) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -1555,40 +1555,40 @@ If this is not the case, use get<index>(mhdtuple).
    
 
 /*!
-\brief Get TBdata (Magnetic field data group (time derivatives)) from the data type, as lvalue.
+\brief Get DBdata (Magnetic field data group (time derivatives)) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   TBdata_t& TBdata(void) {
-      if constexpr (std::is_same<T, TBdata_t>::value)
+   DBdata_t& DBdata(void) {
+      if constexpr (std::is_same<T, DBdata_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TBdata();
+         return MHDtuple<Ts...>::DBdata();
    };
 
 /*!
-\brief Get TBdata (Magnetic field data group (time derivatives)) from the data type, as const rvalue.
+\brief Get DBdata (Magnetic field data group (time derivatives)) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const TBdata_t& TBdata(void) const {
-      if constexpr (std::is_same<T, TBdata_t>::value)
+   const DBdata_t& DBdata(void) const {
+      if constexpr (std::is_same<T, DBdata_t>::value)
          return data;
       else
-         return MHDtuple<Ts...>::TBdata();
+         return MHDtuple<Ts...>::DBdata();
    };
 
 
 /*!
-\brief Whether TBdata (Magnetic field data group (time derivatives)) is in the data type.
+\brief Whether DBdata (Magnetic field data group (time derivatives)) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool TBdata_found(void) {
-      if constexpr (std::is_same<T, TBdata_t>::value)
+   bool DBdata_found(void) {
+      if constexpr (std::is_same<T, DBdata_t>::value)
          return true;
       else
-         return MHDtuple<Ts...>::TBdata_found();
+         return MHDtuple<Ts...>::DBdata_found();
    };
    
 
@@ -1991,22 +1991,22 @@ public:
          return false;
    };
 
-   Dmag_t& Dmag(void) {
-      if constexpr (std::is_same<T, Dmag_t>::value)
+   Umag_t& Umag(void) {
+      if constexpr (std::is_same<T, Umag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] Dmag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] Umag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const Dmag_t& Dmag(void) const {
-   if constexpr (std::is_same<T, Dmag_t>::value)
+  const Umag_t& Umag(void) const {
+   if constexpr (std::is_same<T, Umag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] Dmag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] Umag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Dmag_found(void) {
-      if constexpr (std::is_same<T, Dmag_t>::value)
+   bool Umag_found(void) {
+      if constexpr (std::is_same<T, Umag_t>::value)
          return true;
       else
          return false;
@@ -2096,127 +2096,127 @@ public:
          return false;
    };
 
-   GDmag_t& GDmag(void) {
-      if constexpr (std::is_same<T, GDmag_t>::value)
+   GUmag_t& GUmag(void) {
+      if constexpr (std::is_same<T, GUmag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] GDmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] GUmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const GDmag_t& GDmag(void) const {
-   if constexpr (std::is_same<T, GDmag_t>::value)
+  const GUmag_t& GUmag(void) const {
+   if constexpr (std::is_same<T, GUmag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] GDmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] GUmag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool GDmag_found(void) {
-      if constexpr (std::is_same<T, GDmag_t>::value)
+   bool GUmag_found(void) {
+      if constexpr (std::is_same<T, GUmag_t>::value)
          return true;
       else
          return false;
    };
 
-   Tvel_t& Tvel(void) {
-      if constexpr (std::is_same<T, Tvel_t>::value)
+   Dvel_t& Dvel(void) {
+      if constexpr (std::is_same<T, Dvel_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] Tvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] Dvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const Tvel_t& Tvel(void) const {
-   if constexpr (std::is_same<T, Tvel_t>::value)
+  const Dvel_t& Dvel(void) const {
+   if constexpr (std::is_same<T, Dvel_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] Tvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] Dvel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Tvel_found(void) {
-      if constexpr (std::is_same<T, Tvel_t>::value)
+   bool Dvel_found(void) {
+      if constexpr (std::is_same<T, Dvel_t>::value)
          return true;
       else
          return false;
    };
 
-   Tele_t& Tele(void) {
-      if constexpr (std::is_same<T, Tele_t>::value)
+   Dele_t& Dele(void) {
+      if constexpr (std::is_same<T, Dele_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] Tele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] Dele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const Tele_t& Tele(void) const {
-   if constexpr (std::is_same<T, Tele_t>::value)
+  const Dele_t& Dele(void) const {
+   if constexpr (std::is_same<T, Dele_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] Tele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] Dele (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Tele_found(void) {
-      if constexpr (std::is_same<T, Tele_t>::value)
+   bool Dele_found(void) {
+      if constexpr (std::is_same<T, Dele_t>::value)
          return true;
       else
          return false;
    };
 
-   Tmag_t& Tmag(void) {
-      if constexpr (std::is_same<T, Tmag_t>::value)
+   Dmag_t& Dmag(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] Tmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] Dmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const Tmag_t& Tmag(void) const {
-   if constexpr (std::is_same<T, Tmag_t>::value)
+  const Dmag_t& Dmag(void) const {
+   if constexpr (std::is_same<T, Dmag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] Tmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] Dmag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Tmag_found(void) {
-      if constexpr (std::is_same<T, Tmag_t>::value)
+   bool Dmag_found(void) {
+      if constexpr (std::is_same<T, Dmag_t>::value)
          return true;
       else
          return false;
    };
 
-   TMmag_t& TMmag(void) {
-      if constexpr (std::is_same<T, TMmag_t>::value)
+   DMmag_t& DMmag(void) {
+      if constexpr (std::is_same<T, DMmag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] TMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] DMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TMmag_t& TMmag(void) const {
-   if constexpr (std::is_same<T, TMmag_t>::value)
+  const DMmag_t& DMmag(void) const {
+   if constexpr (std::is_same<T, DMmag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] TMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] DMmag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool TMmag_found(void) {
-      if constexpr (std::is_same<T, TMmag_t>::value)
+   bool DMmag_found(void) {
+      if constexpr (std::is_same<T, DMmag_t>::value)
          return true;
       else
          return false;
    };
 
-   TDmag_t& TDmag(void) {
-      if constexpr (std::is_same<T, TDmag_t>::value)
+   DUmag_t& DUmag(void) {
+      if constexpr (std::is_same<T, DUmag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] TDmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] DUmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TDmag_t& TDmag(void) const {
-   if constexpr (std::is_same<T, TDmag_t>::value)
+  const DUmag_t& DUmag(void) const {
+   if constexpr (std::is_same<T, DUmag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] TDmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] DUmag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool TDmag_found(void) {
-      if constexpr (std::is_same<T, TDmag_t>::value)
+   bool DUmag_found(void) {
+      if constexpr (std::is_same<T, DUmag_t>::value)
          return true;
       else
          return false;
@@ -2436,14 +2436,14 @@ public:
       if constexpr (std::is_same<T, GBdata_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] GBdata (Magnetic field data group (gradients)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] GBdata (Magnetic field data group (gradients/spatial derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const GBdata_t& GBdata(void) const {
    if constexpr (std::is_same<T, GBdata_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] GBdata (Magnetic field data group (gradients)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] GBdata (Magnetic field data group (gradients/spatial derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
    bool GBdata_found(void) {
@@ -2453,22 +2453,22 @@ public:
          return false;
    };
 
-   TBdata_t& TBdata(void) {
-      if constexpr (std::is_same<T, TBdata_t>::value)
+   DBdata_t& DBdata(void) {
+      if constexpr (std::is_same<T, DBdata_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[MHDtuple] TBdata (Magnetic field data group (time derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[MHDtuple] DBdata (Magnetic field data group (time derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const TBdata_t& TBdata(void) const {
-   if constexpr (std::is_same<T, TBdata_t>::value)
+  const DBdata_t& DBdata(void) const {
+   if constexpr (std::is_same<T, DBdata_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[MHDtuple] TBdata (Magnetic field data group (time derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[MHDtuple] DBdata (Magnetic field data group (time derivatives)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool TBdata_found(void) {
-      if constexpr (std::is_same<T, TBdata_t>::value)
+   bool DBdata_found(void) {
+      if constexpr (std::is_same<T, DBdata_t>::value)
          return true;
       else
          return false;

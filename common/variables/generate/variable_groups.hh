@@ -87,21 +87,21 @@ using FluxFunctionMHD_GLM_t = NamedMHDtuple<VariableId::FluxFunctionMHD_GLM, fde
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Bdata_t = NamedMHDtuple<VariableId::Bdata, mag_t, Mmag_t, Dmag_t>;
+using Bdata_t = NamedMHDtuple<VariableId::Bdata, mag_t, Mmag_t, Umag_t>;
 
 /*!
-\brief Magnetic field data group (gradients) type with a formatted name
+\brief Magnetic field data group (gradients/spatial derivatives) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GBdata_t = NamedMHDtuple<VariableId::GBdata, Gmag_t, GMmag_t, GDmag_t>;
+using GBdata_t = NamedMHDtuple<VariableId::GBdata, Gmag_t, GMmag_t, GUmag_t>;
 
 /*!
 \brief Magnetic field data group (time derivatives) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TBdata_t = NamedMHDtuple<VariableId::TBdata, Tmag_t, TMmag_t, TDmag_t>;
+using DBdata_t = NamedMHDtuple<VariableId::DBdata, Dmag_t, DMmag_t, DUmag_t>;
 
 };
 

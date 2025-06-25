@@ -11,67 +11,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_VARIABLES_HH
 
 #include <variant>
+#include "common/physics.hh"
 #include "mhdtuple/mhdtuple.hh"
-
-#include <iostream>
-using std::cout; using std::endl;
 
 
 namespace Spectrum {
 
-// QUASI-REALISTIC STUB - set up all fluid species that you wish to be handled by the solver
-
-#define SPECIES_MHD 0
-#define SPECIES_GASDYN 1
-#define SPECIES_PICKUP_ION 2
-
-const constexpr std::array<std::string_view, 12> SpeciesNames = {
-      std::string_view("MHD"),
-      std::string_view("GasDyn"),
-      std::string_view("Pickup-Ion"),
-};
-
-
-// COPY - FOR THE SAKE OF THE TEST VERSION - don't include physics.hh or link gsl
-
-#define M_8PI     2.513274122871834590770114706623602307E+1
-
-//! Polytropic indices
-// Indexed by fluid type number
-constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
-
-/*!
-\brief Calculate the MHD energy density
-\author Vladimir Florinski
-\date 07/31/2019
-\param[in] den Mass density
-\param[in] u2  Square of velocity
-\param[in] B2  Square of the magnetic field
-\param[in] pre Gas pressure
-\param[in] ifl Index of the fluid
-\return Energy per unit volume
-*/
-inline double Energy(double den, double u2, double B2, double pre, unsigned int ifl = 0)
-{
-   return den * u2 / 2.0 + pre / (gamma_eos[ifl] - 1.0) + B2 / M_8PI;
-};
-
-/*!
-\brief Calculate gas pressure from MHD energy density
-\author Vladimir Florinski
-\date 07/31/2019
-\param[in] den Mass density
-\param[in] u2  Square of velocity
-\param[in] B2  Square of the magnetic field
-\param[in] enr MHD energy density
-\param[in] ifl Index of the fluid
-\return gas pressure
-*/
-SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, double enr, unsigned int ifl = 0)
-{
-   return (enr - den * u2 / 2.0 - B2 / M_8PI) * (gamma_eos[ifl] - 1.0);
-};
-
+//const constexpr std::array<std::string_view, 12> SpeciesNames = {
+//      std::string_view("MHD"),
+//      std::string_view("GasDyn"),
+//      std::string_view("Pickup-Ion"),
+//};
 
 
 /*!
@@ -93,7 +43,8 @@ template <unsigned int fluid_>
 struct VariablesGASDYN: ConservedStateGASDYN_t {
 
    static constexpr const unsigned int fluid = fluid_;
-   static constexpr const std::string_view name = SpeciesNames[fluid];
+   // todo __________________________________________________________________
+//   static constexpr const std::string_view name = SpeciesNames[fluid];
 
 /*!
 \brief velocity

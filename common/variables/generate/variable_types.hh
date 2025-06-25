@@ -122,7 +122,7 @@ using Mmag_t = NamedScalar<VariableId::Mmag, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Dmag_t = NamedGeoVector<VariableId::Dmag, 1, 0>;
+using Umag_t = NamedGeoVector<VariableId::Umag, 1, 0>;
 
 /*!
 \brief Gradient of velocity field type with a formatted name
@@ -157,42 +157,42 @@ using GMmag_t = NamedGeoVector<VariableId::GMmag, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using GDmag_t = NamedGeoMatrix<VariableId::GDmag, 1, 0>;
+using GUmag_t = NamedGeoMatrix<VariableId::GUmag, 1, 0>;
 
 /*!
 \brief Time derivative of velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Tvel_t = NamedGeoVector<VariableId::Tvel, 1, 0>;
+using Dvel_t = NamedGeoVector<VariableId::Dvel, 1, 0>;
 
 /*!
 \brief Time derivative of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Tele_t = NamedGeoVector<VariableId::Tele, 1, 0>;
+using Dele_t = NamedGeoVector<VariableId::Dele, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Tmag_t = NamedGeoVector<VariableId::Tmag, 1, 0>;
+using Dmag_t = NamedGeoVector<VariableId::Dmag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TMmag_t = NamedScalar<VariableId::TMmag, 1, 0>;
+using DMmag_t = NamedScalar<VariableId::DMmag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using TDmag_t = NamedGeoVector<VariableId::TDmag, 1, 0>;
+using DUmag_t = NamedGeoVector<VariableId::DUmag, 1, 0>;
 
 };
 
