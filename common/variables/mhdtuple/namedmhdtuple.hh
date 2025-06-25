@@ -69,7 +69,21 @@ protected:
       f(data, others.data...);
       NamedMHDtuple<nameid, Ts...>::foreach_unpacked(std::forward<Function>(f), static_cast<NamedMHDtuple<nameid, Ts...>>(others)...);
    }
-   
+
+
+/*!
+\brief Assignment if types match, otherwise do not compile.
+\author Lucius Schoenbaum
+\date 06/25/2025
+\param[in] x1, x2 possibly mismatched value/variable instances
+*/
+   template <typename T1, typename T2>
+   void assign(T1& x1, const T2& x2) {
+      if constexpr (std::is_same<T1, T2>::value) {
+         x1 = x2;
+      }
+   }
+
 public:
 
    static constexpr const std::string_view name = VariableNames[nameid];
@@ -182,6 +196,21 @@ If this is not the case, use get<index>(mhdtuple).
    void foreach(Function&& f) {
       f(data);
       NamedMHDtuple<nameid, Ts...>::foreach(f);
+   }
+
+/*!
+\brief Store a quantity by type
+\author Lucius Schoenbaum
+\date 06/25/2025
+\param[in] x Quantity to store
+Note: This method is functionally invalid if the tuple
+contains multiple members with the same data type.
+This should not occur in fluid or MHD applications.
+ */
+   template <typename T_store>
+   void store(T_store x) {
+      assign(data, x);
+      NamedMHDtuple<nameid, Ts...>::store(x);
    }
 
 
@@ -1183,6 +1212,13 @@ protected:
       f(data, others.data...);
    }
 
+   template <typename T1, typename T2>
+   void assign(T1& x1, const T2& x2) {
+      if constexpr (std::is_same<T1, T2>::value) {
+         x1 = x2;
+      }
+   }
+
 public:
 
    static constexpr const std::string_view name = VariableNames[nameid];
@@ -1241,6 +1277,11 @@ public:
    template <typename Function>
    void foreach(Function&& f) {
       f(data);
+   }
+
+   template <typename T_store>
+   void store(T_store x) {
+      assign(data, x);
    }
 
    // BEGIN(variables/generate, base)

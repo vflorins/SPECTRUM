@@ -10,7 +10,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_VARIABLES_HH
 #define SPECTRUM_VARIABLES_HH
 
-#include <variant>
 #include "common/physics.hh"
 #include "mhdtuple/mhdtuple.hh"
 

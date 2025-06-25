@@ -71,6 +71,19 @@ protected:
    }
 
 
+/*!
+\brief Assignment if types match, otherwise do not compile.
+\author Lucius Schoenbaum
+\date 06/25/2025
+\param[in] x1, x2 possibly mismatched value/variable instances
+*/
+   template <typename T1, typename T2>
+   void assign(T1& x1, const T2& x2) {
+      if constexpr (std::is_same<T1, T2>::value) {
+         x1 = x2;
+      }
+   }
+
 public:
 
    MHDtuple(void) = default;
@@ -181,6 +194,21 @@ If this is not the case, use get<index>(mhdtuple).
    void foreach(Function&& f) {
       f(data);
       MHDtuple<Ts...>::foreach(f);
+   }
+
+/*!
+\brief Store a quantity by type
+\author Lucius Schoenbaum
+\date 06/25/2025
+\param[in] x Quantity to store
+Note: This method is functionally invalid if the tuple
+contains multiple members with the same data type.
+This should not occur in fluid or MHD applications.
+ */
+   template <typename T_store>
+   void store(T_store x) {
+      assign(data, x);
+      MHDtuple<Ts...>::store(x);
    }
 
 
@@ -1693,6 +1721,11 @@ public:
    template <typename Function>
    void foreach(Function&& f) {
       f(data);
+   }
+
+   template <typename T_store>
+   void store(T_store x) {
+      assign(data, x);
    }
 
    // BEGIN(variables/generate, base)
