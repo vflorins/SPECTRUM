@@ -49,6 +49,10 @@ struct NamedScalar {
       return tmp;
    }
 
+   int scalar_size() const {
+      return 1;
+   }
+
 };
 
 
@@ -80,6 +84,10 @@ struct NamedGeoVector : public GeoVector {
       tmp += std::to_string(y) + " ";
       tmp += std::to_string(z) + "]";
       return tmp;
+   }
+
+   int scalar_size() const {
+      return 3;
    }
 
 };
