@@ -9,18 +9,22 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <iostream>
 #include <iomanip>
-#include "common/physics.hh"
+
+#include <common/physics.hh>
 
 namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 03/06/2024
+\date 06/02/2025
 */
 void PrintUnits(void)
 {
-   int spc = 0;
+
+#ifdef USE_GSL
+
+   int spc = SPECIES_PROTON_CORE;
 
    std::cout << std::endl;
    std::cout << "CGS speed of light: " << GSL_CONST_CGSM_SPEED_OF_LIGHT << std::endl;
@@ -57,14 +61,14 @@ void PrintUnits(void)
    std::cout << "Boltzmann constant in code units: " << kb_code;
    std::cout << "     Should be: " << GSL_CONST_CGSM_BOLTZMANN / unit_energy_particle * unit_temperature_fluid << "\n";
 
-   std::cout << "Particle mass in code units: " << mass[spc];
-   std::cout << "     Should be: " << mass[spc] * unit_mass_particle / unit_mass_particle << "\n";
+   std::cout << "Particle mass in code units: " << SpeciesMasses[spc];
+   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle / unit_mass_particle << "\n";
 
-   std::cout << "Particle charge in code units: " << charge[spc];
-   std::cout << "     Should be: " << charge[spc] * unit_charge_particle / unit_charge_particle << "\n";
+   std::cout << "Particle charge in code units: " << SpeciesCharges[spc];
+   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle / unit_charge_particle << "\n";
 
    std::cout << "Thermal speed in code units: " << ThermalSpeed(1.0, spc);
-   std::cout << "     Should be: " << sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid / (mass[spc] * unit_mass_particle))
+   std::cout << "     Should be: " << sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid / (SpeciesMasses[spc] * unit_mass_particle))
                                     / unit_velocity_fluid << "\n";
 
    std::cout << "Particle rigidity in code units: " << Rigidity(1.0, spc);
@@ -74,24 +78,27 @@ void PrintUnits(void)
    std::cout << "     Should be: " << unit_magnetic_fluid / sqrt(M_4PI * unit_density_fluid) / unit_velocity_fluid << "\n";
 
    std::cout << "Cyclotron frequency in code units: " << CyclotronFrequency(1.0, 1.0, spc);
-   std::cout << "     Should be: " << charge[spc] * unit_charge_particle * unit_magnetic_fluid
-                                    / (mass[spc] * unit_mass_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT) / unit_frequency_fluid << "\n";
+   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid
+                                    / (SpeciesMasses[spc] * unit_mass_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT) / unit_frequency_fluid << "\n";
    
-   std::cout << "Larmor radius in code units: " << LarmorRadius(mass[spc] * 1.0, 1.0, spc);
-   std::cout << "     Should be: " << mass[spc] * unit_mass_particle * unit_velocity_fluid * GSL_CONST_CGSM_SPEED_OF_LIGHT
-                                    / (charge[spc] * unit_charge_particle * unit_magnetic_fluid) / unit_length_fluid << "\n";
+   std::cout << "Larmor radius in code units: " << LarmorRadius(SpeciesMasses[spc] * 1.0, 1.0, spc);
+   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle * unit_velocity_fluid * GSL_CONST_CGSM_SPEED_OF_LIGHT
+                                    / (SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid) / unit_length_fluid << "\n";
 
    std::cout << "Plasma frequency in code units: " << PlasmaFrequency(1.0, spc);
-   std::cout << "     Should be: " << sqrt(M_4PI * unit_density_fluid) * charge[spc] * unit_charge_particle
-                                    / (mass[spc] * unit_mass_particle) / unit_frequency_fluid << "\n";
+   std::cout << "     Should be: " << sqrt(M_4PI * unit_density_fluid) * SpeciesCharges[spc] * unit_charge_particle
+                                    / (SpeciesMasses[spc] * unit_mass_particle) / unit_frequency_fluid << "\n";
 
    std::cout << "Collision frequency in code units: " << CollisionFrequency(1.0, 1.0, 20.0, spc);
-   std::cout << "     Should be: " << 160.0 * M_SQRT2 * M_SQRTPI * unit_density_fluid * Quad(charge[spc] * unit_charge_particle) / 3.0
-                                    / Cube(mass[spc] * unit_mass_particle * sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid
-                                    / (mass[spc] * unit_mass_particle))) / unit_frequency_fluid << "\n";
+   std::cout << "     Should be: " << 160.0 * M_SQRT2 * M_SQRTPI * unit_density_fluid * Quad(SpeciesCharges[spc] * unit_charge_particle) / 3.0
+                                    / Cube(SpeciesMasses[spc] * unit_mass_particle * sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid
+                                    / (SpeciesMasses[spc] * unit_mass_particle))) / unit_frequency_fluid << "\n";
 
    std::cout << "--------------------------------------------------------------------------------\n";
    std::cout << std::endl;
+
+#endif
+
 };
 
 };

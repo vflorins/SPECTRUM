@@ -90,6 +90,53 @@ public:
    CloneFunctionBoundary(BoundaryMomentumInject);
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumInjectRestrictSlab class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryMomentumInjectRestrictSlab class
+const std::string bnd_name_momentum_inject_restrict_slab = "BoundaryMomentumInjectRestrictSlab";
+
+/*!
+\brief Absorbing (injection) momentum boundary restricted to space between two parallel planes
+\author Vladimir Florinski
+
+Parameters: (BoundaryMomentum), GeoVector r0, GeoVector r1, GeoVector normal 
+*/
+class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentum {
+
+protected:
+
+//! Position of the leading face of the slab
+   GeoVector r0;
+
+//! Position of the trailing face of the slab
+   GeoVector r1;
+
+//! Normal to the slab
+   GeoVector normal;
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+//! Compute the distance to the boundary
+   void EvaluateBoundary(void) override;
+
+public:
+
+//! Default constructor
+   BoundaryMomentumInjectRestrictSlab(void);
+
+//! Copy constructor
+   BoundaryMomentumInjectRestrictSlab(const BoundaryMomentumInjectRestrictSlab& other);
+
+//! Destructor
+   ~BoundaryMomentumInjectRestrictSlab() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryMomentumInjectRestrictSlab);
+};
+
 #if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

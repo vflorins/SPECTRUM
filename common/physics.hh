@@ -10,29 +10,64 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_PHYSICS_HH
 #define SPECTRUM_PHYSICS_HH
 
+#include <array>
+
+#include <config.h>
+
+#ifdef USE_GSL
 #include <gsl/gsl_const_cgsm.h>
-#include "common/vectors.hh"
+#endif
+
+#include <common/vectors.hh>
 
 namespace Spectrum {
 
 //! Elementary charge (esu)
 #define SPC_CONST_CGSM_ELECTRON_CHARGE 4.8032044E-10
 
-//! keV (cgs)
-#define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0E3 * GSL_CONST_CGSM_ELECTRON_VOLT)
+//! Electron mass (g)
+#ifdef USE_GSL
+#define SPC_CONST_CGSM_MASS_ELECTRON GSL_CONST_CGSM_MASS_ELECTRON
+#else
+#define SPC_CONST_CGSM_MASS_ELECTRON 9.11E-26
+#endif
 
-//! MeV (cgs)
-#define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0E6 * GSL_CONST_CGSM_ELECTRON_VOLT)
+//! Proton mass (g)
+#ifdef USE_GSL
+#define SPC_CONST_CGSM_MASS_PROTON GSL_CONST_CGSM_MASS_PROTON
+#else
+#define SPC_CONST_CGSM_MASS_PROTON 1.67E-24
+#endif
 
-//! GeV (cgs)
-#define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0E9 * GSL_CONST_CGSM_ELECTRON_VOLT)
+//! Neutron mass (g)
+#ifdef USE_GSL
+#define SPC_CONST_CGSM_MASS_NEUTRON GSL_CONST_CGSM_MASS_NEUTRON
+#else
+#define SPC_CONST_CGSM_MASS_NEUTRON SPC_CONST_CGSM_MASS_PROTON
+#endif
+
+//! Electron volt (cgs)
+#ifdef USE_GSL
+#define SPC_CONST_CGSM_ELECTRON_VOLT GSL_CONST_CGSM_ELECTRON_VOLT
+#else
+#define SPC_CONST_CGSM_ELECTRON_VOLT 1.6E-12
+#endif
+
+//! Various particle energy units (cgs)
+#define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0E3 * SPC_CONST_CGSM_ELECTRON_VOLT)
+#define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0E6 * SPC_CONST_CGSM_ELECTRON_VOLT)
+#define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0E9 * SPC_CONST_CGSM_ELECTRON_VOLT)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Fluid units used in the code - user configurable
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Length: 1 au is a good value for the heliosphere
+#ifdef USE_GSL
 #define unit_length_fluid GSL_CONST_CGSM_ASTRONOMICAL_UNIT
+#else
+#define unit_length_fluid 1.5E13
+#endif
 
 //! Velocity: 100 km/s is a sensible value; do not use the speed of light because some of the tests will return infinity.
 #define unit_velocity_fluid 1.0E7
@@ -49,6 +84,9 @@ namespace Spectrum {
 //! Density: derived, should be 1 _particle_ mass unit times 1 number density unit
 #define unit_density_fluid (unit_mass_particle * unit_number_density_fluid)
 
+//! Momentum: derived
+#define unit_momentum_fluid (unit_density_fluid * unit_velocity_fluid)
+
 //! Magnetic field: derived, should be uG-mG
 #define unit_magnetic_fluid (unit_velocity_fluid * sqrt(unit_density_fluid))
 
@@ -62,22 +100,28 @@ namespace Spectrum {
 #define unit_diffusion_fluid (unit_velocity_fluid * unit_length_fluid)
 
 //! Temperature: define unit for a typical energy of 1 eV (10^4 K)
+#ifdef USE_GSL
 #define unit_temperature_fluid (GSL_CONST_CGSM_ELECTRON_VOLT / GSL_CONST_CGSM_BOLTZMANN)
+#else
+#define unit_temperature_fluid 1.6E-12 / 1.36E-16
+#endif
 
 //! Speed of light
+#ifdef USE_GSL
 #define c_code (GSL_CONST_CGSM_SPEED_OF_LIGHT / unit_velocity_fluid)
+#else
+#define c_code (3.0E10 / unit_velocity_fluid)
+#endif
 
 //! Speed of light squared
 #define c2_code (c_code * c_code)
 
 //! Boltzmann constant. Note that for fluids the ideal gas EOS is p=n*kb*T.
+#ifdef USE_GSL
 #define kb_code (GSL_CONST_CGSM_BOLTZMANN / unit_pressure_fluid * unit_temperature_fluid * unit_number_density_fluid)
-
-//! The largest nmumber of fluids (right now only distinguishable by the adiabatic ratio).
-#define MAX_FLUIDS 6
-
-//! Polytropic indices
-constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
+#else
+#define kb_code (1.38E-16 / unit_pressure_fluid * unit_temperature_fluid * unit_number_density_fluid)
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle units used in the code - user configurable. Length and time units are the same as for the fluid.
@@ -87,7 +131,7 @@ constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 #define unit_charge_particle SPC_CONST_CGSM_ELECTRON_CHARGE
 
 //! Energy: 1 eV or the proton rest energy are reasonable values
-#define unit_energy_particle GSL_CONST_CGSM_ELECTRON_VOLT
+#define unit_energy_particle SPC_CONST_CGSM_ELECTRON_VOLT
 
 //! Momentum: derived, based on the assumption that the particles use the fluid unit for velocity
 #define unit_momentum_particle (unit_energy_particle / unit_velocity_fluid)
@@ -102,29 +146,98 @@ constexpr double gamma_eos[] = {4.0 / 3.0, 5.0 / 3.0, 6.0 / 3.0, 7.0 / 3.0};
 #define unit_rigidity_particle (unit_energy_particle / unit_charge_particle)
 
 //! The largest nmumber of species (distinct particle mass and charge).
-#define MAX_PARTICLE_SPECIES 3
+#define MAX_PARTICLE_SPECIES 16
 
-//! Specie index
-enum Specie {
-   proton = 0,
-   alpha_particle = 1,
-   electron = 2
-};
+//! Electrons - core
+#define SPECIES_ELECTRON_CORE 0
 
-//! Particle masses
-constexpr double mass[] = {GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                     4.0 * GSL_CONST_CGSM_MASS_PROTON   / unit_mass_particle,
-                           GSL_CONST_CGSM_MASS_ELECTRON / unit_mass_particle};
+//! Electrons - energetic
+#define SPECIES_ELECTRON_HALO 1
 
-//! Particle charges
-constexpr double charge[] = {SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                       2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                            -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle};
+//! Electrons - energetic/anisotropic (e.g., strahl)
+#define SPECIES_ELECTRON_BEAM 2
+
+//! Protons - core
+#define SPECIES_PROTON_CORE 3
+
+//! Protons - energetic (e.g., suprathermal)
+#define SPECIES_PROTON_HALO 4
+
+//! Protons - energetic/anisotropic
+#define SPECIES_PROTON_BEAM 5
+
+//! Protons - pickup (as SPECIES_PROTON_HALO, but different origin)
+#define SPECIES_PROTON_PICKUP 6
+
+//! Alpha particles - core
+#define SPECIES_ALPHA_CORE 7
+
+//! Alpha particles - energetic
+#define SPECIES_ALPHA_HALO 8
+
+//! Singly ionized helium
+#define SPECIES_HELIUM_SINGLE_CORE 9
+
+//! Singly ionized helium - pickup
+#define SPECIES_HELIUM_SINGLE_PICKUP 10
+
+//! Proton-electron plasma - core
+#define SPECIES_HYDROGEN_PLASMA_CORE 11
+
+//! Hydrogen atoms - core
+#define SPECIES_HYDROGEN_CORE 12
+
+//! Hydrogen atoms - energetic (e.g., from heliosheath)
+#define SPECIES_HYDROGEN_HALO 13
+
+//! Hydrogen atoms - energetic (e.g., from solar wind)
+#define SPECIES_HYDROGEN_BEAM 14
+
+//! Helium atoms - core
+#define SPECIES_HELIUM_CORE 15
+
+//! Names of fluids
+constexpr std::array<std::string_view, MAX_PARTICLE_SPECIES> SpeciesNames
+= {"Electrons (core)", "Electrons (halo)", "Electrons (beam)", "Proton (core)", "Proton (halo)", "Proton (beam)", "Proton (pickup)",
+   "Alpha (core)", "Alpha (halo)", "Helium II (core)", "Helium II (pickup)", "Hydrogen II (core)", "Hydrogen I (core)", "Hydrogen I (halp)",
+   "Hydrogen I (beam)", "Helium I (core)"};
 
 //! Masses of particles comprising the fluids
-constexpr double mass_fluid[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
-                                 GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle,
-                           2.0 * GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle};
+constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesMasses = {   SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                 2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
+                                 2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
+   (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+   (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+    2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON  + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle};
+
+//! Charges of particles comprising the fluids
+constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesCharges = {-SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                     -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                     -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                      0.0, 0.0, 0.0, 0.0, 0.0};
+
+//! Polytropic indices of fluids
+constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesPolytropicIndices
+= {5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0,
+  5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion
@@ -152,9 +265,9 @@ constexpr double mass_fluid[] = {GSL_CONST_CGSM_MASS_PROTON / unit_mass_particle
 \param[in] ifl Index of the fluid
 \return Sound speed
 */
-SPECTRUM_DEVICE_FUNC inline double SoundSpeed(double den, double pre, unsigned int ifl = 0)
+SPECTRUM_DEVICE_FUNC inline double SoundSpeed(double den, double pre, unsigned int ifl = SPECIES_HYDROGEN_PLASMA_CORE)
 {
-   return sqrt(gamma_eos[ifl] * pre / den);
+   return sqrt(SpeciesPolytropicIndices[ifl] * pre / den);
 };
 
 /*!
@@ -166,9 +279,9 @@ SPECTRUM_DEVICE_FUNC inline double SoundSpeed(double den, double pre, unsigned i
 \param[in] ifl Index of the fluid
 \return Sound speed squared
 */
-SPECTRUM_DEVICE_FUNC inline double Sound2(double den, double pre, unsigned int ifl = 0)
+SPECTRUM_DEVICE_FUNC inline double Sound2(double den, double pre, unsigned int ifl = SPECIES_HYDROGEN_PLASMA_CORE)
 {
-   return gamma_eos[ifl] * pre / den;
+   return SpeciesPolytropicIndices[ifl] * pre / den;
 };
 
 /*!
@@ -253,9 +366,9 @@ SPECTRUM_DEVICE_FUNC inline void Magnetosonic2(double Va2, double Vax2, double C
 \param[in] ifl Index of the fluid
 \return Energy per unit volume
 */
-SPECTRUM_DEVICE_FUNC inline double Energy(double den, double u2, double B2, double pre, unsigned int ifl = 0)
+SPECTRUM_DEVICE_FUNC inline double Energy(double den, double u2, double B2, double pre, unsigned int ifl = SPECIES_HYDROGEN_PLASMA_CORE)
 {
-   return den * u2 / 2.0 + pre / (gamma_eos[ifl] - 1.0) + B2 / M_8PI;
+   return den * u2 / 2.0 + pre / (SpeciesPolytropicIndices[ifl] - 1.0) + B2 / M_8PI;
 };
 
 /*!
@@ -282,9 +395,9 @@ SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double T)
 \param[in] ifl Index of the fluid
 \return gas pressure
 */
-SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, double enr, unsigned int ifl = 0)
+SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, double enr, unsigned int ifl = SPECIES_HYDROGEN_PLASMA_CORE)
 {
-   return (enr - den * u2 / 2.0 - B2 / M_8PI) * (gamma_eos[ifl] - 1.0);
+   return (enr - den * u2 / 2.0 - B2 / M_8PI) * (SpeciesPolytropicIndices[ifl] - 1.0);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -310,9 +423,9 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor(double vel)
 \param[in] mom Momentum
 \return Lorentz factor
 */
-SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(1.0 + Sqr(mom / (mass[isp] * c_code)));
+   return sqrt(1.0 + Sqr(mom / (SpeciesMasses[isp] * c_code)));
 };
 
 /*!
@@ -325,9 +438,9 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = 0)
 \param[in] isp     Index of the species
 \return Lorentz factor
 */
-SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double B, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(1.0 + (2.0 * mass[isp] * mag_mom * B + Sqr(mom)) / Sqr(mass[isp] * c_code));
+   return sqrt(1.0 + (2.0 * SpeciesMasses[isp] * mag_mom * B + Sqr(mom)) / Sqr(SpeciesMasses[isp] * c_code));
 };
 
 /*!
@@ -338,9 +451,9 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double
 \param[in] isp Index of the species
 \return Relativistic momentum
 */
-SPECTRUM_DEVICE_FUNC inline double Mom(double enr, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double Mom(double enr, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(enr * (enr + 2.0 * mass[isp] * c2_code)) / c_code;
+   return sqrt(enr * (enr + 2.0 * SpeciesMasses[isp] * c2_code)) / c_code;
 };
 
 /*!
@@ -351,9 +464,9 @@ SPECTRUM_DEVICE_FUNC inline double Mom(double enr, unsigned int isp = 0)
 \param[in] isp Index of the species
 \return Total relativistic energy
 */
-SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return c_code * sqrt(Sqr(mom) + Sqr(mass[isp] * c_code));
+   return c_code * sqrt(Sqr(mom) + Sqr(SpeciesMasses[isp] * c_code));
 };
 
 /*!
@@ -364,9 +477,9 @@ SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom, unsigned int isp = 0)
 \param[in] isp Index of the species
 \return Relativistic kinetic energy
 */
-SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return EnrTot(mom, isp) - mass[isp] * c2_code;
+   return EnrTot(mom, isp) - SpeciesMasses[isp] * c2_code;
 };
 
 /*!
@@ -377,7 +490,10 @@ SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom, unsigned int isp = 0)
 \param[in] isp Index of the species
 \return Velocity
 */
-SPECTRUM_DEVICE_FUNC inline double Vel(double mom, unsigned int isp = 0) {return mom * c2_code / EnrTot(mom, isp);};
+SPECTRUM_DEVICE_FUNC inline double Vel(double mom, unsigned int isp = SPECIES_PROTON_CORE)
+{
+   return mom * c2_code / EnrTot(mom, isp);
+};
 
 /*!
 \brief Calculate particle velocity from momentum
@@ -387,7 +503,7 @@ SPECTRUM_DEVICE_FUNC inline double Vel(double mom, unsigned int isp = 0) {return
 \param[in] isp Index of the species
 \return Velocity
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
    double mmag = mom.Norm();
    double vmag = Vel(mmag, isp);
@@ -402,9 +518,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom, unsigned int isp
 \param[in] isp Index of the species
 \return Relativistic momentum
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return (RelFactor(vel.Norm()) * mass[isp]) * vel;
+   return (RelFactor(vel.Norm()) * SpeciesMasses[isp]) * vel;
 };
 
 /*!
@@ -415,9 +531,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp
 \param[in] isp Index of the species
 \return Rigidity
 */
-SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return mom * c_code / fabs(charge[isp]);
+   return mom * c_code / fabs(SpeciesCharges[isp]);
 };
 
 /*!
@@ -428,9 +544,9 @@ SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = 0)
 \param[in] isp  Index of the species
 \return Effective temperature
 */
-SPECTRUM_DEVICE_FUNC inline double EffectiveTemperature(double v_th, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double EffectiveTemperature(double v_th, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return mass[isp] * Sqr(v_th) / (2.0 * kb_code);
+   return SpeciesMasses[isp] * Sqr(v_th) / (2.0 * kb_code);
 };
 
 /*!
@@ -441,9 +557,9 @@ SPECTRUM_DEVICE_FUNC inline double EffectiveTemperature(double v_th, unsigned in
 \param[in] isp Index of the species
 \return Thermal speed
 */
-SPECTRUM_DEVICE_FUNC inline double ThermalSpeed(double T, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double ThermalSpeed(double T, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(2.0 * kb_code * T / mass[isp]);
+   return sqrt(2.0 * kb_code * T / SpeciesMasses[isp]);
 };
 
 /*!
@@ -455,9 +571,9 @@ SPECTRUM_DEVICE_FUNC inline double ThermalSpeed(double T, unsigned int isp = 0)
 \param[in] isp Index of the species
 \return Cyclotron frequency
 */
-SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return charge_mass_particle * charge[isp] * B / (RelFactor(vel) * mass[isp] * c_code);
+   return charge_mass_particle * SpeciesCharges[isp] * B / (RelFactor(vel) * SpeciesMasses[isp] * c_code);
 };
 
 /*!
@@ -469,9 +585,9 @@ SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B, unsi
 \param[in] isp Index of the species
 \return Larmor radius
 */
-SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return mom * c_code / (charge_mass_particle * fabs(charge[isp]) * B);
+   return mom * c_code / (charge_mass_particle * fabs(SpeciesCharges[isp]) * B);
 };
 
 /*!
@@ -483,9 +599,9 @@ SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B, unsigned i
 \param[in] isp Index of the species
 \return Magnetic moment
 */
-SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return Sqr(mom) / (2.0 * mass[isp] * B);
+   return Sqr(mom) / (2.0 * SpeciesMasses[isp] * B);
 };
 
 /*!
@@ -497,9 +613,9 @@ SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B, unsigned
 \param[in] isp     Index of the species
 \return Momentum (perp. component)
 */
-SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(2.0 * mass[isp] * mag_mom * B);
+   return sqrt(2.0 * SpeciesMasses[isp] * mag_mom * B);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -514,9 +630,9 @@ SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsign
 \param[in] isp Index of the species
 \return Plasma frequency
 */
-SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return sqrt(M_4PI * den) * charge_mass_particle * fabs(charge[isp]) / mass[isp];
+   return sqrt(M_4PI * den) * charge_mass_particle * fabs(SpeciesCharges[isp]) / SpeciesMasses[isp];
 };
 
 /*!
@@ -530,10 +646,10 @@ SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp 
 \return Collision frequency
 \note Our system of units (MHD centric) requires a coefficient to relate the number density unit to the inverse cube of distance unit.
 */
-SPECTRUM_DEVICE_FUNC inline double CollisionFrequency(double den, double T, double Lam, unsigned int isp = 0)
+SPECTRUM_DEVICE_FUNC inline double CollisionFrequency(double den, double T, double Lam, unsigned int isp = SPECIES_PROTON_CORE)
 {
-   return 2.0 / 3.0 * M_SQRT2 / M_SQRTPI * Lam * mass[isp] / Cube(ThermalSpeed(T, isp) * unit_length_fluid) / unit_density_fluid * unit_mass_particle
-          * Sqr(PlasmaFrequency(den, isp) * charge_mass_particle * charge[isp] / mass[isp]);
+   return 2.0 / 3.0 * M_SQRT2 / M_SQRTPI * Lam * SpeciesMasses[isp] / Cube(ThermalSpeed(T, isp) * unit_length_fluid) / unit_density_fluid
+          * unit_mass_particle * Sqr(PlasmaFrequency(den, isp) * charge_mass_particle * SpeciesCharges[isp] / SpeciesMasses[isp]);
 };
 
 //! Print all units and constants

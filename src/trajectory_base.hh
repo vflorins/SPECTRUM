@@ -174,31 +174,31 @@ protected:
    double q;
 
 //! Array of distribution objects (persistent)
-   std::vector <std::shared_ptr <DistributionBase> > distributions;
+   std::vector<std::shared_ptr<DistributionBase>> distributions;
 
 //! Background object (persistent)
-   std::unique_ptr <BackgroundBase> background = nullptr;
+   std::unique_ptr<BackgroundBase> background = nullptr;
 
 //! Diffusion object (persistent)
-   std::unique_ptr <DiffusionBase> diffusion = nullptr;
+   std::unique_ptr<DiffusionBase> diffusion = nullptr;
 
 //! Array of time boundary condition objects (persistent)
-   std::vector <std::unique_ptr <BoundaryBase> > bcond_t;
+   std::vector<std::unique_ptr<BoundaryBase>> bcond_t;
 
 //! Array of spatial boundary condition objects (persistent)
-   std::vector <std::unique_ptr <BoundaryBase> > bcond_s;
+   std::vector<std::unique_ptr<BoundaryBase>> bcond_s;
 
 //! Array of momentum boundary condition objects (persistent)
-   std::vector <std::unique_ptr <BoundaryBase> > bcond_m;
+   std::vector<std::unique_ptr<BoundaryBase>> bcond_m;
 
 //! Initial condition in time (persistent)
-   std::unique_ptr <InitialBase> icond_t = nullptr;
+   std::unique_ptr<InitialBase> icond_t = nullptr;
 
 //! Initial condition in space (persistent)
-   std::unique_ptr <InitialBase> icond_s = nullptr;
+   std::unique_ptr<InitialBase> icond_s = nullptr;
 
 //! Initial condition in momentum (persistent)
-   std::unique_ptr <InitialBase> icond_m = nullptr;
+   std::unique_ptr<InitialBase> icond_m = nullptr;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,10 +206,10 @@ protected:
    std::vector<double> traj_t;
 
 //! Position along trajectory (transient)
-   std::vector <GeoVector> traj_pos;
+   std::vector<GeoVector> traj_pos;
 
 //! Momentum along trajectory (transient)
-   std::vector <GeoVector> traj_mom;
+   std::vector<GeoVector> traj_mom;
 
 #ifndef RECORD_TRAJECTORY
 //! Number of trajectory segments (transient)

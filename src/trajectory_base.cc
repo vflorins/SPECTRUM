@@ -421,7 +421,10 @@ void TrajectoryBase::HandleBoundaries(void)
 // Check _all_ boundary crossings. More than one may be crossed at any time.
    ComputeAllBoundaries();
 
-// *** Momentum ***
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Handle momentum boundaries
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
    for (bnd = 0; bnd < bcond_m.size(); bnd++) {
       bnd_status = bcond_m[bnd]->GetStatus();
       if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
@@ -450,7 +453,10 @@ void TrajectoryBase::HandleBoundaries(void)
       bactive_m = -1;
    };
 
-// *** Spatial ***
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Handle spatial boundaries
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
    for (bnd = 0; bnd < bcond_s.size(); bnd++) {
       bnd_status = bcond_s[bnd]->GetStatus();
       if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
@@ -501,7 +507,10 @@ void TrajectoryBase::HandleBoundaries(void)
       bactive_s = -1;
    };
 
-// *** Temporal ***
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Handle temporal boundaries
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
       bnd_status = bcond_t[bnd]->GetStatus();
       if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED)) {
@@ -625,15 +634,6 @@ bool TrajectoryBase::IsSimmulationReady(void) const
    if (bcond_t.size() == 0) return false;
    else if (BITS_LOWERED(bcond_t[0]->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
-// Verify that the initial conditions and transport make sense
-   
-
-
-
-
-
-
-
 // A distribution need not be present if we are simulating a single trajectory
    return true;
 };
@@ -653,17 +653,14 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    int bnd;
 
    Params::SetSpecie(specie_in);
-// The factor multiplying "charge[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
-   q = charge_mass_particle * charge[specie];
+// The factor multiplying "SpeciesCharges[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
+   q = charge_mass_particle * SpeciesCharges[specie];
    if (background != nullptr) background->SetSpecie(specie);
    if (diffusion != nullptr) diffusion->SetSpecie(specie);
 
-// TODO Compare the performance of this "fancy" loop
-//   for (auto bct = bcond_t.begin(); bct != bcond_t.end(); bct++) (*bct)->SetSpecie(specie);
-
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->SetSpecie(specie);
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->SetSpecie(specie);
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->SetSpecie(specie);
+   for (auto& bnd : bcond_t) bnd->SetSpecie(specie);
+   for (auto& bnd : bcond_s) bnd->SetSpecie(specie);
+   for (auto& bnd : bcond_m) bnd->SetSpecie(specie);
 
    if (icond_t != nullptr) icond_t->SetSpecie(specie);
    if (icond_s != nullptr) icond_s->SetSpecie(specie);
