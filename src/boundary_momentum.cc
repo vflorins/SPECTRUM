@@ -91,6 +91,19 @@ BoundaryMomentumInject::BoundaryMomentumInject(void)
 
 /*!
 \author Juan G Alonso Guzman
+\date 06/26/2025
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+*/
+BoundaryMomentumInject::BoundaryMomentumInject(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                      : BoundaryMomentum(name_in, specie_in, status_in)
+{
+   max_crossings = 1;
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 02/28/2024
 \param[in] other Object to initialize from
 */
@@ -117,6 +130,44 @@ void BoundaryMomentumInject::SetupBoundary(bool construct)
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumPass methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/25/2025
+*/
+BoundaryMomentumPass::BoundaryMomentumPass(void)
+                    : BoundaryMomentum(bnd_name_momentum_pass, 0, BOUNDARY_MOMENTUM)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/25/2025
+\param[in] other Object to initialize from
+*/
+BoundaryMomentumPass::BoundaryMomentumPass(const BoundaryMomentumPass& other)
+                    : BoundaryMomentum(other)
+{
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/25/2025
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryMomentumPass::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if (!construct) BoundaryMomentum::SetupBoundary(false);
+   if (max_crossings == 1) RAISE_BITS(_status, BOUNDARY_TERMINAL);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMomentumInjectRestrictSlab methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -125,9 +176,8 @@ void BoundaryMomentumInject::SetupBoundary(bool construct)
 \date 06/26/2025
 */
 BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(void)
-                                  : BoundaryMomentum(bnd_name_momentum_inject_restrict_slab, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
+                                  : BoundaryMomentumInject(bnd_name_momentum_inject_restrict_slab, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
 {
-   max_crossings = 1;
 };
 
 /*!
@@ -136,11 +186,9 @@ BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(void)
 \param[in] other Object to initialize from
 */
 BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(const BoundaryMomentumInjectRestrictSlab& other)
-                                  : BoundaryMomentum(other)
+                                  : BoundaryMomentumInject(other)
 {
-   RAISE_BITS(_status, BOUNDARY_TERMINAL);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
-   max_crossings = 1;
 };
 
 /*!
@@ -153,12 +201,11 @@ This method's main role is to unpack the data container and set up the class dat
 void BoundaryMomentumInjectRestrictSlab::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BoundaryMomentum::SetupBoundary(false);
+   if (!construct) BoundaryMomentumInject::SetupBoundary(false);
    container.Read(r0);
    container.Read(r1);
    container.Read(normal);
    normal.Normalize();
-   max_crossings = 1;
 };
 
 /*!
@@ -167,11 +214,66 @@ void BoundaryMomentumInjectRestrictSlab::SetupBoundary(bool construct)
 */
 void BoundaryMomentumInjectRestrictSlab::EvaluateBoundary(void)
 {
-   BoundaryMomentum::EvaluateBoundary();
+   BoundaryMomentumInject::EvaluateBoundary();
 
 // If the momentum boundary crossing occurred outside the slab, "_delta_old" is reset to have the same sign as "_delta" to avoid triggering the crossing event.
    if (_delta * _delta_old < 0.0) {
-      if (((_pos - r0) * normal < 0.0) || ((_pos - r1) * normal > 0.0)) _delta_old = _delta * (1.0 - sp_small);
+      if (((_pos - r0) * normal < 0.0) || ((_pos - r1) * normal > 0.0)) _delta_old = _delta;
+   };
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumInjectRestrictShell methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Vladimir Florinski
+\date 06/27/2025
+*/
+BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(void)
+                                   : BoundaryMomentumInject(bnd_name_momentum_inject_restrict_shell, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
+{
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/27/2025
+\param[in] other Object to initialize from
+*/
+BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(const BoundaryMomentumInjectRestrictShell& other)
+                                   : BoundaryMomentumInject(other)
+{
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/27/2025
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+void BoundaryMomentumInjectRestrictShell::SetupBoundary(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if (!construct) BoundaryMomentumInject::SetupBoundary(false);
+   container.Read(r0);
+   container.Read(r1);
+   container.Read(r2);
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/27/2025
+*/
+void BoundaryMomentumInjectRestrictShell::EvaluateBoundary(void)
+{
+   BoundaryMomentumInject::EvaluateBoundary();
+
+// If the momentum boundary crossing occurred outside the slab, "_delta_old" is reset to have the same sign as "_delta" to avoid triggering the crossing event.
+   if (_delta * _delta_old < 0.0) {
+      auto rdist = (_pos - r0).Norm(); 
+      if ((rdist < r1) || (rdist > r2)) _delta_old = _delta;
    };
 };
 

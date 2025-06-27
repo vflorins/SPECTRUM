@@ -59,7 +59,7 @@ public:
 // BoundaryMomentumInject class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentum class
+//! Readable name of the BoundaryMomentumInject class
 const std::string bnd_name_momentum_inject = "BoundaryMomentumInject";
 
 /*!
@@ -80,6 +80,9 @@ public:
 //! Default constructor
    BoundaryMomentumInject(void);
 
+//! Constructor with arguments (to speed up construction of derived classes)
+   BoundaryMomentumInject(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+
 //! Copy constructor
    BoundaryMomentumInject(const BoundaryMomentumInject& other);
 
@@ -88,6 +91,41 @@ public:
 
 //! Clone function
    CloneFunctionBoundary(BoundaryMomentumInject);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumPass class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryMomentumPass class
+const std::string bnd_name_momentum_pass = "BoundaryMomentumPass";
+
+/*!
+\brief Passive momentum boundary
+\author Juan G Alonso Guzman
+
+Parameters: (BoundaryMomentum)
+*/
+class BoundaryMomentumPass : public BoundaryMomentum {
+
+protected:
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+public:
+
+//! Default constructor
+   BoundaryMomentumPass(void);
+
+//! Copy constructor
+   BoundaryMomentumPass(const BoundaryMomentumPass& other);
+
+//! Destructor
+   ~BoundaryMomentumPass() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryMomentumPass);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -101,9 +139,9 @@ const std::string bnd_name_momentum_inject_restrict_slab = "BoundaryMomentumInje
 \brief Absorbing (injection) momentum boundary restricted to space between two parallel planes
 \author Vladimir Florinski
 
-Parameters: (BoundaryMomentum), GeoVector r0, GeoVector r1, GeoVector normal 
+Parameters: (BoundaryMomentumInject), GeoVector r0, GeoVector r1, GeoVector normal 
 */
-class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentum {
+class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentumInject {
 
 protected:
 
@@ -135,6 +173,53 @@ public:
 
 //! Clone function
    CloneFunctionBoundary(BoundaryMomentumInjectRestrictSlab);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BoundaryMomentumInjectRestrictShell class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the BoundaryMomentumInjectRestrictShell class
+const std::string bnd_name_momentum_inject_restrict_shell = "BoundaryMomentumInjectRestrictShell";
+
+/*!
+\brief Absorbing (injection) momentum boundary restricted to space between two concentric spheres
+\author Vladimir Florinski
+
+Parameters: (BoundaryMomentumInject), GeoVector r0, double r1, double r2 
+*/
+class BoundaryMomentumInjectRestrictShell : public BoundaryMomentumInject {
+
+protected:
+
+//! Center of the shperes
+   GeoVector r0;
+
+//! Radius of the inner sphere
+   double r1;
+
+//! Radius of the outer sphere
+   double r2;
+
+//! Set up the boundary evaluator based on "params"
+   void SetupBoundary(bool construct) override;
+
+//! Compute the distance to the boundary
+   void EvaluateBoundary(void) override;
+
+public:
+
+//! Default constructor
+   BoundaryMomentumInjectRestrictShell(void);
+
+//! Copy constructor
+   BoundaryMomentumInjectRestrictShell(const BoundaryMomentumInjectRestrictShell& other);
+
+//! Destructor
+   ~BoundaryMomentumInjectRestrictShell() override = default;
+
+//! Clone function
+   CloneFunctionBoundary(BoundaryMomentumInjectRestrictShell);
 };
 
 #if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
