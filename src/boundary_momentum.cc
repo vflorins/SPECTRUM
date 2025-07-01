@@ -218,7 +218,7 @@ void BoundaryMomentumInjectRestrictSlab::EvaluateBoundary(void)
 
 // If the momentum boundary crossing occurred outside the slab, "_delta_old" is reset to have the same sign as "_delta" to avoid triggering the crossing event.
    if (_delta * _delta_old < 0.0) {
-      if (((_pos - r0) * normal < 0.0) || ((_pos - r1) * normal > 0.0)) _delta_old = _delta;
+      if (((_pos - r0) * normal) * ((_pos - r1) * normal) > 0.0) _delta_old = _delta;
    };
 };
 
