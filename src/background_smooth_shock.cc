@@ -112,7 +112,6 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 // Unpack parameters
    container.Read(width_shock);
    container.Read(dmax_fraction);
-   dmax_limit = dmax0 / (dmax_fraction * width_shock);
 };
 
 /*!
