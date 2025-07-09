@@ -45,9 +45,6 @@ protected:
 //! Fraction of the shock width to assign to dmax near shock (persistent)
    double dmax_fraction;
 
-//! Distance from shock within which to modify dmax
-   double dmax_limit;
-
 //! Relative distance to shock (transient)
    double ds_shock;
 
