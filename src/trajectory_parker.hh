@@ -48,7 +48,7 @@ Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 class TrajectoryParker : public TrajectoryBase {
 
-//! Drift elocity (transient)
+//! Drift velocity (transient)
    GeoVector drift_vel;
 
 //! The field aligned coordinate system unit vectors (transient)
