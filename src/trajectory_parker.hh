@@ -48,6 +48,8 @@ Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 class TrajectoryParker : public TrajectoryBase {
 
+protected:
+
 //! Drift velocity (transient)
    GeoVector drift_vel;
 
