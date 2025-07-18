@@ -112,7 +112,6 @@ void BackgroundSmoothDiscontinuity::SetupBackground(bool construct)
 // Unpack parameters
    container.Read(width_discont);
    container.Read(dmax_fraction);
-   dmax_limit = dmax0 / (dmax_fraction * width_discont);
 };
 
 /*!

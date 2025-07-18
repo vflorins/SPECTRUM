@@ -45,9 +45,6 @@ protected:
 //! Fraction of the discontinuity width to assign to dmax near discontinuity (persistent)
    double dmax_fraction;
 
-//! Distance from discontinuity within which to modify dmax
-   double dmax_limit;
-
 //! Relative distance to discontinuity (transient)
    double ds_discont;
 
