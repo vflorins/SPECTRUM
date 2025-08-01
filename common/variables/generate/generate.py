@@ -128,7 +128,7 @@ else:
         VariableGroup("ConservedStateMHD_GLM", "den_t, mom_t, enr_t, mag_t, glm_t", "Variables of the conserved form for an MHD-GLM model"),
         VariableGroup("FluxFunctionMHD_GLM", "fden_t, fmom_t, fenr_t, fmag_t, fglm_t", "Variables of the flux function for an MHD-GLM model"),
         # Tracer groups:
-        VariableGroup("Bdata", "mag_t, Mmag_t, Umag_t", "Magnetic field data group"),
+        VariableGroup("Bdata", "mag_t, Mmag_t, Umag_t", "Magnetic field data group (basic quantities)"),
         VariableGroup("GBdata", "Gmag_t, GMmag_t, GUmag_t", "Magnetic field data group (gradients/spatial derivatives)"),
         VariableGroup("DBdata", "Dmag_t, DMmag_t, DUmag_t", "Magnetic field data group (time derivatives)"),
     ]
