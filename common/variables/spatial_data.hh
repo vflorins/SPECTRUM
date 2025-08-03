@@ -231,6 +231,21 @@ using SpatialDataUEB = SpatialData<vel_t, ele_t, Bdata_t>;
 using SpatialDataALL = SpatialData<den_t,vel_t, ele_t, Bdata_t,Gvel_t, Gele_t, GBdata_t,Dvel_t, Dele_t, DBdata_t>;
 //using SpatialDataGlobalBackground =
 
+// user-facing types
+// todo configure entry-point
+
+using velocityfield = vel_t;
+using electricfield = ele_t;
+using magneticfield = Bdata_t;
+using Gvelocityfield = Gvel_t;
+using Gelectricfield = Gele_t;
+using Gmagneticfield = GBdata_t;
+using Dvelocityfield = Dvel_t;
+using Delectricfield = Dele_t;
+using Dmagneticfield = DBdata_t;
+
+
+
 };
 
 

@@ -128,6 +128,10 @@ AS_IF([test "x$with_trajectory" == "x"], [
 ])
 AC_MSG_NOTICE([Using "$with_trajectory" as the trajectory model])
 
+# Set up the variable fields type
+# TODO
+
+
 # Define trajectory time flow direction types
 AC_DEFINE([TRAJ_TIME_FLOW_FORWARD], [0], [Forward-in-time simulation])
 AC_DEFINE([TRAJ_TIME_FLOW_BACKWARD], [1], [Backward-in-time simulation])
@@ -201,6 +205,7 @@ AS_IF([test "x$with_server_interp_order" == "x" -a $with_server != "SELF"], [
    ])
 ])
 AC_MSG_NOTICE([Using "$with_server_interp_order" as the background server interpolation order])
+
 
 # Set up server number of ghost cells per side of blocks
 AC_ARG_WITH([server_num_gcs], [AS_HELP_STRING([--with-server_num_gcs=SERVER_NUM_GHOST_CELLS], [use SERVER_NUM_GHOST_CELLS=0|1])], [], [])
