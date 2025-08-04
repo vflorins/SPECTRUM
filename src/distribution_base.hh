@@ -11,14 +11,11 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_DISTRIBUTION_BASE_HH
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
-#include "config.h"
-#include "common/params.hh"
-#include "common/spatial_data.hh"
+#include <config.h>
+#include <common/params.hh>
+#include <common/spatial_data.hh>
 #include <functional>
 
-#ifndef TRAJ_TYPE
-#error Trajectory type is undefined!
-#endif
 
 namespace Spectrum {
 
@@ -40,7 +37,10 @@ using WeightAction = std::function<void(void)>;
 
 The class is optimized for convenience, not speed. All distributions are treated as 3D and addressed through a multi-index. Access to 1D and 2D distributions is therefore slower than using one/two integers. This should not be an issue for most applications because a single event requires integrating a trajectory, which is a lengthy procedure. A distribution could mix space and momentum coordinates.
 */
+template <typename Fields_>
 class DistributionBase : public Params {
+
+   using Fields = Fields_;
 
 protected:
 
@@ -88,8 +88,8 @@ protected:
 //! Total event count (transient)
    int n_events = 0;
 
-//! Spatial data (transient)
-   SpatialData _spdata;
+//! Fields (transient)
+   Fields _fields;
 
 //! Second time value (transient)
    double _t2;
@@ -100,8 +100,8 @@ protected:
 //! Second momentum vector (transient)
    GeoVector _mom2;
 
-//! Second spatial data (transient)
-   SpatialData _spdata2;
+//! Second fields instance (transient)
+   Fields _fields2;
 
 //! Internal value to be binned (transient)
    GeoVector _value;
@@ -230,7 +230,8 @@ public:
 \date 06/14/2021
 \return Number of bins in each dimension
 */
-inline MultiIndex DistributionBase::NBins(void) const
+template <typename Fields>
+inline MultiIndex DistributionBase<Fields>::NBins(void) const
 {
    return n_bins;
 };
@@ -242,7 +243,8 @@ inline MultiIndex DistributionBase::NBins(void) const
 \param[in] bin Bin number
 \return Smallest value for this bin
 */
-inline double DistributionBase::BinLeft(int ijk, int bin) const
+template <typename Fields>
+inline double DistributionBase<Fields>::BinLeft(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + bin * bin_size[ijk]);
@@ -256,7 +258,8 @@ inline double DistributionBase::BinLeft(int ijk, int bin) const
 \param[in] bin Bin number
 \return Center value for this bin (log-center for logarithmic bins)
 */
-inline double DistributionBase::BinCent(int ijk, int bin) const
+template <typename Fields>
+inline double DistributionBase<Fields>::BinCent(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 0.5) * bin_size[ijk]);
@@ -270,7 +273,8 @@ inline double DistributionBase::BinCent(int ijk, int bin) const
 \param[in] bin Bin number
 \return Largest value for this bin
 */
-inline double DistributionBase::BinRght(int ijk, int bin) const
+template <typename Fields>
+inline double DistributionBase<Fields>::BinRght(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 1) * bin_size[ijk]);
@@ -282,7 +286,8 @@ inline double DistributionBase::BinRght(int ijk, int bin) const
 \date 10/30/2019
 \return Total number of events
 */
-inline int DistributionBase::NEvents(void) const
+template <typename Fields>
+inline int DistributionBase<Fields>::NEvents(void) const
 {
    return n_events;
 };
@@ -292,7 +297,8 @@ inline int DistributionBase::NEvents(void) const
 \date 12/02/2022
 \return Total number of records
 */
-inline int DistributionBase::NRecords(void) const
+template <typename Fields>
+inline int DistributionBase<Fields>::NRecords(void) const
 {
    return values_record.size();
 };
@@ -302,7 +308,8 @@ inline int DistributionBase::NRecords(void) const
 \date 06/10/2022
 \param[in] n_events_in Total number of events
 */
-inline void DistributionBase::SetNEvents(int n_events_in)
+template <typename Fields>
+inline void DistributionBase<Fields>::SetNEvents(int n_events_in)
 {
    n_events = n_events_in;
 };
@@ -313,7 +320,8 @@ inline void DistributionBase::SetNEvents(int n_events_in)
 \param[in] bin Bin multi-index
 \return Number of events in the bin
 */
-inline int DistributionBase::GetEvents(const MultiIndex& bin) const
+template <typename Fields>
+inline int DistributionBase<Fields>::GetEvents(const MultiIndex& bin) const
 {
    return counts[n_bins.LinIdx(bin)];
 };
@@ -323,7 +331,8 @@ inline int DistributionBase::GetEvents(const MultiIndex& bin) const
 \date 12/02/2022
 \return keep_records variable
 */
-inline bool DistributionBase::GetKeepRecords(void)
+template <typename Fields>
+inline bool DistributionBase<Fields>::GetKeepRecords(void)
 {
    return keep_records;
 };
@@ -333,7 +342,8 @@ inline bool DistributionBase::GetKeepRecords(void)
 \date 09/18/2020
 \return Pointer to the counts storage
 */
-inline int* DistributionBase::GetCountsAddress(void)
+template <typename Fields>
+inline int* DistributionBase<Fields>::GetCountsAddress(void)
 {
    return counts.data();
 };
@@ -343,7 +353,8 @@ inline int* DistributionBase::GetCountsAddress(void)
 \date 12/02/2022
 \return Pointer to the counts storage
 */
-inline GeoVector* DistributionBase::GetValuesRecordAddress(void)
+template <typename Fields>
+inline GeoVector* DistributionBase<Fields>::GetValuesRecordAddress(void)
 {
    return values_record.data();
 };

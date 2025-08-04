@@ -7,31 +7,31 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_VARIABLE_STRUCTS_HH
-#define SPECTRUM_VARIABLE_STRUCTS_HH
+#ifndef SPECTRUM_FIELD_STRUCTS_HH
+#define SPECTRUM_FIELD_STRUCTS_HH
 
-#include "generate/variable_lists.hh"
+#include "generated/field_lists.hh"
 #include <common/matrix.hh>
 
 namespace Spectrum {
 
 /*!
-\brief Scalar with a formatted name
+\brief Scalar with a formatted name, i.e., Scalar field
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
-struct NamedScalar {
+template <FieldId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct ScalarField {
 
 //! static fields
-   static constexpr const std::string_view name = VariableNames[nameid];
+   static constexpr const std::string_view name = FieldNames[nameid];
     static const int reconstructible = reconstructible_;
     static const int solvable = solvable_;
 
 //! data field
    double value;
    
-   NamedScalar(double value = 0):
+   ScalarField(double value = 0):
       value(value)
    {}
 
@@ -45,7 +45,7 @@ struct NamedScalar {
 
 //! print string
    std::string str() const {
-      std::string tmp = std::string(VariableNames[nameid]) + "[" + std::to_string(value) + "]";
+      std::string tmp = std::string(FieldNames[nameid]) + "[" + std::to_string(value) + "]";
       return tmp;
    }
 
@@ -61,24 +61,24 @@ struct NamedScalar {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
-struct NamedGeoVector : public GeoVector {
+template <FieldId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct VectorField : public GeoVector {
 
 //! static fields
-   static constexpr const std::string_view name = VariableNames[nameid];
+   static constexpr const std::string_view name = FieldNames[nameid];
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
 
-   NamedGeoVector() {}
+   VectorField() {}
 
    // todo review
-   NamedGeoVector(GeoVector vec):
+   VectorField(GeoVector vec):
       GeoVector(vec)
    {}
 
 //! print string
    std::string str() const {
-      std::string tmp = std::string(VariableNames[nameid]) + "[";
+      std::string tmp = std::string(FieldNames[nameid]) + "[";
       // quick lazy impl
       tmp += std::to_string(x) + " ";
       tmp += std::to_string(y) + " ";
@@ -94,18 +94,18 @@ struct NamedGeoVector : public GeoVector {
 
 
 
-template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
-inline GeoVector operator*(const NamedScalar<nameid2, R2, S2>& lhs, const NamedGeoVector<nameid, R, S>& rhs) {
+template <FieldId nameid, int R, int S, FieldId nameid2, int R2, int S2>
+inline GeoVector operator*(const ScalarField<nameid2, R2, S2>& lhs, const VectorField<nameid, R, S>& rhs) {
    return lhs.value*static_cast<const GeoVector&>(rhs);
 }
 
-template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
-inline GeoVector operator*(const NamedGeoVector<nameid, R, S>& lhs, const NamedScalar<nameid2, R2, S2>& rhs) {
+template <FieldId nameid, int R, int S, FieldId nameid2, int R2, int S2>
+inline GeoVector operator*(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
    return rhs.value*static_cast<const GeoVector&>(lhs);
 }
 
-template <VariableId nameid, int R, int S, VariableId nameid2, int R2, int S2>
-inline GeoVector operator/(const NamedGeoVector<nameid, R, S>& lhs, const NamedScalar<nameid2, R2, S2>& rhs) {
+template <FieldId nameid, int R, int S, FieldId nameid2, int R2, int S2>
+inline GeoVector operator/(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
    return (1.0/rhs.value)*static_cast<const GeoVector&>(lhs);
 }
 
@@ -115,25 +115,25 @@ inline GeoVector operator/(const NamedGeoVector<nameid, R, S>& lhs, const NamedS
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <VariableId nameid, int reconstructible_ = 0, int solvable_ = 0>
-struct NamedGeoMatrix : public GeoMatrix {
+template <FieldId nameid, int reconstructible_ = 0, int solvable_ = 0>
+struct MatrixField : public GeoMatrix {
 
 //! static fields
-   static constexpr const std::string_view name = VariableNames[nameid];
+   static constexpr const std::string_view name = FieldNames[nameid];
     static const int reconstructible = reconstructible_;
     static const int solvable = solvable_;
 
-   NamedGeoMatrix() {}
+   MatrixField() {}
 
    // todo review
-   NamedGeoMatrix(GeoMatrix mat):
+   MatrixField(GeoMatrix mat):
       GeoMatrix(mat)
    {}
 
 //! print string
    std::string str() const {
       // quick lazy impl
-      std::string tmp = std::string(VariableNames[nameid]) + "[ ";
+      std::string tmp = std::string(FieldNames[nameid]) + "[ ";
       for (int i = 0; i < 3; ++i) {
          tmp += "[";
          for (int j = 0; j < 3; ++j) {

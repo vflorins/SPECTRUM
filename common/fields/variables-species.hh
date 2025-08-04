@@ -7,11 +7,16 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_VARIABLES_HH
-#define SPECTRUM_VARIABLES_HH
+#ifndef SPECTRUM_FIELDS_HH
+#define SPECTRUM_FIELDS_HH
 
 #include "common/physics.hh"
-#include "mhdtuple/mhdtuple.hh"
+#include "partially_generated/fields.hh"
+
+
+
+// todo this used to be variables but probably should become species but I'm not sure yet with all the changes happening
+
 
 
 namespace Spectrum {

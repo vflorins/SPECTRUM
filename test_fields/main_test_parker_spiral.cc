@@ -20,14 +20,16 @@ int main(int argc, char** argv)
 // Set the fields required
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//   using Fields = Fields<velocity, electric, magnetic>;
-
+   using Fields = Fields<Vel_t, Elc_t, Mag_t>;
+   // todo this is templated
+   using Trajectory = TrajectoryParker<Fields>;
+   using Background = BackgroundSolarWind<Fields>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<TrajectoryBase> trajectory = std::make_unique<TrajectoryType>();
+   std::unique_ptr<TrajectoryBase> trajectory = std::make_unique<Trajectory>();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -86,7 +88,7 @@ int main(int argc, char** argv)
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(BackgroundSolarWind(), container);
+   trajectory->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition

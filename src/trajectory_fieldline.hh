@@ -33,7 +33,8 @@ const uint16_t which_field_to_follow = BACKGROUND_B;
 
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
-class TrajectoryFieldline : public TrajectoryBase {
+template <typename Fields>
+class TrajectoryFieldline : public TrajectoryBase<Fields> {
 
 protected:
 
@@ -77,15 +78,12 @@ public:
 \return A vector in the (p,mu,phi) format
 \note Not used, but needs to be "overriden" from virtual definition in TrajectoryBase
 */
-inline GeoVector TrajectoryFieldline::ConvertMomentum(void) const
+template <typename Fields>
+inline GeoVector TrajectoryFieldline<Fields>::ConvertMomentum(void) const
 {
    return GeoVector(fabs(_mom[2]), 0.0, 0.0);
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_FIELDLINE
-typedef TrajectoryFieldline TrajectoryType;
-#endif
 
 };
 

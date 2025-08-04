@@ -16,11 +16,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "diffusion_base.hh"
 #include "boundary_base.hh"
 #include "initial_base.hh"
-#include "common/rk_config.hh"
+#include <common/rk_config.hh>
 
-#ifndef TRAJ_TYPE
-#error Trajectory type is undefined!
-#endif
 
 namespace Spectrum {
 
@@ -163,7 +160,15 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
+template <typename Fields_>
 class TrajectoryBase : public Params {
+
+public:
+
+   using Fields = Fields_;
+   using DistributionBase = DistributionBase<Fields>;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -453,7 +458,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-inline void TrajectoryBase::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -464,7 +470,8 @@ inline void TrajectoryBase::ConnectDistribution(const std::shared_ptr<Distributi
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-inline void TrajectoryBase::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -474,7 +481,8 @@ inline void TrajectoryBase::ReplaceDistribution(int distro, const std::shared_pt
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-inline void TrajectoryBase::DisconnectDistribution(int distro)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
@@ -483,7 +491,8 @@ inline void TrajectoryBase::DisconnectDistribution(int distro)
 \author Vladimir Florinski
 \date 09/25/2020
 */
-inline void TrajectoryBase::Load(void)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::Load(void)
 {
 #ifdef RECORD_TRAJECTORY
    _t = traj_t.back();
@@ -497,7 +506,8 @@ inline void TrajectoryBase::Load(void)
 \author Vladimir Florinski
 \date 09/25/2020
 */
-inline void TrajectoryBase::Store(void)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::Store(void)
 {
 #ifdef RECORD_TRAJECTORY
    traj_t.push_back(_t);
@@ -513,7 +523,8 @@ inline void TrajectoryBase::Store(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-inline void TrajectoryBase::LoadLocal(void)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::LoadLocal(void)
 {
    _t = local_t;
    _pos = local_pos;
@@ -526,7 +537,8 @@ inline void TrajectoryBase::LoadLocal(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-inline void TrajectoryBase::StoreLocal(void)
+template <typename Fields>
+inline void TrajectoryBase<Fields>::StoreLocal(void)
 {
    local_t = _t;
    local_pos = _pos;
@@ -538,7 +550,8 @@ inline void TrajectoryBase::StoreLocal(void)
 \date 06/12/2024
 \return Momentum in (p,mu,phi) coordinates
 */
-inline GeoVector TrajectoryBase::ConvertMomentum(void) const
+template <typename Fields>
+inline GeoVector TrajectoryBase<Fields>::ConvertMomentum(void) const
 {
    return _mom;
 };
@@ -548,7 +561,8 @@ inline GeoVector TrajectoryBase::ConvertMomentum(void) const
 \date 12/03/2020
 \return Largest index in the trajectory arrays
 */
-inline int TrajectoryBase::Segments(void) const
+template <typename Fields>
+inline int TrajectoryBase<Fields>::Segments(void) const
 {
 #ifdef RECORD_TRAJECTORY
    return traj_t.size() - 1;
@@ -562,7 +576,8 @@ inline int TrajectoryBase::Segments(void) const
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-inline double TrajectoryBase::ElapsedTime(void) const
+template <typename Fields>
+inline double TrajectoryBase<Fields>::ElapsedTime(void) const
 {
 #ifdef RECORD_TRAJECTORY
    return traj_t.back() - traj_t.front();

@@ -19,8 +19,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/30/2022
 */
-TrajectoryFieldline::TrajectoryFieldline(void)
-                   : TrajectoryBase(traj_name_fieldline, 0, STATE_NONE, defsize_fieldline)
+template <typename Fields>
+TrajectoryFieldline<Fields>::TrajectoryFieldline(void)
+                   : TrajectoryBase<Fields>(traj_name_fieldline, 0, STATE_NONE, defsize_fieldline)
 {
 };
 
@@ -29,10 +30,11 @@ TrajectoryFieldline::TrajectoryFieldline(void)
 \author Vladimir Florinski
 \date 10/13/2022
 */
-void TrajectoryFieldline::SetStart(void)
+template <typename Fields>
+void TrajectoryFieldline<Fields>::SetStart(void)
 {
 // Call the base version of this function.
-   TrajectoryBase::SetStart();
+   TrajectoryBase<Fields>::SetStart();
 
 // Redefine which field line to follow based on header file parameter
    _spdata._mask = which_field_to_follow;
@@ -43,7 +45,8 @@ void TrajectoryFieldline::SetStart(void)
 \author Vladimir Florinski
 \date 09/30/2022
 */
-void TrajectoryFieldline::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryFieldline<Fields>::PhysicalStep(void)
 {
    dt_physical = cfl_adv_tf * _spdata.dmax / fabs(_vel[2]);
 };
@@ -54,7 +57,8 @@ void TrajectoryFieldline::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryFieldline::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Fields>
+void TrajectoryFieldline<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    if (BITS_RAISED(which_field_to_follow, BACKGROUND_U)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Uvec);
    else if (BITS_RAISED(which_field_to_follow, BACKGROUND_B)) slope_pos_istage = _vel[2] * _spdata.bhat;
@@ -70,7 +74,8 @@ void TrajectoryFieldline::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_m
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryFieldline::Advance(void)
+template <typename Fields>
+bool TrajectoryFieldline<Fields>::Advance(void)
 {
    return RKAdvance();
 };

@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 06/14/2021
 */
-DistributionBase::DistributionBase(void)
+template <typename Fields>
+DistributionBase<Fields>::DistributionBase(void)
                 : Params("", 0, STATE_NONE)
 {
 };
@@ -31,7 +32,8 @@ DistributionBase::DistributionBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-DistributionBase::DistributionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+DistributionBase<Fields>::DistributionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                 : Params(name_in, specie_in, status_in)
 {
 };
@@ -43,7 +45,8 @@ DistributionBase::DistributionBase(const std::string& name_in, unsigned int spec
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-DistributionBase::DistributionBase(const DistributionBase& other)
+template <typename Fields>
+DistributionBase<Fields>::DistributionBase(const DistributionBase& other)
                 : Params(other)
 {
 // Params' constructor resets all flags
@@ -55,7 +58,8 @@ DistributionBase::DistributionBase(const DistributionBase& other)
 \date 09/13/2022
 \param [in] construct Whether called from a copy constructor or separately
 */
-void DistributionBase::SetupDistribution(bool construct)
+template <typename Fields>
+void DistributionBase<Fields>::SetupDistribution(bool construct)
 {
 };
 
@@ -66,7 +70,8 @@ void DistributionBase::SetupDistribution(bool construct)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupDistribution()" method.
 */
-void DistributionBase::SetupObject(const DataContainer& cont_in)
+template <typename Fields>
+void DistributionBase<Fields>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupDistribution(false);
@@ -77,7 +82,8 @@ void DistributionBase::SetupObject(const DataContainer& cont_in)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-void DistributionBase::AddEvent(void)
+template <typename Fields>
+void DistributionBase<Fields>::AddEvent(void)
 {
 };
 
@@ -85,7 +91,8 @@ void DistributionBase::AddEvent(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-void DistributionBase::AddRecord(void)
+template <typename Fields>
+void DistributionBase<Fields>::AddRecord(void)
 {
 };
 
@@ -94,7 +101,8 @@ void DistributionBase::AddRecord(void)
 \date 09/13/2022
 \param[in] n_records_in Total number of events
 */
-void DistributionBase::SetNRecords(int n_records_in)
+template <typename Fields>
+void DistributionBase<Fields>::SetNRecords(int n_records_in)
 {
 };
 
@@ -102,7 +110,8 @@ void DistributionBase::SetNRecords(int n_records_in)
 \author Vladimir Florinski
 \date 09/13/2022
 */
-void DistributionBase::ResetDistribution(void)
+template <typename Fields>
+void DistributionBase<Fields>::ResetDistribution(void)
 {
 };
 
@@ -110,7 +119,8 @@ void DistributionBase::ResetDistribution(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-void DistributionBase::ResetRecords(void)
+template <typename Fields>
+void DistributionBase<Fields>::ResetRecords(void)
 {
 };
 
@@ -120,7 +130,8 @@ void DistributionBase::ResetRecords(void)
 \param[in] other Second distribution
 \return Reference to this object
 */
-DistributionBase& DistributionBase::operator +=(const DistributionBase& other)
+template <typename Fields>
+DistributionBase<Fields>& DistributionBase<Fields>::operator +=(const DistributionBase& other)
 {
    return *this;
 };
@@ -130,7 +141,8 @@ DistributionBase& DistributionBase::operator +=(const DistributionBase& other)
 \date 09/13/2022
 \param[in] other Second distribution
 */
-void DistributionBase::CopyRecords(const DistributionBase& other)
+template <typename Fields>
+void DistributionBase<Fields>::CopyRecords(const DistributionBase& other)
 {
 };
 
@@ -140,7 +152,8 @@ void DistributionBase::CopyRecords(const DistributionBase& other)
 \param[out] size Size of an element of the "distro" array
 \return Pointer to the distribution storage
 */
-void* DistributionBase::GetDistroAddress(size_t& size)
+template <typename Fields>
+void* DistributionBase<Fields>::GetDistroAddress(size_t& size)
 {
    size = 0;
    return nullptr;
@@ -152,7 +165,8 @@ void* DistributionBase::GetDistroAddress(size_t& size)
 \param[out] size Size of an element of the "weights_record" array
 \return Pointer to the weights storage
 */
-void* DistributionBase::GetWeightsRecordAddress(size_t& size)
+template <typename Fields>
+void* DistributionBase<Fields>::GetWeightsRecordAddress(size_t& size)
 {
    size = 0;
    return nullptr;
@@ -171,8 +185,9 @@ void* DistributionBase::GetWeightsRecordAddress(size_t& size)
 \param[in] spdata2   Second spatial data
 \param[in] action_in Action to calculate the weight
 */
-void DistributionBase::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const SpatialData& spdata1,
-                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const SpatialData& spdata2,
+template <typename Fields>
+void DistributionBase<Fields>::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1,
+                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2,
                                          int action_in)
 {
    SetState(t1, pos1, mom1);
@@ -195,7 +210,8 @@ void DistributionBase::ProcessTrajectory(double t1, const GeoVector& pos1, const
 \author Vladimir Florinski
 \date 09/13/2022
 */
-void DistributionBase::EvaluateValue(void)
+template <typename Fields>
+void DistributionBase<Fields>::EvaluateValue(void)
 {
 };
 
@@ -204,7 +220,8 @@ void DistributionBase::EvaluateValue(void)
 \date 09/13/2022
 \param[in] action_in Action index from "ActionTable"
 */
-void DistributionBase::EvaluateWeight(int action_in)
+template <typename Fields>
+void DistributionBase<Fields>::EvaluateWeight(int action_in)
 {
 };
 
@@ -213,7 +230,8 @@ void DistributionBase::EvaluateWeight(int action_in)
 \date 09/13/2022
 \param[in] file_name Distribution file name
 */
-void DistributionBase::Dump(const std::string& file_name) const
+template <typename Fields>
+void DistributionBase<Fields>::Dump(const std::string& file_name) const
 {
 };
 
@@ -222,7 +240,8 @@ void DistributionBase::Dump(const std::string& file_name) const
 \date 09/13/2022
 \param[in] file_name Distribution file name
 */
-void DistributionBase::Restore(const std::string& file_name)
+template <typename Fields>
+void DistributionBase<Fields>::Restore(const std::string& file_name)
 {
 };
    
@@ -233,7 +252,8 @@ void DistributionBase::Restore(const std::string& file_name)
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-void DistributionBase::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
+template <typename Fields>
+void DistributionBase<Fields>::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
 {
 };
 
@@ -246,7 +266,8 @@ void DistributionBase::Print1D(int ijk, const std::string& dist_name, bool phys_
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-void DistributionBase::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
+template <typename Fields>
+void DistributionBase<Fields>::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
 {
 };
 
@@ -256,7 +277,8 @@ void DistributionBase::Print2D(int ijk1, int ijk2, const std::string& dist_name,
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-void DistributionBase::PrintRecords(const std::string& dist_name, bool phys_units) const
+template <typename Fields>
+void DistributionBase<Fields>::PrintRecords(const std::string& dist_name, bool phys_units) const
 {
 };
 
