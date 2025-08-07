@@ -18,7 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-BackgroundMagnetizedSphere::BackgroundMagnetizedSphere(void)
+template <typename Fields>
+BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(void)
                           : BackgroundSphericalObstacle(bg_name_magnetized_sphere, 0, MODEL_STATIC)
 {
 };
@@ -30,7 +31,8 @@ BackgroundMagnetizedSphere::BackgroundMagnetizedSphere(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundMagnetizedSphere::BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other)
+template <typename Fields>
+BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other)
                           : BackgroundSphericalObstacle(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -41,10 +43,11 @@ BackgroundMagnetizedSphere::BackgroundMagnetizedSphere(const BackgroundMagnetize
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-void BackgroundMagnetizedSphere::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundMagnetizedSphere<Fields>::EvaluateBackground(void)
 {
    BackgroundSphericalObstacle::EvaluateBackground();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 - _spdata.Bvec;
+   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 - _fields.Mag();
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -53,12 +56,13 @@ void BackgroundMagnetizedSphere::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-void BackgroundMagnetizedSphere::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundMagnetizedSphere<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if MAGNETIZED_SPHERE_DERIVATIVE_METHOD == 0
 
    BackgroundSphericalObstacle::EvaluateBackgroundDerivatives();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec *= -1.0;
+   if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
 
 #else
    NumericalDerivatives();

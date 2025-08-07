@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-BackgroundSmoothShock::BackgroundSmoothShock(void)
-                     : BackgroundShock(bg_name_smooth_shock, 0, STATE_NONE)
+template <typename Fields>
+BackgroundSmoothShock<Fields>::BackgroundSmoothShock(void)
+                     : BackgroundShock<Fields>(bg_name_smooth_shock, 0, STATE_NONE)
 {
 };
 
@@ -30,8 +31,9 @@ BackgroundSmoothShock::BackgroundSmoothShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
-                     : BackgroundShock(other)
+template <typename Fields>
+BackgroundSmoothShock<Fields>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
+                     : BackgroundShock<Fields>(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -43,7 +45,8 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 \param [in] x Relative transition region location
 \return Relative value of shocked quantity
 */
-double BackgroundSmoothShock::ShockTransition(double x)
+template <typename Fields>
+double BackgroundSmoothShock<Fields>::ShockTransition(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
@@ -73,7 +76,8 @@ double BackgroundSmoothShock::ShockTransition(double x)
 \param [in] x Relative transition region location 
 \return Derivative of relative value of shocked quantity
 */
-double BackgroundSmoothShock::ShockTransitionDerivative(double x)
+template <typename Fields>
+double BackgroundSmoothShock<Fields>::ShockTransitionDerivative(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0
@@ -104,10 +108,11 @@ double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundSmoothShock::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundSmoothShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundShock::SetupBackground(false);
+   if (!construct) BackgroundShock<Fields>::SetupBackground(false);
 
 // Unpack parameters
    container.Read(width_shock);
@@ -118,7 +123,8 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-void BackgroundSmoothShock::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundSmoothShock<Fields>::EvaluateBackground(void)
 {
    double a1, a2;
    ds_shock = ((_pos - r0) * n_shock - v_shock * _t) / width_shock;
@@ -139,7 +145,8 @@ void BackgroundSmoothShock::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundSmoothShock<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
@@ -172,7 +179,8 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-void BackgroundSmoothShock::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundSmoothShock<Fields>::EvaluateDmax(void)
 {
    _spdata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

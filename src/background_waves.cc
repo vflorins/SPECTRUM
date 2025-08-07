@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 08/29/2022
 */
-BackgroundWaves::BackgroundWaves(void)
-               : BackgroundBase(bg_name_waves, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundWaves<Fields>::BackgroundWaves(void)
+               : BackgroundBase<Fields>(bg_name_waves, 0, MODEL_STATIC)
 {
 };
 
@@ -30,8 +31,9 @@ BackgroundWaves::BackgroundWaves(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundWaves::BackgroundWaves(const BackgroundWaves& other)
-               : BackgroundBase(other)
+template <typename Fields>
+BackgroundWaves<Fields>::BackgroundWaves(const BackgroundWaves& other)
+               : BackgroundBase<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -44,7 +46,8 @@ BackgroundWaves::BackgroundWaves(const BackgroundWaves& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundWaves::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundWaves<Fields>::SetupBackground(bool construct)
 {
    int dim, wave;
    turb_type t_type;
@@ -53,7 +56,7 @@ void BackgroundWaves::SetupBackground(bool construct)
    TurbProp properties;
 
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
 
 // Build the field-aligned coordinate system
    basis_b.AxisymmetricBasis(B0);
@@ -165,7 +168,8 @@ void BackgroundWaves::SetupBackground(bool construct)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-void BackgroundWaves::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundWaves<Fields>::EvaluateBackground(void)
 {
    int wave;
    double arg, z_rot;
@@ -207,7 +211,8 @@ void BackgroundWaves::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-void BackgroundWaves::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
 {
    int wave, xyz;
    double arg, z_rot;
@@ -254,7 +259,8 @@ void BackgroundWaves::EvaluateBackgroundDerivatives(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-void BackgroundWaves::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundWaves<Fields>::EvaluateDmax(void)
 {
    _spdata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);

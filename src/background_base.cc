@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 11/24/2020
 */
-BackgroundBase::BackgroundBase(void)
+template <typename Fields>
+BackgroundBase<Fields>::BackgroundBase(void)
               : Params("", 0, STATE_NONE)
 {
 };
@@ -31,7 +32,8 @@ BackgroundBase::BackgroundBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BackgroundBase::BackgroundBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+BackgroundBase<Fields>::BackgroundBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
               : Params(name_in, specie_in, status_in)
 {
 };
@@ -43,7 +45,8 @@ BackgroundBase::BackgroundBase(const std::string& name_in, unsigned int specie_i
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundBase::BackgroundBase(const BackgroundBase& other)
+template <typename Fields>
+BackgroundBase<Fields>::BackgroundBase(const BackgroundBase& other)
               : Params(other)
 {
 // Params' constructor resets all flags
@@ -55,22 +58,28 @@ BackgroundBase::BackgroundBase(const BackgroundBase& other)
 \date 12/14/2020
 \return Maximum distance based on the grid or other properties
 */
-double BackgroundBase::GetDmax(void) const
+template <typename Fields>
+double BackgroundBase<Fields>::GetDmax(void) const
 {
-   return _spdata.dmax;
+   return _ddata.dmax;
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 06/11/2024
+\author Lucius Schoenbaum
+\date 08/05/2025
 \param[in] int index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] Fields temporary fields for case of status failure.
 \note This is a common routine that the derived classes should not change.
 */
-void BackgroundBase::DirectionalDerivative(int xyz)
+template <typename Fields>
+void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, DerivativeData& ddata_tmp)
 {
    double _t_saved;
    GeoVector _pos_saved;
+// temporaries for forward- and backward-stepped evaluation
+   Fields fields_forw, fields_back;
 
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -80,192 +89,161 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial derivatives
    if ((0 <= xyz) && (xyz <= 2)) {
-      _spdata._dr_forw_fail[xyz] = false;
-      _spdata._dr_back_fail[xyz] = false;
+      _ddata._dr_forw_fail[xyz] = false;
+      _ddata._dr_back_fail[xyz] = false;
 
 // Save position, compute increment      
       _pos_saved = _pos;
 
+// Increment forward, then back.
+// In either case, if the attempted state is invalid,
+// revert to first order differences, otherwise use second order differences.
+
 // Forward increment
-      _spdata_tmp._dr[xyz] = r_g;
-      _pos += _spdata_tmp._dr[xyz] * fa_basis.row[xyz];
+      ddata_tmp._dr[xyz] = r_g;
+      _pos += ddata_tmp._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_forw.Bvec = _spdata.Bvec;
-            _spdata_forw.Bmag = _spdata.Bvec.Norm();
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
+         fields_forw = _fields;
       }
       else {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_forw.Bvec = _spdata_tmp.Bvec;
-            _spdata_forw.Bmag = _spdata_tmp.Bmag;
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
-         _spdata._dr_forw_fail[xyz] = true;
+         fields_forw = fields_tmp;
+         _ddata._dr_forw_fail[xyz] = true;
       };
 
 // Backward increment
-      _spdata_tmp._dr[xyz] *= 2.0;
-      _pos -= _spdata_tmp._dr[xyz] * fa_basis.row[xyz];
+      ddata_tmp._dr[xyz] *= 2.0;
+      _pos -= ddata_tmp._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_back.Bvec = _spdata.Bvec;
-            _spdata_back.Bmag = _spdata.Bvec.Norm();
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
+         fields_back = _fields;
       }
       else {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_back.Bvec = _spdata_tmp.Bvec;
-            _spdata_back.Bmag = _spdata_tmp.Bmag;
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
-         _spdata._dr_back_fail[xyz] = true;
+         fields_back = fields_tmp;
+         _ddata._dr_back_fail[xyz] = true;
       };
 
 // If at least one increment failed, half the increment. If both increments failed, throw an error.
-      if (_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _spdata_tmp._dr[xyz] *= 0.5;
-      if (_spdata._dr_forw_fail[xyz] && _spdata._dr_back_fail[xyz]) throw ExFieldError();
+      if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) ddata_tmp._dr[xyz] *= 0.5;
+      if (_ddata._dr_forw_fail[xyz] && _ddata._dr_back_fail[xyz]) throw ExFieldError();
 
 // Restore position
       _pos = _pos_saved;
 
 // Compute spatial derivatives. This calculation gives gradV[i][j] = dV_j / ds^i which is the transpose of the Jacobian.
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.gradUvec[xyz] = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dr[xyz];
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-         _spdata.gradBvec[xyz] = (_spdata_forw.Bvec - _spdata_back.Bvec) / _spdata_tmp._dr[xyz];
-         _spdata.gradBmag[xyz] = (_spdata_forw.Bmag - _spdata_back.Bmag) / _spdata_tmp._dr[xyz];
-      };
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.gradEvec[xyz] = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dr[xyz];
+      if constexpr (Fields::DelVel_found())
+         _fields.DelVel()[xyz] = (fields_forw.Vel() - fields_back.Vel()) / ddata_tmp._dr[xyz];
+      if constexpr (Fields::DelMag_found())
+         _fields.DelMag()[xyz] = (fields_forw.Mag() - fields_back.Mag()) / ddata_tmp._dr[xyz];
+      if constexpr (Fields::DelAbsMag_found())
+         _fields.DelAbsMag()[xyz] = (fields_forw.AbsMag() - fields_back.AbsMag()) / ddata_tmp._dr[xyz];
+      if constexpr (Fields::DelElc_found())
+         _fields.DelElc()[xyz] = (fields_forw.Elc() - fields_back.Elc()) / ddata_tmp._dr[xyz];
    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time derivatives
    else {
-      _spdata._dt_forw_fail = false;
-      _spdata._dt_back_fail = false;
+      _ddata._dt_forw_fail = false;
+      _ddata._dt_back_fail = false;
 
 // Save time, compute increment      
       _t_saved = _t;
 
+// Increment forward, then back.
+// In either case, if the attempted state is invalid,
+// revert to first order differences, otherwise use second order differences.
+
 // Forward increment
-      _spdata_tmp._dt = 1.0 / w_g;
-      _t += _spdata_tmp._dt;
+      ddata_tmp._dt = 1.0 / w_g;
+      _t += ddata_tmp._dt;
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_forw.Bvec = _spdata.Bvec;
-            _spdata_forw.Bmag = _spdata.Bvec.Norm();
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata.Evec;
+         fields_forw = _fields;
       }
       else {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_forw.Uvec = _spdata_tmp.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_forw.Bvec = _spdata_tmp.Bvec;
-            _spdata_forw.Bmag = _spdata_tmp.Bmag;
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_forw.Evec = _spdata_tmp.Evec;
-         _spdata._dt_forw_fail = true;
+         fields_forw = fields_tmp;
+         _ddata._dt_forw_fail = true;
       };
 
 // Backward increment
-      _spdata_tmp._dt *= 2.0;
-      _t -= _spdata_tmp._dt;
+      ddata_tmp._dt *= 2.0;
+      _t -= ddata_tmp._dt;
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_back.Bvec = _spdata.Bvec;
-            _spdata_back.Bmag = _spdata.Bvec.Norm();
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata.Evec;
+         fields_back = _fields;
       }
       else {
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_back.Uvec = _spdata_tmp.Uvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_back.Bvec = _spdata_tmp.Bvec;
-            _spdata_back.Bmag = _spdata_tmp.Bmag;
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_back.Evec = _spdata_tmp.Evec;
-         _spdata._dt_back_fail = true;
+         fields_back = fields_tmp;
+         _ddata._dt_back_fail = true;
       };
 
 // If at least one increment failed, half the increment. If both increments failed, throw an error.
-      if (_spdata._dt_forw_fail || _spdata._dt_back_fail) _spdata_tmp._dt *= 0.5;
-      if (_spdata._dt_forw_fail && _spdata._dt_back_fail) throw ExFieldError();
+      if (_ddata._dt_forw_fail || _ddata._dt_back_fail) ddata_tmp._dt *= 0.5;
+      if (_ddata._dt_forw_fail && _ddata._dt_back_fail) throw ExFieldError();
 
 // Restore time
       _t = _t_saved;
 
 // Compute time derivatives
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.dUvecdt = (_spdata_forw.Uvec - _spdata_back.Uvec) / _spdata_tmp._dt;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-         _spdata.dBvecdt = (_spdata_forw.Bvec - _spdata_back.Bvec) / _spdata_tmp._dt;
-         _spdata.dBmagdt = (_spdata_forw.Bmag - _spdata_back.Bmag) / _spdata_tmp._dt;
-      };
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.dEvecdt = (_spdata_forw.Evec - _spdata_back.Evec) / _spdata_tmp._dt;
+      if constexpr (Fields::DdtVel_found())
+         _fields.DdtVel() = (fields_forw.Vel() - fields_back.Vel()) / ddata_tmp._dt;
+      if constexpr (Fields::DdtMag_found())
+         _fields.DdtMag() = (fields_forw.Mag() - fields_back.Mag()) / ddata_tmp._dt;
+      if constexpr (Fields::DdtAbsMag_found())
+         _fields.DdtAbsMag() = (fields_forw.AbsMag() - fields_back.AbsMag()) / ddata_tmp._dt;
+      if constexpr (Fields::DdtElc_found())
+         _fields.DdtElc() = (fields_forw.Elc() - fields_back.Elc()) / ddata_tmp._dt;
    };
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 06/12/2024
+\author Lucius Schoenbaum
+\date 08/05/2025
 */
-void BackgroundBase::NumericalDerivatives(void)
+template <typename Fields>
+void BackgroundBase<Fields>::NumericalDerivatives(void)
 {
 // Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
 // Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivatives will be wrong
-   _spdata_tmp._mask = _spdata._mask;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.Uvec = _spdata.Uvec;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      _spdata_tmp.Bvec = _spdata.Bvec;
-      _spdata_tmp.Bmag = _spdata.Bmag;
-      _spdata_tmp.bhat = _spdata.bhat;
-   };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.Evec = _spdata.Evec;
-   _spdata_tmp.region = _spdata.region;
-   _spdata_tmp.n_dens = _spdata.n_dens;
-   _spdata_tmp.p_ther = _spdata.p_ther;
-   _spdata_tmp.dmax = _spdata.dmax;
 
-// Spatial derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a gradient.
-   _spdata._mask >>= mask_offset;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
+// copy _fields and _ddata into temporaries
+   Fields fields_tmp = _fields;
+   DerivativeData ddata_tmp = _ddata;
+
+// todo review with Juan
+   if constexpr (Fields::DelVel_found() || Fields::DelMag_found() || Fields::DelAbsMag_found() || Fields::DelElc_found()) {
 
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
+      r_g = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _ddata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
-      fa_basis.row[2] = _spdata.bhat;
-      fa_basis.row[0] = GetSecondUnitVec(_spdata.bhat);
+      fa_basis.row[2] = _fields.HatMag();
+      fa_basis.row[0] = GetSecondUnitVec(_fields.HatMag());
       fa_basis.row[1] = fa_basis.row[2] ^ fa_basis.row[0];
 
 // Compute derivatives in field-aligned basis
-      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp, ddata_tmp);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec = rot_mat * _spdata.gradUvec;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-         _spdata_tmp.gradBvec = rot_mat * _spdata.gradBvec;
-         _spdata_tmp.gradBmag = rot_mat * _spdata.gradBmag;
-      };
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec = rot_mat * _spdata.gradEvec;
+      if constexpr (Fields::DelVel_found())
+         fields_tmp.DelVel() = rot_mat * _fields.DelVel();
+      if constexpr (Fields::DelMag_found())
+         fields_tmp.DelMag() = rot_mat * _fields.DelMag();
+      if constexpr (Fields::DelAbsMag_found())
+         fields_tmp.DelAbsMag() = rot_mat * _fields.DelAbsMag();
+      if constexpr (Fields::DelElc_found())
+         fields_tmp.DelElc() = rot_mat * _fields.DelElc();
 
+// uncomment this line to see the next block if it is masked by your viewer/IDE.
+//#define BACKGROUND_NUM_GRAD_EVALS 2
 #if BACKGROUND_NUM_GRAD_EVALS > 1
 
 // Repeat for any additional rotations
@@ -273,40 +251,43 @@ void BackgroundBase::NumericalDerivatives(void)
          fa_basis[0].Rotate(fa_basis.row[2], sin_lra, cos_lra);
          fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
-         for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+         for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp, ddata_tmp);
 
          rot_mat.Transpose(fa_basis);
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec += rot_mat * _spdata.gradUvec;
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-            _spdata_tmp.gradBvec += rot_mat * _spdata.gradBvec;
-            _spdata_tmp.gradBmag += rot_mat * _spdata.gradBmag;
-         };
-         if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec += rot_mat * _spdata.gradEvec;
+         if constexpr (Fields::DelVel_found())
+            fields_tmp.DelVel() += rot_mat * _fields.DelVel();
+         if constexpr (Fields::DelMag_found())
+            fields_tmp.DelMag() += rot_mat * _fields.DelMag();
+         if constexpr (Fields::DelAbsMag_found())
+            fields_tmp.DelAbsMag() += rot_mat * _fields.DelAbsMag();
+         if constexpr (Fields::DelElc_found())
+            fields_tmp.DelElc() += rot_mat * _fields.DelElc();
       };
 
 // Average results
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec /= BACKGROUND_NUM_GRAD_EVALS;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-         _spdata_tmp.gradBvec /= BACKGROUND_NUM_GRAD_EVALS;
-         _spdata_tmp.gradBmag /= BACKGROUND_NUM_GRAD_EVALS;
-      };
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec /= BACKGROUND_NUM_GRAD_EVALS;
+      if constexpr (Fields::DelVel_found())
+         fields_tmp.DelVel() /= BACKGROUND_NUM_GRAD_EVALS;
+      if constexpr (Fields::DelMag_found())
+         fields_tmp.DelMag() /= BACKGROUND_NUM_GRAD_EVALS;
+      if constexpr (Fields::DelAbsMag_found())
+         fields_tmp.DelAbsMag() /= BACKGROUND_NUM_GRAD_EVALS;
+      if constexpr (Fields::DelElc_found())
+         fields_tmp.DelElc() /= BACKGROUND_NUM_GRAD_EVALS;
 
 #endif
 
    };
 
 // Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.
-   _spdata._mask >>= mask_offset;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
+   if constexpr (Fields::DdtVel_found() || Fields::DdtMag_found() || Fields::DdtAbsMag_found() || Fields::DdtElc_found()) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), Vel(_mom[0]) / _spdata.dmax);
-      DirectionalDerivative(3);
+      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _fields.AbsMag(), specie), Vel(_mom[0]) / _ddata.dmax);
+      DirectionalDerivative(3, fields_tmp);
    };
 
-// Copy data from _spdata_tmp into _spdata
-   _spdata._mask = _spdata_tmp._mask;
-   _spdata = _spdata_tmp;
+// Copy data from _tmp fields into _ fields
+   _fields = fields_tmp;
+   _ddata = ddata_tmp;
 };
 
 /*!
@@ -316,7 +297,8 @@ void BackgroundBase::NumericalDerivatives(void)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupBackground()" method.
 */
-void BackgroundBase::SetupObject(const DataContainer& cont_in)
+template <typename Fields>
+void BackgroundBase<Fields>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupBackground(false);
@@ -329,7 +311,8 @@ void BackgroundBase::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundBase::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundBase<Fields>::SetupBackground(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -344,9 +327,9 @@ void BackgroundBase::SetupBackground(bool construct)
    container.Read(dmax0);
 
 // Initialize "safe" box for derivatives
-   for (auto xyz = 0; xyz < 3; xyz++) _spdata._dr[xyz] = incr_dmax_ratio * dmax0;
-   _spdata._dt = incr_dmax_ratio * dmax0 / c_code;
-   _spdata.dmax = dmax0;
+   for (auto xyz = 0; xyz < 3; xyz++) _ddata._dr[xyz] = incr_dmax_ratio * dmax0;
+   _ddata._dt = incr_dmax_ratio * dmax0 / c_code;
+   _ddata.dmax = dmax0;
 };
 
 /*!
@@ -354,7 +337,8 @@ void BackgroundBase::SetupBackground(bool construct)
 \date 12/08/2021
 \note This is only a stub
 */
-void BackgroundBase::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundBase<Fields>::EvaluateBackground(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -364,7 +348,8 @@ void BackgroundBase::EvaluateBackground(void)
 \date 10/13/2022
 \note This is only a stub
 */
-void BackgroundBase::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundBase<Fields>::EvaluateBackgroundDerivatives(void)
 {
 };
 
@@ -373,9 +358,10 @@ void BackgroundBase::EvaluateBackgroundDerivatives(void)
 \date 09/15/2021
 \note The default method should be good enough for all grid-free backgrounds
 */
-void BackgroundBase::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundBase<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = dmax0;
+   _ddata.dmax = dmax0;
    LOWER_BITS(_status, STATE_INVALID);
 };
 
@@ -384,9 +370,10 @@ void BackgroundBase::EvaluateDmax(void)
 \date 06/11/2024
 \note The default method should be good enough for all grid-free backgrounds
 */
-void BackgroundBase::EvaluateBmag(void)
+template <typename Fields>
+void BackgroundBase<Fields>::EvaluateBmag(void)
 {
-   _spdata.Bmag = _spdata.Bvec.Norm();
+   _fields.AbsMag() = _fields.Mag().Norm();
 };
 
 /*!
@@ -394,7 +381,8 @@ void BackgroundBase::EvaluateBmag(void)
 \date 02/17/2023
 \note The default method should be good enough for all grid-free backgrounds
 */
-void BackgroundBase::StopServerFront(void)
+template <typename Fields>
+void BackgroundBase<Fields>::StopServerFront(void)
 {
 };
 
@@ -404,24 +392,29 @@ void BackgroundBase::StopServerFront(void)
 \param[in] dir Direction
 \return Safe increment in some direction (potential negative) to stay inside domain
 */
-double BackgroundBase::GetSafeIncr(const GeoVector& dir)
+template <typename Fields>
+double BackgroundBase<Fields>::GetSafeIncr(const GeoVector& dir)
 {
 //FIXME: This is incomplete.
-   return incr_dmax_ratio * _spdata.dmax;
+   return incr_dmax_ratio * _ddata.dmax;
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 06/11/2024
+\author Lucius Schoenbaum
+\date 08/05/2025
 \param[in]  t_in   Time
 \param[in]  pos_in Position
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
-\param[out] spdata All spatial data
+\param[out] fields All fields data
 \note This is a common routine that the derived classes should not change.
 */
-void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
+template <typename Fields>
+void BackgroundBase<Fields>::GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
 {
+// When the call is finished, the `fields` member will be updated for the caller's state, and the `fields` argument will be equal to that member.
+
 // Check that state setup is complete
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -434,23 +427,29 @@ void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVe
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 
 // The mask is provided by the caller, we need to copy it into our internal fields structure
-   _spdata._mask = spdata._mask;
+//   _spdata._mask = spdata._mask;
 
 // Compute u, B, E
    EvaluateBackground();
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute Bmag, bhat
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if constexpr (Fields::AbsMag_found()) {
       EvaluateBmag();
-      if (_spdata.Bmag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
-      else _spdata.bhat = _spdata.Bvec / _spdata.Bmag;
+   }
+   if constexpr (Fields::HatMag_found()) {
+      // todo should HatMag require AbsMag?
+      if (_fields.AbsMag() < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
+      else _fields.AbsMag() = _fields.Mag() / _fields.AbsMag();
    };
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute derivatives of u, B, E
    EvaluateBackgroundDerivatives();
 
 // Copy the internal fields into arguments
-   spdata = _spdata;
+   fields = _fields;
 };
 
 };
+
+
+

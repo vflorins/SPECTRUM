@@ -20,8 +20,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/28/2021
 */
-BackgroundVLISMBochum::BackgroundVLISMBochum(void)
-                     : BackgroundBase(bg_name_bochum, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(void)
+                     : BackgroundBase<Fields>(bg_name_bochum, 0, MODEL_STATIC)
 {
 };
 
@@ -31,7 +32,8 @@ BackgroundVLISMBochum::BackgroundVLISMBochum(void)
 \param[in] z Normalized z-component of position
 \return Normalized transverse field
 */
-double BackgroundVLISMBochum::RelBtrans(double z) const
+template <typename Fields>
+double BackgroundVLISMBochum<Fields>::RelBtrans(double z) const
 {
    return 1.0 / sqrt(1.0 - 1.0 / Sqr(z));
 };
@@ -43,8 +45,9 @@ double BackgroundVLISMBochum::RelBtrans(double z) const
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundVLISMBochum::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
-                     : BackgroundBase(other)
+template <typename Fields>
+BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
+                     : BackgroundBase<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -58,7 +61,8 @@ BackgroundVLISMBochum::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundVLISMBochum::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundVLISMBochum<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -87,7 +91,8 @@ void BackgroundVLISMBochum::SetupBackground(bool construct)
 \date 07/26/2022
 \return Field amplification factor
 */
-double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
+template <typename Fields>
+double BackgroundVLISMBochum<Fields>::GetAmpFactor(double zeta) const
 {
 #if MOD_TYPE == 0
    return 1.0;
@@ -148,7 +153,8 @@ double BackgroundVLISMBochum::GetAmpFactor(double zeta) const
 \author Juan G Alonso Guzman
 \date 07/26/2022
 */
-void BackgroundVLISMBochum::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
    GeoVector posprime = _pos - r0;
@@ -306,7 +312,8 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/17/2022
 */
-void BackgroundVLISMBochum::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundVLISMBochum<Fields>::EvaluateBackgroundDerivatives(void)
 {
    NumericalDerivatives();
 };

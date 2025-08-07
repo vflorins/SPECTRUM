@@ -259,7 +259,11 @@ const std::string diff_name_para_constant = "DiffusionParaConstant";
 
 Parameters: (DiffusionBase), double D0
 */
-class DiffusionParaConstant : public DiffusionBase {
+template <typename Fields>
+class DiffusionParaConstant : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -307,7 +311,11 @@ const std::string diff_name_perp_constant = "DiffusionPerpConstant";
 
 Parameters: (DiffusionBase), double D0
 */
-class DiffusionPerpConstant : public DiffusionBase {
+template <typename Fields>
+class DiffusionPerpConstant : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -355,7 +363,11 @@ const std::string diff_name_full_constant = "DiffusionFullConstant";
 
 Parameters: (DiffusionBase), double Dperp, double Dpara
 */
-class DiffusionFullConstant : public DiffusionBase {
+template <typename Fields>
+class DiffusionFullConstant : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -406,7 +418,11 @@ const std::string diff_name_flow_momentum_power_law = "DiffusionFlowMomentumPowe
 
 Parameters: (DiffusionBase), double kap0, double u0, double power_law_U, double p0, double power_law_p, double kap_rat
 */
-class DiffusionFlowMomentumPowerLaw : public DiffusionBase {
+template <typename Fields>
+class DiffusionFlowMomentumPowerLaw : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -469,7 +485,11 @@ const std::string diff_name_kinetic_energy_radial_distance_power_law = "Diffusio
 
 Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
 */
-class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
+template <typename Fields>
+class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -532,7 +552,11 @@ const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidi
 
 Parameters: (DiffusionBase), double lam0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
 */
-class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase {
+template <typename Fields>
+class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -595,7 +619,11 @@ const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
 
 Parameters: (DiffusionBase), int LISM_idx, double lam_in, double lam_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
-class DiffusionStraussEtAl2013 : public DiffusionBase {
+template <typename Fields>
+class DiffusionStraussEtAl2013 : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -647,7 +675,8 @@ public:
    double GetMuDerivative(void) override;
 };
 
-typedef DiffusionStraussEtAl2013 DiffusionGuoEtAl2014;
+template <typename Fields>
+using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<Fields>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionPotgieterEtAl2015 class declaration
@@ -663,7 +692,11 @@ const std::string diff_name_potgieter_et_al_2015 = "DiffusionPotgieterEtAl2015";
 
 Parameters: (DiffusionBase), int LISM_idx, double kappa_in, double kappa_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
-class DiffusionPotgieterEtAl2015 : public DiffusionBase {
+template <typename Fields>
+class DiffusionPotgieterEtAl2015 : public DiffusionBase<Fields> {
+public:
+
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -727,8 +760,11 @@ const std::string diff_name_empirical_soqlt_and_unlt = "DiffusionEmpiricalSOQLTa
 \author Juan G Alonso Guzman
 Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double B0, int Bmix_idx, double kap_rat_red, double radial_limit_perp_red, int solar_cycle_idx, double solar_cycle_effect
 */
+template <typename Fields>
+class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<Fields> {
+public:
 
-class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase {
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 

@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef _BACKGROUND_SERVER_CARTESIAN_HH
-#define _BACKGROUND_SERVER_CARTESIAN_HH
+#ifndef SPECTRUM_BACKGROUND_SERVER_CARTESIAN_HH
+#define SPECTRUM_BACKGROUND_SERVER_CARTESIAN_HH
 
 #include "background_server.hh"
 
@@ -16,7 +16,7 @@ namespace Spectrum {
 //! Readable name of the class
 const std::string bg_name_server_cartesian = "BackgroundServerCartesian";
 
-/*!
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServerCartesian class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -27,7 +27,28 @@ const std::string bg_name_server_cartesian = "BackgroundServerCartesian";
 
 Parameters: (BackgroundServer)
 */
-class BackgroundServerCartesian : public BackgroundServer {
+template <typename Fields_>
+class BackgroundServerCartesian : public BackgroundServer<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 public:
 
@@ -48,5 +69,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_server_cartesian.cc"
 
 #endif

@@ -35,7 +35,28 @@ const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
-class BackgroundSmoothShock : public BackgroundShock {
+template <typename Fields_>
+class BackgroundSmoothShock : public BackgroundShock<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -82,5 +103,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_smooth_shock.cc"
 
 #endif

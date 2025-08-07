@@ -64,12 +64,13 @@ class Field:
     components of a formatted SPECTRUM variable, or field.
     """
 
-    def __init__(self, name, datatype, description, R, S):
+    def __init__(self, name, datatype, description, R, S, printed_name=None):
         self.name = name
         self.datatype = datatype
         self.description = description
         self.R = R
         self.S = S
+        self.printed_name = printed_name
 
     def fieldtype(self):
         if self.datatype == 'Scalar':
@@ -81,23 +82,23 @@ class Field:
         else:
             raise ValueError
 
-class FieldGroup:
+class Species:
     """
-    A convenience class for expressing the essential
-    components of a formatted SPECTRUM group of variables, or fields.
+    A convenience class for expressing the basic components of a species.
     """
 
-    def __init__(self, name, typelist, description):
+    def __init__(self, name, typelist, description, printed_name=None):
         self.name = name
         self.typelist = typelist
         self.description = description
+        self.printed_name = printed_name
 
 empty_field_lists = False
 # empty_field_lists = True
 
 if empty_field_lists:
     fields = []
-    groups = []
+    species = []
 else:
     fields = [
         # Fluid fields:
@@ -123,24 +124,42 @@ else:
         Field("DelMag", "GeoMatrix", "Gradient of magnetic field", R = 1, S = 0),
         Field("DelAbsMag", "GeoVector", "Gradient of magnetic field magnitude", R = 1, S = 0),
         Field("DelHatMag", "GeoMatrix", "Gradient of magnetic field direction ", R = 1, S = 0),
-        Field("DerVel", "GeoVector", "Time derivative of velocity field", R = 1, S = 0),
-        Field("DerElc", "GeoVector", "Time derivative of electric field", R = 1, S = 0),
-        Field("DerMag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0),
-        Field("DerAbsMag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0),
-        Field("DerHatMag", "GeoVector", "Time derivative of magnetic field direction", R = 1, S = 0),
+        Field("DdtVel", "GeoVector", "Time derivative of velocity field", R = 1, S = 0),
+        Field("DdtElc", "GeoVector", "Time derivative of electric field", R = 1, S = 0),
+        Field("DdtMag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0),
+        Field("DdtAbsMag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0),
+        Field("DdtHatMag", "GeoVector", "Time derivative of magnetic field direction", R = 1, S = 0),
+        # Indicator Fields/Variables:
+        Field("Iv0", "Scalar", "Zeroth (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv1", "Scalar", "First (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv2", "Scalar", "Second (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv3", "Scalar", "Third (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv4", "Scalar", "Fourth (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv5", "Scalar", "Fifth (general purpose) Indicator variable", R=0, S=0),
     ]
-    groups = [
-        # Fluid groups:
-        FieldGroup("PrimitiveStateGASDYN", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for a gas dynamics model"),
-        FieldGroup("ConservedStateGASDYN", "Den_t, Mom_t, Enr_t", "Fields of the conserved form for a gas dynamics model"),
-        FieldGroup("FluxFunctionGASDYN", "FlxDen_t, FlxMom_t, FlxEnr_t", "Fields of the flux function for a gas dynamics model"),
-        # MHD groups:
-        FieldGroup("PrimitiveStateMHD", "Den_t, Vel_t, Prs_t, Mag_t", "Fields of the primitive form for an MHD model"),
-        FieldGroup("ConservedStateMHD", "Den_t, Mom_t, Enr_t, Mag_t", "Fields of the conserved form for an MHD model"),
-        FieldGroup("FluxFunctionMHD", "FlxDen_t, FlxMom_t, FlxEnr_t, FlxMag_t", "Fields of the flux function for an MHD model"),
-        FieldGroup("PrimitiveStateMHD_GLM", "Den_t, Vel_t, Prs_t, Mag_t, Glm_t", "Fields of the primitive form for an MHD-GLM model"),
-        FieldGroup("ConservedStateMHD_GLM", "Den_t, Mom_t, Enr_t, Mag_t, Glm_t", "Fields of the conserved form for an MHD-GLM model"),
-        FieldGroup("FluxFunctionMHD_GLM", "FlxDen_t, FlxMom_t, FlxEnr_t, FlxMag_t, FlxGlm_t", "Fields of the flux function for an MHD-GLM model"),
+    speciess = [
+        Species("PrimitiveGasDyn", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for general gas dynamics"),
+        Species("ConservedGasDyn", "Den_t, Mom_t, Enr_t", "Fields of the conserved form for general gas dynamics"),
+        Species("PrimitiveMHD", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
+        Species("ConservedMHD", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
+        Species("PrimitiveMHDGLM", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
+        Species("ConservedMHDGLM", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
+        Species("ElectronCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
+        Species("ElectronHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("ElectronBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("ProtonCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
+        Species("ProtonHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("ProtonBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("ProtonPickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("AlphaCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("AlphaHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HeliumSingleCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HeliumSinglePickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HydrogenPlasmaCore", "Den_t, Vel_t, Prs_t, Mag_t, Glm_t, Iv0_t", "Fields of the primitive form for species"),
+        Species("HydrogenCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HydrogenHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HydrogenBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+        Species("HeliumCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
     ]
 
 generator = "generate.py"
@@ -172,22 +191,23 @@ def generate_field_lists():
     Generate file `field_lists.hh`.
     """
     fname = "field_lists.hh"
-    size = len(fields) + len(groups)
+    size = len(fields) + len(speciess)
     field_lists_parts = [
 """
 #ifndef SPECTRUM_FIELD_LISTS_HH
 #define SPECTRUM_FIELD_LISTS_HH
 
+#include <string_view>
 #include <array>
 
-namespace Spectrum {
+namespace Spectrum::Field {
 
 /*!
 Identifiers for distinguished code-wide fields (for lookup).
 \\author Lucius Schoenbaum
 \\date 03/25/2025
 */
-enum FieldId {
+enum Id {
 anon,
 """,
 f"""}};
@@ -198,7 +218,7 @@ Formatted names for distinguished code-wide fields
 \\author Lucius Schoenbaum
 \\date 03/25/2025
 */
-const constexpr std::array<std::string_view, {size+1}> FieldNames = {{
+const constexpr std::array<std::string_view, {size+1}> Names = {{
    std::string_view(""),
 """,
 """};
@@ -211,11 +231,12 @@ const constexpr std::array<std::string_view, {size+1}> FieldNames = {{
 """,
     ]
     x = file_header(fname) + field_lists_parts[0]
-    for field in fields + groups:
+    for field in fields + speciess:
         x += f"{field.name},\n"
     x += field_lists_parts[1]
-    for field in fields + groups:
-        x += f'   std::string_view("{field.name}"),\n'
+    for field in fields + speciess:
+        name = field.name if field.printed_name is None else field.printed_name
+        x += f'   std::string_view("{name}"),\n'
     x += field_lists_parts[2]
     with open(f"field_lists.hh", 'w') as f:
         f.write(x)
@@ -249,7 +270,7 @@ namespace Spectrum {
     x = file_header(fname) + field_types_parts[0]
     for field in fields:
         x += f"/*!\n\\brief {field.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {field.name}_t = {field.fieldtype()}<FieldId::{field.name}, {field.R}, {field.S}>;\n\n"
+        x += f"using {field.name}_t = {field.fieldtype()}<Field::Id::{field.name}, {field.R}, {field.S}>;\n\n"
     x += field_types_parts[1]
     with open(fname, 'w') as f:
         f.write(x)
@@ -259,19 +280,19 @@ namespace Spectrum {
 
 
 
-def generate_field_groups():
+def generate_species():
     """
-    Generate file `field_groups.hh`.
-    This file contains types that depend on NamedFields,
-    based on the list `groups`. Groups are accessible in Fields.
+    Generate file `species.hh`.
+    This file contains types that depend on Species,
+    based on the list `species`. Species are accessible in Fields.
     """
-    fname = "field_groups.hh"
+    fname = "species_types.hh"
     field_groups_parts = [
 f"""
-#ifndef SPECTRUM_FIELD_GROUPS_HH
-#define SPECTRUM_FIELD_GROUPS_HH
+#ifndef SPECTRUM_SPECIES_TYPES_HH
+#define SPECTRUM_SPECIES_TYPES_HH
 
-#include "{partially_generated_path}namedfields.hh"
+#include "{partially_generated_path}species.hh"
 
 namespace Spectrum {{
 
@@ -282,9 +303,9 @@ namespace Spectrum {{
 """,
     ]
     x = file_header(fname) + field_groups_parts[0]
-    for grp in groups:
+    for grp in speciess:
         x += f"/*!\n\\brief {grp.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {grp.name}_t = NamedFields<FieldId::{grp.name}, {grp.typelist}>;\n\n"
+        x += f"using {grp.name}_t = Species<Field::Id::{grp.name}, {grp.typelist}>;\n\n"
     x += field_groups_parts[1]
     with open(fname, 'w') as f:
         f.write(x)
@@ -314,9 +335,8 @@ def inject_fields():
     However, outside of them, these files are like any other source code file.
     """
     for level in [0, 1]:
-        named = "Named" if level == 0 else ""
-        fieldid = "nameid, " if level == 0 else ""
-        fname = f"{named.lower()}fields.hh"
+        named = level == 0
+        fname = "species.hh" if named else "fields.hh"
         fpath = os_path_join(partially_generated_path, fname)
         with open(fpath, 'r') as f:
             content = f.read()
@@ -325,20 +345,20 @@ def inject_fields():
             label = injectee_label
             pattern = f"\n.*fields/generate,\s*{label}.*\n"
             groups = re_split(pattern, content)
-            content = groups[0] + get_injectee(label, named, fieldid) + groups[2]
+            content = groups[0] + get_injectee(label, named) + groups[2]
         with open(fpath, 'w') as f:
             f.write(content)
 
 
-def get_injectee(injectee_label, named, fieldid):
+def get_injectee(injectee_label, named):
     """
 
     :param injectee_label: 'base' or 'class'
-    :param named:
-    :param fieldid:
-    :return:
+    :param named: boolean
     """
-    fieldlist = fields if named else fields+groups
+    fieldlist = fields if named else fields+speciess
+    fieldid = "nameid, " if named else ""
+    typename = "Species" if named else "Fields"
     x = f"\n   // BEGIN(fields/generate, {injectee_label})\n"
     if injectee_label == 'class':
         for field in fieldlist:
@@ -354,7 +374,7 @@ def get_injectee(injectee_label, named, fieldid):
       if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
-         return {named}Fields<{fieldid}Ts...>::{name}();
+         return {typename}<{fieldid}Ts...>::{name}();
    }};
 
 /*!
@@ -366,7 +386,7 @@ def get_injectee(injectee_label, named, fieldid):
       if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
-         return {named}Fields<{fieldid}Ts...>::{name}();
+         return {typename}<{fieldid}Ts...>::{name}();
    }};
 
 
@@ -375,11 +395,11 @@ def get_injectee(injectee_label, named, fieldid):
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   bool {name}_found(void) {{
+   static constexpr bool {name}_found(void) {{
       if constexpr (std::is_same<T, {name}_t>::value)
          return true;
       else
-         return {named}Fields<{fieldid}Ts...>::{name}_found();
+         return {typename}<{fieldid}Ts...>::{name}_found();
    }};
    
 """
@@ -392,17 +412,17 @@ def get_injectee(injectee_label, named, fieldid):
       if constexpr (std::is_same<T, {name}_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[{named}Fields] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    }};
    
   const {name}_t& {name}(void) const {{
    if constexpr (std::is_same<T, {name}_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[{named}Fields] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    }};
    
-   bool {name}_found(void) {{
+   static constexpr bool {name}_found(void) {{
       if constexpr (std::is_same<T, {name}_t>::value)
          return true;
       else
@@ -419,7 +439,7 @@ if __name__ == '__main__':
 
     generate_field_lists()
     generate_field_types()
-    generate_field_groups()
+    generate_species()
     inject_fields()
 
 

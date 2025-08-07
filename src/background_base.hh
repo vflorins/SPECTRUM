@@ -15,7 +15,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "common/params.hh"
 #include "common/physics.hh"
-#include "common/spatial_data.hh"
+#include "common/derivativedata.hh"
 #include "src/server_config.hh"
 
 #include <memory>
@@ -89,9 +89,13 @@ The BackgroundXXXXX" classes describe plasma condition (u, E, B, dB/dt, gradB) a
 
 Parameters: double t0, GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
 */
+template <typename Fields>
 class BackgroundBase : public Params {
 
 protected:
+
+//! Derivative data object (transient)
+   DerivativeData _ddata;
 
 //! Initial time (persistent)
    double t0;
@@ -108,11 +112,8 @@ protected:
 //! Distance reference value, how far the trajectory is allowed to move in one step (persistent)
    double dmax0;
 
-//! Spatial data object (transient)
-   SpatialData _spdata;
-
-//! Auxiliary spatial data objects for derivative computations (transient)
-   SpatialData _spdata_tmp, _spdata_forw, _spdata_back;
+//! Fields data object (transient)
+   Fields _fields;
 
 //! Gyro-radius for derivative computations (transient)
    double r_g;
@@ -158,9 +159,9 @@ protected:
    BackgroundBase(const BackgroundBase& other);
 
 //! Compute the fields at an incremented position or time
-   void DirectionalDerivative(int xyz);
+   void DirectionalDerivative(int xyz, Fields&, DerivativeData&);
 
-//! Compute the field derivatives based on the mask
+//! Compute the field derivatives
    void NumericalDerivatives(void);
 
 //! Set up the field evaluator based on "params"
@@ -199,7 +200,7 @@ public:
    double GetDmax(void) const;
 
 //! Return fields at the internal position, evaluated or previously stored
-   void GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata);
+   void GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields);
 
 #ifdef USE_SILO
 
@@ -233,5 +234,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_base.cc"
 
 #endif

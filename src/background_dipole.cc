@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 03/25/2022
 */
-BackgroundDipole::BackgroundDipole(void)
+template <typename Fields>
+BackgroundDipole<Fields>::BackgroundDipole(void)
                 : BackgroundBase(bg_name_dipole, 0, MODEL_STATIC)
 {
 };
@@ -31,7 +32,8 @@ BackgroundDipole::BackgroundDipole(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundDipole::BackgroundDipole(const BackgroundDipole& other)
+template <typename Fields>
+BackgroundDipole<Fields>::BackgroundDipole(const BackgroundDipole& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -45,7 +47,8 @@ BackgroundDipole::BackgroundDipole(const BackgroundDipole& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundDipole::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundDipole<Fields>::SetupBackground(bool construct)
 {
    double r_ref;
 
@@ -60,19 +63,28 @@ void BackgroundDipole::SetupBackground(bool construct)
 \author Vladimir Florinski
 \date 03/25/2022
 */
-void BackgroundDipole::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundDipole<Fields>::EvaluateBackground(void)
 {
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if constexpr (Fields::Vel_found()) {
+      _fields.Vel() = gv_zeros;
+   }
+   if constexpr (Fields::Mag_found()) {
       GeoVector posprime = _pos - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
       r2 *= r2;
       r5 *= r2;
-      _spdata.Bvec = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
-   };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
-   _spdata.region = 1.0;
+      _fields.Mag() = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
+   }
+   // todo bhat, Bmag?
+   if constexpr (Fields::Elc_found()) {
+      _fields.Elc() = gv_zeros;
+   }
+   if constexpr (Fields::Iv0_found()) {
+      // todo originally region is 3 variables. Is this one variable or two or three?
+      _fields.Iv0() = 1.0;
+   }
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -82,12 +94,14 @@ void BackgroundDipole::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-void BackgroundDipole::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundDipole<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if DIPOLE_DERIVATIVE_METHOD == 0
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+   if constexpr (Fields::DelVel_found())
+      _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
       GeoVector posprime = _pos - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
@@ -98,16 +112,26 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
       rm.Dyadic(posprime,M);
       rr.Dyadic(posprime);
 
-      _spdata.gradBvec = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
-      _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
+      auto DelMag = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
+
+      if constexpr (Fields::DelMag_found())
+         _fields.DelMag() = DelMag;
+      if constexpr (Fields::DelAbsMag_found()) {
+         // todo how to finesse this?
+         auto bhat = _fields.Mag() / _fields.Mag().Norm();
+         _fields.DelAbsMag() = DelMag * bhat;
+      }
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.dBvecdt = gv_zeros;
-      _spdata.dBmagdt = 0.0;
-   };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DelElc_found())
+      _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DdtVel_found())
+      _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found())
+      _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtAbsMag_found())
+      _fields.DdtAbsMag() = 0.0;
+   if constexpr (Fields::DdtElc_found())
+      _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives();
@@ -118,9 +142,10 @@ void BackgroundDipole::EvaluateBackgroundDerivatives(void)
 \author Vladimir Florinski
 \date 03/25/2022
 */
-void BackgroundDipole::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundDipole<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
+   _ddata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

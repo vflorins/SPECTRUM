@@ -174,15 +174,16 @@ void* DistributionBase<Fields>::GetWeightsRecordAddress(size_t& size)
 
 /*!
 \author Vladimir Florinski
-\date 05/05/2022
+\author Lucius Schoenbaum
+\date 08/05/2025
 \param[in] t1        First time value
 \param[in] pos1      First position vector
 \param[in] mom1      First momentum vector
-\param[in] spdata1   First spatial data
+\param[in] fields1   First fields data class
 \param[in] t2        Second time value
 \param[in] pos2      Second position vector
 \param[in] mom2      Second momentum vector
-\param[in] spdata2   Second spatial data
+\param[in] fields2   Second fields data class
 \param[in] action_in Action to calculate the weight
 */
 template <typename Fields>

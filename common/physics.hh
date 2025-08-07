@@ -443,6 +443,7 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double
    return sqrt(1.0 + (2.0 * SpeciesMasses[isp] * mag_mom * B + Sqr(mom)) / Sqr(SpeciesMasses[isp] * c_code));
 };
 
+
 /*!
 \brief Calculate particle momentum from its kinetic energy
 \author Vladimir Florinski
@@ -535,6 +536,7 @@ SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = SPECI
 {
    return mom * c_code / fabs(SpeciesCharges[isp]);
 };
+
 
 /*!
 \brief Effective temperature (Maxwell) based on characteristic velocity

@@ -26,7 +26,30 @@ const std::string bg_name_discontinuity = "BackgroundDiscontinuity";
 
 Parameters: (BackgroundBase), GeoVector n_discont, double v_discont, GeoVector u1, GeoVector B1
 */
-class BackgroundDiscontinuity : public BackgroundBase {
+template <typename Fields_>
+class BackgroundDiscontinuity : public BackgroundBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::_t;
+   using BackgroundBase::container;
+   using BackgroundBase::u0;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -70,5 +93,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_discontinuity.cc"
 
 #endif

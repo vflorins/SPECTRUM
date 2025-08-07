@@ -6,10 +6,10 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
-#define SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
+#ifndef SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
+#define SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
 
-#include "background_discontinuity.hh"
+#include "background_shock.hh"
 
 namespace Spectrum {
 
@@ -35,7 +35,28 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
-class BackgroundSmoothDiscontinuity : public BackgroundShock {
+template <typename Fields_>
+class BackgroundSmoothDiscontinuity : public BackgroundShock<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -82,5 +103,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_smooth_discontinuity.cc"
 
 #endif

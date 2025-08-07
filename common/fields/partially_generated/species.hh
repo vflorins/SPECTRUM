@@ -15,8 +15,8 @@ instead edit the file `generated/generate.py`.
 Elsewhere, this file can be edited normally.
 */
 
-#ifndef SPECTRUM_NAMEDFIELDS_HH
-#define SPECTRUM_NAMEDFIELDS_HH
+#ifndef SPECTRUM_SPECIES_HH
+#define SPECTRUM_SPECIES_HH
 
 #include <iostream>
 #include <any>
@@ -33,8 +33,8 @@ data distributed on the grid.
 \author Vladimir Florinski
 \note Recursion in protected methods takes place only once, at compile time.
 */
-template <FieldId nameid, typename T, typename ... Ts>
-struct NamedFields: public NamedFields<nameid, Ts...> {
+template <Field::Id nameid, typename T, typename ... Ts>
+struct Species: public Species<nameid, Ts...> {
 
 protected:
 
@@ -53,7 +53,7 @@ protected:
       if (index == 0) {
          f(data, others.data...);
       } else {
-         NamedFields<nameid, Ts...>::visit_unpacked(index - 1, std::forward<Function>(f), static_cast<NamedFields<nameid, Ts...>>(others)...);
+         Species<nameid, Ts...>::visit_unpacked(index - 1, std::forward<Function>(f), static_cast<Species<nameid, Ts...>>(others)...);
       }
    }
 
@@ -67,7 +67,7 @@ protected:
    template <typename Function>
    void foreach_unpacked(Function&& f, auto&&... others) {
       f(data, others.data...);
-      NamedFields<nameid, Ts...>::foreach_unpacked(std::forward<Function>(f), static_cast<NamedFields<nameid, Ts...>>(others)...);
+      Species<nameid, Ts...>::foreach_unpacked(std::forward<Function>(f), static_cast<Species<nameid, Ts...>>(others)...);
    }
 
 
@@ -86,12 +86,12 @@ protected:
 
 public:
 
-   static constexpr const std::string_view name = FieldNames[nameid];
+   static constexpr const std::string_view name = Field::Names[nameid];
 
-   NamedFields(void) = default;
+   Species(void) = default;
 
-   explicit NamedFields(T in, Ts... rest):
-      NamedFields<nameid, Ts...>(rest...),
+   explicit Species(T in, Ts... rest):
+      Species<nameid, Ts...>(rest...),
        data(in)
    {};
 
@@ -103,8 +103,8 @@ public:
 \param[in] other Structure to copy from
 \return Reference to the object
 */
-   NamedFields& operator=(const NamedFields& other) {
-      NamedFields<nameid, Ts...>::operator=(other);
+   Species& operator=(const Species& other) {
+      Species<nameid, Ts...>::operator=(other);
       data = other.data;
       return *this;
    };
@@ -148,7 +148,7 @@ If this is not the case, use get<index>(mhdtuple).
       if (index == 0)
          return data;
       else
-         return NamedFields<nameid, Ts...>::operator[](index-1);
+         return Species<nameid, Ts...>::operator[](index-1);
    }
 
 /*!
@@ -195,7 +195,7 @@ If this is not the case, use get<index>(mhdtuple).
    template <typename Function>
    void foreach(Function&& f) {
       f(data);
-      NamedFields<nameid, Ts...>::foreach(f);
+      Species<nameid, Ts...>::foreach(f);
    }
 
 /*!
@@ -210,7 +210,7 @@ This should not occur in fluid or MHD applications.
    template <typename T_store>
    void store(T_store x) {
       assign(data, x);
-      NamedFields<nameid, Ts...>::store(x);
+      Species<nameid, Ts...>::store(x);
    }
 
 
@@ -225,7 +225,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Den_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Den();
+         return Species<nameid, Ts...>::Den();
    };
 
 /*!
@@ -237,7 +237,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Den_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Den();
+         return Species<nameid, Ts...>::Den();
    };
 
 
@@ -246,11 +246,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Den_found(void) {
+   static constexpr bool Den_found(void) {
       if constexpr (std::is_same<T, Den_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Den_found();
+         return Species<nameid, Ts...>::Den_found();
    };
    
 
@@ -263,7 +263,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Prs_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Prs();
+         return Species<nameid, Ts...>::Prs();
    };
 
 /*!
@@ -275,7 +275,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Prs_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Prs();
+         return Species<nameid, Ts...>::Prs();
    };
 
 
@@ -284,11 +284,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Prs_found(void) {
+   static constexpr bool Prs_found(void) {
       if constexpr (std::is_same<T, Prs_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Prs_found();
+         return Species<nameid, Ts...>::Prs_found();
    };
    
 
@@ -301,7 +301,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Enr_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Enr();
+         return Species<nameid, Ts...>::Enr();
    };
 
 /*!
@@ -313,7 +313,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Enr_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Enr();
+         return Species<nameid, Ts...>::Enr();
    };
 
 
@@ -322,11 +322,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Enr_found(void) {
+   static constexpr bool Enr_found(void) {
       if constexpr (std::is_same<T, Enr_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Enr_found();
+         return Species<nameid, Ts...>::Enr_found();
    };
    
 
@@ -339,7 +339,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Vel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Vel();
+         return Species<nameid, Ts...>::Vel();
    };
 
 /*!
@@ -351,7 +351,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Vel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Vel();
+         return Species<nameid, Ts...>::Vel();
    };
 
 
@@ -360,11 +360,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Vel_found(void) {
+   static constexpr bool Vel_found(void) {
       if constexpr (std::is_same<T, Vel_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Vel_found();
+         return Species<nameid, Ts...>::Vel_found();
    };
    
 
@@ -377,7 +377,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Mom_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Mom();
+         return Species<nameid, Ts...>::Mom();
    };
 
 /*!
@@ -389,7 +389,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Mom_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Mom();
+         return Species<nameid, Ts...>::Mom();
    };
 
 
@@ -398,11 +398,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Mom_found(void) {
+   static constexpr bool Mom_found(void) {
       if constexpr (std::is_same<T, Mom_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Mom_found();
+         return Species<nameid, Ts...>::Mom_found();
    };
    
 
@@ -415,7 +415,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxDen();
+         return Species<nameid, Ts...>::FlxDen();
    };
 
 /*!
@@ -427,7 +427,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxDen();
+         return Species<nameid, Ts...>::FlxDen();
    };
 
 
@@ -436,11 +436,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxDen_found(void) {
+   static constexpr bool FlxDen_found(void) {
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::FlxDen_found();
+         return Species<nameid, Ts...>::FlxDen_found();
    };
    
 
@@ -453,7 +453,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxMom();
+         return Species<nameid, Ts...>::FlxMom();
    };
 
 /*!
@@ -465,7 +465,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxMom();
+         return Species<nameid, Ts...>::FlxMom();
    };
 
 
@@ -474,11 +474,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxMom_found(void) {
+   static constexpr bool FlxMom_found(void) {
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::FlxMom_found();
+         return Species<nameid, Ts...>::FlxMom_found();
    };
    
 
@@ -491,7 +491,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxEnr();
+         return Species<nameid, Ts...>::FlxEnr();
    };
 
 /*!
@@ -503,7 +503,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxEnr();
+         return Species<nameid, Ts...>::FlxEnr();
    };
 
 
@@ -512,11 +512,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxEnr_found(void) {
+   static constexpr bool FlxEnr_found(void) {
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::FlxEnr_found();
+         return Species<nameid, Ts...>::FlxEnr_found();
    };
    
 
@@ -529,7 +529,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Mag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Mag();
+         return Species<nameid, Ts...>::Mag();
    };
 
 /*!
@@ -541,7 +541,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Mag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Mag();
+         return Species<nameid, Ts...>::Mag();
    };
 
 
@@ -550,11 +550,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Mag_found(void) {
+   static constexpr bool Mag_found(void) {
       if constexpr (std::is_same<T, Mag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Mag_found();
+         return Species<nameid, Ts...>::Mag_found();
    };
    
 
@@ -567,7 +567,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxMag();
+         return Species<nameid, Ts...>::FlxMag();
    };
 
 /*!
@@ -579,7 +579,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxMag();
+         return Species<nameid, Ts...>::FlxMag();
    };
 
 
@@ -588,11 +588,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxMag_found(void) {
+   static constexpr bool FlxMag_found(void) {
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::FlxMag_found();
+         return Species<nameid, Ts...>::FlxMag_found();
    };
    
 
@@ -605,7 +605,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Glm_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Glm();
+         return Species<nameid, Ts...>::Glm();
    };
 
 /*!
@@ -617,7 +617,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Glm_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Glm();
+         return Species<nameid, Ts...>::Glm();
    };
 
 
@@ -626,11 +626,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Glm_found(void) {
+   static constexpr bool Glm_found(void) {
       if constexpr (std::is_same<T, Glm_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Glm_found();
+         return Species<nameid, Ts...>::Glm_found();
    };
    
 
@@ -643,7 +643,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxGlm();
+         return Species<nameid, Ts...>::FlxGlm();
    };
 
 /*!
@@ -655,7 +655,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::FlxGlm();
+         return Species<nameid, Ts...>::FlxGlm();
    };
 
 
@@ -664,11 +664,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxGlm_found(void) {
+   static constexpr bool FlxGlm_found(void) {
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::FlxGlm_found();
+         return Species<nameid, Ts...>::FlxGlm_found();
    };
    
 
@@ -681,7 +681,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Elc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Elc();
+         return Species<nameid, Ts...>::Elc();
    };
 
 /*!
@@ -693,7 +693,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, Elc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::Elc();
+         return Species<nameid, Ts...>::Elc();
    };
 
 
@@ -702,11 +702,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Elc_found(void) {
+   static constexpr bool Elc_found(void) {
       if constexpr (std::is_same<T, Elc_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::Elc_found();
+         return Species<nameid, Ts...>::Elc_found();
    };
    
 
@@ -719,7 +719,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::AbsMag();
+         return Species<nameid, Ts...>::AbsMag();
    };
 
 /*!
@@ -731,7 +731,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::AbsMag();
+         return Species<nameid, Ts...>::AbsMag();
    };
 
 
@@ -740,11 +740,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool AbsMag_found(void) {
+   static constexpr bool AbsMag_found(void) {
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::AbsMag_found();
+         return Species<nameid, Ts...>::AbsMag_found();
    };
    
 
@@ -757,7 +757,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, HatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::HatMag();
+         return Species<nameid, Ts...>::HatMag();
    };
 
 /*!
@@ -769,7 +769,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, HatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::HatMag();
+         return Species<nameid, Ts...>::HatMag();
    };
 
 
@@ -778,11 +778,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool HatMag_found(void) {
+   static constexpr bool HatMag_found(void) {
       if constexpr (std::is_same<T, HatMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::HatMag_found();
+         return Species<nameid, Ts...>::HatMag_found();
    };
    
 
@@ -795,7 +795,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelVel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelVel();
+         return Species<nameid, Ts...>::DelVel();
    };
 
 /*!
@@ -807,7 +807,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelVel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelVel();
+         return Species<nameid, Ts...>::DelVel();
    };
 
 
@@ -816,11 +816,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelVel_found(void) {
+   static constexpr bool DelVel_found(void) {
       if constexpr (std::is_same<T, DelVel_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DelVel_found();
+         return Species<nameid, Ts...>::DelVel_found();
    };
    
 
@@ -833,7 +833,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelElc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelElc();
+         return Species<nameid, Ts...>::DelElc();
    };
 
 /*!
@@ -845,7 +845,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelElc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelElc();
+         return Species<nameid, Ts...>::DelElc();
    };
 
 
@@ -854,11 +854,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelElc_found(void) {
+   static constexpr bool DelElc_found(void) {
       if constexpr (std::is_same<T, DelElc_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DelElc_found();
+         return Species<nameid, Ts...>::DelElc_found();
    };
    
 
@@ -871,7 +871,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelMag();
+         return Species<nameid, Ts...>::DelMag();
    };
 
 /*!
@@ -883,7 +883,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelMag();
+         return Species<nameid, Ts...>::DelMag();
    };
 
 
@@ -892,11 +892,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelMag_found(void) {
+   static constexpr bool DelMag_found(void) {
       if constexpr (std::is_same<T, DelMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DelMag_found();
+         return Species<nameid, Ts...>::DelMag_found();
    };
    
 
@@ -909,7 +909,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelAbsMag();
+         return Species<nameid, Ts...>::DelAbsMag();
    };
 
 /*!
@@ -921,7 +921,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelAbsMag();
+         return Species<nameid, Ts...>::DelAbsMag();
    };
 
 
@@ -930,11 +930,11 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelAbsMag_found(void) {
+   static constexpr bool DelAbsMag_found(void) {
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DelAbsMag_found();
+         return Species<nameid, Ts...>::DelAbsMag_found();
    };
    
 
@@ -947,7 +947,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelHatMag();
+         return Species<nameid, Ts...>::DelHatMag();
    };
 
 /*!
@@ -959,7 +959,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DelHatMag();
+         return Species<nameid, Ts...>::DelHatMag();
    };
 
 
@@ -968,201 +968,429 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelHatMag_found(void) {
+   static constexpr bool DelHatMag_found(void) {
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DelHatMag_found();
+         return Species<nameid, Ts...>::DelHatMag_found();
    };
    
 
 /*!
-\brief Get DerVel (Time derivative of velocity field) from the data type, as lvalue.
+\brief Get DdtVel (Time derivative of velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerVel_t& DerVel(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   DdtVel_t& DdtVel(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerVel();
+         return Species<nameid, Ts...>::DdtVel();
    };
 
 /*!
-\brief Get DerVel (Time derivative of velocity field) from the data type, as const rvalue.
+\brief Get DdtVel (Time derivative of velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerVel_t& DerVel(void) const {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   const DdtVel_t& DdtVel(void) const {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerVel();
+         return Species<nameid, Ts...>::DdtVel();
    };
 
 
 /*!
-\brief Whether DerVel (Time derivative of velocity field) is in the data type.
+\brief Whether DdtVel (Time derivative of velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerVel_found(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   static constexpr bool DdtVel_found(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DerVel_found();
+         return Species<nameid, Ts...>::DdtVel_found();
    };
    
 
 /*!
-\brief Get DerElc (Time derivative of electric field) from the data type, as lvalue.
+\brief Get DdtElc (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerElc_t& DerElc(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   DdtElc_t& DdtElc(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerElc();
+         return Species<nameid, Ts...>::DdtElc();
    };
 
 /*!
-\brief Get DerElc (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get DdtElc (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerElc_t& DerElc(void) const {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   const DdtElc_t& DdtElc(void) const {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerElc();
+         return Species<nameid, Ts...>::DdtElc();
    };
 
 
 /*!
-\brief Whether DerElc (Time derivative of electric field) is in the data type.
+\brief Whether DdtElc (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerElc_found(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   static constexpr bool DdtElc_found(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DerElc_found();
+         return Species<nameid, Ts...>::DdtElc_found();
    };
    
 
 /*!
-\brief Get DerMag (Time derivative of magnetic field) from the data type, as lvalue.
+\brief Get DdtMag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerMag_t& DerMag(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   DdtMag_t& DdtMag(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerMag();
+         return Species<nameid, Ts...>::DdtMag();
    };
 
 /*!
-\brief Get DerMag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get DdtMag (Time derivative of magnetic field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerMag_t& DerMag(void) const {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   const DdtMag_t& DdtMag(void) const {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerMag();
+         return Species<nameid, Ts...>::DdtMag();
    };
 
 
 /*!
-\brief Whether DerMag (Time derivative of magnetic field) is in the data type.
+\brief Whether DdtMag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerMag_found(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   static constexpr bool DdtMag_found(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DerMag_found();
+         return Species<nameid, Ts...>::DdtMag_found();
    };
    
 
 /*!
-\brief Get DerAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerAbsMag_t& DerAbsMag(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   DdtAbsMag_t& DdtAbsMag(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerAbsMag();
+         return Species<nameid, Ts...>::DdtAbsMag();
    };
 
 /*!
-\brief Get DerAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerAbsMag_t& DerAbsMag(void) const {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   const DdtAbsMag_t& DdtAbsMag(void) const {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerAbsMag();
+         return Species<nameid, Ts...>::DdtAbsMag();
    };
 
 
 /*!
-\brief Whether DerAbsMag (Time derivative of magnetic field magnitude) is in the data type.
+\brief Whether DdtAbsMag (Time derivative of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerAbsMag_found(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   static constexpr bool DdtAbsMag_found(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DerAbsMag_found();
+         return Species<nameid, Ts...>::DdtAbsMag_found();
    };
    
 
 /*!
-\brief Get DerHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerHatMag_t& DerHatMag(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   DdtHatMag_t& DdtHatMag(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerHatMag();
+         return Species<nameid, Ts...>::DdtHatMag();
    };
 
 /*!
-\brief Get DerHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerHatMag_t& DerHatMag(void) const {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   const DdtHatMag_t& DdtHatMag(void) const {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-         return NamedFields<nameid, Ts...>::DerHatMag();
+         return Species<nameid, Ts...>::DdtHatMag();
    };
 
 
 /*!
-\brief Whether DerHatMag (Time derivative of magnetic field direction) is in the data type.
+\brief Whether DdtHatMag (Time derivative of magnetic field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerHatMag_found(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   static constexpr bool DdtHatMag_found(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return true;
       else
-         return NamedFields<nameid, Ts...>::DerHatMag_found();
+         return Species<nameid, Ts...>::DdtHatMag_found();
+   };
+   
+
+/*!
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv0_t& Iv0(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv0();
+   };
+
+/*!
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv0_t& Iv0(void) const {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv0();
+   };
+
+
+/*!
+\brief Whether Iv0 (Zeroth (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv0_found(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv0_found();
+   };
+   
+
+/*!
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv1_t& Iv1(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv1();
+   };
+
+/*!
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv1_t& Iv1(void) const {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv1();
+   };
+
+
+/*!
+\brief Whether Iv1 (First (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv1_found(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv1_found();
+   };
+   
+
+/*!
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv2_t& Iv2(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv2();
+   };
+
+/*!
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv2_t& Iv2(void) const {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv2();
+   };
+
+
+/*!
+\brief Whether Iv2 (Second (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv2_found(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv2_found();
+   };
+   
+
+/*!
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv3_t& Iv3(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv3();
+   };
+
+/*!
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv3_t& Iv3(void) const {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv3();
+   };
+
+
+/*!
+\brief Whether Iv3 (Third (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv3_found(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv3_found();
+   };
+   
+
+/*!
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv4_t& Iv4(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv4();
+   };
+
+/*!
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv4_t& Iv4(void) const {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv4();
+   };
+
+
+/*!
+\brief Whether Iv4 (Fourth (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv4_found(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv4_found();
+   };
+   
+
+/*!
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Iv5_t& Iv5(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv5();
+   };
+
+/*!
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Iv5_t& Iv5(void) const {
+      if constexpr (std::is_same<T, Iv5_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Iv5();
+   };
+
+
+/*!
+\brief Whether Iv5 (Fifth (general purpose) Indicator variable) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Iv5_found(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Iv5_found();
    };
    
 
@@ -1176,8 +1404,8 @@ This should not occur in fluid or MHD applications.
 */
    std::string str(bool recursive = false) const {
       std::string out;
-      if (!recursive) out += std::string(FieldNames[nameid]) + "{";
-      out += data.str() + ", " + NamedFields<nameid, Ts...>::str(true);
+      if (!recursive) out += std::string(Field::Names[nameid]) + "{";
+      out += data.str() + ", " + Species<nameid, Ts...>::str(true);
       if (!recursive) out += "}";
       return out;
    }
@@ -1192,8 +1420,8 @@ This should not occur in fluid or MHD applications.
 \note There is no doxygen documentation for features in this class,
 as the information is only relevant to the implementation.
 */
-template <FieldId nameid, typename T>
-struct NamedFields<nameid, T> {
+template <Field::Id nameid, typename T>
+struct Species<nameid, T> {
 
 protected:
 
@@ -1204,7 +1432,7 @@ protected:
       if (index == 0)
          f(data, others.data...);
       else
-         throw std::out_of_range("[NamedMHDtuple] out of range");
+         throw std::out_of_range("[NamedFields] out of range");
    }
 
    template <typename Function>
@@ -1221,16 +1449,16 @@ protected:
 
 public:
 
-   static constexpr const std::string_view name = FieldNames[nameid];
+   static constexpr const std::string_view name = Field::Names[nameid];
 
-   NamedFields(void) = default;
+   Species(void) = default;
 
-   explicit NamedFields(T in):
+   explicit Species(T in):
        data(in)
    {};
 
 
-   NamedFields& operator=(const NamedFields& other) {
+   Species& operator=(const Species& other) {
       data = other.data;
       return *this;
    };
@@ -1251,7 +1479,7 @@ public:
       if (index == 0)
          return data;
       else
-         throw std::out_of_range("[NamedMHDtuple] out of range");
+         throw std::out_of_range("[NamedFields] out of range");
    }
 
    template <typename Function, typename Others>
@@ -1290,17 +1518,17 @@ public:
       if constexpr (std::is_same<T, Den_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Den_t& Den(void) const {
    if constexpr (std::is_same<T, Den_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Den_found(void) {
+   static constexpr bool Den_found(void) {
       if constexpr (std::is_same<T, Den_t>::value)
          return true;
       else
@@ -1311,17 +1539,17 @@ public:
       if constexpr (std::is_same<T, Prs_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Prs_t& Prs(void) const {
    if constexpr (std::is_same<T, Prs_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Prs_found(void) {
+   static constexpr bool Prs_found(void) {
       if constexpr (std::is_same<T, Prs_t>::value)
          return true;
       else
@@ -1332,17 +1560,17 @@ public:
       if constexpr (std::is_same<T, Enr_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Enr_t& Enr(void) const {
    if constexpr (std::is_same<T, Enr_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Enr_found(void) {
+   static constexpr bool Enr_found(void) {
       if constexpr (std::is_same<T, Enr_t>::value)
          return true;
       else
@@ -1353,17 +1581,17 @@ public:
       if constexpr (std::is_same<T, Vel_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Vel_t& Vel(void) const {
    if constexpr (std::is_same<T, Vel_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Vel_found(void) {
+   static constexpr bool Vel_found(void) {
       if constexpr (std::is_same<T, Vel_t>::value)
          return true;
       else
@@ -1374,17 +1602,17 @@ public:
       if constexpr (std::is_same<T, Mom_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Mom_t& Mom(void) const {
    if constexpr (std::is_same<T, Mom_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Mom_found(void) {
+   static constexpr bool Mom_found(void) {
       if constexpr (std::is_same<T, Mom_t>::value)
          return true;
       else
@@ -1395,17 +1623,17 @@ public:
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const FlxDen_t& FlxDen(void) const {
    if constexpr (std::is_same<T, FlxDen_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxDen_found(void) {
+   static constexpr bool FlxDen_found(void) {
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return true;
       else
@@ -1416,17 +1644,17 @@ public:
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const FlxMom_t& FlxMom(void) const {
    if constexpr (std::is_same<T, FlxMom_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxMom_found(void) {
+   static constexpr bool FlxMom_found(void) {
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return true;
       else
@@ -1437,17 +1665,17 @@ public:
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const FlxEnr_t& FlxEnr(void) const {
    if constexpr (std::is_same<T, FlxEnr_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxEnr_found(void) {
+   static constexpr bool FlxEnr_found(void) {
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return true;
       else
@@ -1458,17 +1686,17 @@ public:
       if constexpr (std::is_same<T, Mag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Mag_t& Mag(void) const {
    if constexpr (std::is_same<T, Mag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Mag_found(void) {
+   static constexpr bool Mag_found(void) {
       if constexpr (std::is_same<T, Mag_t>::value)
          return true;
       else
@@ -1479,17 +1707,17 @@ public:
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const FlxMag_t& FlxMag(void) const {
    if constexpr (std::is_same<T, FlxMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxMag_found(void) {
+   static constexpr bool FlxMag_found(void) {
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return true;
       else
@@ -1500,17 +1728,17 @@ public:
       if constexpr (std::is_same<T, Glm_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Glm_t& Glm(void) const {
    if constexpr (std::is_same<T, Glm_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Glm_found(void) {
+   static constexpr bool Glm_found(void) {
       if constexpr (std::is_same<T, Glm_t>::value)
          return true;
       else
@@ -1521,17 +1749,17 @@ public:
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const FlxGlm_t& FlxGlm(void) const {
    if constexpr (std::is_same<T, FlxGlm_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxGlm_found(void) {
+   static constexpr bool FlxGlm_found(void) {
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return true;
       else
@@ -1542,17 +1770,17 @@ public:
       if constexpr (std::is_same<T, Elc_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const Elc_t& Elc(void) const {
    if constexpr (std::is_same<T, Elc_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Elc_found(void) {
+   static constexpr bool Elc_found(void) {
       if constexpr (std::is_same<T, Elc_t>::value)
          return true;
       else
@@ -1563,17 +1791,17 @@ public:
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const AbsMag_t& AbsMag(void) const {
    if constexpr (std::is_same<T, AbsMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool AbsMag_found(void) {
+   static constexpr bool AbsMag_found(void) {
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return true;
       else
@@ -1584,17 +1812,17 @@ public:
       if constexpr (std::is_same<T, HatMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const HatMag_t& HatMag(void) const {
    if constexpr (std::is_same<T, HatMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool HatMag_found(void) {
+   static constexpr bool HatMag_found(void) {
       if constexpr (std::is_same<T, HatMag_t>::value)
          return true;
       else
@@ -1605,17 +1833,17 @@ public:
       if constexpr (std::is_same<T, DelVel_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const DelVel_t& DelVel(void) const {
    if constexpr (std::is_same<T, DelVel_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelVel_found(void) {
+   static constexpr bool DelVel_found(void) {
       if constexpr (std::is_same<T, DelVel_t>::value)
          return true;
       else
@@ -1626,17 +1854,17 @@ public:
       if constexpr (std::is_same<T, DelElc_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const DelElc_t& DelElc(void) const {
    if constexpr (std::is_same<T, DelElc_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelElc_found(void) {
+   static constexpr bool DelElc_found(void) {
       if constexpr (std::is_same<T, DelElc_t>::value)
          return true;
       else
@@ -1647,17 +1875,17 @@ public:
       if constexpr (std::is_same<T, DelMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const DelMag_t& DelMag(void) const {
    if constexpr (std::is_same<T, DelMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelMag_found(void) {
+   static constexpr bool DelMag_found(void) {
       if constexpr (std::is_same<T, DelMag_t>::value)
          return true;
       else
@@ -1668,17 +1896,17 @@ public:
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const DelAbsMag_t& DelAbsMag(void) const {
    if constexpr (std::is_same<T, DelAbsMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelAbsMag_found(void) {
+   static constexpr bool DelAbsMag_found(void) {
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return true;
       else
@@ -1689,123 +1917,249 @@ public:
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
   const DelHatMag_t& DelHatMag(void) const {
    if constexpr (std::is_same<T, DelHatMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelHatMag_found(void) {
+   static constexpr bool DelHatMag_found(void) {
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerVel_t& DerVel(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   DdtVel_t& DdtVel(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DerVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerVel_t& DerVel(void) const {
-   if constexpr (std::is_same<T, DerVel_t>::value)
+  const DdtVel_t& DdtVel(void) const {
+   if constexpr (std::is_same<T, DdtVel_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DerVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerVel_found(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   static constexpr bool DdtVel_found(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return true;
       else
          return false;
    };
 
-   DerElc_t& DerElc(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   DdtElc_t& DdtElc(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DerElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerElc_t& DerElc(void) const {
-   if constexpr (std::is_same<T, DerElc_t>::value)
+  const DdtElc_t& DdtElc(void) const {
+   if constexpr (std::is_same<T, DdtElc_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DerElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerElc_found(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   static constexpr bool DdtElc_found(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return true;
       else
          return false;
    };
 
-   DerMag_t& DerMag(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   DdtMag_t& DdtMag(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DerMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerMag_t& DerMag(void) const {
-   if constexpr (std::is_same<T, DerMag_t>::value)
+  const DdtMag_t& DdtMag(void) const {
+   if constexpr (std::is_same<T, DdtMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DerMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerMag_found(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   static constexpr bool DdtMag_found(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerAbsMag_t& DerAbsMag(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   DdtAbsMag_t& DdtAbsMag(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DerAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerAbsMag_t& DerAbsMag(void) const {
-   if constexpr (std::is_same<T, DerAbsMag_t>::value)
+  const DdtAbsMag_t& DdtAbsMag(void) const {
+   if constexpr (std::is_same<T, DdtAbsMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DerAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerAbsMag_found(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   static constexpr bool DdtAbsMag_found(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerHatMag_t& DerHatMag(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   DdtHatMag_t& DdtHatMag(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[NamedFields] DerHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerHatMag_t& DerHatMag(void) const {
-   if constexpr (std::is_same<T, DerHatMag_t>::value)
+  const DdtHatMag_t& DdtHatMag(void) const {
+   if constexpr (std::is_same<T, DdtHatMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[NamedFields] DerHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerHatMag_found(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   static constexpr bool DdtHatMag_found(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv0_t& Iv0(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv0_t& Iv0(void) const {
+   if constexpr (std::is_same<T, Iv0_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv0_found(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv1_t& Iv1(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv1_t& Iv1(void) const {
+   if constexpr (std::is_same<T, Iv1_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv1_found(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv2_t& Iv2(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv2_t& Iv2(void) const {
+   if constexpr (std::is_same<T, Iv2_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv2_found(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv3_t& Iv3(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv3_t& Iv3(void) const {
+   if constexpr (std::is_same<T, Iv3_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv3_found(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv4_t& Iv4(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv4_t& Iv4(void) const {
+   if constexpr (std::is_same<T, Iv4_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv4_found(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Iv5_t& Iv5(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const Iv5_t& Iv5(void) const {
+   if constexpr (std::is_same<T, Iv5_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool Iv5_found(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return true;
       else
          return false;
@@ -1898,7 +2252,7 @@ public:
 */
    double divbhat()
    {
-      auto bhat = DerMag();
+      auto bhat = DdtMag();
       auto Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
       auto Bdiv = divB();
@@ -1948,8 +2302,8 @@ public:
 */
    GeoVector dbhatdt()
    {
-      auto dBvecdt = DerMag();
-      auto dBmagdt = DerAbsMag();
+      auto dBvecdt = DdtMag();
+      auto dBmagdt = DdtAbsMag();
       auto bhat = HatMag();
       double Bmag = AbsMag();
       return (dBvecdt - (dBmagdt * bhat)) / Bmag;
@@ -1962,7 +2316,7 @@ public:
       if (recursive)
          return data.str();
       else
-         return std::string(FieldNames[nameid]) + "{" + data.str() + "}";
+         return std::string(Field::Names[nameid]) + "{" + data.str() + "}";
    }
 
 };
@@ -1970,37 +2324,37 @@ public:
 /*!
 \author Lucius Schoenbaum
 \date 06/02/2025
-\param[in] tup const NamedFields type
+\param[in] tup const Species type
 \return The `I`th member of tuple, for template argument integer `I`
  \note The calling pattern is the same as that of std::get.
 \note The value of template argument `I` must be known at compile time,
 which can constraint usage in some situations. In these cases you may be
 able use class method foreach() with one of the argument signatures.
 */
-template <std::size_t I, FieldId nameid, typename T, typename... Ts>
-decltype(auto) get(const NamedFields<nameid, T, Ts...>& tup) {
+template <std::size_t I, Field::Id nameid, typename T, typename... Ts>
+decltype(auto) get(const Species<nameid, T, Ts...>& tup) {
    if constexpr (I == 0)
       return tup.top();
    else
-      return get<I-1>(static_cast<const NamedFields<nameid, Ts...>&>(tup));
+      return get<I-1>(static_cast<const Species<nameid, Ts...>&>(tup));
 }
 
 /*!
 \author Lucius Schoenbaum
 \date 06/02/2025
-\param[in] tup NamedMHDtuple type
+\param[in] tup Species type
 \return The `I`th member of tuple, for template argument integer `I`
 \note The calling pattern is the same as that of std::get.
 \note The value of template argument `I` must be known at compile time,
 which can constraint usage in some situations. In these cases you may be
 able use class method foreach() with one of the argument signatures.
 */
-template <std::size_t I, FieldId nameid, typename T, typename... Ts>
-decltype(auto) get(NamedFields<nameid, T, Ts...>& tup) {
+template <std::size_t I, Field::Id nameid, typename T, typename... Ts>
+decltype(auto) get(Species<nameid, T, Ts...>& tup) {
    if constexpr (I == 0)
       return tup.top();
    else
-      return get<I-1>(static_cast<NamedFields<nameid, Ts...>&>(tup));
+      return get<I-1>(static_cast<Species<nameid, Ts...>&>(tup));
 }
 
 };

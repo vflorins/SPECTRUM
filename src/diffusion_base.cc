@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/06/2022
 */
-DiffusionBase::DiffusionBase(void)
+template <typename Fields>
+DiffusionBase<Fields>::DiffusionBase(void)
              : Params("", 0, STATE_NONE)
 {
 };
@@ -31,7 +32,8 @@ DiffusionBase::DiffusionBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-DiffusionBase::DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+DiffusionBase<Fields>::DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
              : Params(name_in, specie_in, status_in)
 {
 };
@@ -43,7 +45,8 @@ DiffusionBase::DiffusionBase(const std::string& name_in, unsigned int specie_in,
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionBase::DiffusionBase(const DiffusionBase& other)
+template <typename Fields>
+DiffusionBase<Fields>::DiffusionBase(const DiffusionBase& other)
              : Params(other)
 {
 // Params' constructor resets all flags
@@ -57,7 +60,8 @@ DiffusionBase::DiffusionBase(const DiffusionBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupDiffusion()" method.
 */
-void DiffusionBase::SetupObject(const DataContainer& cont_in)
+template <typename Fields>
+void DiffusionBase<Fields>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupDiffusion(false);
@@ -70,7 +74,8 @@ void DiffusionBase::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionBase::SetupDiffusion(bool construct)
+template <typename Fields>
+void DiffusionBase<Fields>::SetupDiffusion(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -86,7 +91,8 @@ void DiffusionBase::SetupDiffusion(bool construct)
 \date 05/09/2022
 \note This is only a stub.
 */
-void DiffusionBase::EvaluateDiffusion(void)
+template <typename Fields>
+void DiffusionBase<Fields>::EvaluateDiffusion(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -102,7 +108,8 @@ void DiffusionBase::EvaluateDiffusion(void)
 \return One diffusion component
 \note This is a common routine that the derived classes should not change.
 */
-double DiffusionBase::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const SpatialData& spdata_in)
+template <typename Fields>
+double DiffusionBase<Fields>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const SpatialData& spdata_in)
 {
    SetState(t_in, pos_in, mom_in);
    vmag = Vel(_mom[0], specie);
@@ -128,7 +135,8 @@ double DiffusionBase::GetComponent(int comp, double t_in, const GeoVector& pos_i
 \return Directional derivative
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
-double DiffusionBase::GetDirectionalDerivative(int xyz)
+template <typename Fields>
+double DiffusionBase<Fields>::GetDirectionalDerivative(int xyz)
 {
    double _t_saved, Bmag_saved, derivative, _dr, _dt;
    GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;
@@ -223,7 +231,8 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 \return Derivative in mu
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
-double DiffusionBase::GetMuDerivative(void)
+template <typename Fields>
+double DiffusionBase<Fields>::GetMuDerivative(void)
 {
    double mu_saved, dmu, derivative;
    GeoVector Kappa_saved;

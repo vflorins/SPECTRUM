@@ -6,14 +6,14 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef _BACKGROUND_SERVER_HH
-#define _BACKGROUND_SERVER_HH
+#ifndef SPECTRUM_BACKGROUND_SERVER_HH
+#define SPECTRUM_BACKGROUND_SERVER_HH
 
 #include "background_base.hh"
 
 namespace Spectrum {
 
-/*!
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServer class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,7 +24,28 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase)
 */
-class BackgroundServer : public BackgroundBase {
+template <typename Fields_>
+class BackgroundServer : public BackgroundBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -74,7 +95,8 @@ public:
 \date 07/19/2023
 \return Coordinates closest to the origin
 */
-inline GeoVector BackgroundServer::GetDomainMin(void) const
+template <typename Fields>
+inline GeoVector BackgroundServer<Fields>::GetDomainMin(void) const
 {
    if (server_front) return server_front->GetDomainMin();
    else return gv_zeros;
@@ -85,12 +107,16 @@ inline GeoVector BackgroundServer::GetDomainMin(void) const
 \date 07/19/2023
 \return Coordinates farthest from the origin
 */
-inline GeoVector BackgroundServer::GetDomainMax(void) const
+template <typename Fields>
+inline GeoVector BackgroundServer<Fields>::GetDomainMax(void) const
 {
    if (server_front) return server_front->GetDomainMax();
    else return gv_zeros;
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_server.cc"
 
 #endif

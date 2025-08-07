@@ -7,6 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_cylindrical_obstacle.hh"
+#include <common/matrix.hh>
 
 namespace Spectrum {
 
@@ -16,30 +17,36 @@ namespace Spectrum {
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 */
-BackgroundCylindricalObstacle::BackgroundCylindricalObstacle(void)
+template <typename Fields>
+BackgroundCylindricalObstacle<Fields>::BackgroundCylindricalObstacle(void)
                              : BackgroundBase(bg_name_cylindrical_obstacle, 0, MODEL_STATIC)
 {
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 */
-BackgroundCylindricalObstacle::BackgroundCylindricalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+BackgroundCylindricalObstacle<Fields>::BackgroundCylindricalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                              : BackgroundBase(name_in, specie_in, status_in)
 {
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundCylindricalObstacle::BackgroundCylindricalObstacle(const BackgroundCylindricalObstacle& other)
+template <typename Fields>
+BackgroundCylindricalObstacle<Fields>::BackgroundCylindricalObstacle(const BackgroundCylindricalObstacle& other)
                              : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -48,15 +55,17 @@ BackgroundCylindricalObstacle::BackgroundCylindricalObstacle(const BackgroundCyl
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundCylindricalObstacle::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundCylindricalObstacle<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) SetupBackground(false);
 
    container.Read(axis);
    axis.Normalize();
@@ -70,52 +79,65 @@ void BackgroundCylindricalObstacle::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
+Compute the internal u, B, and E fields
 */
-void BackgroundCylindricalObstacle::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundCylindricalObstacle<Fields>::EvaluateBackground(void)
 {
+
    GeoVector posprime = _pos - r0;
    posprime.SubtractParallel(axis);
    double posprimenorm = posprime.Norm();
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      if (posprimenorm < r_cylinder) _spdata.Bvec = gv_zeros;
+   if constexpr (Fields::Vel_found())
+      _fields.Vel() = gv_zeros;
+   if constexpr (Fields::Mag_found()) {
+      if (posprimenorm < r_cylinder)
+         _fields.Mag() = gv_zeros;
       else {
          double s2 = posprime.Norm2();
-         _spdata.Bvec = B0 - Sqr(r_cylinder) / s2 * (2.0 * (posprime * B0) / s2 * posprime - B0);
+         _fields.Mag() = B0 - Sqr(r_cylinder) / s2 * (2.0 * (posprime * B0) / s2 * posprime - B0);
       };
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = gv_zeros;
-   if (posprimenorm < r_cylinder) _spdata.region = 0.0;
-   else _spdata.region = 1.0;
+   if constexpr (Fields::Elc_found())
+      _fields.Elc() = gv_zeros;
+   if constexpr (Fields::Iv1_found()) {
+      if (posprimenorm < r_cylinder) _fields.Iv1() = 0.0;
+      else _fields.Iv1() = 1.0;
+   }
 
-   LOWER_BITS(_status, STATE_INVALID);
+   LOWER_BITS(this->_status, STATE_INVALID);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 */
-void BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundCylindricalObstacle<Fields>::EvaluateBackgroundDerivatives(void)
 {
+
 #if SPHERICAL_OBSTACLE_DERIVATIVE_METHOD == 0
    int xyz;
    GeoVector posprime = _pos - r0;
    posprime.SubtractParallel(axis);
    double posprimenorm = posprime.Norm();
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      if (posprimenorm < r_cylinder) _spdata.gradBvec = gm_zeros;
+   if constexpr (Fields::DelVel_found())
+      _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) {
+      if (posprimenorm < r_cylinder) _fields.DelMag() = gm_zeros;
       else {
 // TODO: complete
       };
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives(); 
@@ -124,14 +146,18 @@ void BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
+\author Lucius Schoenbaum
+\date 08/06/2025
 */
-void BackgroundCylindricalObstacle::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundCylindricalObstacle<Fields>::EvaluateDmax(void)
 {
    GeoVector posprime = _pos - r0;
    posprime.SubtractParallel(axis);
-   _spdata.dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
-   LOWER_BITS(_status, STATE_INVALID);
+   _ddata.dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
+   LOWER_BITS(this->_status, STATE_INVALID);
 };
 
+
 };
+

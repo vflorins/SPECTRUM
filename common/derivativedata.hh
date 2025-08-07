@@ -16,13 +16,30 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 
-template <typename ... Ts>
+//! Flag to indicate spatial derivatives were not computed
+const uint16_t BACKGROUND_grad_FAIL = 0x1000;
+
+//! Flag to indicate time derivatives were not computed
+const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
+
+
+
 class DerivativeData {
 
 public:
 
-    //! "Safe" box for computing directional derivatives
+ //! "Safe" box for computing directional derivatives
    GeoVector _dr;
+
+//! Spatial maximum distance per time step, grid dependent
+   double dmax;
+
+//! "Safe" time increment for computing time derivatives
+   double _dt;
+
+//! Status information for derivative computations
+// todo: NOTE: this information is formerly stored in spdata._mask - need to review initialization
+   uint16_t _status;
 
 //! Flag for forward increment when computing directional derivatives
    bool _dr_forw_fail[3];
@@ -30,40 +47,15 @@ public:
 //! Flag for backward increment when computing directional derivatives
    bool _dr_back_fail[3];
 
-//! "Safe" time increment for computing time derivatives
-   double _dt;
-
 //! Flag for forward increment when computing time derivatives
    bool _dt_forw_fail;
 
 //! Flag for backward increment when computing time derivatives
    bool _dt_back_fail;
 
-//! Spatial maximum distance per time step, grid dependent
-   double dmax;
-
     DerivativeData() = default;
 
-    DerivativeData& operator=(const DerivativeData& other) {
-        dmax = other.dmax;
-        if (/* variables: Der, d/dt */ true) {
-           // Needed if and only if time derivatives are computed numerically
-            _dt = other._dt;
-            _dt_forw_fail = other._dt_forw_fail;
-            _dt_back_fail = other._dt_back_fail;
-        }
-        if (/* variables: Del, d/dx */ true) {
-           // Needed if and only if spatial derivatives (gradients) are computed numerically
-           // cf. trajectory_parker.cc
-            _dr = other._dr;
-            for (int xyz = 0; xyz < 3; ++xyz) {
-                _dr_forw_fail[xyz] = other._dr_forw_fail[xyz];
-                _dr_back_fail[xyz] = other._dr_back_fail[xyz];
-            }
-        }
-        return *this;
-    }
-
+    DerivativeData& operator=(const DerivativeData& other) = default;
 
 };
 

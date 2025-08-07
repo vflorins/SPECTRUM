@@ -15,13 +15,13 @@ instead edit the file `generated/generate.py`.
 Elsewhere, this file can be edited normally.
 */
 
-#ifndef SPECTRUM_MHDTUPLE_HH
-#define SPECTRUM_MHDTUPLE_HH
+#ifndef SPECTRUM_FIELDS_HH
+#define SPECTRUM_FIELDS_HH
 
 #include <iostream>
 #include <any>
 #include <stdexcept>
-#include "../generated/field_groups.hh"
+#include "../generated/species_types.hh"
 
 namespace Spectrum {
 
@@ -244,7 +244,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Den_found(void) {
+   static constexpr bool Den_found(void) {
       if constexpr (std::is_same<T, Den_t>::value)
          return true;
       else
@@ -282,7 +282,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Prs_found(void) {
+   static constexpr bool Prs_found(void) {
       if constexpr (std::is_same<T, Prs_t>::value)
          return true;
       else
@@ -320,7 +320,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Enr_found(void) {
+   static constexpr bool Enr_found(void) {
       if constexpr (std::is_same<T, Enr_t>::value)
          return true;
       else
@@ -358,7 +358,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Vel_found(void) {
+   static constexpr bool Vel_found(void) {
       if constexpr (std::is_same<T, Vel_t>::value)
          return true;
       else
@@ -396,7 +396,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Mom_found(void) {
+   static constexpr bool Mom_found(void) {
       if constexpr (std::is_same<T, Mom_t>::value)
          return true;
       else
@@ -434,7 +434,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxDen_found(void) {
+   static constexpr bool FlxDen_found(void) {
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return true;
       else
@@ -472,7 +472,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxMom_found(void) {
+   static constexpr bool FlxMom_found(void) {
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return true;
       else
@@ -510,7 +510,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxEnr_found(void) {
+   static constexpr bool FlxEnr_found(void) {
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return true;
       else
@@ -548,7 +548,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Mag_found(void) {
+   static constexpr bool Mag_found(void) {
       if constexpr (std::is_same<T, Mag_t>::value)
          return true;
       else
@@ -586,7 +586,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxMag_found(void) {
+   static constexpr bool FlxMag_found(void) {
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return true;
       else
@@ -624,7 +624,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Glm_found(void) {
+   static constexpr bool Glm_found(void) {
       if constexpr (std::is_same<T, Glm_t>::value)
          return true;
       else
@@ -662,7 +662,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FlxGlm_found(void) {
+   static constexpr bool FlxGlm_found(void) {
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return true;
       else
@@ -700,7 +700,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool Elc_found(void) {
+   static constexpr bool Elc_found(void) {
       if constexpr (std::is_same<T, Elc_t>::value)
          return true;
       else
@@ -738,7 +738,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool AbsMag_found(void) {
+   static constexpr bool AbsMag_found(void) {
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return true;
       else
@@ -776,7 +776,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool HatMag_found(void) {
+   static constexpr bool HatMag_found(void) {
       if constexpr (std::is_same<T, HatMag_t>::value)
          return true;
       else
@@ -814,7 +814,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelVel_found(void) {
+   static constexpr bool DelVel_found(void) {
       if constexpr (std::is_same<T, DelVel_t>::value)
          return true;
       else
@@ -852,7 +852,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelElc_found(void) {
+   static constexpr bool DelElc_found(void) {
       if constexpr (std::is_same<T, DelElc_t>::value)
          return true;
       else
@@ -890,7 +890,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelMag_found(void) {
+   static constexpr bool DelMag_found(void) {
       if constexpr (std::is_same<T, DelMag_t>::value)
          return true;
       else
@@ -928,7 +928,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelAbsMag_found(void) {
+   static constexpr bool DelAbsMag_found(void) {
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return true;
       else
@@ -966,7 +966,7 @@ This should not occur in fluid or MHD applications.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DelHatMag_found(void) {
+   static constexpr bool DelHatMag_found(void) {
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return true;
       else
@@ -975,534 +975,1256 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get DerVel (Time derivative of velocity field) from the data type, as lvalue.
+\brief Get DdtVel (Time derivative of velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerVel_t& DerVel(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   DdtVel_t& DdtVel(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerVel();
+         return Fields<Ts...>::DdtVel();
    };
 
 /*!
-\brief Get DerVel (Time derivative of velocity field) from the data type, as const rvalue.
+\brief Get DdtVel (Time derivative of velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerVel_t& DerVel(void) const {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   const DdtVel_t& DdtVel(void) const {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerVel();
+         return Fields<Ts...>::DdtVel();
    };
 
 
 /*!
-\brief Whether DerVel (Time derivative of velocity field) is in the data type.
+\brief Whether DdtVel (Time derivative of velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerVel_found(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   static constexpr bool DdtVel_found(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return true;
       else
-         return Fields<Ts...>::DerVel_found();
+         return Fields<Ts...>::DdtVel_found();
    };
    
 
 /*!
-\brief Get DerElc (Time derivative of electric field) from the data type, as lvalue.
+\brief Get DdtElc (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerElc_t& DerElc(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   DdtElc_t& DdtElc(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerElc();
+         return Fields<Ts...>::DdtElc();
    };
 
 /*!
-\brief Get DerElc (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get DdtElc (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerElc_t& DerElc(void) const {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   const DdtElc_t& DdtElc(void) const {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerElc();
+         return Fields<Ts...>::DdtElc();
    };
 
 
 /*!
-\brief Whether DerElc (Time derivative of electric field) is in the data type.
+\brief Whether DdtElc (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerElc_found(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   static constexpr bool DdtElc_found(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return true;
       else
-         return Fields<Ts...>::DerElc_found();
+         return Fields<Ts...>::DdtElc_found();
    };
    
 
 /*!
-\brief Get DerMag (Time derivative of magnetic field) from the data type, as lvalue.
+\brief Get DdtMag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerMag_t& DerMag(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   DdtMag_t& DdtMag(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerMag();
+         return Fields<Ts...>::DdtMag();
    };
 
 /*!
-\brief Get DerMag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get DdtMag (Time derivative of magnetic field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerMag_t& DerMag(void) const {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   const DdtMag_t& DdtMag(void) const {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerMag();
+         return Fields<Ts...>::DdtMag();
    };
 
 
 /*!
-\brief Whether DerMag (Time derivative of magnetic field) is in the data type.
+\brief Whether DdtMag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerMag_found(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   static constexpr bool DdtMag_found(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return true;
       else
-         return Fields<Ts...>::DerMag_found();
+         return Fields<Ts...>::DdtMag_found();
    };
    
 
 /*!
-\brief Get DerAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerAbsMag_t& DerAbsMag(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   DdtAbsMag_t& DdtAbsMag(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerAbsMag();
+         return Fields<Ts...>::DdtAbsMag();
    };
 
 /*!
-\brief Get DerAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerAbsMag_t& DerAbsMag(void) const {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   const DdtAbsMag_t& DdtAbsMag(void) const {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerAbsMag();
+         return Fields<Ts...>::DdtAbsMag();
    };
 
 
 /*!
-\brief Whether DerAbsMag (Time derivative of magnetic field magnitude) is in the data type.
+\brief Whether DdtAbsMag (Time derivative of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerAbsMag_found(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   static constexpr bool DdtAbsMag_found(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return true;
       else
-         return Fields<Ts...>::DerAbsMag_found();
+         return Fields<Ts...>::DdtAbsMag_found();
    };
    
 
 /*!
-\brief Get DerHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DerHatMag_t& DerHatMag(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   DdtHatMag_t& DdtHatMag(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerHatMag();
+         return Fields<Ts...>::DdtHatMag();
    };
 
 /*!
-\brief Get DerHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DerHatMag_t& DerHatMag(void) const {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   const DdtHatMag_t& DdtHatMag(void) const {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-         return Fields<Ts...>::DerHatMag();
+         return Fields<Ts...>::DdtHatMag();
    };
 
 
 /*!
-\brief Whether DerHatMag (Time derivative of magnetic field direction) is in the data type.
+\brief Whether DdtHatMag (Time derivative of magnetic field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool DerHatMag_found(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   static constexpr bool DdtHatMag_found(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return true;
       else
-         return Fields<Ts...>::DerHatMag_found();
+         return Fields<Ts...>::DdtHatMag_found();
    };
    
 
 /*!
-\brief Get PrimitiveStateGASDYN (Fields of the primitive form for a gas dynamics model) from the data type, as lvalue.
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   PrimitiveStateGASDYN_t& PrimitiveStateGASDYN(void) {
-      if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+   Iv0_t& Iv0(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateGASDYN();
+         return Fields<Ts...>::Iv0();
    };
 
 /*!
-\brief Get PrimitiveStateGASDYN (Fields of the primitive form for a gas dynamics model) from the data type, as const rvalue.
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const PrimitiveStateGASDYN_t& PrimitiveStateGASDYN(void) const {
-      if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+   const Iv0_t& Iv0(void) const {
+      if constexpr (std::is_same<T, Iv0_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateGASDYN();
+         return Fields<Ts...>::Iv0();
    };
 
 
 /*!
-\brief Whether PrimitiveStateGASDYN (Fields of the primitive form for a gas dynamics model) is in the data type.
+\brief Whether Iv0 (Zeroth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool PrimitiveStateGASDYN_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+   static constexpr bool Iv0_found(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
          return true;
       else
-         return Fields<Ts...>::PrimitiveStateGASDYN_found();
+         return Fields<Ts...>::Iv0_found();
    };
    
 
 /*!
-\brief Get ConservedStateGASDYN (Fields of the conserved form for a gas dynamics model) from the data type, as lvalue.
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   ConservedStateGASDYN_t& ConservedStateGASDYN(void) {
-      if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+   Iv1_t& Iv1(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateGASDYN();
+         return Fields<Ts...>::Iv1();
    };
 
 /*!
-\brief Get ConservedStateGASDYN (Fields of the conserved form for a gas dynamics model) from the data type, as const rvalue.
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const ConservedStateGASDYN_t& ConservedStateGASDYN(void) const {
-      if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+   const Iv1_t& Iv1(void) const {
+      if constexpr (std::is_same<T, Iv1_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateGASDYN();
+         return Fields<Ts...>::Iv1();
    };
 
 
 /*!
-\brief Whether ConservedStateGASDYN (Fields of the conserved form for a gas dynamics model) is in the data type.
+\brief Whether Iv1 (First (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool ConservedStateGASDYN_found(void) {
-      if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+   static constexpr bool Iv1_found(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
          return true;
       else
-         return Fields<Ts...>::ConservedStateGASDYN_found();
+         return Fields<Ts...>::Iv1_found();
    };
    
 
 /*!
-\brief Get FluxFunctionGASDYN (Fields of the flux function for a gas dynamics model) from the data type, as lvalue.
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   FluxFunctionGASDYN_t& FluxFunctionGASDYN(void) {
-      if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+   Iv2_t& Iv2(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionGASDYN();
+         return Fields<Ts...>::Iv2();
    };
 
 /*!
-\brief Get FluxFunctionGASDYN (Fields of the flux function for a gas dynamics model) from the data type, as const rvalue.
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const FluxFunctionGASDYN_t& FluxFunctionGASDYN(void) const {
-      if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+   const Iv2_t& Iv2(void) const {
+      if constexpr (std::is_same<T, Iv2_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionGASDYN();
+         return Fields<Ts...>::Iv2();
    };
 
 
 /*!
-\brief Whether FluxFunctionGASDYN (Fields of the flux function for a gas dynamics model) is in the data type.
+\brief Whether Iv2 (Second (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FluxFunctionGASDYN_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+   static constexpr bool Iv2_found(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
          return true;
       else
-         return Fields<Ts...>::FluxFunctionGASDYN_found();
+         return Fields<Ts...>::Iv2_found();
    };
    
 
 /*!
-\brief Get PrimitiveStateMHD (Fields of the primitive form for an MHD model) from the data type, as lvalue.
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   PrimitiveStateMHD_t& PrimitiveStateMHD(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+   Iv3_t& Iv3(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateMHD();
+         return Fields<Ts...>::Iv3();
    };
 
 /*!
-\brief Get PrimitiveStateMHD (Fields of the primitive form for an MHD model) from the data type, as const rvalue.
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const PrimitiveStateMHD_t& PrimitiveStateMHD(void) const {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+   const Iv3_t& Iv3(void) const {
+      if constexpr (std::is_same<T, Iv3_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateMHD();
+         return Fields<Ts...>::Iv3();
    };
 
 
 /*!
-\brief Whether PrimitiveStateMHD (Fields of the primitive form for an MHD model) is in the data type.
+\brief Whether Iv3 (Third (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool PrimitiveStateMHD_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+   static constexpr bool Iv3_found(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
          return true;
       else
-         return Fields<Ts...>::PrimitiveStateMHD_found();
+         return Fields<Ts...>::Iv3_found();
    };
    
 
 /*!
-\brief Get ConservedStateMHD (Fields of the conserved form for an MHD model) from the data type, as lvalue.
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   ConservedStateMHD_t& ConservedStateMHD(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+   Iv4_t& Iv4(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateMHD();
+         return Fields<Ts...>::Iv4();
    };
 
 /*!
-\brief Get ConservedStateMHD (Fields of the conserved form for an MHD model) from the data type, as const rvalue.
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const ConservedStateMHD_t& ConservedStateMHD(void) const {
-      if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+   const Iv4_t& Iv4(void) const {
+      if constexpr (std::is_same<T, Iv4_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateMHD();
+         return Fields<Ts...>::Iv4();
    };
 
 
 /*!
-\brief Whether ConservedStateMHD (Fields of the conserved form for an MHD model) is in the data type.
+\brief Whether Iv4 (Fourth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool ConservedStateMHD_found(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+   static constexpr bool Iv4_found(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
          return true;
       else
-         return Fields<Ts...>::ConservedStateMHD_found();
+         return Fields<Ts...>::Iv4_found();
    };
    
 
 /*!
-\brief Get FluxFunctionMHD (Fields of the flux function for an MHD model) from the data type, as lvalue.
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   FluxFunctionMHD_t& FluxFunctionMHD(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+   Iv5_t& Iv5(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionMHD();
+         return Fields<Ts...>::Iv5();
    };
 
 /*!
-\brief Get FluxFunctionMHD (Fields of the flux function for an MHD model) from the data type, as const rvalue.
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const FluxFunctionMHD_t& FluxFunctionMHD(void) const {
-      if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+   const Iv5_t& Iv5(void) const {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionMHD();
+         return Fields<Ts...>::Iv5();
    };
 
 
 /*!
-\brief Whether FluxFunctionMHD (Fields of the flux function for an MHD model) is in the data type.
+\brief Whether Iv5 (Fifth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FluxFunctionMHD_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+   static constexpr bool Iv5_found(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return true;
       else
-         return Fields<Ts...>::FluxFunctionMHD_found();
+         return Fields<Ts...>::Iv5_found();
    };
    
 
 /*!
-\brief Get PrimitiveStateMHD_GLM (Fields of the primitive form for an MHD-GLM model) from the data type, as lvalue.
+\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   PrimitiveStateMHD_GLM_t& PrimitiveStateMHD_GLM(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+   PrimitiveGasDyn_t& PrimitiveGasDyn(void) {
+      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateMHD_GLM();
+         return Fields<Ts...>::PrimitiveGasDyn();
    };
 
 /*!
-\brief Get PrimitiveStateMHD_GLM (Fields of the primitive form for an MHD-GLM model) from the data type, as const rvalue.
+\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const PrimitiveStateMHD_GLM_t& PrimitiveStateMHD_GLM(void) const {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+   const PrimitiveGasDyn_t& PrimitiveGasDyn(void) const {
+      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
          return data;
       else
-         return Fields<Ts...>::PrimitiveStateMHD_GLM();
+         return Fields<Ts...>::PrimitiveGasDyn();
    };
 
 
 /*!
-\brief Whether PrimitiveStateMHD_GLM (Fields of the primitive form for an MHD-GLM model) is in the data type.
+\brief Whether PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool PrimitiveStateMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+   static constexpr bool PrimitiveGasDyn_found(void) {
+      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
          return true;
       else
-         return Fields<Ts...>::PrimitiveStateMHD_GLM_found();
+         return Fields<Ts...>::PrimitiveGasDyn_found();
    };
    
 
 /*!
-\brief Get ConservedStateMHD_GLM (Fields of the conserved form for an MHD-GLM model) from the data type, as lvalue.
+\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   ConservedStateMHD_GLM_t& ConservedStateMHD_GLM(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+   ConservedGasDyn_t& ConservedGasDyn(void) {
+      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateMHD_GLM();
+         return Fields<Ts...>::ConservedGasDyn();
    };
 
 /*!
-\brief Get ConservedStateMHD_GLM (Fields of the conserved form for an MHD-GLM model) from the data type, as const rvalue.
+\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const ConservedStateMHD_GLM_t& ConservedStateMHD_GLM(void) const {
-      if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+   const ConservedGasDyn_t& ConservedGasDyn(void) const {
+      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
          return data;
       else
-         return Fields<Ts...>::ConservedStateMHD_GLM();
+         return Fields<Ts...>::ConservedGasDyn();
    };
 
 
 /*!
-\brief Whether ConservedStateMHD_GLM (Fields of the conserved form for an MHD-GLM model) is in the data type.
+\brief Whether ConservedGasDyn (Fields of the conserved form for general gas dynamics) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool ConservedStateMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+   static constexpr bool ConservedGasDyn_found(void) {
+      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
          return true;
       else
-         return Fields<Ts...>::ConservedStateMHD_GLM_found();
+         return Fields<Ts...>::ConservedGasDyn_found();
    };
    
 
 /*!
-\brief Get FluxFunctionMHD_GLM (Fields of the flux function for an MHD-GLM model) from the data type, as lvalue.
+\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   FluxFunctionMHD_GLM_t& FluxFunctionMHD_GLM(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+   PrimitiveMHD_t& PrimitiveMHD(void) {
+      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionMHD_GLM();
+         return Fields<Ts...>::PrimitiveMHD();
    };
 
 /*!
-\brief Get FluxFunctionMHD_GLM (Fields of the flux function for an MHD-GLM model) from the data type, as const rvalue.
+\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const FluxFunctionMHD_GLM_t& FluxFunctionMHD_GLM(void) const {
-      if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+   const PrimitiveMHD_t& PrimitiveMHD(void) const {
+      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
          return data;
       else
-         return Fields<Ts...>::FluxFunctionMHD_GLM();
+         return Fields<Ts...>::PrimitiveMHD();
    };
 
 
 /*!
-\brief Whether FluxFunctionMHD_GLM (Fields of the flux function for an MHD-GLM model) is in the data type.
+\brief Whether PrimitiveMHD (Fields of the conserved form for general MHD) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   bool FluxFunctionMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+   static constexpr bool PrimitiveMHD_found(void) {
+      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
          return true;
       else
-         return Fields<Ts...>::FluxFunctionMHD_GLM_found();
+         return Fields<Ts...>::PrimitiveMHD_found();
+   };
+   
+
+/*!
+\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ConservedMHD_t& ConservedMHD(void) {
+      if constexpr (std::is_same<T, ConservedMHD_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ConservedMHD();
+   };
+
+/*!
+\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ConservedMHD_t& ConservedMHD(void) const {
+      if constexpr (std::is_same<T, ConservedMHD_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ConservedMHD();
+   };
+
+
+/*!
+\brief Whether ConservedMHD (Fields of the conserved form for general MHD) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ConservedMHD_found(void) {
+      if constexpr (std::is_same<T, ConservedMHD_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ConservedMHD_found();
+   };
+   
+
+/*!
+\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) {
+      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::PrimitiveMHDGLM();
+   };
+
+/*!
+\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) const {
+      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::PrimitiveMHDGLM();
+   };
+
+
+/*!
+\brief Whether PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool PrimitiveMHDGLM_found(void) {
+      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::PrimitiveMHDGLM_found();
+   };
+   
+
+/*!
+\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ConservedMHDGLM_t& ConservedMHDGLM(void) {
+      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ConservedMHDGLM();
+   };
+
+/*!
+\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ConservedMHDGLM_t& ConservedMHDGLM(void) const {
+      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ConservedMHDGLM();
+   };
+
+
+/*!
+\brief Whether ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ConservedMHDGLM_found(void) {
+      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ConservedMHDGLM_found();
+   };
+   
+
+/*!
+\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ElectronCore_t& ElectronCore(void) {
+      if constexpr (std::is_same<T, ElectronCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronCore();
+   };
+
+/*!
+\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ElectronCore_t& ElectronCore(void) const {
+      if constexpr (std::is_same<T, ElectronCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronCore();
+   };
+
+
+/*!
+\brief Whether ElectronCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronCore_found(void) {
+      if constexpr (std::is_same<T, ElectronCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ElectronCore_found();
+   };
+   
+
+/*!
+\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ElectronHalo_t& ElectronHalo(void) {
+      if constexpr (std::is_same<T, ElectronHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronHalo();
+   };
+
+/*!
+\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ElectronHalo_t& ElectronHalo(void) const {
+      if constexpr (std::is_same<T, ElectronHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronHalo();
+   };
+
+
+/*!
+\brief Whether ElectronHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronHalo_found(void) {
+      if constexpr (std::is_same<T, ElectronHalo_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ElectronHalo_found();
+   };
+   
+
+/*!
+\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ElectronBeam_t& ElectronBeam(void) {
+      if constexpr (std::is_same<T, ElectronBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronBeam();
+   };
+
+/*!
+\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ElectronBeam_t& ElectronBeam(void) const {
+      if constexpr (std::is_same<T, ElectronBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ElectronBeam();
+   };
+
+
+/*!
+\brief Whether ElectronBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronBeam_found(void) {
+      if constexpr (std::is_same<T, ElectronBeam_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ElectronBeam_found();
+   };
+   
+
+/*!
+\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ProtonCore_t& ProtonCore(void) {
+      if constexpr (std::is_same<T, ProtonCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonCore();
+   };
+
+/*!
+\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ProtonCore_t& ProtonCore(void) const {
+      if constexpr (std::is_same<T, ProtonCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonCore();
+   };
+
+
+/*!
+\brief Whether ProtonCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonCore_found(void) {
+      if constexpr (std::is_same<T, ProtonCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ProtonCore_found();
+   };
+   
+
+/*!
+\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ProtonHalo_t& ProtonHalo(void) {
+      if constexpr (std::is_same<T, ProtonHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonHalo();
+   };
+
+/*!
+\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ProtonHalo_t& ProtonHalo(void) const {
+      if constexpr (std::is_same<T, ProtonHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonHalo();
+   };
+
+
+/*!
+\brief Whether ProtonHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonHalo_found(void) {
+      if constexpr (std::is_same<T, ProtonHalo_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ProtonHalo_found();
+   };
+   
+
+/*!
+\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ProtonBeam_t& ProtonBeam(void) {
+      if constexpr (std::is_same<T, ProtonBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonBeam();
+   };
+
+/*!
+\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ProtonBeam_t& ProtonBeam(void) const {
+      if constexpr (std::is_same<T, ProtonBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonBeam();
+   };
+
+
+/*!
+\brief Whether ProtonBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonBeam_found(void) {
+      if constexpr (std::is_same<T, ProtonBeam_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ProtonBeam_found();
+   };
+   
+
+/*!
+\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   ProtonPickup_t& ProtonPickup(void) {
+      if constexpr (std::is_same<T, ProtonPickup_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonPickup();
+   };
+
+/*!
+\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const ProtonPickup_t& ProtonPickup(void) const {
+      if constexpr (std::is_same<T, ProtonPickup_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::ProtonPickup();
+   };
+
+
+/*!
+\brief Whether ProtonPickup (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonPickup_found(void) {
+      if constexpr (std::is_same<T, ProtonPickup_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::ProtonPickup_found();
+   };
+   
+
+/*!
+\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   AlphaCore_t& AlphaCore(void) {
+      if constexpr (std::is_same<T, AlphaCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::AlphaCore();
+   };
+
+/*!
+\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const AlphaCore_t& AlphaCore(void) const {
+      if constexpr (std::is_same<T, AlphaCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::AlphaCore();
+   };
+
+
+/*!
+\brief Whether AlphaCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AlphaCore_found(void) {
+      if constexpr (std::is_same<T, AlphaCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::AlphaCore_found();
+   };
+   
+
+/*!
+\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   AlphaHalo_t& AlphaHalo(void) {
+      if constexpr (std::is_same<T, AlphaHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::AlphaHalo();
+   };
+
+/*!
+\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const AlphaHalo_t& AlphaHalo(void) const {
+      if constexpr (std::is_same<T, AlphaHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::AlphaHalo();
+   };
+
+
+/*!
+\brief Whether AlphaHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AlphaHalo_found(void) {
+      if constexpr (std::is_same<T, AlphaHalo_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::AlphaHalo_found();
+   };
+   
+
+/*!
+\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HeliumSingleCore_t& HeliumSingleCore(void) {
+      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumSingleCore();
+   };
+
+/*!
+\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HeliumSingleCore_t& HeliumSingleCore(void) const {
+      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumSingleCore();
+   };
+
+
+/*!
+\brief Whether HeliumSingleCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumSingleCore_found(void) {
+      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HeliumSingleCore_found();
+   };
+   
+
+/*!
+\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HeliumSinglePickup_t& HeliumSinglePickup(void) {
+      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumSinglePickup();
+   };
+
+/*!
+\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HeliumSinglePickup_t& HeliumSinglePickup(void) const {
+      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumSinglePickup();
+   };
+
+
+/*!
+\brief Whether HeliumSinglePickup (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumSinglePickup_found(void) {
+      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HeliumSinglePickup_found();
+   };
+   
+
+/*!
+\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) {
+      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenPlasmaCore();
+   };
+
+/*!
+\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) const {
+      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenPlasmaCore();
+   };
+
+
+/*!
+\brief Whether HydrogenPlasmaCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenPlasmaCore_found(void) {
+      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HydrogenPlasmaCore_found();
+   };
+   
+
+/*!
+\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HydrogenCore_t& HydrogenCore(void) {
+      if constexpr (std::is_same<T, HydrogenCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenCore();
+   };
+
+/*!
+\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HydrogenCore_t& HydrogenCore(void) const {
+      if constexpr (std::is_same<T, HydrogenCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenCore();
+   };
+
+
+/*!
+\brief Whether HydrogenCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenCore_found(void) {
+      if constexpr (std::is_same<T, HydrogenCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HydrogenCore_found();
+   };
+   
+
+/*!
+\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HydrogenHalo_t& HydrogenHalo(void) {
+      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenHalo();
+   };
+
+/*!
+\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HydrogenHalo_t& HydrogenHalo(void) const {
+      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenHalo();
+   };
+
+
+/*!
+\brief Whether HydrogenHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenHalo_found(void) {
+      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HydrogenHalo_found();
+   };
+   
+
+/*!
+\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HydrogenBeam_t& HydrogenBeam(void) {
+      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenBeam();
+   };
+
+/*!
+\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HydrogenBeam_t& HydrogenBeam(void) const {
+      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HydrogenBeam();
+   };
+
+
+/*!
+\brief Whether HydrogenBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenBeam_found(void) {
+      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HydrogenBeam_found();
+   };
+   
+
+/*!
+\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   HeliumCore_t& HeliumCore(void) {
+      if constexpr (std::is_same<T, HeliumCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumCore();
+   };
+
+/*!
+\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const HeliumCore_t& HeliumCore(void) const {
+      if constexpr (std::is_same<T, HeliumCore_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::HeliumCore();
+   };
+
+
+/*!
+\brief Whether HeliumCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumCore_found(void) {
+      if constexpr (std::is_same<T, HeliumCore_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::HeliumCore_found();
    };
    
 
@@ -1527,7 +2249,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Base for MHDtuple data type construction.
+\brief Base for Fields data type construction.
 \author Lucius Schoenbaum
 \author Vladimir Florinski
 \note There is no doxygen documentation for features in this class,
@@ -1545,7 +2267,7 @@ protected:
       if (i == 0)
          f(data, others.data...);
       else
-         throw std::out_of_range("[MHDtuple] out of range");
+         throw std::out_of_range("[Fields] out of range");
    }
 
    template <typename Function>
@@ -1631,7 +2353,7 @@ public:
       throw std::invalid_argument( "[Fields] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Den_found(void) {
+   static constexpr bool Den_found(void) {
       if constexpr (std::is_same<T, Den_t>::value)
          return true;
       else
@@ -1652,7 +2374,7 @@ public:
       throw std::invalid_argument( "[Fields] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Prs_found(void) {
+   static constexpr bool Prs_found(void) {
       if constexpr (std::is_same<T, Prs_t>::value)
          return true;
       else
@@ -1673,7 +2395,7 @@ public:
       throw std::invalid_argument( "[Fields] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Enr_found(void) {
+   static constexpr bool Enr_found(void) {
       if constexpr (std::is_same<T, Enr_t>::value)
          return true;
       else
@@ -1694,7 +2416,7 @@ public:
       throw std::invalid_argument( "[Fields] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Vel_found(void) {
+   static constexpr bool Vel_found(void) {
       if constexpr (std::is_same<T, Vel_t>::value)
          return true;
       else
@@ -1715,7 +2437,7 @@ public:
       throw std::invalid_argument( "[Fields] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Mom_found(void) {
+   static constexpr bool Mom_found(void) {
       if constexpr (std::is_same<T, Mom_t>::value)
          return true;
       else
@@ -1736,7 +2458,7 @@ public:
       throw std::invalid_argument( "[Fields] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxDen_found(void) {
+   static constexpr bool FlxDen_found(void) {
       if constexpr (std::is_same<T, FlxDen_t>::value)
          return true;
       else
@@ -1757,7 +2479,7 @@ public:
       throw std::invalid_argument( "[Fields] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxMom_found(void) {
+   static constexpr bool FlxMom_found(void) {
       if constexpr (std::is_same<T, FlxMom_t>::value)
          return true;
       else
@@ -1778,7 +2500,7 @@ public:
       throw std::invalid_argument( "[Fields] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxEnr_found(void) {
+   static constexpr bool FlxEnr_found(void) {
       if constexpr (std::is_same<T, FlxEnr_t>::value)
          return true;
       else
@@ -1799,7 +2521,7 @@ public:
       throw std::invalid_argument( "[Fields] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Mag_found(void) {
+   static constexpr bool Mag_found(void) {
       if constexpr (std::is_same<T, Mag_t>::value)
          return true;
       else
@@ -1820,7 +2542,7 @@ public:
       throw std::invalid_argument( "[Fields] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxMag_found(void) {
+   static constexpr bool FlxMag_found(void) {
       if constexpr (std::is_same<T, FlxMag_t>::value)
          return true;
       else
@@ -1841,7 +2563,7 @@ public:
       throw std::invalid_argument( "[Fields] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Glm_found(void) {
+   static constexpr bool Glm_found(void) {
       if constexpr (std::is_same<T, Glm_t>::value)
          return true;
       else
@@ -1862,7 +2584,7 @@ public:
       throw std::invalid_argument( "[Fields] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FlxGlm_found(void) {
+   static constexpr bool FlxGlm_found(void) {
       if constexpr (std::is_same<T, FlxGlm_t>::value)
          return true;
       else
@@ -1883,7 +2605,7 @@ public:
       throw std::invalid_argument( "[Fields] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool Elc_found(void) {
+   static constexpr bool Elc_found(void) {
       if constexpr (std::is_same<T, Elc_t>::value)
          return true;
       else
@@ -1904,7 +2626,7 @@ public:
       throw std::invalid_argument( "[Fields] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool AbsMag_found(void) {
+   static constexpr bool AbsMag_found(void) {
       if constexpr (std::is_same<T, AbsMag_t>::value)
          return true;
       else
@@ -1925,7 +2647,7 @@ public:
       throw std::invalid_argument( "[Fields] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool HatMag_found(void) {
+   static constexpr bool HatMag_found(void) {
       if constexpr (std::is_same<T, HatMag_t>::value)
          return true;
       else
@@ -1946,7 +2668,7 @@ public:
       throw std::invalid_argument( "[Fields] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelVel_found(void) {
+   static constexpr bool DelVel_found(void) {
       if constexpr (std::is_same<T, DelVel_t>::value)
          return true;
       else
@@ -1967,7 +2689,7 @@ public:
       throw std::invalid_argument( "[Fields] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelElc_found(void) {
+   static constexpr bool DelElc_found(void) {
       if constexpr (std::is_same<T, DelElc_t>::value)
          return true;
       else
@@ -1988,7 +2710,7 @@ public:
       throw std::invalid_argument( "[Fields] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelMag_found(void) {
+   static constexpr bool DelMag_found(void) {
       if constexpr (std::is_same<T, DelMag_t>::value)
          return true;
       else
@@ -2009,7 +2731,7 @@ public:
       throw std::invalid_argument( "[Fields] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelAbsMag_found(void) {
+   static constexpr bool DelAbsMag_found(void) {
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
          return true;
       else
@@ -2030,302 +2752,701 @@ public:
       throw std::invalid_argument( "[Fields] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DelHatMag_found(void) {
+   static constexpr bool DelHatMag_found(void) {
       if constexpr (std::is_same<T, DelHatMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerVel_t& DerVel(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   DdtVel_t& DdtVel(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] DerVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerVel_t& DerVel(void) const {
-   if constexpr (std::is_same<T, DerVel_t>::value)
+  const DdtVel_t& DdtVel(void) const {
+   if constexpr (std::is_same<T, DdtVel_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] DerVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerVel_found(void) {
-      if constexpr (std::is_same<T, DerVel_t>::value)
+   static constexpr bool DdtVel_found(void) {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
          return true;
       else
          return false;
    };
 
-   DerElc_t& DerElc(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   DdtElc_t& DdtElc(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] DerElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerElc_t& DerElc(void) const {
-   if constexpr (std::is_same<T, DerElc_t>::value)
+  const DdtElc_t& DdtElc(void) const {
+   if constexpr (std::is_same<T, DdtElc_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] DerElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerElc_found(void) {
-      if constexpr (std::is_same<T, DerElc_t>::value)
+   static constexpr bool DdtElc_found(void) {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
          return true;
       else
          return false;
    };
 
-   DerMag_t& DerMag(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   DdtMag_t& DdtMag(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] DerMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerMag_t& DerMag(void) const {
-   if constexpr (std::is_same<T, DerMag_t>::value)
+  const DdtMag_t& DdtMag(void) const {
+   if constexpr (std::is_same<T, DdtMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] DerMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerMag_found(void) {
-      if constexpr (std::is_same<T, DerMag_t>::value)
+   static constexpr bool DdtMag_found(void) {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerAbsMag_t& DerAbsMag(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   DdtAbsMag_t& DdtAbsMag(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] DerAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerAbsMag_t& DerAbsMag(void) const {
-   if constexpr (std::is_same<T, DerAbsMag_t>::value)
+  const DdtAbsMag_t& DdtAbsMag(void) const {
+   if constexpr (std::is_same<T, DdtAbsMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] DerAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerAbsMag_found(void) {
-      if constexpr (std::is_same<T, DerAbsMag_t>::value)
+   static constexpr bool DdtAbsMag_found(void) {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DerHatMag_t& DerHatMag(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   DdtHatMag_t& DdtHatMag(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] DerHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const DerHatMag_t& DerHatMag(void) const {
-   if constexpr (std::is_same<T, DerHatMag_t>::value)
+  const DdtHatMag_t& DdtHatMag(void) const {
+   if constexpr (std::is_same<T, DdtHatMag_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] DerHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool DerHatMag_found(void) {
-      if constexpr (std::is_same<T, DerHatMag_t>::value)
+   static constexpr bool DdtHatMag_found(void) {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
          return true;
       else
          return false;
    };
 
-   PrimitiveStateGASDYN_t& PrimitiveStateGASDYN(void) {
-      if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+   Iv0_t& Iv0(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] PrimitiveStateGASDYN (Fields of the primitive form for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const PrimitiveStateGASDYN_t& PrimitiveStateGASDYN(void) const {
-   if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+  const Iv0_t& Iv0(void) const {
+   if constexpr (std::is_same<T, Iv0_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] PrimitiveStateGASDYN (Fields of the primitive form for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool PrimitiveStateGASDYN_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateGASDYN_t>::value)
+   static constexpr bool Iv0_found(void) {
+      if constexpr (std::is_same<T, Iv0_t>::value)
          return true;
       else
          return false;
    };
 
-   ConservedStateGASDYN_t& ConservedStateGASDYN(void) {
-      if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+   Iv1_t& Iv1(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] ConservedStateGASDYN (Fields of the conserved form for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const ConservedStateGASDYN_t& ConservedStateGASDYN(void) const {
-   if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+  const Iv1_t& Iv1(void) const {
+   if constexpr (std::is_same<T, Iv1_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] ConservedStateGASDYN (Fields of the conserved form for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool ConservedStateGASDYN_found(void) {
-      if constexpr (std::is_same<T, ConservedStateGASDYN_t>::value)
+   static constexpr bool Iv1_found(void) {
+      if constexpr (std::is_same<T, Iv1_t>::value)
          return true;
       else
          return false;
    };
 
-   FluxFunctionGASDYN_t& FluxFunctionGASDYN(void) {
-      if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+   Iv2_t& Iv2(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] FluxFunctionGASDYN (Fields of the flux function for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const FluxFunctionGASDYN_t& FluxFunctionGASDYN(void) const {
-   if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+  const Iv2_t& Iv2(void) const {
+   if constexpr (std::is_same<T, Iv2_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] FluxFunctionGASDYN (Fields of the flux function for a gas dynamics model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FluxFunctionGASDYN_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionGASDYN_t>::value)
+   static constexpr bool Iv2_found(void) {
+      if constexpr (std::is_same<T, Iv2_t>::value)
          return true;
       else
          return false;
    };
 
-   PrimitiveStateMHD_t& PrimitiveStateMHD(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+   Iv3_t& Iv3(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] PrimitiveStateMHD (Fields of the primitive form for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const PrimitiveStateMHD_t& PrimitiveStateMHD(void) const {
-   if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+  const Iv3_t& Iv3(void) const {
+   if constexpr (std::is_same<T, Iv3_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] PrimitiveStateMHD (Fields of the primitive form for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool PrimitiveStateMHD_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_t>::value)
+   static constexpr bool Iv3_found(void) {
+      if constexpr (std::is_same<T, Iv3_t>::value)
          return true;
       else
          return false;
    };
 
-   ConservedStateMHD_t& ConservedStateMHD(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+   Iv4_t& Iv4(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] ConservedStateMHD (Fields of the conserved form for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const ConservedStateMHD_t& ConservedStateMHD(void) const {
-   if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+  const Iv4_t& Iv4(void) const {
+   if constexpr (std::is_same<T, Iv4_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] ConservedStateMHD (Fields of the conserved form for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool ConservedStateMHD_found(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_t>::value)
+   static constexpr bool Iv4_found(void) {
+      if constexpr (std::is_same<T, Iv4_t>::value)
          return true;
       else
          return false;
    };
 
-   FluxFunctionMHD_t& FluxFunctionMHD(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+   Iv5_t& Iv5(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] FluxFunctionMHD (Fields of the flux function for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const FluxFunctionMHD_t& FluxFunctionMHD(void) const {
-   if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+  const Iv5_t& Iv5(void) const {
+   if constexpr (std::is_same<T, Iv5_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] FluxFunctionMHD (Fields of the flux function for an MHD model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FluxFunctionMHD_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_t>::value)
+   static constexpr bool Iv5_found(void) {
+      if constexpr (std::is_same<T, Iv5_t>::value)
          return true;
       else
          return false;
    };
 
-   PrimitiveStateMHD_GLM_t& PrimitiveStateMHD_GLM(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+   PrimitiveGasDyn_t& PrimitiveGasDyn(void) {
+      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] PrimitiveStateMHD_GLM (Fields of the primitive form for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const PrimitiveStateMHD_GLM_t& PrimitiveStateMHD_GLM(void) const {
-   if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+  const PrimitiveGasDyn_t& PrimitiveGasDyn(void) const {
+   if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] PrimitiveStateMHD_GLM (Fields of the primitive form for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool PrimitiveStateMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, PrimitiveStateMHD_GLM_t>::value)
+   static constexpr bool PrimitiveGasDyn_found(void) {
+      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
          return true;
       else
          return false;
    };
 
-   ConservedStateMHD_GLM_t& ConservedStateMHD_GLM(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+   ConservedGasDyn_t& ConservedGasDyn(void) {
+      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] ConservedStateMHD_GLM (Fields of the conserved form for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] ConservedGasDyn (Fields of the conserved form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const ConservedStateMHD_GLM_t& ConservedStateMHD_GLM(void) const {
-   if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+  const ConservedGasDyn_t& ConservedGasDyn(void) const {
+   if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] ConservedStateMHD_GLM (Fields of the conserved form for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] ConservedGasDyn (Fields of the conserved form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool ConservedStateMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, ConservedStateMHD_GLM_t>::value)
+   static constexpr bool ConservedGasDyn_found(void) {
+      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
          return true;
       else
          return false;
    };
 
-   FluxFunctionMHD_GLM_t& FluxFunctionMHD_GLM(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+   PrimitiveMHD_t& PrimitiveMHD(void) {
+      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
          return data;
       else
-        throw std::invalid_argument( "[Fields] FluxFunctionMHD_GLM (Fields of the flux function for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Fields] PrimitiveMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-  const FluxFunctionMHD_GLM_t& FluxFunctionMHD_GLM(void) const {
-   if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+  const PrimitiveMHD_t& PrimitiveMHD(void) const {
+   if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
       return data;
    else
-      throw std::invalid_argument( "[Fields] FluxFunctionMHD_GLM (Fields of the flux function for an MHD-GLM model) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      throw std::invalid_argument( "[Fields] PrimitiveMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
    };
    
-   bool FluxFunctionMHD_GLM_found(void) {
-      if constexpr (std::is_same<T, FluxFunctionMHD_GLM_t>::value)
+   static constexpr bool PrimitiveMHD_found(void) {
+      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ConservedMHD_t& ConservedMHD(void) {
+      if constexpr (std::is_same<T, ConservedMHD_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ConservedMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ConservedMHD_t& ConservedMHD(void) const {
+   if constexpr (std::is_same<T, ConservedMHD_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ConservedMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ConservedMHD_found(void) {
+      if constexpr (std::is_same<T, ConservedMHD_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) {
+      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) const {
+   if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool PrimitiveMHDGLM_found(void) {
+      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ConservedMHDGLM_t& ConservedMHDGLM(void) {
+      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ConservedMHDGLM_t& ConservedMHDGLM(void) const {
+   if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ConservedMHDGLM_found(void) {
+      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ElectronCore_t& ElectronCore(void) {
+      if constexpr (std::is_same<T, ElectronCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ElectronCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ElectronCore_t& ElectronCore(void) const {
+   if constexpr (std::is_same<T, ElectronCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ElectronCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ElectronCore_found(void) {
+      if constexpr (std::is_same<T, ElectronCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ElectronHalo_t& ElectronHalo(void) {
+      if constexpr (std::is_same<T, ElectronHalo_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ElectronHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ElectronHalo_t& ElectronHalo(void) const {
+   if constexpr (std::is_same<T, ElectronHalo_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ElectronHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ElectronHalo_found(void) {
+      if constexpr (std::is_same<T, ElectronHalo_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ElectronBeam_t& ElectronBeam(void) {
+      if constexpr (std::is_same<T, ElectronBeam_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ElectronBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ElectronBeam_t& ElectronBeam(void) const {
+   if constexpr (std::is_same<T, ElectronBeam_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ElectronBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ElectronBeam_found(void) {
+      if constexpr (std::is_same<T, ElectronBeam_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ProtonCore_t& ProtonCore(void) {
+      if constexpr (std::is_same<T, ProtonCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ProtonCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ProtonCore_t& ProtonCore(void) const {
+   if constexpr (std::is_same<T, ProtonCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ProtonCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ProtonCore_found(void) {
+      if constexpr (std::is_same<T, ProtonCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ProtonHalo_t& ProtonHalo(void) {
+      if constexpr (std::is_same<T, ProtonHalo_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ProtonHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ProtonHalo_t& ProtonHalo(void) const {
+   if constexpr (std::is_same<T, ProtonHalo_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ProtonHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ProtonHalo_found(void) {
+      if constexpr (std::is_same<T, ProtonHalo_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ProtonBeam_t& ProtonBeam(void) {
+      if constexpr (std::is_same<T, ProtonBeam_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ProtonBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ProtonBeam_t& ProtonBeam(void) const {
+   if constexpr (std::is_same<T, ProtonBeam_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ProtonBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ProtonBeam_found(void) {
+      if constexpr (std::is_same<T, ProtonBeam_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   ProtonPickup_t& ProtonPickup(void) {
+      if constexpr (std::is_same<T, ProtonPickup_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] ProtonPickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const ProtonPickup_t& ProtonPickup(void) const {
+   if constexpr (std::is_same<T, ProtonPickup_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] ProtonPickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool ProtonPickup_found(void) {
+      if constexpr (std::is_same<T, ProtonPickup_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   AlphaCore_t& AlphaCore(void) {
+      if constexpr (std::is_same<T, AlphaCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] AlphaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const AlphaCore_t& AlphaCore(void) const {
+   if constexpr (std::is_same<T, AlphaCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] AlphaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool AlphaCore_found(void) {
+      if constexpr (std::is_same<T, AlphaCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   AlphaHalo_t& AlphaHalo(void) {
+      if constexpr (std::is_same<T, AlphaHalo_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] AlphaHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const AlphaHalo_t& AlphaHalo(void) const {
+   if constexpr (std::is_same<T, AlphaHalo_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] AlphaHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool AlphaHalo_found(void) {
+      if constexpr (std::is_same<T, AlphaHalo_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HeliumSingleCore_t& HeliumSingleCore(void) {
+      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HeliumSingleCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HeliumSingleCore_t& HeliumSingleCore(void) const {
+   if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HeliumSingleCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HeliumSingleCore_found(void) {
+      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HeliumSinglePickup_t& HeliumSinglePickup(void) {
+      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HeliumSinglePickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HeliumSinglePickup_t& HeliumSinglePickup(void) const {
+   if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HeliumSinglePickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HeliumSinglePickup_found(void) {
+      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) {
+      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HydrogenPlasmaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) const {
+   if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HydrogenPlasmaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HydrogenPlasmaCore_found(void) {
+      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HydrogenCore_t& HydrogenCore(void) {
+      if constexpr (std::is_same<T, HydrogenCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HydrogenCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HydrogenCore_t& HydrogenCore(void) const {
+   if constexpr (std::is_same<T, HydrogenCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HydrogenCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HydrogenCore_found(void) {
+      if constexpr (std::is_same<T, HydrogenCore_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HydrogenHalo_t& HydrogenHalo(void) {
+      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HydrogenHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HydrogenHalo_t& HydrogenHalo(void) const {
+   if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HydrogenHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HydrogenHalo_found(void) {
+      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HydrogenBeam_t& HydrogenBeam(void) {
+      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HydrogenBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HydrogenBeam_t& HydrogenBeam(void) const {
+   if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HydrogenBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HydrogenBeam_found(void) {
+      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   HeliumCore_t& HeliumCore(void) {
+      if constexpr (std::is_same<T, HeliumCore_t>::value)
+         return data;
+      else
+        throw std::invalid_argument( "[Fields] HeliumCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+  const HeliumCore_t& HeliumCore(void) const {
+   if constexpr (std::is_same<T, HeliumCore_t>::value)
+      return data;
+   else
+      throw std::invalid_argument( "[Fields] HeliumCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+   };
+   
+   static constexpr bool HeliumCore_found(void) {
+      if constexpr (std::is_same<T, HeliumCore_t>::value)
          return true;
       else
          return false;
@@ -2418,7 +3539,7 @@ public:
 */
    double divbhat()
    {
-      auto bhat = DerMag();
+      auto bhat = DdtMag();
       auto Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
       auto Bdiv = divB();
@@ -2468,8 +3589,8 @@ public:
 */
    GeoVector dbhatdt()
    {
-      auto dBvecdt = DerMag();
-      auto dBmagdt = DerAbsMag();
+      auto dBvecdt = DdtMag();
+      auto dBmagdt = DdtAbsMag();
       auto bhat = HatMag();
       double Bmag = AbsMag();
       return (dBvecdt - (dBmagdt * bhat)) / Bmag;

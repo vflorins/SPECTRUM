@@ -13,7 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/mpi_config.hh"
 #include "common/vectors.hh"
 #include "common/physics.hh"
-#include "common/spatial_data.hh"
 #include "cache_lru.hh"
 #include <memory>
 
@@ -254,12 +253,15 @@ public:
 //! Empty the cache
    void InvalidateCache(void);
 
+//! Print how many times internal/external interpolators were used
+   virtual void PrintStencilOutcomes(void) = 0;
+
 #ifdef NEED_SERVER
 //! Obtain the variables
-   virtual void GetVariables(double t, const GeoVector& pos, SpatialData& spdata) = 0;
+   virtual void GetVariables(double t, const GeoVector& pos, Fields& fields) = 0;
 
 //! Obtain the gradients
-   virtual void GetGradients(SpatialData& spdata) = 0;
+   virtual void GetGradients(Fields& fields) = 0;
 #endif
 
 };

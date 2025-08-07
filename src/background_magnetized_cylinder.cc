@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 02/13/2024
 */
-BackgroundMagnetizedCylinder::BackgroundMagnetizedCylinder(void)
-                            : BackgroundCylindricalObstacle(bg_name_magnetized_cylinder, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundMagnetizedCylinder<Fields>::BackgroundMagnetizedCylinder(void)
+                            : BackgroundCylindricalObstacle<Fields>(bg_name_magnetized_cylinder, 0, MODEL_STATIC)
 {
 };
 
@@ -30,8 +31,9 @@ BackgroundMagnetizedCylinder::BackgroundMagnetizedCylinder(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundMagnetizedCylinder::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
-                            : BackgroundCylindricalObstacle(other)
+template <typename Fields>
+BackgroundMagnetizedCylinder<Fields>::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
+                            : BackgroundCylindricalObstacle<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -41,10 +43,11 @@ BackgroundMagnetizedCylinder::BackgroundMagnetizedCylinder(const BackgroundMagne
 \author Vladimir Florinski
 \date 02/13/2024
 */
-void BackgroundMagnetizedCylinder::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundMagnetizedCylinder<Fields>::EvaluateBackground(void)
 {
-   BackgroundCylindricalObstacle::EvaluateBackground();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 - _spdata.Bvec;
+   BackgroundCylindricalObstacle<Fields>::EvaluateBackground();
+   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 - _fields.Mag();
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -53,12 +56,13 @@ void BackgroundMagnetizedCylinder::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-void BackgroundMagnetizedCylinder::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundMagnetizedCylinder<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if MAGNETIZED_CYLINDER_DERIVATIVE_METHOD == 0
 
-   BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives();
-   if(BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec *= -1.0;
+   BackgroundCylindricalObstacle<Fields>::EvaluateBackgroundDerivatives();
+   if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
 
 #else
    NumericalDerivatives();

@@ -20,8 +20,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/28/2022
 */
-BackgroundSolarWind::BackgroundSolarWind(void)
-                   : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
+template <typename Fields>
+BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
+                   : BackgroundBase<Fields>(bg_name_solarwind, 0, STATE_NONE)
 {
 };
 
@@ -29,8 +30,9 @@ BackgroundSolarWind::BackgroundSolarWind(void)
 \author Juan G Alonso Guzman
 \date 02/22/2024
 */
-BackgroundSolarWind::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                   : BackgroundBase(name_in, specie_in, status_in)
+template <typename Fields>
+BackgroundSolarWind<Fields>::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                   : BackgroundBase<Fields>(name_in, specie_in, status_in)
 {
 };
 
@@ -41,8 +43,9 @@ BackgroundSolarWind::BackgroundSolarWind(const std::string& name_in, unsigned in
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundSolarWind::BackgroundSolarWind(const BackgroundSolarWind& other)
-                   : BackgroundBase(other)
+template <typename Fields>
+BackgroundSolarWind<Fields>::BackgroundSolarWind(const BackgroundSolarWind& other)
+                   : BackgroundBase<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -55,10 +58,11 @@ BackgroundSolarWind::BackgroundSolarWind(const BackgroundSolarWind& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundSolarWind::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundSolarWind<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
    container.Read(Omega);
    container.Read(r_ref);
    container.Read(dmax_fraction);
@@ -89,7 +93,8 @@ void BackgroundSolarWind::SetupBackground(bool construct)
 \param[in]  r      radial distance
 \param[out] ur_mod modified radial flow
 */
-void BackgroundSolarWind::ModifyUr(const double r, double &ur_mod)
+template <typename Fields>
+void BackgroundSolarWind<Fields>::ModifyUr(const double r, double &ur_mod)
 {
 };
 
@@ -99,7 +104,8 @@ void BackgroundSolarWind::ModifyUr(const double r, double &ur_mod)
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
 */
-double BackgroundSolarWind::TimeLag(const double r)
+template <typename Fields>
+double BackgroundSolarWind<Fields>::TimeLag(const double r)
 {
    return r / ur0;
 };
@@ -108,7 +114,8 @@ double BackgroundSolarWind::TimeLag(const double r)
 \author Vladimir Florinski
 \date 06/21/2024
 */
-void BackgroundSolarWind::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundSolarWind<Fields>::EvaluateBackground(void)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
@@ -239,7 +246,8 @@ void BackgroundSolarWind::EvaluateBackground(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundSolarWind<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
    GeoVector posprime;
@@ -270,7 +278,8 @@ void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 \author Vladimir Florinski
 \date 03/10/2022
 */
-void BackgroundSolarWind::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundSolarWind<Fields>::EvaluateDmax(void)
 {
    _spdata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

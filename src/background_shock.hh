@@ -26,7 +26,28 @@ const std::string bg_name_shock = "BackgroundShock";
 
 Parameters: (BackgroundBase), GeoVector n_shock, double v_shock, double compression
 */
-class BackgroundShock : public BackgroundBase {
+template <typename Fields_>
+class BackgroundShock : public BackgroundBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -73,5 +94,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_shock.cc"
 
 #endif

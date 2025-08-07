@@ -19,8 +19,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/27/2021
 */
-BackgroundUniform::BackgroundUniform(void)
-                 : BackgroundBase(bg_name_uniform, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundUniform<Fields>::BackgroundUniform(void)
+                 : BackgroundBase<Fields>(bg_name_uniform, 0, MODEL_STATIC)
 {
 };
 
@@ -31,8 +32,9 @@ BackgroundUniform::BackgroundUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundUniform::BackgroundUniform(const BackgroundUniform& other)
-                 : BackgroundBase(other)
+template <typename Fields>
+BackgroundUniform<Fields>::BackgroundUniform(const BackgroundUniform& other)
+                 : BackgroundBase<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -46,10 +48,11 @@ BackgroundUniform::BackgroundUniform(const BackgroundUniform& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundUniform::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundUniform<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
 
 // Precompute motional electric field for efficiency
    E0 = -(u0 ^ B0) / c_code;
@@ -60,8 +63,22 @@ void BackgroundUniform::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-void BackgroundUniform::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundUniform<Fields>::EvaluateBackground(void)
 {
+   // todo
+   if (_fields.found_Vel()) {
+      _fields.Vel() = u0;
+   }
+   if (_fields.found_Mag()) {
+      _fields.Mag() = B0;
+   }
+   if (_fields.found_Elc()) {
+      _fields.Elc() = E0;
+   }
+
+   // todo GOT TO HERE ______________________
+
    if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;

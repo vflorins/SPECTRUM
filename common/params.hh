@@ -160,6 +160,7 @@ public:
 
 //! Return the status
    uint16_t GetStatus(void) const {return _status;};
+
 };
 
 };

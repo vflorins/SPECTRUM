@@ -29,7 +29,29 @@ const std::string bg_name_magnetized_sphere = "BackgroundMagnetizedSphere";
 
 Parameters: (BackgroundSphericalObstacle)
 */
-class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle {
+template <typename Fields_>
+class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundSphericalObstacle = BackgroundSphericalObstacle<Fields>;
+   using BackgroundSphericalObstacle::_status;
+   using BackgroundSphericalObstacle::_fields;
+   using BackgroundSphericalObstacle::_ddata;
+   using BackgroundSphericalObstacle::_pos;
+   using BackgroundSphericalObstacle::container;
+   using BackgroundSphericalObstacle::r0;
+   using BackgroundSphericalObstacle::B0;
+   using BackgroundSphericalObstacle::dmax0;
+   // methods
+   using BackgroundSphericalObstacle::EvaluateBmag;
+   using BackgroundSphericalObstacle::EvaluateDmax;
+   using BackgroundSphericalObstacle::StopServerFront;
+   using BackgroundSphericalObstacle::SetupBackground;
+   using BackgroundSphericalObstacle::EvaluateBackground;
+   using BackgroundSphericalObstacle::EvaluateBackgroundDerivatives;
+   using BackgroundSphericalObstacle::NumericalDerivatives;
 
 protected:
 
@@ -55,5 +77,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_magnetized_sphere.cc"
 
 #endif

@@ -16,9 +16,11 @@ namespace Spectrum {
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\author Lucius Schoenbaum
+\date 08/05/2025
 */
-BackgroundDiscontinuity::BackgroundDiscontinuity(void)
+template <typename Fields>
+BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(void)
                        : BackgroundBase(bg_name_discontinuity, 0, STATE_NONE)
 {
 };
@@ -30,7 +32,8 @@ BackgroundDiscontinuity::BackgroundDiscontinuity(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundDiscontinuity::BackgroundDiscontinuity(const BackgroundDiscontinuity& other)
+template <typename Fields>
+BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const BackgroundDiscontinuity& other)
                        : BackgroundBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -41,7 +44,8 @@ BackgroundDiscontinuity::BackgroundDiscontinuity(const BackgroundDiscontinuity& 
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-BackgroundDiscontinuity::BackgroundDiscontinuity(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                : BackgroundBase(name_in, specie_in, status_in)
 {
 };
@@ -53,10 +57,11 @@ BackgroundDiscontinuity::BackgroundDiscontinuity(const std::string& name_in, uns
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundDiscontinuity::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundDiscontinuity<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) SetupBackground(false);
 
 // Unpack parameters
    container.Read(n_discont);
@@ -72,22 +77,24 @@ void BackgroundDiscontinuity::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-void BackgroundDiscontinuity::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundDiscontinuity<Fields>::EvaluateBackground(void)
 {
 // Upstream
    if ((_pos - r0) * n_discont - v_discont * _t > 0) {
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
-      _spdata.region = 1.0;
+      if constexpr (Fields::Vel_found()) _fields.Vel() = u0;
+      if constexpr (Fields::Mag_found()) _fields.Mag() = B0;
+      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0;
    }
 // Downstream
    else {
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1;
-      _spdata.region = 2.0;
+      if constexpr (Fields::Vel_found()) _fields.Vel() = u1;
+      if constexpr (Fields::Mag_found()) _fields.Mag() = B1;
+      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 2.0;
    };
-   
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+
+   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+
    LOWER_BITS(_status, STATE_INVALID);
 };
 
@@ -95,17 +102,18 @@ void BackgroundDiscontinuity::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-void BackgroundDiscontinuity::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 };
 
 };

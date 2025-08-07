@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-BackgroundShock::BackgroundShock(void)
-               : BackgroundBase(bg_name_shock, 0, STATE_NONE)
+template <typename Fields>
+BackgroundShock<Fields>::BackgroundShock(void)
+               : BackgroundBase<Fields>(bg_name_shock, 0, STATE_NONE)
 {
 };
 
@@ -30,8 +31,9 @@ BackgroundShock::BackgroundShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundShock::BackgroundShock(const BackgroundShock& other)
-               : BackgroundBase(other)
+template <typename Fields>
+BackgroundShock<Fields>::BackgroundShock(const BackgroundShock& other)
+               : BackgroundBase<Fields>(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -41,8 +43,9 @@ BackgroundShock::BackgroundShock(const BackgroundShock& other)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-BackgroundShock::BackgroundShock(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-               : BackgroundBase(name_in, specie_in, status_in)
+template <typename Fields>
+BackgroundShock<Fields>::BackgroundShock(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+               : BackgroundBase<Fields>(name_in, specie_in, status_in)
 {
 };
 
@@ -54,10 +57,11 @@ BackgroundShock::BackgroundShock(const std::string& name_in, unsigned int specie
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundShock::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
 
 // Unpack parameters
    container.Read(n_shock);
@@ -84,7 +88,8 @@ void BackgroundShock::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-void BackgroundShock::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundShock<Fields>::EvaluateBackground(void)
 {
 // Upstream
    if ((_pos - r0) * n_shock - v_shock * _t > 0) {
@@ -107,7 +112,8 @@ void BackgroundShock::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-void BackgroundShock::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundShock<Fields>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;

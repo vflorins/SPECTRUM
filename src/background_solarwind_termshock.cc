@@ -19,8 +19,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 02/22/2023
 */
-BackgroundSolarWindTermShock::BackgroundSolarWindTermShock(void)
-                            : BackgroundSolarWind(bg_name_solarwind_termshock, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(void)
+                            : BackgroundSolarWind<Fields>(bg_name_solarwind_termshock, 0, MODEL_STATIC)
 {
 };
 
@@ -31,8 +32,9 @@ BackgroundSolarWindTermShock::BackgroundSolarWindTermShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundSolarWindTermShock::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
-                            : BackgroundSolarWind(other)
+template <typename Fields>
+BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
+                            : BackgroundSolarWind<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -45,10 +47,11 @@ BackgroundSolarWindTermShock::BackgroundSolarWindTermShock(const BackgroundSolar
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundSolarWindTermShock::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundSolarWindTermShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundSolarWind::SetupBackground(false);
+   if (!construct) BackgroundSolarWind<Fields>::SetupBackground(false);
    container.Read(r_TS);
    container.Read(w_TS);
    container.Read(s_TS);
@@ -63,7 +66,8 @@ void BackgroundSolarWindTermShock::SetupBackground(bool construct)
 \param[in]  r      radial distance
 \param[out] ur_mod modified radial flow
 */
-void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
+template <typename Fields>
+void BackgroundSolarWindTermShock<Fields>::ModifyUr(const double r, double &ur_mod)
 {
    if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -82,7 +86,8 @@ void BackgroundSolarWindTermShock::ModifyUr(const double r, double &ur_mod)
 \date 05/14/2025
 \param[in]  r      radial distance
 */
-double BackgroundSolarWindTermShock::dUrdr(const double r)
+template <typename Fields>
+double BackgroundSolarWindTermShock<Fields>::dUrdr(const double r)
 {
    if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -103,7 +108,8 @@ double BackgroundSolarWindTermShock::dUrdr(const double r)
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
 */
-double BackgroundSolarWindTermShock::TimeLag(const double r)
+template <typename Fields>
+double BackgroundSolarWindTermShock<Fields>::TimeLag(const double r)
 {
    if (r < r_TS) return r / ur0;
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -119,7 +125,8 @@ double BackgroundSolarWindTermShock::TimeLag(const double r)
 \author Juan G Alonso Guzman
 \date 05/14/2023
 */
-void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundSolarWindTermShock<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
    double r;
@@ -152,9 +159,10 @@ void BackgroundSolarWindTermShock::EvaluateBackgroundDerivatives(void)
 \author Juan G Alonso Guzman
 \date 02/23/2024
 */
-void BackgroundSolarWindTermShock::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundSolarWindTermShock<Fields>::EvaluateDmax(void)
 {
-   BackgroundSolarWind::EvaluateDmax();
+   BackgroundSolarWind<Fields>::EvaluateDmax();
 
 // Reduce "dmax" around the shock. This implemenation assumes that "dmax" = "dmax0" near "r_TS" by default.
    double r = (_pos - r0).Norm();

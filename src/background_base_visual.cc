@@ -28,7 +28,8 @@ namespace Spectrum {
 \param[in] normal  Normal to the cut plane
 \param[in] right   Direction defining the x-axis in the cut plane
 */
-void BackgroundBase::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_max_in, const MultiIndex& dims_z_in,
+template <typename Fields>
+void BackgroundBase<Fields>::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_max_in, const MultiIndex& dims_z_in,
                             const GeoVector& normal, const GeoVector& right)
 {
    xyz_min = xyz_min_in;
@@ -45,7 +46,8 @@ void BackgroundBase::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_ma
 \param[in] box_fname  Name of the SILO file
 \param[in] phys_units Use physical units for output
 */
-void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -76,12 +78,13 @@ void BackgroundBase::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\date 08/05/2025
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units, double t)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot3DScalar(const std::string var_name, bool phys_units, double t)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -208,7 +211,8 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -274,7 +278,8 @@ void BackgroundBase::BoxPlot3DVector(const std::string var_name, bool phys_units
 \param[in] box_fname  Name of the SILO file
 \param[in] phys_units Use physical units for output
 */
-void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -310,7 +315,8 @@ void BackgroundBase::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -436,7 +442,8 @@ void BackgroundBase::BoxPlot2DScalar(const std::string var_name, bool phys_units
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
@@ -498,7 +505,8 @@ void BackgroundBase::BoxPlot2DVector(const std::string var_name, bool phys_units
 \author Vladimir Florinski
 \date 10/23/2020
 */
-void BackgroundBase::BoxPlotFinalize(void)
+template <typename Fields>
+void BackgroundBase<Fields>::BoxPlotFinalize(void)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
    if (silofile) DBClose(silofile);

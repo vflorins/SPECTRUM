@@ -29,7 +29,28 @@ const std::string bg_name_spherical_obstacle = "BackgroundSphericalObstacle";
 
 Parameters: (BackgroundBase), double r_sphere, double dmax_fraction
 */
-class BackgroundSphericalObstacle : public BackgroundBase {
+template <typename Fields_>
+class BackgroundSphericalObstacle : public BackgroundBase<Fields_>{
+public:
+
+   using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundBase::_status;
+   using BackgroundBase::_fields;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::_pos;
+   using BackgroundBase::container;
+   using BackgroundBase::r0;
+   using BackgroundBase::B0;
+   using BackgroundBase::dmax0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::EvaluateBackground;
+   using BackgroundBase::EvaluateBackgroundDerivatives;
+   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
@@ -73,5 +94,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "background_spherical_obstacle.cc"
 
 #endif

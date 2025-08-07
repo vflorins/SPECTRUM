@@ -73,7 +73,7 @@ void TrajectoryBase<Fields>::ResetAllBoundaries(void)
    unsigned int bnd;
 
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
-      bcond_t[bnd]->SetScale(_spdata.dmax / c_code);
+      bcond_t[bnd]->SetScale(_ddata.dmax / c_code);
       bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
    for (bnd = 0; bnd < bcond_s.size(); bnd++) {

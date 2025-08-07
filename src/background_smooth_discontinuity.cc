@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "background_smooth_discont.hh"
+#include "background_smooth_discontinuity.hh"
 
 namespace Spectrum {
 
@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-BackgroundSmoothDiscontinuity::BackgroundSmoothDiscontinuity(void)
-                             : BackgroundShock(bg_name_smooth_discontinuity, 0, STATE_NONE)
+template <typename Fields>
+BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(void)
+                             : BackgroundShock<Fields>(bg_name_smooth_discontinuity, 0, STATE_NONE)
 {
 };
 
@@ -30,8 +31,9 @@ BackgroundSmoothDiscontinuity::BackgroundSmoothDiscontinuity(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundSmoothDiscontinuity::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
-                             : BackgroundShock(other)
+template <typename Fields>
+BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
+                             : BackgroundShock<Fields>(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -43,7 +45,8 @@ BackgroundSmoothDiscontinuity::BackgroundSmoothDiscontinuity(const BackgroundSmo
 \param [in] x Relative transition region location
 \return Relative value of discontinuous quantity
 */
-double BackgroundSmoothDiscontinuity::DiscontinuityTransition(double x)
+template <typename Fields>
+double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransition(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_DISCONT_ORDER == 0 // continous but not differentiable
@@ -73,7 +76,8 @@ double BackgroundSmoothDiscontinuity::DiscontinuityTransition(double x)
 \param [in] x Relative transition region location 
 \return Derivative of relative value of discontinuous quantity
 */
-double BackgroundSmoothDiscontinuity::DiscontinuityTransitionDerivative(double x)
+template <typename Fields>
+double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransitionDerivative(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_DISCONT_ORDER == 0
@@ -104,10 +108,11 @@ double BackgroundSmoothDiscontinuity::DiscontinuityTransitionDerivative(double x
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundSmoothDiscontinuity::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundShock::SetupBackground(false);
+   if (!construct) BackgroundShock<Fields>::SetupBackground(false);
 
 // Unpack parameters
    container.Read(width_discont);
@@ -118,7 +123,8 @@ void BackgroundSmoothDiscontinuity::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackground(void)
 {
    double a1, a2;
    ds_discont = ((_pos - r0) * n_discont - v_discont * _t) / width_discont;
@@ -138,7 +144,8 @@ void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHDISCONT_DERIVATIVE_METHOD == 0
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
@@ -171,7 +178,8 @@ void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-void BackgroundSmoothDiscontinuity::EvaluateDmax(void)
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<Fields>::EvaluateDmax(void)
 {
    _spdata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

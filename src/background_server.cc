@@ -18,7 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-BackgroundServer::BackgroundServer(void)
+template <typename Fields>
+BackgroundServer<Fields>::BackgroundServer(void)
                 : BackgroundBase("", 0, STATE_NONE)
 {
 };
@@ -27,7 +28,8 @@ BackgroundServer::BackgroundServer(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-BackgroundServer::BackgroundServer(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Fields>
+BackgroundServer<Fields>::BackgroundServer(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                 : BackgroundBase(name_in, specie_in, status_in)
 {
 };
@@ -39,7 +41,8 @@ BackgroundServer::BackgroundServer(const std::string& name_in, unsigned int spec
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundServer::BackgroundServer(const BackgroundServer& other)
+template <typename Fields>
+BackgroundServer<Fields>::BackgroundServer(const BackgroundServer& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -54,12 +57,14 @@ BackgroundServer::BackgroundServer(const BackgroundServer& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BackgroundServer::SetupBackground(bool construct)
+template <typename Fields>
+void BackgroundServer<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+   if (!construct) SetupBackground(false);
    
 #ifdef NEED_SERVER
+
    if (MPI_Config::is_worker) {
       server_front = std::make_unique<ServerFrontType>();
       server_front->ServerStart();
@@ -72,10 +77,11 @@ void BackgroundServer::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-void BackgroundServer::EvaluateBackground(void)
+template <typename Fields>
+void BackgroundServer<Fields>::EvaluateBackground(void)
 {
 #ifdef NEED_SERVER
-   server_front->GetVariables(_t, _pos, _spdata);
+   server_front->GetVariables(_t, _pos, _fields);
 #endif
 };
 
@@ -84,12 +90,14 @@ void BackgroundServer::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-void BackgroundServer::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundServer<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #ifdef NEED_SERVER
-   server_front->GetGradients(_spdata);
+   server_front->GetGradients(_fields);
 #endif
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_grad_FAIL)) NumericalDerivatives();
+   // todo review after moving BACKGROUND_grad_FAIL to _ddata._status from _spdata._mask
+   if (BITS_RAISED(_ddata._status, BACKGROUND_grad_FAIL)) NumericalDerivatives();
 };
 
 #if SERVER_INTERP_ORDER > 0
@@ -97,7 +105,8 @@ void BackgroundServer::EvaluateBackgroundDerivatives(void)
 \author Juan G Alonso Guzman
 \date 06/17/2024
 */
-void BackgroundServer::EvaluateBmag(void)
+template <typename Fields>
+void BackgroundServer<Fields>::EvaluateBmag(void)
 {
 // If variables are interpolated, override this function to be empty, and interpolation will happen within "GetVariables".
 };
@@ -108,7 +117,8 @@ void BackgroundServer::EvaluateBmag(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-void BackgroundServer::StopServerFront(void)
+template <typename Fields>
+void BackgroundServer<Fields>::StopServerFront(void)
 {
 #ifdef GEO_DEBUG
    server_front->PrintStencilOutcomes();

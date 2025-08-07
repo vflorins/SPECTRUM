@@ -18,8 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-BackgroundServerCartesian::BackgroundServerCartesian(void)
-                         : BackgroundServer(bg_name_server_cartesian, 0, MODEL_STATIC)
+template <typename Fields>
+BackgroundServerCartesian<Fields>::BackgroundServerCartesian(void)
+                         : BackgroundServer<Fields>(bg_name_server_cartesian, 0, MODEL_STATIC)
 {
 };
 
@@ -27,8 +28,9 @@ BackgroundServerCartesian::BackgroundServerCartesian(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-BackgroundServerCartesian::BackgroundServerCartesian(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                         : BackgroundServer(name_in, specie_in, status_in)
+template <typename Fields>
+BackgroundServerCartesian<Fields>::BackgroundServerCartesian(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+                         : BackgroundServer<Fields>(name_in, specie_in, status_in)
 {
 };
 
@@ -39,8 +41,9 @@ BackgroundServerCartesian::BackgroundServerCartesian(const std::string& name_in,
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-BackgroundServerCartesian::BackgroundServerCartesian(const BackgroundServerCartesian& other)
-                         : BackgroundServer(other)
+template <typename Fields>
+BackgroundServerCartesian<Fields>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
+                         : BackgroundServer<Fields>(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);

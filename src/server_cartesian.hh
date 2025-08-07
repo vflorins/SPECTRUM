@@ -164,7 +164,7 @@ public:
 #endif
 
 //! Print how many times internal/external interpolators were used
-   void PrintStencilOutcomes(void);
+   void PrintStencilOutcomes(void) override;
 
 //! Print how many blocks were requested
    void PrintNumBlocksRequested(void);

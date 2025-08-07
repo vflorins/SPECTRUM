@@ -37,12 +37,13 @@ The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. 
 
 Parameters:
 */
+template <typename Fields>
 class DiffusionBase : public Params {
 
 protected:
 
-//! Spatial data (transient)
-   SpatialData _spdata;
+//! Fields data (transient)
+   Fields _spdata;
 
 //! Velocity magnitude (transient)
    double vmag;

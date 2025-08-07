@@ -54,7 +54,7 @@ constexpr uint16_t TRAJ_MOMENTUM_CROSSED = 0x0080;
 constexpr uint16_t TRAJ_DISCARD = 0x0100;
 
 //! Clone function pattern
-#define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase> Clone(void) const override {return std::make_unique<T>();};
+#define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase<Fields>> Clone(void) const override {return std::make_unique<T>();};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions
@@ -252,10 +252,10 @@ protected:
    GeoVector local_mom;
 
 //! Spatial data (transient)
-   SpatialData _spdata;
+   Fields _fields;
 
 //! Spatial data at the start of the trajectory (transient)
-   SpatialData spdata0;
+   Fields fields0;
 
 //! Slopes for position in RK step (transient)
    GeoVector slope_pos[MAX_RK_STAGES];
