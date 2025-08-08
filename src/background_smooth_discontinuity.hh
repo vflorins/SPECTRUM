@@ -33,12 +33,11 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
 template <typename Fields_>
-class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<Fields_>, BackgroundShock<Fields_> {
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<Fields_> {
 public:
 
    using Fields = Fields_;
    using BackgroundDiscontinuity = BackgroundDiscontinuity<Fields>;
-   using BackgroundShock = BackgroundShock<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
@@ -64,12 +63,7 @@ public:
    using BackgroundDiscontinuity::u1;
    using BackgroundDiscontinuity::B1;
 
-   // todo this lives in BackgroundSmoothShock!
-   using BackgroundShock::ShockTransition;
-   using BackgroundShock::ShockTransitionDerivative;
-
 //! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
-// todo something has to be done about this, related to BackgroundSmoothShock/BackgroundShock
    const double tanh_width_factor = 4.0;
 
 protected:

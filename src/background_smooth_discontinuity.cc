@@ -129,7 +129,7 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackground(void)
    double a1, a2;
    ds_discont = ((_pos - r0) * n_discont - v_discont * _t) / width_discont;
 
-   a1 = ShockTransition(ds_discont);
+   a1 = DiscontinuityTransition(ds_discont);
    a2 = 1.0 - a1;
 
    if constexpr (Fields::Vel_found()) _fields.Vel() = u0 * a1 + u1 * a2;
@@ -150,11 +150,11 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
 #if SMOOTHDISCONT_DERIVATIVE_METHOD == 0
    if constexpr (Fields::DelVel_found()) {
       _fields.DelVel().Dyadic(n_discont, u0 - u1);
-      _fields.DelVel() *= ShockTransitionDerivative(ds_discont) / width_discont;
+      _fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
    };
    if constexpr (Fields::DelMag_found()) {
       _fields.DelMag().Dyadic(n_discont, B0 - B1);
-      _fields.DelMag() *= ShockTransitionDerivative(ds_discont) / width_discont;
+      _fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
    }
    if constexpr (Fields::DelAbsMag_found()) {
       GeoVector bhat;
@@ -166,10 +166,10 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
       _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
    if constexpr (Fields::DdtVel_found()) {
-      _fields.DdtVel() = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+      _fields.DdtVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
    };
    if constexpr (Fields::DdtMag_found()) {
-      _fields.DdtMag() = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
+      _fields.DdtMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
    };
    if constexpr (Fields::DdtElc_found()) {
       _fields.DdtElc() = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
