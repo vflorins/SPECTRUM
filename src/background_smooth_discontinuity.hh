@@ -19,9 +19,6 @@ namespace Spectrum {
 //! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHDISCONT_DERIVATIVE_METHOD 0
 
-//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
-const double tanh_width_factor = 4.0;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothDiscontinuity class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +32,7 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
-class BackgroundSmoothDiscontinuity : public BackgroundShock {
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity {
 
 protected:
 
@@ -47,6 +44,9 @@ protected:
 
 //! Relative distance to discontinuity (transient)
    double ds_discont;
+
+//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   const double tanh_width_factor = 4.0;
 
 //! Shock transition region function
    double DiscontinuityTransition(double x);
