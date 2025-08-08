@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// BackgroundDipole methods
+// BackgroundWaves methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundWaves<Fields>::BackgroundWaves(void)
-               : BackgroundBase<Fields>(bg_name_waves, 0, MODEL_STATIC)
+               : BackgroundBase(bg_name_waves, 0, MODEL_STATIC)
 {
 };
 
@@ -33,7 +33,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundWaves<Fields>::BackgroundWaves(const BackgroundWaves& other)
-               : BackgroundBase<Fields>(other)
+               : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -56,7 +56,7 @@ void BackgroundWaves<Fields>::SetupBackground(bool construct)
    TurbProp properties;
 
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Build the field-aligned coordinate system
    basis_b.AxisymmetricBasis(B0);
@@ -178,9 +178,9 @@ void BackgroundWaves<Fields>::EvaluateBackground(void)
 
    posprime = _pos - r0;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = 0.0;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      _spdata.Bvec = B0;
+   if constexpr (Fields::Vel_found()) _fields.Vel() = gv_zeros;
+   if constexpr (Fields::Mag_found()) {
+      _fields.Mag() = B0;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
          for (wave = 0; wave < n_waves[t_type]; wave++) {
@@ -194,14 +194,14 @@ void BackgroundWaves<Fields>::EvaluateBackground(void)
             B_rot[1] = -Ampl[t_type][wave] * sina[t_type][wave] * sin(arg);
 
 // Project the field back into the global frame. This is faster than calling "ChangeFromBasis()" because it saves 6 ops out of 15
-            _spdata.Bvec[0] += B_rot[0] * basis[t_type][wave][0][0] + B_rot[1] * basis[t_type][wave][1][0];
-            _spdata.Bvec[1] += B_rot[0] * basis[t_type][wave][0][1] + B_rot[1] * basis[t_type][wave][1][1];
-            _spdata.Bvec[2] += B_rot[0] * basis[t_type][wave][0][2] + B_rot[1] * basis[t_type][wave][1][2];
+            _fields.Mag()[0] += B_rot[0] * basis[t_type][wave][0][0] + B_rot[1] * basis[t_type][wave][1][0];
+            _fields.Mag()[1] += B_rot[0] * basis[t_type][wave][0][1] + B_rot[1] * basis[t_type][wave][1][1];
+            _fields.Mag()[2] += B_rot[0] * basis[t_type][wave][0][2] + B_rot[1] * basis[t_type][wave][1][2];
          };
       };
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = 0.0;
-   _spdata.region = 1.0;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = 0.0;
+   if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -221,9 +221,9 @@ void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
 
    posprime = _pos - r0;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      _spdata.gradBvec = gm_zeros;
+   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) {
+      _fields.DelMag() = gm_zeros;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
          for (wave = 0; wave < n_waves[t_type]; wave++) {
@@ -242,17 +242,17 @@ void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
 
 // Transform the derivataives to the global frame
             for (xyz = 0; xyz < 3; xyz++) {
-               _spdata.gradBvec[0][xyz] += dB_rot[xyz] * basis[t_type][wave][3][0];
-               _spdata.gradBvec[1][xyz] += dB_rot[xyz] * basis[t_type][wave][3][1];
-               _spdata.gradBvec[2][xyz] += dB_rot[xyz] * basis[t_type][wave][3][2];
+               _fields.DelMag()[0][xyz] += dB_rot[xyz] * basis[t_type][wave][3][0];
+               _fields.DelMag()[1][xyz] += dB_rot[xyz] * basis[t_type][wave][3][1];
+               _fields.DelMag()[2][xyz] += dB_rot[xyz] * basis[t_type][wave][3][2];
             };
          };
       };
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 };
 
 /*!
@@ -262,7 +262,7 @@ void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
 template <typename Fields>
 void BackgroundWaves<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(shortest_wave, dmax0);
+   _ddata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

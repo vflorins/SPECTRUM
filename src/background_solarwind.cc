@@ -22,7 +22,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
-                   : BackgroundBase<Fields>(bg_name_solarwind, 0, STATE_NONE)
+                   : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
 {
 };
 
@@ -32,7 +32,7 @@ BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                   : BackgroundBase<Fields>(name_in, specie_in, status_in)
+                   : BackgroundBase(name_in, specie_in, status_in)
 {
 };
 
@@ -45,7 +45,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(const BackgroundSolarWind& other)
-                   : BackgroundBase<Fields>(other)
+                   : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -62,7 +62,7 @@ template <typename Fields>
 void BackgroundSolarWind<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(Omega);
    container.Read(r_ref);
    container.Read(dmax_fraction);
@@ -144,10 +144,13 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
    if (fs_theta_sym > M_PI_2) fs_theta_sym = M_PI - fs_theta_sym;
 
 // indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1); region[2] = time-lagged solar cycle phase
-   _spdata.region[0] = (r < hp_rad_sw ? 1.0 : -1.0);
-   _spdata.region[1] = -1.0;
-   _spdata.region[2] = arg;
-  
+   if constexpr (Fields::Iv0_found())
+      _fields.Iv0() = (r < hp_rad_sw ? 1.0 : -1.0);
+   if constexpr (Fields::Iv1_found())
+      _fields.Iv1() = -1.0;
+   if constexpr (Fields::Iv2_found())
+      _fields.Iv2() = arg;
+
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
 // Constant tilt
@@ -163,6 +166,7 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
 
 // Calculate speed (fast/slow) based on latitude
    ur = ur0;
+
 #if SOLARWIND_SPEED_LATITUDE_PROFILE == 1
       if (fs_theta_sym < fsl_mns) ur *= fast_slow_ratio_sw;
       else if (fs_theta_sym < fsl_pls) ur *= fast_slow_ratio_sw - 0.25 * fast_slow_dlat_sw * (fs_theta_sym - fsl_mns);
@@ -173,13 +177,13 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
    ModifyUr(r, ur);
 
 // Compute the (radial) velocity and convert back to global frame
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
-      _spdata.Uvec = ur * UnitVec(posprime);
-      _spdata.Uvec.ChangeFromBasis(eprime);
+   if (Fields::Vel_found()) {
+      _fields.Vel() = ur * UnitVec(posprime);
+      _fields.Vel().ChangeFromBasis(eprime);
    };
    
 // Compute (Parker spiral) magnetic field and convert back to global frame
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
+   if (Fields::Mag_found()) {
 // Coordinates for conversion
       sintheta = sqrt(fmax(1.0 - Sqr(costheta), 0.0));
       s = sqrt(Sqr(posprime[0]) + Sqr(posprime[1]));
@@ -207,36 +211,36 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
 // TODO
 #endif
 
-      _spdata.Bvec[0] = Br * sintheta * cosphi - Bp * sinphi;
-      _spdata.Bvec[1] = Br * sintheta * sinphi + Bp * cosphi;
-      _spdata.Bvec[2] = Br * costheta;
+      _fields.Mag()[0] = Br * sintheta * cosphi - Bp * sinphi;
+      _fields.Mag()[1] = Br * sintheta * sinphi + Bp * cosphi;
+      _fields.Mag()[2] = Br * costheta;
 #if SOLARWIND_POLAR_CORRECTION > 1
 // Add theta component from polar correction
-      _spdata.Bvec[0] += Bt * costheta * cosphi;
-      _spdata.Bvec[1] += Bt * costheta * sinphi;
-      _spdata.Bvec[2] -= Bt * sintheta;
+      _fields.Mag()[0] += Bt * costheta * cosphi;
+      _fields.Mag()[1] += Bt * costheta * sinphi;
+      _fields.Mag()[2] -= Bt * sintheta;
 #endif
 
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
 // Flat current sheet at the equator
-      if (acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
+      if (acos(costheta) > M_PI_2) _fields.Mag() *= -1.0;
 #elif SOLARWIND_CURRENT_SHEET >= 2
 // Wavy current sheet
       phase0 = w0 * t_lag;
       sinphase = sin(phase0);
       cosphase = cos(phase0);
-      if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase))) _spdata.Bvec *= -1.0;
+      if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase))) _fields.Mag() *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes
-      if (sin(W0_sw * t_lag) < 0.0) _spdata.Bvec *= -1.0;
+      if (sin(W0_sw * t_lag) < 0.0) _fields.Mag() *= -1.0;
 #endif
 #endif
-      _spdata.Bvec.ChangeFromBasis(eprime);
+      _fields.Mag().ChangeFromBasis(eprime);
    };
 
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Vel()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -253,21 +257,21 @@ void BackgroundSolarWind<Fields>::EvaluateBackgroundDerivatives(void)
    GeoVector posprime;
    GeoMatrix rr;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (Fields::DelVel_found()) {
 // Expression valid only for radial flow
       posprime = _pos - r0;
       rr.Dyadic(posprime);
-      _spdata.gradUvec = (_spdata.Uvec.Norm() / posprime.Norm()) * (gm_unit - rr);
+      _fields.DelVel() = (_fields.Vel().Norm() / posprime.Norm()) * (gm_unit - rr);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+   if (Fields::DelMag_found()) {
 //TODO: complete
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+   if (Fields::DelElc_found()) {
+      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives();
@@ -281,7 +285,7 @@ void BackgroundSolarWind<Fields>::EvaluateBackgroundDerivatives(void)
 template <typename Fields>
 void BackgroundSolarWind<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
+   _ddata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

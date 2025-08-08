@@ -35,9 +35,11 @@ public:
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
+   using BackgroundBase::_t;
    using BackgroundBase::_pos;
    using BackgroundBase::container;
    using BackgroundBase::r0;
+   using BackgroundBase::u0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
    // methods

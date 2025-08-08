@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundServerCartesian<Fields>::BackgroundServerCartesian(void)
-                         : BackgroundServer<Fields>(bg_name_server_cartesian, 0, MODEL_STATIC)
+                         : BackgroundServer(bg_name_server_cartesian, 0, MODEL_STATIC)
 {
 };
 
@@ -30,7 +30,7 @@ BackgroundServerCartesian<Fields>::BackgroundServerCartesian(void)
 */
 template <typename Fields>
 BackgroundServerCartesian<Fields>::BackgroundServerCartesian(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                         : BackgroundServer<Fields>(name_in, specie_in, status_in)
+                         : BackgroundServer(name_in, specie_in, status_in)
 {
 };
 
@@ -43,7 +43,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundServerCartesian<Fields>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
-                         : BackgroundServer<Fields>(other)
+                         : BackgroundServer(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);

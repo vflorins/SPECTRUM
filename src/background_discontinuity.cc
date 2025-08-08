@@ -61,7 +61,7 @@ template <typename Fields>
 void BackgroundDiscontinuity<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Unpack parameters
    container.Read(n_discont);

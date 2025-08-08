@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundMagnetizedCylinder<Fields>::BackgroundMagnetizedCylinder(void)
-                            : BackgroundCylindricalObstacle<Fields>(bg_name_magnetized_cylinder, 0, MODEL_STATIC)
+                            : BackgroundCylindricalObstacle(bg_name_magnetized_cylinder, 0, MODEL_STATIC)
 {
 };
 
@@ -33,7 +33,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundMagnetizedCylinder<Fields>::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
-                            : BackgroundCylindricalObstacle<Fields>(other)
+                            : BackgroundCylindricalObstacle(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -46,7 +46,7 @@ BackgroundMagnetizedCylinder<Fields>::BackgroundMagnetizedCylinder(const Backgro
 template <typename Fields>
 void BackgroundMagnetizedCylinder<Fields>::EvaluateBackground(void)
 {
-   BackgroundCylindricalObstacle<Fields>::EvaluateBackground();
+   BackgroundCylindricalObstacle::EvaluateBackground();
    if constexpr (Fields::Mag_found()) _fields.Mag() = B0 - _fields.Mag();
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -61,7 +61,7 @@ void BackgroundMagnetizedCylinder<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if MAGNETIZED_CYLINDER_DERIVATIVE_METHOD == 0
 
-   BackgroundCylindricalObstacle<Fields>::EvaluateBackgroundDerivatives();
+   BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives();
    if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
 
 #else

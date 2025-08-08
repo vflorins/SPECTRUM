@@ -7,6 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_shock.hh"
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 
@@ -20,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundShock<Fields>::BackgroundShock(void)
-               : BackgroundBase<Fields>(bg_name_shock, 0, STATE_NONE)
+               : BackgroundBase(bg_name_shock, 0, STATE_NONE)
 {
 };
 
@@ -33,7 +34,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundShock<Fields>::BackgroundShock(const BackgroundShock& other)
-               : BackgroundBase<Fields>(other)
+               : BackgroundBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -45,7 +46,7 @@ BackgroundShock<Fields>::BackgroundShock(const BackgroundShock& other)
 */
 template <typename Fields>
 BackgroundShock<Fields>::BackgroundShock(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-               : BackgroundBase<Fields>(name_in, specie_in, status_in)
+               : BackgroundBase(name_in, specie_in, status_in)
 {
 };
 
@@ -61,7 +62,7 @@ template <typename Fields>
 void BackgroundShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Unpack parameters
    container.Read(n_shock);
@@ -93,18 +94,19 @@ void BackgroundShock<Fields>::EvaluateBackground(void)
 {
 // Upstream
    if ((_pos - r0) * n_shock - v_shock * _t > 0) {
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
-      _spdata.region = 1.0;
+      if constexpr (Fields::Vel_found()) _fields.Vel() = u0;
+      if constexpr (Fields::Mag_found()) _fields.Mag() = B0;
+      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0;
    }
 // Downstream
    else {
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
-      if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1;
-      _spdata.region = 2.0;
+      if constexpr (Fields::Vel_found()) _fields.Vel() = u1;
+      if constexpr (Fields::Mag_found()) _fields.Mag() = B1;
+      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 2.0;
    };
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+
    LOWER_BITS(_status, STATE_INVALID);
 };
 
@@ -116,14 +118,14 @@ template <typename Fields>
 void BackgroundShock<Fields>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 };
 
 };

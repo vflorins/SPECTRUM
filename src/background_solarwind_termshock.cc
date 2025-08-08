@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(void)
-                            : BackgroundSolarWind<Fields>(bg_name_solarwind_termshock, 0, MODEL_STATIC)
+                            : BackgroundSolarWind(bg_name_solarwind_termshock, 0, MODEL_STATIC)
 {
 };
 
@@ -34,7 +34,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
-                            : BackgroundSolarWind<Fields>(other)
+                            : BackgroundSolarWind(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -51,7 +51,7 @@ template <typename Fields>
 void BackgroundSolarWindTermShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundSolarWind<Fields>::SetupBackground(false);
+   if (!construct) BackgroundSolarWind::SetupBackground(false);
    container.Read(r_TS);
    container.Read(w_TS);
    container.Read(s_TS);
@@ -91,9 +91,9 @@ double BackgroundSolarWindTermShock<Fields>::dUrdr(const double r)
 {
    if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
-      if (r > r_TS + w_TS) return -_spdata.Uvec.Norm() / r;
+      if (r > r_TS + w_TS) return -_fields.Vel().Norm() / r;
 #elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
-      if (r > r_TS + w_TS) return -2.0 * _spdata.Uvec.Norm() / r;
+      if (r > r_TS + w_TS) return -2.0 * _fields.Vel().Norm() / r;
 #else
       if (r > r_TS + w_TS) return 0.0;
 #endif
@@ -133,22 +133,22 @@ void BackgroundSolarWindTermShock<Fields>::EvaluateBackgroundDerivatives(void)
    GeoVector posprime;
    GeoMatrix rr;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (Fields::DelVel_found()) {
 // Expression valid only for radial flow
       posprime = _pos - r0;
       r = posprime.Norm();
       rr.Dyadic(posprime / r);
-      _spdata.gradUvec = dUrdr(r) * rr + (_spdata.Uvec.Norm() / r) * (gm_unit - rr);
+      _fields.DelVel() = dUrdr(r) * rr + (_fields.Vel().Norm() / r) * (gm_unit - rr);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
+   if (Fields::DelMag_found()) {
 //TODO: complete
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+   if (Fields::DelElc_found()) {
+      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives();
@@ -162,14 +162,14 @@ void BackgroundSolarWindTermShock<Fields>::EvaluateBackgroundDerivatives(void)
 template <typename Fields>
 void BackgroundSolarWindTermShock<Fields>::EvaluateDmax(void)
 {
-   BackgroundSolarWind<Fields>::EvaluateDmax();
+   BackgroundSolarWind::EvaluateDmax();
 
 // Reduce "dmax" around the shock. This implemenation assumes that "dmax" = "dmax0" near "r_TS" by default.
    double r = (_pos - r0).Norm();
    if (r_TS - dmax0 < r && r < r_TS + w_TS + dmax0) {
-      if (r < r_TS) _spdata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0) / dmax0;
-      else if (r > r_TS + w_TS) _spdata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0) / dmax0;
-      else _spdata.dmax = dmax_TS;
+      if (r < r_TS) _ddata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0) / dmax0;
+      else if (r > r_TS + w_TS) _ddata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0) / dmax0;
+      else _ddata.dmax = dmax_TS;
    };
 };
 

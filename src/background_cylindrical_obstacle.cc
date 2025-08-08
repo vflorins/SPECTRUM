@@ -65,7 +65,7 @@ template <typename Fields>
 void BackgroundCylindricalObstacle<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
    container.Read(axis);
    axis.Normalize();

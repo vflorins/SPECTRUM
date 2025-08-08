@@ -42,6 +42,7 @@ public:
    using BackgroundBase::r0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
+   using BackgroundBase::rng;
    // methods
    using BackgroundBase::EvaluateBmag;
    using BackgroundBase::EvaluateDmax;

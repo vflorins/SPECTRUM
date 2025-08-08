@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef _BACKGROUND_SOLARWIND_HH
-#define _BACKGROUND_SOLARWIND_HH
+#ifndef SPECTRUM_BACKGROUND_SOLARWIND_HH
+#define SPECTRUM_BACKGROUND_SOLARWIND_HH
 
 #include "background_base.hh"
 
@@ -30,7 +30,11 @@ namespace Spectrum {
 #define SOLARWIND_SPEED_LATITUDE_PROFILE 0
 
 //! Heliopause radius
+#ifdef USE_GSL
 const double hp_rad_sw = 117.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+#else
+const double hp_rad_sw = -1.0;
+#endif
 
 //! Magnetic axis tilt angle relative to the solar rotation axis
 const double tilt_ang_sw = 40.0 * M_PI / 180.0;
@@ -96,8 +100,11 @@ public:
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
    using BackgroundBase::_pos;
+   using BackgroundBase::_t;
    using BackgroundBase::container;
+   using BackgroundBase::t0;
    using BackgroundBase::r0;
+   using BackgroundBase::u0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
    // methods

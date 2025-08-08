@@ -32,6 +32,7 @@ class BackgroundServerCartesian : public BackgroundServer<Fields_> {
 public:
 
    using Fields = Fields_;
+   using BackgroundServer = BackgroundServer<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;

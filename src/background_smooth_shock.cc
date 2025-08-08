@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundSmoothShock<Fields>::BackgroundSmoothShock(void)
-                     : BackgroundShock<Fields>(bg_name_smooth_shock, 0, STATE_NONE)
+                     : BackgroundShock(bg_name_smooth_shock, 0, STATE_NONE)
 {
 };
 
@@ -33,7 +33,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundSmoothShock<Fields>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
-                     : BackgroundShock<Fields>(other)
+                     : BackgroundShock(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -112,7 +112,7 @@ template <typename Fields>
 void BackgroundSmoothShock<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundShock<Fields>::SetupBackground(false);
+   if (!construct) BackgroundShock::SetupBackground(false);
 
 // Unpack parameters
    container.Read(width_shock);
@@ -133,10 +133,10 @@ void BackgroundSmoothShock<Fields>::EvaluateBackground(void)
    a2 = 1.0 - a1;
 
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
-   _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (Fields::Vel_found()) _fields.Vel() = u0 * a1 + u1 * a2;
+   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+   if constexpr (Fields::Iv0_found()) _fields.Ev0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -149,26 +149,29 @@ template <typename Fields>
 void BackgroundSmoothShock<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-      _spdata.gradUvec.Dyadic(n_shock, u0 - u1);
-      _spdata.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+   if constexpr (Fields::DelVel_found()) {
+      _fields.gradUvec.Dyadic(n_shock, u0 - u1);
+      _fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      _spdata.gradBvec.Dyadic(n_shock, B0 - B1);
-      _spdata.gradBvec *= ShockTransitionDerivative(ds_shock) / width_shock;
-      _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
+   if constexpr (Fields::DelMag_found()) {
+      _fields.DelMag().Dyadic(n_shock, B0 - B1);
+      _fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
+      GeoVector bhat;
+      if constexpr (Fields::HatMag_found()) bhat = _fields.HatMag();
+      else bhat = _fields.Mag() / _fields.Mag().Norm();
+      _fields.DelMag() = _fields.DelMag() * bhat;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+   if constexpr (Fields::DelElc_found()) {
+      _fields.gradEvec = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-      _spdata.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+   if constexpr (Fields::DdtVel_found()) {
+      _fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
+   if constexpr (Fields::DdtMag_found()) {
+      _fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
+   if constexpr (Fields::DdtElc_found()) {
+      _fields.dEvecdt = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
    };
 #else
    NumericalDerivatives();
@@ -182,7 +185,7 @@ void BackgroundSmoothShock<Fields>::EvaluateBackgroundDerivatives(void)
 template <typename Fields>
 void BackgroundSmoothShock<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
+   _ddata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

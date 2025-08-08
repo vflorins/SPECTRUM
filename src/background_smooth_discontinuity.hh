@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
 #define SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
 
-#include "background_shock.hh"
+#include "background_discontinuity.hh"
 
 namespace Spectrum {
 
@@ -18,9 +18,6 @@ namespace Spectrum {
 
 //! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHDISCONT_DERIVATIVE_METHOD 0
-
-//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
-const double tanh_width_factor = 4.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothDiscontinuity class declaration
@@ -36,17 +33,21 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
 template <typename Fields_>
-class BackgroundSmoothDiscontinuity : public BackgroundShock<Fields_> {
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<Fields_>, BackgroundShock<Fields_> {
 public:
 
    using Fields = Fields_;
+   using BackgroundDiscontinuity = BackgroundDiscontinuity<Fields>;
+   using BackgroundShock = BackgroundShock<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
    using BackgroundBase::_pos;
+   using BackgroundBase::_t;
    using BackgroundBase::container;
    using BackgroundBase::r0;
+   using BackgroundBase::u0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
    // methods
@@ -57,6 +58,18 @@ public:
    using BackgroundBase::EvaluateBackground;
    using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundDiscontinuity::n_discont;
+   using BackgroundDiscontinuity::v_discont;
+   using BackgroundDiscontinuity::u1;
+   using BackgroundDiscontinuity::B1;
+
+   // todo this lives in BackgroundSmoothShock!
+   using BackgroundShock::ShockTransition;
+   using BackgroundShock::ShockTransitionDerivative;
+
+//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   const double tanh_width_factor = 4.0;
 
 protected:
 

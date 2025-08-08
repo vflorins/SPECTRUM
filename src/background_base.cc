@@ -8,6 +8,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_base.hh"
+#include <stdexcept>
 
 namespace Spectrum {
 
@@ -74,7 +75,7 @@ double BackgroundBase<Fields>::GetDmax(void) const
 \note This is a common routine that the derived classes should not change.
 */
 template <typename Fields>
-void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, DerivativeData& ddata_tmp)
+void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp)
 {
    double _t_saved;
    GeoVector _pos_saved;
@@ -100,8 +101,8 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
 // revert to first order differences, otherwise use second order differences.
 
 // Forward increment
-      ddata_tmp._dr[xyz] = r_g;
-      _pos += ddata_tmp._dr[xyz] * fa_basis.row[xyz];
+      _ddata._dr[xyz] = r_g;
+      _pos += _ddata._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
@@ -113,8 +114,8 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
       };
 
 // Backward increment
-      ddata_tmp._dr[xyz] *= 2.0;
-      _pos -= ddata_tmp._dr[xyz] * fa_basis.row[xyz];
+      _ddata._dr[xyz] *= 2.0;
+      _pos -= _ddata._dr[xyz] * fa_basis.row[xyz];
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
@@ -126,7 +127,7 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
       };
 
 // If at least one increment failed, half the increment. If both increments failed, throw an error.
-      if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) ddata_tmp._dr[xyz] *= 0.5;
+      if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) _ddata._dr[xyz] *= 0.5;
       if (_ddata._dr_forw_fail[xyz] && _ddata._dr_back_fail[xyz]) throw ExFieldError();
 
 // Restore position
@@ -134,13 +135,13 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
 
 // Compute spatial derivatives. This calculation gives gradV[i][j] = dV_j / ds^i which is the transpose of the Jacobian.
       if constexpr (Fields::DelVel_found())
-         _fields.DelVel()[xyz] = (fields_forw.Vel() - fields_back.Vel()) / ddata_tmp._dr[xyz];
+         _fields.DelVel()[xyz] = (fields_forw.Vel() - fields_back.Vel()) / _ddata._dr[xyz];
       if constexpr (Fields::DelMag_found())
-         _fields.DelMag()[xyz] = (fields_forw.Mag() - fields_back.Mag()) / ddata_tmp._dr[xyz];
+         _fields.DelMag()[xyz] = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dr[xyz];
       if constexpr (Fields::DelAbsMag_found())
-         _fields.DelAbsMag()[xyz] = (fields_forw.AbsMag() - fields_back.AbsMag()) / ddata_tmp._dr[xyz];
+         _fields.DelAbsMag()[xyz] = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dr[xyz];
       if constexpr (Fields::DelElc_found())
-         _fields.DelElc()[xyz] = (fields_forw.Elc() - fields_back.Elc()) / ddata_tmp._dr[xyz];
+         _fields.DelElc()[xyz] = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dr[xyz];
    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -157,8 +158,8 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
 // revert to first order differences, otherwise use second order differences.
 
 // Forward increment
-      ddata_tmp._dt = 1.0 / w_g;
-      _t += ddata_tmp._dt;
+      _ddata._dt = 1.0 / w_g;
+      _t += _ddata._dt;
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
@@ -170,8 +171,8 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
       };
 
 // Backward increment
-      ddata_tmp._dt *= 2.0;
-      _t -= ddata_tmp._dt;
+      _ddata._dt *= 2.0;
+      _t -= _ddata._dt;
       EvaluateBackground();
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
@@ -183,7 +184,7 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
       };
 
 // If at least one increment failed, half the increment. If both increments failed, throw an error.
-      if (_ddata._dt_forw_fail || _ddata._dt_back_fail) ddata_tmp._dt *= 0.5;
+      if (_ddata._dt_forw_fail || _ddata._dt_back_fail) _ddata._dt *= 0.5;
       if (_ddata._dt_forw_fail && _ddata._dt_back_fail) throw ExFieldError();
 
 // Restore time
@@ -191,13 +192,13 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
 
 // Compute time derivatives
       if constexpr (Fields::DdtVel_found())
-         _fields.DdtVel() = (fields_forw.Vel() - fields_back.Vel()) / ddata_tmp._dt;
+         _fields.DdtVel() = (fields_forw.Vel() - fields_back.Vel()) / _ddata._dt;
       if constexpr (Fields::DdtMag_found())
-         _fields.DdtMag() = (fields_forw.Mag() - fields_back.Mag()) / ddata_tmp._dt;
+         _fields.DdtMag() = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dt;
       if constexpr (Fields::DdtAbsMag_found())
-         _fields.DdtAbsMag() = (fields_forw.AbsMag() - fields_back.AbsMag()) / ddata_tmp._dt;
+         _fields.DdtAbsMag() = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dt;
       if constexpr (Fields::DdtElc_found())
-         _fields.DdtElc() = (fields_forw.Elc() - fields_back.Elc()) / ddata_tmp._dt;
+         _fields.DdtElc() = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dt;
    };
 };
 
@@ -210,26 +211,40 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp, 
 template <typename Fields>
 void BackgroundBase<Fields>::NumericalDerivatives(void)
 {
-// Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
-// Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivatives will be wrong
 
-// copy _fields and _ddata into temporaries
+// copy _fields into temporary in case of averaging.
    Fields fields_tmp = _fields;
-   DerivativeData ddata_tmp = _ddata;
+   double AbsMag;
+   GeoVector HatMag;
+   constexpr bool gradients = Fields::DelVel_found() || Fields::DelMag_found() || Fields::DelAbsMag_found() || Fields::DelElc_found();
+   constexpr bool time_derivatives =  Fields::DdtVel_found() || Fields::DdtMag_found() || Fields::DdtAbsMag_found() || Fields::DdtElc_found();
 
-// todo review with Juan
-   if constexpr (Fields::DelVel_found() || Fields::DelMag_found() || Fields::DelAbsMag_found() || Fields::DelElc_found()) {
+// This method is only valid in the presence of a magnetic field.
+// Normally magnetic field magnitude+direction is tracked but we can make do with magnetic field only.
+   if constexpr (gradients || time_derivatives) {
+      if constexpr (!Fields::AbsMag_found())
+         AbsMag = _fields.Mag().Norm();
+      else
+         AbsMag = _fields.AbsMag();
+      if constexpr (!Fields::HatMag_found())
+         HatMag = _fields.Mag()/AbsMag;
+      else
+         HatMag = _fields.HatMag();
+   }
+
+   if constexpr (gradients) {
 
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _ddata.dmax);
+      r_g = fmin(LarmorRadius(_mom[0], AbsMag, specie), _ddata.dmax);
+
 
 // Get field aligned basis in (transpose) of rotation matrix
-      fa_basis.row[2] = _fields.HatMag();
-      fa_basis.row[0] = GetSecondUnitVec(_fields.HatMag());
+      fa_basis.row[2] = HatMag;
+      fa_basis.row[0] = GetSecondUnitVec(HatMag);
       fa_basis.row[1] = fa_basis.row[2] ^ fa_basis.row[0];
 
 // Compute derivatives in field-aligned basis
-      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp, ddata_tmp);
+      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
@@ -242,8 +257,6 @@ void BackgroundBase<Fields>::NumericalDerivatives(void)
       if constexpr (Fields::DelElc_found())
          fields_tmp.DelElc() = rot_mat * _fields.DelElc();
 
-// uncomment this line to see the next block if it is masked by your viewer/IDE.
-//#define BACKGROUND_NUM_GRAD_EVALS 2
 #if BACKGROUND_NUM_GRAD_EVALS > 1
 
 // Repeat for any additional rotations
@@ -251,7 +264,7 @@ void BackgroundBase<Fields>::NumericalDerivatives(void)
          fa_basis[0].Rotate(fa_basis.row[2], sin_lra, cos_lra);
          fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
-         for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp, ddata_tmp);
+         for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp);
 
          rot_mat.Transpose(fa_basis);
          if constexpr (Fields::DelVel_found())
@@ -278,16 +291,15 @@ void BackgroundBase<Fields>::NumericalDerivatives(void)
 
    };
 
-// Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.
-   if constexpr (Fields::DdtVel_found() || Fields::DdtMag_found() || Fields::DdtAbsMag_found() || Fields::DdtElc_found()) {
+// Time derivatives.
+   if constexpr (time_derivatives) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _fields.AbsMag(), specie), Vel(_mom[0]) / _ddata.dmax);
+      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), AbsMag, specie), Vel(_mom[0]) / _ddata.dmax);
       DirectionalDerivative(3, fields_tmp);
    };
 
-// Copy data from _tmp fields into _ fields
+// Copy data from temporary fields into _fields
    _fields = fields_tmp;
-   _ddata = ddata_tmp;
 };
 
 /*!
@@ -373,6 +385,7 @@ void BackgroundBase<Fields>::EvaluateDmax(void)
 template <typename Fields>
 void BackgroundBase<Fields>::EvaluateBmag(void)
 {
+   // todo review
    _fields.AbsMag() = _fields.Mag().Norm();
 };
 
@@ -426,21 +439,23 @@ void BackgroundBase<Fields>::GetFields(double t_in, const GeoVector& pos_in, con
    EvaluateDmax();
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 
-// The mask is provided by the caller, we need to copy it into our internal fields structure
-//   _spdata._mask = spdata._mask;
-
 // Compute u, B, E
    EvaluateBackground();
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
-// Compute Bmag, bhat
-   if constexpr (Fields::AbsMag_found()) {
-      EvaluateBmag();
+// Compute Bmag, bhat (always the same)
+   if constexpr (Fields::Mag_found()) {
+      double AbsMag;
+      if constexpr (Fields::AbsMag_found()) {
+         EvaluateBmag();
+         AbsMag = _fields.AbsMag();
+      } else {
+         AbsMag = _fields.Mag().Norm();
+      }
+      if constexpr (Fields::HatMag_found()) {
+         if (AbsMag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
+         else _fields.AbsMag() = _fields.Mag() / AbsMag;
+      };
    }
-   if constexpr (Fields::HatMag_found()) {
-      // todo should HatMag require AbsMag?
-      if (_fields.AbsMag() < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
-      else _fields.AbsMag() = _fields.Mag() / _fields.AbsMag();
-   };
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute derivatives of u, B, E
    EvaluateBackgroundDerivatives();

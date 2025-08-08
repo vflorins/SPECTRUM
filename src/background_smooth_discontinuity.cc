@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(void)
-                             : BackgroundShock<Fields>(bg_name_smooth_discontinuity, 0, STATE_NONE)
+                             : BackgroundDiscontinuity(bg_name_smooth_discontinuity, 0, STATE_NONE)
 {
 };
 
@@ -33,7 +33,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
-                             : BackgroundShock<Fields>(other)
+                             : BackgroundDiscontinuity(other)
 {
    RAISE_BITS(_status, STATE_NONE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -112,7 +112,7 @@ template <typename Fields>
 void BackgroundSmoothDiscontinuity<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundShock<Fields>::SetupBackground(false);
+   if (!construct) BackgroundDiscontinuity::SetupBackground(false);
 
 // Unpack parameters
    container.Read(width_discont);
@@ -132,10 +132,10 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackground(void)
    a1 = ShockTransition(ds_discont);
    a2 = 1.0 - a1;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
-   _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (Fields::Vel_found()) _fields.Vel() = u0 * a1 + u1 * a2;
+   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+   if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -148,26 +148,31 @@ template <typename Fields>
 void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHDISCONT_DERIVATIVE_METHOD == 0
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
-      _spdata.gradUvec.Dyadic(n_discont, u0 - u1);
-      _spdata.gradUvec *= ShockTransitionDerivative(ds_discont) / width_discont;
+   if constexpr (Fields::DelVel_found()) {
+      _fields.DelVel().Dyadic(n_discont, u0 - u1);
+      _fields.DelVel() *= ShockTransitionDerivative(ds_discont) / width_discont;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-      _spdata.gradBvec.Dyadic(n_discont, B0 - B1);
-      _spdata.gradBvec *= ShockTransitionDerivative(ds_discont) / width_discont;
-      _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
+   if constexpr (Fields::DelMag_found()) {
+      _fields.DelMag().Dyadic(n_discont, B0 - B1);
+      _fields.DelMag() *= ShockTransitionDerivative(ds_discont) / width_discont;
+   }
+   if constexpr (Fields::DelAbsMag_found()) {
+      GeoVector bhat;
+      if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
+      else bhat = _fields.Mag() / _fields.Mag().Norm();
+      _fields.DelAbsMag() = _fields.DelMag() * bhat;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+   if constexpr (Fields::DelElc_found()) {
+      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
-      _spdata.dUvecdt = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+   if constexpr (Fields::DdtVel_found()) {
+      _fields.DdtVel() = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
-      _spdata.dBvecdt = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
+   if constexpr (Fields::DdtMag_found()) {
+      _fields.DdtMag() = (ShockTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
+   if constexpr (Fields::DdtElc_found()) {
+      _fields.DdtElc() = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
    };
 #else
    NumericalDerivatives();
@@ -181,7 +186,7 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
 template <typename Fields>
 void BackgroundSmoothDiscontinuity<Fields>::EvaluateDmax(void)
 {
-   _spdata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
+   _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

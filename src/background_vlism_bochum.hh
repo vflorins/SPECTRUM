@@ -51,7 +51,7 @@ const double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
 //const double scB = 30.0 / 3.0;
 
 // Turn gsl error handler off
-static const gsl_error_handler_t* gsl_default_error_handler = gsl_set_error_handler_off();
+static gsl_error_handler_t* gsl_default_error_handler = gsl_set_error_handler_off();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundVLISMBochum class declaration
@@ -77,6 +77,7 @@ public:
    using BackgroundBase::_pos;
    using BackgroundBase::container;
    using BackgroundBase::r0;
+   using BackgroundBase::u0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
    // methods

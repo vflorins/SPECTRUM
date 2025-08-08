@@ -37,6 +37,7 @@ public:
 
    using Fields = Fields_;
    using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;

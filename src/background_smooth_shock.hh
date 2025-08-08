@@ -19,8 +19,6 @@ namespace Spectrum {
 //! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHSHOCK_DERIVATIVE_METHOD 0
 
-//! Scaling factor to better match shock width when using smooth shock (tanh)
-const double tanh_width_factor = 4.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothShock class declaration
@@ -40,13 +38,16 @@ class BackgroundSmoothShock : public BackgroundShock<Fields_> {
 public:
 
    using Fields = Fields_;
+   using BackgroundShock = BackgroundShock<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
+   using BackgroundBase::_t;
    using BackgroundBase::_pos;
    using BackgroundBase::container;
    using BackgroundBase::r0;
+   using BackgroundBase::u0;
    using BackgroundBase::B0;
    using BackgroundBase::dmax0;
    // methods
@@ -57,6 +58,14 @@ public:
    using BackgroundBase::EvaluateBackground;
    using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundShock::u1;
+   using BackgroundShock::B1;
+   using BackgroundShock::n_shock;
+   using BackgroundShock::v_shock;
+
+//! Scaling factor to better match shock width when using smooth shock (tanh)
+   const double tanh_width_factor = 4.0;
 
 protected:
 

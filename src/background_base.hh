@@ -15,6 +15,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "common/params.hh"
 #include "common/physics.hh"
+#include "common/matrix.hh"
 #include "common/derivativedata.hh"
 #include "src/server_config.hh"
 
@@ -159,7 +160,7 @@ protected:
    BackgroundBase(const BackgroundBase& other);
 
 //! Compute the fields at an incremented position or time
-   void DirectionalDerivative(int xyz, Fields&, DerivativeData&);
+   void DirectionalDerivative(int xyz, Fields&);
 
 //! Compute the field derivatives
    void NumericalDerivatives(void);

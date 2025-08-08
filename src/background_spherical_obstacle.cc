@@ -61,7 +61,7 @@ template <typename Fields>
 void BackgroundSphericalObstacle<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    container.Read(r_sphere);
    M = 0.5 * B0 * Cube(r_sphere);
    container.Read(dmax_fraction);
@@ -106,8 +106,8 @@ void BackgroundSphericalObstacle<Fields>::EvaluateBackgroundDerivatives(void)
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
 
-   if (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
-   if (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
+   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
       if (posprimenorm < r_sphere) {
          if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
          if constexpr (Fields::DelAbsMag_found()) _fields.DelAbsMag() = 0.0;
@@ -125,16 +125,17 @@ void BackgroundSphericalObstacle<Fields>::EvaluateBackgroundDerivatives(void)
          if constexpr (Fields::DelMag_found())
             _fields.DelMag() = DelMag;
          if constexpr (Fields::DelAbsMag_found()) {
-            // todo how to finesse this?
-            auto bhat = _fields.Mag() / _fields.Mag().Norm();
+            GeoVector bhat;
+            if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
+            else bhat = _fields.Mag() / _fields.Mag().Norm();
             _fields.DelAbsMag() = DelMag * bhat;
          }
       };
    };
-   if (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
-   if (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives(); 

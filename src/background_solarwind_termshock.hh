@@ -35,6 +35,7 @@ class BackgroundSolarWindTermShock : public BackgroundSolarWind<Fields_> {
 public:
 
    using Fields = Fields_;
+   using BackgroundSolarWind = BackgroundSolarWind<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
@@ -52,6 +53,9 @@ public:
    using BackgroundBase::EvaluateBackground;
    using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundSolarWind::dmax_fraction;
+   using BackgroundSolarWind::ur0;
 
 protected:
 

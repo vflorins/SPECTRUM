@@ -409,18 +409,24 @@ def get_injectee(injectee_label, named):
             description = field.description
             x += f"""
    {name}_t& {name}(void) {{
-      if constexpr (std::is_same<T, {name}_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {{
+        if constexpr (std::is_same<T, {name}_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }}
+      catch (const std::exception& e) {{std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);}};
    }};
    
   const {name}_t& {name}(void) const {{
-   if constexpr (std::is_same<T, {name}_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   }};
+    try {{
+      if constexpr (std::is_same<T, {name}_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[{typename}] {name} ({description}) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }}
+    catch (const std::exception& e) {{std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);}};
+  }};
    
    static constexpr bool {name}_found(void) {{
       if constexpr (std::is_same<T, {name}_t>::value)

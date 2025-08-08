@@ -34,8 +34,8 @@ class BackgroundServerBATL : public BackgroundServerCartesian<Fields_> {
 public:
 
    using Fields = Fields_;
-   using BackgroundServerCartesian = BackgroundServerCartesian<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
+   using BackgroundServerCartesian = BackgroundServerCartesian<Fields>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;

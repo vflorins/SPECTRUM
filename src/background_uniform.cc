@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundUniform<Fields>::BackgroundUniform(void)
-                 : BackgroundBase<Fields>(bg_name_uniform, 0, MODEL_STATIC)
+                 : BackgroundBase(bg_name_uniform, 0, MODEL_STATIC)
 {
 };
 
@@ -34,7 +34,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundUniform<Fields>::BackgroundUniform(const BackgroundUniform& other)
-                 : BackgroundBase<Fields>(other)
+                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -52,7 +52,7 @@ template <typename Fields>
 void BackgroundUniform<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase<Fields>::SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Precompute motional electric field for efficiency
    E0 = -(u0 ^ B0) / c_code;
@@ -66,23 +66,18 @@ void BackgroundUniform<Fields>::SetupBackground(bool construct)
 template <typename Fields>
 void BackgroundUniform<Fields>::EvaluateBackground(void)
 {
-   // todo
-   if (_fields.found_Vel()) {
+   if constexpr (Fields::Vel_found()) {
       _fields.Vel() = u0;
    }
-   if (_fields.found_Mag()) {
+   if constexpr (Fields::Mag_found()) {
       _fields.Mag() = B0;
    }
-   if (_fields.found_Elc()) {
+   if constexpr (Fields::Elc_found()) {
       _fields.Elc() = E0;
    }
-
-   // todo GOT TO HERE ______________________
-
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
-   _spdata.region = 1.0;
+   if constexpr (Fields::Iv0_found()) {
+      _fields.Iv0() = 1.0;
+   }
    LOWER_BITS(_status, STATE_INVALID);
 };
 
@@ -91,17 +86,18 @@ void BackgroundUniform<Fields>::EvaluateBackground(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-void BackgroundUniform::EvaluateBackgroundDerivatives(void)
+template <typename Fields>
+void BackgroundUniform<Fields>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) _spdata.gradUvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) _spdata.gradBvec = gm_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) _spdata.gradEvec = gm_zeros;
+   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
+   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) _spdata.dUvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) _spdata.dBvecdt = gv_zeros;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) _spdata.dEvecdt = gv_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 };
 
 };

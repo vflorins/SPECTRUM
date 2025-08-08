@@ -22,7 +22,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(void)
-                     : BackgroundBase<Fields>(bg_name_bochum, 0, MODEL_STATIC)
+                     : BackgroundBase(bg_name_bochum, 0, MODEL_STATIC)
 {
 };
 
@@ -47,7 +47,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
-                     : BackgroundBase<Fields>(other)
+                     : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -174,24 +174,19 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
 
 // Test for inside of the HP
    if ((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
-      _spdata.Bvec = gv_zeros;
+      _fields.Mag() = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
-      _spdata.Evec = gv_zeros;
-      _spdata.region[0] = -1.0;
+      _fields.Elc() = gv_zeros;
+      _fields.Iv0() = -1.0;
 
       RAISE_BITS(_status, STATE_INVALID);
       return;
    }
-   else _spdata.region[0] = 1.0;
+   else _fields.Iv0() = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) {
-      _spdata.Uvec = (posprime / r3 - gv_nz) * u0.Norm();
-      _spdata.Uvec.ChangeFromBasis(eprime);
-   };
-
-// If the flag for computing B is down, exit function because E depends on B, so it cannot be computed without it
-   if (BITS_LOWERED(_spdata._mask, BACKGROUND_B)) return;
+   _fields.Vel() = (posprime / r3 - gv_nz) * u0.Norm();
+   _fields.Vel().ChangeFromBasis(eprime);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,8 +201,8 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
    if (s < sp_tiny) {
       if (z > 1.0 + sp_tiny) {
          wus = sqrt(1.0 - 1.0 / Sqr(z));
-         _spdata.Bvec[0] = B0[0] / wus;
-         _spdata.Bvec[1] = B0[1] / wus;
+         _fields.Mag()[0] = B0[0] / wus;
+         _fields.Mag()[1] = B0[1] / wus;
          zeta = z + 0.5 * log((z - 1.0) / (z + 1.0));
       }
       else {
@@ -217,8 +212,8 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
 
 // GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
          wus = 0.0;
-         _spdata.Bvec[0] = B0[0] * scB / sin_theta_B0;
-         _spdata.Bvec[1] = B0[1] * scB / sin_theta_B0;
+         _fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
+         _fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
          zeta = ztr + sp_small;
 
 #endif
@@ -272,24 +267,24 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
              - (2.0 * kappa - 1.0 / kappa) * ellintF + 2.0 * kappa * ellintE;
 
 // Transform components from cylindrical back to Cartesian.
-      _spdata.Bvec[0] = Bs * cosphi - Bp * sinphi;
-      _spdata.Bvec[1] = Bs * sinphi + Bp * cosphi;
-      _spdata.Bvec[2] = Bz;
+      _fields.Mag()[0] = Bs * cosphi - Bp * sinphi;
+      _fields.Mag()[1] = Bs * sinphi + Bp * cosphi;
+      _fields.Mag()[2] = Bz;
    };
 
 // Apply isochrone-based scaling.
-   _spdata.Bvec *= GetAmpFactor(zeta);
+   _fields.Mag() *= GetAmpFactor(zeta);
 
 // Add unmodified longitudinal (flow-parallel) part.
    if (!small_s_eval) {
-      _spdata.Bvec[0] -= B0[2] * posprime[0] / r3;
-      _spdata.Bvec[1] -= B0[2] * posprime[1] / r3;
-      _spdata.Bvec[2] -= B0[2] * (z / r3 - 1.0);
+      _fields.Mag()[0] -= B0[2] * posprime[0] / r3;
+      _fields.Mag()[1] -= B0[2] * posprime[1] / r3;
+      _fields.Mag()[2] -= B0[2] * (z / r3 - 1.0);
    }
-   else _spdata.Bvec[2] = B0[2] * Sqr(wus);
+   else _fields.Mag()[2] = B0[2] * Sqr(wus);
 
 // Convert back to global frame and compute the electric field.
-   _spdata.Bvec.ChangeFromBasis(eprime);
+   _fields.Mag().ChangeFromBasis(eprime);
 
 
 // --------------------------------------------------------------------------------
@@ -302,7 +297,7 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };

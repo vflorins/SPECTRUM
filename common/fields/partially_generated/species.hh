@@ -1515,18 +1515,24 @@ public:
    // BEGIN(fields/generate, base)
 
    Den_t& Den(void) {
-      if constexpr (std::is_same<T, Den_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Den_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Den_t& Den(void) const {
-   if constexpr (std::is_same<T, Den_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Den_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Den_found(void) {
       if constexpr (std::is_same<T, Den_t>::value)
@@ -1536,18 +1542,24 @@ public:
    };
 
    Prs_t& Prs(void) {
-      if constexpr (std::is_same<T, Prs_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Prs_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Prs_t& Prs(void) const {
-   if constexpr (std::is_same<T, Prs_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Prs_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Prs_found(void) {
       if constexpr (std::is_same<T, Prs_t>::value)
@@ -1557,18 +1569,24 @@ public:
    };
 
    Enr_t& Enr(void) {
-      if constexpr (std::is_same<T, Enr_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Enr_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Enr_t& Enr(void) const {
-   if constexpr (std::is_same<T, Enr_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Enr_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Enr_found(void) {
       if constexpr (std::is_same<T, Enr_t>::value)
@@ -1578,18 +1596,24 @@ public:
    };
 
    Vel_t& Vel(void) {
-      if constexpr (std::is_same<T, Vel_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Vel_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Vel_t& Vel(void) const {
-   if constexpr (std::is_same<T, Vel_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Vel_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Vel_found(void) {
       if constexpr (std::is_same<T, Vel_t>::value)
@@ -1599,18 +1623,24 @@ public:
    };
 
    Mom_t& Mom(void) {
-      if constexpr (std::is_same<T, Mom_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Mom_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Mom_t& Mom(void) const {
-   if constexpr (std::is_same<T, Mom_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Mom_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Mom_found(void) {
       if constexpr (std::is_same<T, Mom_t>::value)
@@ -1620,18 +1650,24 @@ public:
    };
 
    FlxDen_t& FlxDen(void) {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, FlxDen_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const FlxDen_t& FlxDen(void) const {
-   if constexpr (std::is_same<T, FlxDen_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, FlxDen_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool FlxDen_found(void) {
       if constexpr (std::is_same<T, FlxDen_t>::value)
@@ -1641,18 +1677,24 @@ public:
    };
 
    FlxMom_t& FlxMom(void) {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, FlxMom_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const FlxMom_t& FlxMom(void) const {
-   if constexpr (std::is_same<T, FlxMom_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, FlxMom_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool FlxMom_found(void) {
       if constexpr (std::is_same<T, FlxMom_t>::value)
@@ -1662,18 +1704,24 @@ public:
    };
 
    FlxEnr_t& FlxEnr(void) {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, FlxEnr_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const FlxEnr_t& FlxEnr(void) const {
-   if constexpr (std::is_same<T, FlxEnr_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, FlxEnr_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool FlxEnr_found(void) {
       if constexpr (std::is_same<T, FlxEnr_t>::value)
@@ -1683,18 +1731,24 @@ public:
    };
 
    Mag_t& Mag(void) {
-      if constexpr (std::is_same<T, Mag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Mag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Mag_t& Mag(void) const {
-   if constexpr (std::is_same<T, Mag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Mag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Mag_found(void) {
       if constexpr (std::is_same<T, Mag_t>::value)
@@ -1704,18 +1758,24 @@ public:
    };
 
    FlxMag_t& FlxMag(void) {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, FlxMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const FlxMag_t& FlxMag(void) const {
-   if constexpr (std::is_same<T, FlxMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, FlxMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool FlxMag_found(void) {
       if constexpr (std::is_same<T, FlxMag_t>::value)
@@ -1725,18 +1785,24 @@ public:
    };
 
    Glm_t& Glm(void) {
-      if constexpr (std::is_same<T, Glm_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Glm_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Glm_t& Glm(void) const {
-   if constexpr (std::is_same<T, Glm_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Glm_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Glm_found(void) {
       if constexpr (std::is_same<T, Glm_t>::value)
@@ -1746,18 +1812,24 @@ public:
    };
 
    FlxGlm_t& FlxGlm(void) {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, FlxGlm_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const FlxGlm_t& FlxGlm(void) const {
-   if constexpr (std::is_same<T, FlxGlm_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, FlxGlm_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool FlxGlm_found(void) {
       if constexpr (std::is_same<T, FlxGlm_t>::value)
@@ -1767,18 +1839,24 @@ public:
    };
 
    Elc_t& Elc(void) {
-      if constexpr (std::is_same<T, Elc_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Elc_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Elc_t& Elc(void) const {
-   if constexpr (std::is_same<T, Elc_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Elc_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Elc_found(void) {
       if constexpr (std::is_same<T, Elc_t>::value)
@@ -1788,18 +1866,24 @@ public:
    };
 
    AbsMag_t& AbsMag(void) {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, AbsMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const AbsMag_t& AbsMag(void) const {
-   if constexpr (std::is_same<T, AbsMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, AbsMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool AbsMag_found(void) {
       if constexpr (std::is_same<T, AbsMag_t>::value)
@@ -1809,18 +1893,24 @@ public:
    };
 
    HatMag_t& HatMag(void) {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, HatMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const HatMag_t& HatMag(void) const {
-   if constexpr (std::is_same<T, HatMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, HatMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool HatMag_found(void) {
       if constexpr (std::is_same<T, HatMag_t>::value)
@@ -1830,18 +1920,24 @@ public:
    };
 
    DelVel_t& DelVel(void) {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DelVel_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DelVel_t& DelVel(void) const {
-   if constexpr (std::is_same<T, DelVel_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DelVel_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DelVel_found(void) {
       if constexpr (std::is_same<T, DelVel_t>::value)
@@ -1851,18 +1947,24 @@ public:
    };
 
    DelElc_t& DelElc(void) {
-      if constexpr (std::is_same<T, DelElc_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DelElc_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DelElc_t& DelElc(void) const {
-   if constexpr (std::is_same<T, DelElc_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DelElc_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DelElc_found(void) {
       if constexpr (std::is_same<T, DelElc_t>::value)
@@ -1872,18 +1974,24 @@ public:
    };
 
    DelMag_t& DelMag(void) {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DelMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DelMag_t& DelMag(void) const {
-   if constexpr (std::is_same<T, DelMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DelMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DelMag_found(void) {
       if constexpr (std::is_same<T, DelMag_t>::value)
@@ -1893,18 +2001,24 @@ public:
    };
 
    DelAbsMag_t& DelAbsMag(void) {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DelAbsMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DelAbsMag_t& DelAbsMag(void) const {
-   if constexpr (std::is_same<T, DelAbsMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DelAbsMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DelAbsMag_found(void) {
       if constexpr (std::is_same<T, DelAbsMag_t>::value)
@@ -1914,18 +2028,24 @@ public:
    };
 
    DelHatMag_t& DelHatMag(void) {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DelHatMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DelHatMag_t& DelHatMag(void) const {
-   if constexpr (std::is_same<T, DelHatMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DelHatMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DelHatMag_found(void) {
       if constexpr (std::is_same<T, DelHatMag_t>::value)
@@ -1935,18 +2055,24 @@ public:
    };
 
    DdtVel_t& DdtVel(void) {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DdtVel_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DdtVel_t& DdtVel(void) const {
-   if constexpr (std::is_same<T, DdtVel_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DdtVel_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DdtVel_found(void) {
       if constexpr (std::is_same<T, DdtVel_t>::value)
@@ -1956,18 +2082,24 @@ public:
    };
 
    DdtElc_t& DdtElc(void) {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DdtElc_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DdtElc_t& DdtElc(void) const {
-   if constexpr (std::is_same<T, DdtElc_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DdtElc_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DdtElc_found(void) {
       if constexpr (std::is_same<T, DdtElc_t>::value)
@@ -1977,18 +2109,24 @@ public:
    };
 
    DdtMag_t& DdtMag(void) {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DdtMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DdtMag_t& DdtMag(void) const {
-   if constexpr (std::is_same<T, DdtMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DdtMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DdtMag_found(void) {
       if constexpr (std::is_same<T, DdtMag_t>::value)
@@ -1998,18 +2136,24 @@ public:
    };
 
    DdtAbsMag_t& DdtAbsMag(void) {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DdtAbsMag_t& DdtAbsMag(void) const {
-   if constexpr (std::is_same<T, DdtAbsMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DdtAbsMag_found(void) {
       if constexpr (std::is_same<T, DdtAbsMag_t>::value)
@@ -2019,18 +2163,24 @@ public:
    };
 
    DdtHatMag_t& DdtHatMag(void) {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, DdtHatMag_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const DdtHatMag_t& DdtHatMag(void) const {
-   if constexpr (std::is_same<T, DdtHatMag_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool DdtHatMag_found(void) {
       if constexpr (std::is_same<T, DdtHatMag_t>::value)
@@ -2040,18 +2190,24 @@ public:
    };
 
    Iv0_t& Iv0(void) {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv0_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv0_t& Iv0(void) const {
-   if constexpr (std::is_same<T, Iv0_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv0_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv0_found(void) {
       if constexpr (std::is_same<T, Iv0_t>::value)
@@ -2061,18 +2217,24 @@ public:
    };
 
    Iv1_t& Iv1(void) {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv1_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv1_t& Iv1(void) const {
-   if constexpr (std::is_same<T, Iv1_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv1_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv1_found(void) {
       if constexpr (std::is_same<T, Iv1_t>::value)
@@ -2082,18 +2244,24 @@ public:
    };
 
    Iv2_t& Iv2(void) {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv2_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv2_t& Iv2(void) const {
-   if constexpr (std::is_same<T, Iv2_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv2_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv2_found(void) {
       if constexpr (std::is_same<T, Iv2_t>::value)
@@ -2103,18 +2271,24 @@ public:
    };
 
    Iv3_t& Iv3(void) {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv3_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv3_t& Iv3(void) const {
-   if constexpr (std::is_same<T, Iv3_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv3_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv3_found(void) {
       if constexpr (std::is_same<T, Iv3_t>::value)
@@ -2124,18 +2298,24 @@ public:
    };
 
    Iv4_t& Iv4(void) {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv4_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv4_t& Iv4(void) const {
-   if constexpr (std::is_same<T, Iv4_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv4_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv4_found(void) {
       if constexpr (std::is_same<T, Iv4_t>::value)
@@ -2145,18 +2325,24 @@ public:
    };
 
    Iv5_t& Iv5(void) {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-         return data;
-      else
-        throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      try {
+        if constexpr (std::is_same<T, Iv5_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
   const Iv5_t& Iv5(void) const {
-   if constexpr (std::is_same<T, Iv5_t>::value)
-      return data;
-   else
-      throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-   };
+    try {
+      if constexpr (std::is_same<T, Iv5_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
    
    static constexpr bool Iv5_found(void) {
       if constexpr (std::is_same<T, Iv5_t>::value)

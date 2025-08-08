@@ -61,7 +61,7 @@ template <typename Fields>
 void BackgroundServer<Fields>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
-   if (!construct) SetupBackground(false);
+   if (!construct) BackgroundBase::SetupBackground(false);
    
 #ifdef NEED_SERVER
 
