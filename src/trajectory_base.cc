@@ -74,10 +74,11 @@ void TrajectoryBase<Fields>::ResetAllBoundaries(void)
 
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
       bcond_t[bnd]->SetScale(_ddata.dmax / c_code);
+      // todo ResetBoundary's signature must be modified ____________________
       bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
    for (bnd = 0; bnd < bcond_s.size(); bnd++) {
-      bcond_s[bnd]->SetScale(_spdata.dmax);
+      bcond_s[bnd]->SetScale(_ddata.dmax);
       bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
    for (bnd = 0; bnd < bcond_m.size(); bnd++) {
@@ -95,6 +96,7 @@ void TrajectoryBase<Fields>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
+   // todo ComputeBoundary's signature must be modified ____________________
    for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
@@ -167,9 +169,9 @@ void TrajectoryBase<Fields>::TimeBoundaryProximityCheck(void)
    unsigned int bnd;
    double delta, delta_next;
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   delta_next = -sp_large * _spdata.dmax / c_code;
+   delta_next = -sp_large * _ddata.dmax / c_code;
 #else
-   delta_next = sp_large * _spdata.dmax / c_code;
+   delta_next = sp_large * _ddata.dmax / c_code;
 #endif
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
@@ -186,9 +188,9 @@ void TrajectoryBase<Fields>::TimeBoundaryProximityCheck(void)
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _ddata.dmax / c_code);
 #else
-   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _ddata.dmax / c_code);
 #endif
 };
 
@@ -224,6 +226,7 @@ try {
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
+         // todo modify signature of ProcessTrajectory
          if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
       };
    };
@@ -259,7 +262,7 @@ catch (ExBoundaryError& exception) {
 template <typename Fields>
 void TrajectoryBase<Fields>::CommonFields(void)
 try {
-   background->GetFields(_t, _pos, ConvertMomentum(), _spdata);
+   background->GetFields(_t, _pos, ConvertMomentum(), _fields);
 }
 
 catch (ExUninitialized& exception) {
@@ -294,9 +297,9 @@ catch (ExFieldError& exception) {
 \param[out] spdata Spatial data at t_in and pos_in for output
 */
 template <typename Fields>
-void TrajectoryBase<Fields>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
+void TrajectoryBase<Fields>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
 try {
-   background->GetFields(t_in, pos_in, mom_in, spdata);
+   background->GetFields(t_in, pos_in, mom_in, fields);
 }
 
 catch (ExUninitialized& exception) {
@@ -953,7 +956,7 @@ try {
    _vel = Vel(_mom, specie);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
-   dt_adaptive = sp_large * _spdata.dmax / c_code;
+   dt_adaptive = sp_large * _ddata.dmax / c_code;
 
 // Re-initialize the trajectory arrays
 #ifdef RECORD_TRAJECTORY
@@ -1039,7 +1042,7 @@ void TrajectoryBase<Fields>::Integrate(void)
 
 #if TRAJ_ADV_SAFETY_LEVEL > 0
 // Time step is too small - terminate
-      if (dt < sp_tiny * _spdata.dmax / c_code) {
+      if (dt < sp_tiny * _ddata.dmax / c_code) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepTooSmall();
       }

@@ -95,10 +95,6 @@ public:
 
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_GUIDING_DIFF
-typedef TrajectoryGuidingDiff TrajectoryType;
-#endif
 
 };
 

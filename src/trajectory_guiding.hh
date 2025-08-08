@@ -124,10 +124,6 @@ inline void TrajectoryGuiding::ReverseMomentum(void)
    _mom[2] = -_mom[2];
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_GUIDING
-typedef TrajectoryGuiding TrajectoryType;
-#endif
 
 };
 

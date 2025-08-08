@@ -58,10 +58,6 @@ public:
    CloneFunctionTrajectory(TrajectoryGuidingDiffScatt);
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT
-typedef TrajectoryGuidingDiffScatt TrajectoryType;
-#endif
 
 };
 

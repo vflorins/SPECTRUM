@@ -142,11 +142,6 @@ inline void TrajectoryGuidingScatt::ResetNabsmugt1(void)
 
 #endif
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_GUIDING_SCATT
-typedef TrajectoryGuidingScatt TrajectoryType;
-#endif
-
 };
 
 #endif

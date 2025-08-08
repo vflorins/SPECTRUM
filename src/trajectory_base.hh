@@ -170,6 +170,7 @@ public:
    using BackgroundBase = BackgroundBase<Fields>;
    using DiffusionBase = DiffusionBase<Fields>;
 
+
 protected:
 
 //! Initial length of trajectory containers (persistent)
@@ -251,6 +252,9 @@ protected:
 //! Local momentum for Advance function (transient)
    GeoVector local_mom;
 
+//! Derivative data (transient)
+   DerivativeData _ddata;
+
 //! Spatial data (transient)
    Fields _fields;
 
@@ -323,7 +327,7 @@ protected:
    void CommonFields(void);
 
 //! Overloaded CommonFields for custom time and position, and output field
-   void CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata);
+   void CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields);
 
 //! Compute the RK slopes
    virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) = 0;
@@ -587,5 +591,8 @@ inline double TrajectoryBase<Fields>::ElapsedTime(void) const
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_base.cc"
 
 #endif

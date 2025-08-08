@@ -13,7 +13,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/mpi_config.hh"
 #include "common/workload_manager.hh"
 #include "server_config.hh"
-#include "traj_config.hh"
+#include "trajectory.hh"
 #include <memory>
 #include <chrono>
 
@@ -31,7 +31,15 @@ const bool print_last_trajectory = false;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
+template <typename Trajectory_>
 class SimulationWorker {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using DistributionBase = DistributionBase<Fields>;
+   using DiffusionBase = DiffusionBase<Fields>;
 
 protected:
 
@@ -48,7 +56,7 @@ protected:
    std::vector<std::shared_ptr<DistributionBase>> local_distros;
 
 //! Trajectory object
-   std::unique_ptr<TrajectoryBase> trajectory = nullptr;
+   std::unique_ptr<Trajectory> trajectory = nullptr;
 
 //! Number of trajectories in this batch
    int current_batch_size;
@@ -102,10 +110,10 @@ public:
    void SetSpecie(unsigned int specie_in);
 
 //! Add a distribution object
-   virtual void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
+   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
 
 //! Add a background object (passthrough to trajectory)
-   virtual void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
+   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
 //! Add boundary condition object (passthrough to trajectory)
    void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
@@ -140,7 +148,23 @@ public:
 \brief A boss class
 \author Juan G Alonso Guzman
 */
-class SimulationBoss : public SimulationWorker {
+template <typename Trajectory_>
+class SimulationBoss : public SimulationWorker<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using DistributionBase = DistributionBase<Fields>;
+   using DiffusionBase = DiffusionBase<Fields>;
+   using SimulationWorker = SimulationWorker<Fields>;
+   using SimulationWorker::current_batch_size;
+   using SimulationWorker::is_parallel;
+   using SimulationWorker::specie;
+   // methods:
+   using SimulationWorker::WorkerStart;
+   using SimulationWorker::WorkerFinish;
+   using SimulationWorker::WorkerDuties;
 
 protected:
 
@@ -169,7 +193,7 @@ public:
    SimulationBoss(void);
 
 //! Add a background object
-   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "") override;
+   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
 //! Main simulation loop
    void MainLoop(void) override;
@@ -183,7 +207,28 @@ public:
 \brief A master class
 \author Juan G Alonso Guzman
 */
-class SimulationMaster : public SimulationBoss {
+template <typename Trajectory_>
+class SimulationMaster : public SimulationBoss<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using DistributionBase = DistributionBase<Fields>;
+   using DiffusionBase = DiffusionBase<Fields>;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using SimulationWorker = SimulationWorker<Fields>;
+   using SimulationBoss = SimulationBoss<Fields>;
+   using SimulationWorker::current_batch_size;
+   using SimulationWorker::is_parallel;
+   using SimulationWorker::specie;
+   using SimulationWorker::local_distros;
+   using SimulationWorker::elapsed_time;
+   using SimulationWorker::shortest_sim_time;
+   using SimulationWorker::longest_sim_time;
+   using SimulationWorker::trajectory;
+   // methods:
+   using SimulationWorker::WorkerDuties;
 
 protected:
 
@@ -257,7 +302,7 @@ public:
    void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0) override;
 
 //! Add a distribution object
-   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) override;
+   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
 
 //! Print simulation info
    void PrintMPICommsInfo(void);
@@ -283,8 +328,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Generate a complete simulation object
-std::unique_ptr<SimulationWorker> CreateSimulation(int argc, char** argv);
+template <typename Fields>
+std::unique_ptr<SimulationWorker<Fields>> CreateSimulation(int argc, char** argv);
 
 };
+
+// Something like this is needed for templated classes
+#include "simulation.cc"
 
 #endif

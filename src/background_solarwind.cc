@@ -177,13 +177,13 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
    ModifyUr(r, ur);
 
 // Compute the (radial) velocity and convert back to global frame
-   if (Fields::Vel_found()) {
+   if constexpr (Fields::Vel_found()) {
       _fields.Vel() = ur * UnitVec(posprime);
       _fields.Vel().ChangeFromBasis(eprime);
    };
    
 // Compute (Parker spiral) magnetic field and convert back to global frame
-   if (Fields::Mag_found()) {
+   if constexpr (Fields::Mag_found()) {
 // Coordinates for conversion
       sintheta = sqrt(fmax(1.0 - Sqr(costheta), 0.0));
       s = sqrt(Sqr(posprime[0]) + Sqr(posprime[1]));
@@ -240,7 +240,7 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
    };
 
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
-   if (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Vel()) / c_code;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Vel()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -257,21 +257,21 @@ void BackgroundSolarWind<Fields>::EvaluateBackgroundDerivatives(void)
    GeoVector posprime;
    GeoMatrix rr;
 
-   if (Fields::DelVel_found()) {
+   if constexpr (Fields::DelVel_found()) {
 // Expression valid only for radial flow
       posprime = _pos - r0;
       rr.Dyadic(posprime);
       _fields.DelVel() = (_fields.Vel().Norm() / posprime.Norm()) * (gm_unit - rr);
    };
-   if (Fields::DelMag_found()) {
+   if constexpr (Fields::DelMag_found()) {
 //TODO: complete
    };
-   if (Fields::DelElc_found()) {
+   if constexpr (Fields::DelElc_found()) {
       _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives();

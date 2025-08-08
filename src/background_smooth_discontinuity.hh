@@ -69,6 +69,7 @@ public:
    using BackgroundShock::ShockTransitionDerivative;
 
 //! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+// todo something has to be done about this, related to BackgroundSmoothShock/BackgroundShock
    const double tanh_width_factor = 4.0;
 
 protected:

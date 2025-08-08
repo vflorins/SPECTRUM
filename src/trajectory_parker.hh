@@ -130,10 +130,6 @@ inline void TrajectoryParker::ReverseMomentum(void)
 {
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_PARKER
-typedef TrajectoryParker TrajectoryType;
-#endif
 
 };
 

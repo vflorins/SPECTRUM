@@ -1,3 +1,5 @@
+#include "common/fields.hh"
+
 #include "src/background_dipole.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -5,7 +7,7 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-#include "src/traj_config.hh"
+#include "src/trajectory.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -16,11 +18,18 @@ int main(int argc, char** argv)
 
    DataContainer container;
 
+   using Fields = Fields<Vel_t>;
+   using Trajectory = TrajectoryDipole<Fields>;
+
+   using Background = BackgroundDipole<Fields>;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<TrajectoryBase> trajectory = std::make_unique<TrajectoryType>();
+   std::unique_ptr<Trajectory> trajectory = std::make_unique<Trajectory>();
+
+   // todo draft edits ----- got to here _______
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -69,7 +78,7 @@ int main(int argc, char** argv)
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(BackgroundDipole(), container);
+   trajectory->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition

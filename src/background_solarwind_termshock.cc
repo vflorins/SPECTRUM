@@ -133,22 +133,22 @@ void BackgroundSolarWindTermShock<Fields>::EvaluateBackgroundDerivatives(void)
    GeoVector posprime;
    GeoMatrix rr;
 
-   if (Fields::DelVel_found()) {
+   if constexpr (Fields::DelVel_found()) {
 // Expression valid only for radial flow
       posprime = _pos - r0;
       r = posprime.Norm();
       rr.Dyadic(posprime / r);
       _fields.DelVel() = dUrdr(r) * rr + (_fields.Vel().Norm() / r) * (gm_unit - rr);
    };
-   if (Fields::DelMag_found()) {
+   if constexpr (Fields::DelMag_found()) {
 //TODO: complete
    };
-   if (Fields::DelElc_found()) {
+   if constexpr (Fields::DelElc_found()) {
       _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
    };
-   if (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
 
 #else
    NumericalDerivatives();

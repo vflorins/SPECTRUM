@@ -3,7 +3,7 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-#include "src/traj_config.hh"
+#include "src/trajectory.hh"
 #include <iostream>
 #include <iomanip>
 

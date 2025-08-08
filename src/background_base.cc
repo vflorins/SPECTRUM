@@ -379,13 +379,13 @@ void BackgroundBase<Fields>::EvaluateDmax(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 06/11/2024
+\author Lucius Schoenbaum
+\date 08/08/2025
 \note The default method should be good enough for all grid-free backgrounds
 */
 template <typename Fields>
 void BackgroundBase<Fields>::EvaluateBmag(void)
 {
-   // todo review
    _fields.AbsMag() = _fields.Mag().Norm();
 };
 

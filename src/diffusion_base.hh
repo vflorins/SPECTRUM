@@ -14,7 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "config.h"
 #include "common/params.hh"
 #include "common/physics.hh"
-#include "common/spatial_data.hh"
 #include <memory>
 
 namespace Spectrum {

@@ -146,10 +146,6 @@ inline void TrajectoryFocused::ReverseMomentum(void)
    _mom[1] = -_mom[1];
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_FOCUSED
-typedef TrajectoryFocused TrajectoryType;
-#endif
 
 };
 

@@ -86,10 +86,6 @@ inline GeoVector TrajectoryLorentz::ConvertMomentum(void) const
    return GeoVector(_mom.Norm(), (_mom * _spdata.bhat) / _mom.Norm(), 0.0);
 };
 
-//! Trajectory type
-#if TRAJ_TYPE == TRAJ_LORENTZ
-typedef TrajectoryLorentz TrajectoryType;
-#endif
 
 };
 
