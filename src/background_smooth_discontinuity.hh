@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
-#define SPECTRUM_BACKGROUND_SMOOTH_SHOCK_HH
+#ifndef SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
+#define SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
 
 #include "background_discontinuity.hh"
 
@@ -18,9 +18,6 @@ namespace Spectrum {
 
 //! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHDISCONT_DERIVATIVE_METHOD 0
-
-//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
-const double tanh_width_factor = 4.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothDiscontinuity class declaration
@@ -35,7 +32,7 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
-class BackgroundSmoothDiscontinuity : public BackgroundShock {
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity {
 
 protected:
 
@@ -47,6 +44,9 @@ protected:
 
 //! Relative distance to discontinuity (transient)
    double ds_discont;
+
+//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   const double tanh_width_factor = 4.0;
 
 //! Shock transition region function
    double DiscontinuityTransition(double x);
