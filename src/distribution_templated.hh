@@ -24,7 +24,38 @@ The class is optimized for convenience, not speed. All distributions are treated
 Parameters: MultiIndex n_bins, GeoVector minval, GeoVector maxval, MultiIndex log_bins, MultiIndex bin_outside, distroClass unit_distro,
             GeoVector unit_val
 */
-template <class distroClass> class DistributionTemplated : public DistributionBase {
+template <typename Trajectory_, class distroClass>
+class DistributionTemplated : public DistributionBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+
+   using DistributionBase::container;
+   using DistributionBase::unit_val;
+   using DistributionBase::_status;
+   using DistributionBase::n_bins;
+   using DistributionBase::n_events;
+   using DistributionBase::minval;
+   using DistributionBase::maxval;
+   using DistributionBase::log_bins;
+   using DistributionBase::bin_outside;
+   using DistributionBase::keep_records;
+   using DistributionBase::dims;
+   using DistributionBase::limits;
+   using DistributionBase::bin_size;
+   using DistributionBase::range;
+   using DistributionBase::counts;
+   using DistributionBase::_value;
+   using DistributionBase::values_record;
+   using DistributionBase::ActionTable;
+   using DistributionBase::class_name;
+   using DistributionBase::specie;
+   using DistributionBase::BinCent;
+   // methods:
+   using DistributionBase::Trajectory_is;
+
 
 protected:
 
@@ -115,5 +146,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "distribution_templated.cc"
 
 #endif

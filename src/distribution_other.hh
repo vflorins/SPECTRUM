@@ -29,8 +29,14 @@ namespace Spectrum {
 Type: Unspecified
 Parameters: (DistributionTemplated), double val_hot, double val_cold
 */
-template <class distroClass>
-class DistributionUniform : public DistributionTemplated<distroClass> {
+template <typename Trajectory_, class distroClass>
+class DistributionUniform : public DistributionTemplated<Trajectory_, distroClass> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, distroClass>;
 
 protected:
 
@@ -78,7 +84,14 @@ const std::string dist_name_time_uniform = "DistributionTimeUniform";
 Type: 1D time
 Parameters: (DistributionUniform), int val_time
 */
-class DistributionTimeUniform : public DistributionUniform<double> {
+template <typename Trajectory_>
+class DistributionTimeUniform : public DistributionUniform<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionUniform = DistributionUniform<Trajectory, double>;
 
 protected:
 
@@ -120,7 +133,14 @@ const std::string dist_name_position_uniform = "DistributionPositionUniform";
 Type: 3D position
 Parameters: (DistributionUniform), int val_time, int val_coord
 */
-class DistributionPositionUniform : public DistributionUniform<double> {
+template <typename Trajectory_>
+class DistributionPositionUniform : public DistributionUniform<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionUniform = DistributionUniform<Trajectory, double>;
 
 protected:
 
@@ -165,7 +185,14 @@ const std::string dist_name_momentum_uniform = "DistributionMomentumUniform";
 Type: 3D momentum
 Parameters: (DistributionUniform), int val_time, int val_coord
 */
-class DistributionMomentumUniform : public DistributionUniform<double> {
+template <typename Trajectory_>
+class DistributionMomentumUniform : public DistributionUniform<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionUniform = DistributionUniform<Trajectory, double>;
 
 protected:
 
@@ -210,7 +237,14 @@ const std::string dist_name_position_momentum_uniform = "DistributionPositionMom
 Type: 2D position-momentum
 Parameters: (DistributionUniform), int val_time, int pos_idx, int mom_idx
 */
-class DistributionPositionMomentumUniform : public DistributionUniform<double> {
+template <typename Trajectory_>
+class DistributionPositionMomentumUniform : public DistributionUniform<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionUniform = DistributionUniform<Trajectory, double>;
 
 protected:
 
@@ -244,7 +278,7 @@ public:
    CloneFunctionDistribution(DistributionPositionMomentumUniform);
 };
 
-#if TRAJ_TYPE == TRAJ_LORENTZ
+//#if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM class declaration
@@ -260,7 +294,14 @@ const std::string dist_name_anisotropy_LISM = "DistributionAnisotropyLISM";
 Type: 3D momentum
 Parameters: (DistributionUniform), GeoVector[3] rot_matrix, GeoVector U_LISM, double mom_pow_law
 */
-class DistributionAnisotropyLISM : public DistributionTemplated<double> {
+template <typename Trajectory_>
+class DistributionAnisotropyLISM : public DistributionTemplated<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, double>;
 
 protected:
 
@@ -315,7 +356,7 @@ public:
    CloneFunctionDistribution(DistributionAnisotropyLISM);
 };
 
-#endif
+//#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionSpectrumKineticEnergyPowerLaw class declaration
@@ -334,7 +375,14 @@ const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpe
 Type: 1D momentum
 Parameters: (DistributionTemplated), double J0, double T0, double pow_law, double val_cold
 */
-class DistributionSpectrumKineticEnergyPowerLaw : public DistributionTemplated<double> {
+template <typename Trajectory_>
+class DistributionSpectrumKineticEnergyPowerLaw : public DistributionTemplated<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, double>;
 
 protected:
 
@@ -397,7 +445,17 @@ const std::string dist_name_spectrum_kinetic_energy_bent_power_law = "Distributi
 Type: 1D momentum
 Parameters: (DistributionSpectrumKineticEnergyPowerLaw), double T_b, double pow_law_b
 */
-class DistributionSpectrumKineticEnergyBentPowerLaw : public DistributionSpectrumKineticEnergyPowerLaw {
+template <typename Trajectory_>
+class DistributionSpectrumKineticEnergyBentPowerLaw : public DistributionSpectrumKineticEnergyPowerLaw<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionSpectrumKineticEnergyPowerLaw = DistributionSpectrumKineticEnergyPowerLaw<Trajectory>;
+
+   using DistributionSpectrumKineticEnergyPowerLaw::pow_law;
+   using DistributionSpectrumKineticEnergyPowerLaw::kin_energy;
 
 protected:
 
@@ -446,7 +504,14 @@ const std::string dist_name_pos_cumulative_O1 = "DistributionPositionCumulativeO
 Type: 1D time
 Parameters: (DistributionTemplated)
 */
-class DistributionPositionCumulativeOrder1 : public DistributionTemplated<GeoVector> {
+template <typename Trajectory_>
+class DistributionPositionCumulativeOrder1 : public DistributionTemplated<Trajectory_, GeoVector> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, GeoVector>;
 
 protected:
 
@@ -489,7 +554,14 @@ const std::string dist_name_pos_cumulative_O2 = "DistributionPositionCumulativeO
 Type: 1D time
 Parameters: (DistributionTemplated)
 */
-class DistributionPositionCumulativeOrder2 : public DistributionTemplated<GeoMatrix> {
+template <typename Trajectory_>
+class DistributionPositionCumulativeOrder2 : public DistributionTemplated<Trajectory_, GeoMatrix> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, GeoMatrix>;
 
 protected:
 
@@ -531,7 +603,19 @@ const std::string dist_name_loss_cone = "DistributionLossCone";
 Type: 3D position
 Parameters: (DistributionTemplated), int val_time, int val_coord
 */
-class DistributionLossCone : public DistributionTemplated<GeoVector> {
+template <typename Trajectory_>
+class DistributionLossCone : public DistributionTemplated<Trajectory_, GeoVector> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DistributionTemplated = DistributionTemplated<Trajectory, GeoVector>;
+
+   using DistributionBase::_fields;
+   using DistributionBase::_edata;
+   using DistributionBase::_fields2;
+   using DistributionBase::_edata2;
 
 protected:
 
@@ -566,5 +650,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "distribution_other.cc"
 
 #endif

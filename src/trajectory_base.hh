@@ -54,7 +54,7 @@ constexpr uint16_t TRAJ_MOMENTUM_CROSSED = 0x0080;
 constexpr uint16_t TRAJ_DISCARD = 0x0100;
 
 //! Clone function pattern
-#define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase<Fields>> Clone(void) const override {return std::make_unique<T>();};
+#define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase> Clone(void) const override {return std::make_unique<T>();};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions
@@ -166,9 +166,9 @@ class TrajectoryBase : public Params {
 public:
 
    using Fields = Fields_;
-   using DistributionBase = DistributionBase<Fields>;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using DiffusionBase = DiffusionBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase<Fields>>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase<Fields>>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase<Fields>>;
 
 
 protected:
@@ -254,6 +254,9 @@ protected:
 
 //! Derivative data (transient)
    DerivativeData _ddata;
+
+//! Extrema data (transient)
+   GeoVector _edata;
 
 //! Spatial data (transient)
    Fields _fields;

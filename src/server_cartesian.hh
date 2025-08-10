@@ -124,16 +124,20 @@ protected:
 #endif
 
 //! Get variables directly from data reader
-   void GetVariablesFromReader(SpatialData& spdata);
+   template <typename Fields>
+   void GetVariablesFromReader(Fields& fields);
 
 //! Get variables using 0th order interpolation
-   void GetVariablesInterp0(const GeoVector& pos, SpatialData& spdata);
+   template <typename Fields>
+   void GetVariablesInterp0(const GeoVector& pos, Fields& fields);
 
 //! Get variables using 1st order interpolation
-   void GetVariablesInterp1(const GeoVector& pos, SpatialData& spdata);
+   template <typename Fields>
+   void GetVariablesInterp1(const GeoVector& pos, Fields& fields);
 
 //! Get gradients using 1st order interpolation
-   void GetGradientsInterp1(SpatialData& spdata);
+   template <typename Fields>
+   void GetGradientsInterp1(Fields& fields);
 
 public:
 
@@ -151,16 +155,20 @@ public:
 
 #ifdef NEED_SERVER
 //! Obtain the variables
-   void GetVariables(double t, const GeoVector& pos, SpatialData& spdata) override;
+   template <typename Fields>
+   void GetVariables(double t, const GeoVector& pos, Fields& fields) override;
 
 //! Obtain the gradients
-   void GetGradients(SpatialData& spdata) override;
+   template <typename Fields>
+   void GetGradients(Fields& fields) override;
 #else
 //! Obtain the variables
-   void GetVariables(double t, const GeoVector& pos, SpatialData& spdata);
+   template <typename Fields>
+   void GetVariables(double t, const GeoVector& pos, Fields& fields);
 
 //! Obtain the gradients
-   void GetGradients(SpatialData& spdata);
+   template <typename Fields>
+   void GetGradients(Fields& fields);
 #endif
 
 //! Print how many times internal/external interpolators were used
@@ -226,5 +234,7 @@ typedef ServerCartesianBack ServerBackType;
 #endif
 
 };
+
+#include "server_cartesian_templated.cc"
 
 #endif

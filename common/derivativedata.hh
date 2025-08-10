@@ -24,9 +24,7 @@ const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
 
 
 
-class DerivativeData {
-
-public:
+struct DerivativeData {
 
  //! "Safe" box for computing directional derivatives
    GeoVector _dr;
@@ -38,7 +36,7 @@ public:
    double _dt;
 
 //! Status information for derivative computations
-// todo: NOTE: this information is formerly stored in spdata._mask - need to review initialization
+// todo: NOTE: this information is formerly stored in spdata._mask - review initialization
    uint16_t _status;
 
 //! Flag for forward increment when computing directional derivatives
@@ -52,10 +50,6 @@ public:
 
 //! Flag for backward increment when computing time derivatives
    bool _dt_back_fail;
-
-    DerivativeData() = default;
-
-    DerivativeData& operator=(const DerivativeData& other) = default;
 
 };
 

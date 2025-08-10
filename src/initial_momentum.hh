@@ -12,9 +12,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "initial_base.hh"
 
-#ifndef TRAJ_TYPE
-#error Trajectory type is undefined!
-#endif
 
 namespace Spectrum {
 

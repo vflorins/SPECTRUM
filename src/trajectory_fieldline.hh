@@ -33,8 +33,17 @@ const uint16_t which_field_to_follow = BACKGROUND_B;
 
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
-template <typename Fields>
-class TrajectoryFieldline : public TrajectoryBase<Fields> {
+template <typename Fields_>
+class TrajectoryFieldline : public TrajectoryBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+   using TrajectoryBase::_mom;
 
 protected:
 
@@ -86,5 +95,8 @@ inline GeoVector TrajectoryFieldline<Fields>::ConvertMomentum(void) const
 
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_fieldline.cc"
 
 #endif

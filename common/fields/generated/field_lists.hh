@@ -27,6 +27,8 @@ Identifiers for distinguished code-wide fields (for lookup).
 */
 enum Id {
 anon,
+Pos,
+Time,
 Den,
 Prs,
 Enr,
@@ -88,8 +90,10 @@ Formatted names for distinguished code-wide fields
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-const constexpr std::array<std::string_view, 54> Names = {
+const constexpr std::array<std::string_view, 56> Names = {
    std::string_view(""),
+   std::string_view("Pos"),
+   std::string_view("Time"),
    std::string_view("Den"),
    std::string_view("Prs"),
    std::string_view("Enr"),

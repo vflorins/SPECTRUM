@@ -217,7 +217,83 @@ This should not occur in fluid or MHD applications.
    // BEGIN(fields/generate, class)
 
 /*!
-\brief Get Den (Fluid density field) from the data type, as lvalue.
+\brief Get Pos (Position in space) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Pos_t& Pos(void) {
+      if constexpr (std::is_same<T, Pos_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Pos();
+   };
+
+/*!
+\brief Get Pos (Position in space) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Pos_t& Pos(void) const {
+      if constexpr (std::is_same<T, Pos_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Pos();
+   };
+
+
+/*!
+\brief Whether Pos (Position in space) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Pos_found(void) {
+      if constexpr (std::is_same<T, Pos_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Pos_found();
+   };
+   
+
+/*!
+\brief Get Time (Time) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   Time_t& Time(void) {
+      if constexpr (std::is_same<T, Time_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Time();
+   };
+
+/*!
+\brief Get Time (Time) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const Time_t& Time(void) const {
+      if constexpr (std::is_same<T, Time_t>::value)
+         return data;
+      else
+         return Species<nameid, Ts...>::Time();
+   };
+
+
+/*!
+\brief Whether Time (Time) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Time_found(void) {
+      if constexpr (std::is_same<T, Time_t>::value)
+         return true;
+      else
+         return Species<nameid, Ts...>::Time_found();
+   };
+   
+
+/*!
+\brief Get Den (Density field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -229,7 +305,7 @@ This should not occur in fluid or MHD applications.
    };
 
 /*!
-\brief Get Den (Fluid density field) from the data type, as const rvalue.
+\brief Get Den (Density field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -242,7 +318,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Whether Den (Fluid density field) is in the data type.
+\brief Whether Den (Density field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -255,7 +331,7 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get Prs (Fluid pressure field) from the data type, as lvalue.
+\brief Get Prs (Pressure field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -267,7 +343,7 @@ This should not occur in fluid or MHD applications.
    };
 
 /*!
-\brief Get Prs (Fluid pressure field) from the data type, as const rvalue.
+\brief Get Prs (Pressure field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -280,7 +356,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Whether Prs (Fluid pressure field) is in the data type.
+\brief Whether Prs (Pressure field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -293,7 +369,7 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get Enr (Fluid energy field) from the data type, as lvalue.
+\brief Get Enr (Energy field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -305,7 +381,7 @@ This should not occur in fluid or MHD applications.
    };
 
 /*!
-\brief Get Enr (Fluid energy field) from the data type, as const rvalue.
+\brief Get Enr (Energy field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -318,7 +394,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Whether Enr (Fluid energy field) is in the data type.
+\brief Whether Enr (Energy field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -331,7 +407,7 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get Vel (Fluid velocity field) from the data type, as lvalue.
+\brief Get Vel (Velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -343,7 +419,7 @@ This should not occur in fluid or MHD applications.
    };
 
 /*!
-\brief Get Vel (Fluid velocity field) from the data type, as const rvalue.
+\brief Get Vel (Velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -356,7 +432,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Whether Vel (Fluid velocity field) is in the data type.
+\brief Whether Vel (Velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -369,7 +445,7 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get Mom (Fluid momentum field) from the data type, as lvalue.
+\brief Get Mom (Momentum field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -381,7 +457,7 @@ This should not occur in fluid or MHD applications.
    };
 
 /*!
-\brief Get Mom (Fluid momentum field) from the data type, as const rvalue.
+\brief Get Mom (Momentum field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -394,7 +470,7 @@ This should not occur in fluid or MHD applications.
 
 
 /*!
-\brief Whether Mom (Fluid momentum field) is in the data type.
+\brief Whether Mom (Momentum field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
@@ -1514,12 +1590,66 @@ public:
 
    // BEGIN(fields/generate, base)
 
+   Pos_t& Pos(void) {
+      try {
+        if constexpr (std::is_same<T, Pos_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Pos (Position in space) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   };
+   
+  const Pos_t& Pos(void) const {
+    try {
+      if constexpr (std::is_same<T, Pos_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Pos (Position in space) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
+   
+   static constexpr bool Pos_found(void) {
+      if constexpr (std::is_same<T, Pos_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   Time_t& Time(void) {
+      try {
+        if constexpr (std::is_same<T, Time_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Species] Time (Time) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   };
+   
+  const Time_t& Time(void) const {
+    try {
+      if constexpr (std::is_same<T, Time_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Species] Time (Time) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
+   
+   static constexpr bool Time_found(void) {
+      if constexpr (std::is_same<T, Time_t>::value)
+         return true;
+      else
+         return false;
+   };
+
    Den_t& Den(void) {
       try {
         if constexpr (std::is_same<T, Den_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Den (Density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
@@ -1529,7 +1659,7 @@ public:
       if constexpr (std::is_same<T, Den_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Den (Fluid density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Den (Density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
@@ -1546,7 +1676,7 @@ public:
         if constexpr (std::is_same<T, Prs_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Prs (Pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
@@ -1556,7 +1686,7 @@ public:
       if constexpr (std::is_same<T, Prs_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Prs (Fluid pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Prs (Pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
@@ -1573,7 +1703,7 @@ public:
         if constexpr (std::is_same<T, Enr_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Enr (Energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
@@ -1583,7 +1713,7 @@ public:
       if constexpr (std::is_same<T, Enr_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Enr (Fluid energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Enr (Energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
@@ -1600,7 +1730,7 @@ public:
         if constexpr (std::is_same<T, Vel_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Vel (Velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
@@ -1610,7 +1740,7 @@ public:
       if constexpr (std::is_same<T, Vel_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Vel (Fluid velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Vel (Velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
@@ -1627,7 +1757,7 @@ public:
         if constexpr (std::is_same<T, Mom_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Mom (Momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
@@ -1637,7 +1767,7 @@ public:
       if constexpr (std::is_same<T, Mom_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Mom (Fluid momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Mom (Momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };

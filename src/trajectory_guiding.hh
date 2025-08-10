@@ -38,7 +38,28 @@ const int mirror_thresh_guiding = 10;
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
-class TrajectoryGuiding : public TrajectoryBase {
+template <typename Fields_>
+class TrajectoryGuiding : public TrajectoryBase<Fields_> {
+
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+//   using TrajectoryBase::_t;
+//   using TrajectoryBase::_pos;
+   using TrajectoryBase::_mom;
+//   using TrajectoryBase::traj_t;
+//   using TrajectoryBase::traj_pos;
+//   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::_vel;
+//   using TrajectoryBase::specie;
+//   using TrajectoryBase::local_t;
+//   using TrajectoryBase::local_pos;
+//   using TrajectoryBase::local_mom;
 
 protected:
 
@@ -108,7 +129,8 @@ public:
 \date 04/11/2022
 \return A vector in the (p,mu,0) format
 */
-inline GeoVector TrajectoryGuiding::ConvertMomentum(void) const
+template <typename Fields>
+inline GeoVector TrajectoryGuiding<Fields>::ConvertMomentum(void) const
 {
    return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
 };
@@ -119,12 +141,16 @@ inline GeoVector TrajectoryGuiding::ConvertMomentum(void) const
 \author Vladimir Florinski
 \date 07/07/2023
 */
-inline void TrajectoryGuiding::ReverseMomentum(void)
+template <typename Fields>
+inline void TrajectoryGuiding<Fields>::ReverseMomentum(void)
 {
    _mom[2] = -_mom[2];
 };
 
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_guiding.cc"
 
 #endif

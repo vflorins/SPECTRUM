@@ -101,12 +101,15 @@ if empty_field_lists:
     species = []
 else:
     fields = [
+        # Geometric fields:
+        Field("Pos", "GeoVector", "Position in space", R=0, S=0),
+        Field("Time", "Scalar", "Time", R=0, S=0),
         # Fluid fields:
-        Field("Den", "Scalar", "Fluid density field", R = 1, S = 1),
-        Field("Prs", "Scalar", "Fluid pressure field", R = 1, S = 1),
-        Field("Enr", "Scalar", "Fluid energy field", R = 1, S = 1),
-        Field("Vel", "GeoVector", "Fluid velocity field", R = 1, S = 0),
-        Field("Mom", "GeoVector", "Fluid momentum field", R = 1, S = 0),
+        Field("Den", "Scalar", "Density field", R = 1, S = 1),
+        Field("Prs", "Scalar", "Pressure field", R = 1, S = 1),
+        Field("Enr", "Scalar", "Energy field", R = 1, S = 1),
+        Field("Vel", "GeoVector", "Velocity field", R = 1, S = 0),
+        Field("Mom", "GeoVector", "Momentum field", R = 1, S = 0),
         Field("FlxDen", "Scalar", "Fluid density flux function", R = 1, S = 1),
         Field("FlxMom", "GeoVector", "Fluid momentum flux function", R = 1, S = 0),
         Field("FlxEnr", "Scalar", "Fluid energy flux function", R = 1, S = 0),

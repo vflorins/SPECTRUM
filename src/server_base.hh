@@ -258,9 +258,11 @@ public:
 
 #ifdef NEED_SERVER
 //! Obtain the variables
+   template <typename Fields>
    virtual void GetVariables(double t, const GeoVector& pos, Fields& fields) = 0;
 
 //! Obtain the gradients
+   template <typename Fields>
    virtual void GetGradients(Fields& fields) = 0;
 #endif
 

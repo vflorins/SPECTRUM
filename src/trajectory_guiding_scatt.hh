@@ -54,7 +54,27 @@ const double cfl_pa_gs = 0.5;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-class TrajectoryGuidingScatt : virtual public TrajectoryGuiding {
+template <typename Fields_>
+class TrajectoryGuidingScatt : virtual public TrajectoryGuiding<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+//   using TrajectoryBase::_t;
+//   using TrajectoryBase::_pos;
+//   using TrajectoryBase::_mom;
+//   using TrajectoryBase::traj_t;
+//   using TrajectoryBase::traj_pos;
+//   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::_vel;
+//   using TrajectoryBase::specie;
+//   using TrajectoryBase::local_t;
+//   using TrajectoryBase::local_pos;
+//   using TrajectoryBase::local_mom;
 
 protected:
 
@@ -126,7 +146,8 @@ public:
 \date 05/03/2022
 \return Number of |mu| = 1 crossings
 */
-inline int TrajectoryGuidingScatt::fabsmugt1(void) const
+template <typename Fields>
+inline int TrajectoryGuidingScatt<Fields>::fabsmugt1(void) const
 {
    return Nabsmugt1;
 };
@@ -135,7 +156,8 @@ inline int TrajectoryGuidingScatt::fabsmugt1(void) const
 \author Juan G Alonso Guzman
 \date 05/03/2022
 */
-inline void TrajectoryGuidingScatt::ResetNabsmugt1(void)
+template <typename Fields>
+inline void TrajectoryGuidingScatt<Fields>::ResetNabsmugt1(void)
 {
    Nabsmugt1 = 0;
 };
@@ -143,5 +165,8 @@ inline void TrajectoryGuidingScatt::ResetNabsmugt1(void)
 #endif
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_guiding_scatt.cc"
 
 #endif

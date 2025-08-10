@@ -46,7 +46,27 @@ const double dlnpmax = 0.01;
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-class TrajectoryParker : public TrajectoryBase {
+template <typename Fields_>
+class TrajectoryParker : public TrajectoryBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+//   using TrajectoryBase::_t;
+//   using TrajectoryBase::_pos;
+//   using TrajectoryBase::_mom;
+//   using TrajectoryBase::traj_t;
+//   using TrajectoryBase::traj_pos;
+//   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::_vel;
+//   using TrajectoryBase::specie;
+//   using TrajectoryBase::local_t;
+//   using TrajectoryBase::local_pos;
+//   using TrajectoryBase::local_mom;
 
 protected:
 
@@ -126,11 +146,15 @@ public:
 \author Vladimir Florinski
 \date 07/07/2023
 */
-inline void TrajectoryParker::ReverseMomentum(void)
+template <typename Fields>
+inline void TrajectoryParker<Fields>::ReverseMomentum(void)
 {
 };
 
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_parker.cc"
 
 #endif

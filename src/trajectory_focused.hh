@@ -40,7 +40,28 @@ const int mirror_thresh_focused = 10;
 
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
-class TrajectoryFocused : public TrajectoryBase {
+template <typename Fields_>
+class TrajectoryFocused : public TrajectoryBase<Fields_> {
+
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+   using TrajectoryBase::_t;
+   using TrajectoryBase::_pos;
+   using TrajectoryBase::_mom;
+   using TrajectoryBase::traj_t;
+   using TrajectoryBase::traj_pos;
+   using TrajectoryBase::traj_mom;
+   using TrajectoryBase::_vel;
+   using TrajectoryBase::specie;
+   using TrajectoryBase::local_t;
+   using TrajectoryBase::local_pos;
+   using TrajectoryBase::local_mom;
 
 protected:
 
@@ -110,7 +131,8 @@ public:
 \author Vladimir Florinski
 \date 10/06/2023
 */
-inline void TrajectoryFocused::Load(void)
+template <typename Fields>
+inline void TrajectoryFocused<Fields>::Load(void)
 {
 #ifdef RECORD_TRAJECTORY
    _t = traj_t.back();
@@ -126,7 +148,8 @@ inline void TrajectoryFocused::Load(void)
 \author Vladimir Florinski
 \date 10/06/2023
 */
-inline void TrajectoryFocused::LoadLocal(void)
+template <typename Fields>
+inline void TrajectoryFocused<Fields>::LoadLocal(void)
 {
    _t = local_t;
    _pos = local_pos;
@@ -141,12 +164,15 @@ inline void TrajectoryFocused::LoadLocal(void)
 \author Vladimir Florinski
 \date 08/07/2023
 */
-inline void TrajectoryFocused::ReverseMomentum(void)
+template <typename Fields>
+inline void TrajectoryFocused<Fields>::ReverseMomentum(void)
 {
    _mom[1] = -_mom[1];
 };
 
-
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_focused.cc"
 
 #endif

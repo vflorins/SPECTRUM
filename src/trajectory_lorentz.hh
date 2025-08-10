@@ -32,7 +32,27 @@ const unsigned int mirror_thresh_lorentz = 300;
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
 \author Vladimir Florinski
 */
-class TrajectoryLorentz : public TrajectoryBase {
+template <typename Fields_>
+class TrajectoryLorentz : public TrajectoryBase<Fields_> {
+public:
+
+   using Fields = Fields_;
+   using TrajectoryBase = TrajectoryBase<Fields>;
+   using DistributionBase = DistributionBase<TrajectoryBase>;
+   using BackgroundBase = BackgroundBase<TrajectoryBase>;
+   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+
+//   using TrajectoryBase::_t;
+//   using TrajectoryBase::_pos;
+   using TrajectoryBase::_mom;
+//   using TrajectoryBase::traj_t;
+//   using TrajectoryBase::traj_pos;
+//   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::_vel;
+//   using TrajectoryBase::specie;
+//   using TrajectoryBase::local_t;
+//   using TrajectoryBase::local_pos;
+//   using TrajectoryBase::local_mom;
 
 protected:
 
@@ -81,12 +101,16 @@ public:
 \date 09/02/2022
 \return A vector in the (p,mu,phi) format
 */
-inline GeoVector TrajectoryLorentz::ConvertMomentum(void) const
+template <typename Fields>
+inline GeoVector TrajectoryLorentz<Fields>::ConvertMomentum(void) const
 {
    return GeoVector(_mom.Norm(), (_mom * _spdata.bhat) / _mom.Norm(), 0.0);
 };
 
 
 };
+
+// Something like this is needed for templated classes
+#include "trajectory_lorentz.cc"
 
 #endif

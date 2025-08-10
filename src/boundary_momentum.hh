@@ -11,9 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "boundary_base.hh"
 
-#ifndef TRAJ_TYPE
-#error Trajectory type is undefined!
-#endif
 
 namespace Spectrum {
 

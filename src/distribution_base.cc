@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Fields>
-DistributionBase<Fields>::DistributionBase(void)
+template <typename Trajectory>
+DistributionBase<Trajectory>::DistributionBase(void)
                 : Params("", 0, STATE_NONE)
 {
 };
@@ -32,8 +32,8 @@ DistributionBase<Fields>::DistributionBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Fields>
-DistributionBase<Fields>::DistributionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+DistributionBase<Trajectory>::DistributionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                 : Params(name_in, specie_in, status_in)
 {
 };
@@ -45,8 +45,8 @@ DistributionBase<Fields>::DistributionBase(const std::string& name_in, unsigned 
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Fields>
-DistributionBase<Fields>::DistributionBase(const DistributionBase& other)
+template <typename Trajectory>
+DistributionBase<Trajectory>::DistributionBase(const DistributionBase<Trajectory>& other)
                 : Params(other)
 {
 // Params' constructor resets all flags
@@ -58,8 +58,8 @@ DistributionBase<Fields>::DistributionBase(const DistributionBase& other)
 \date 09/13/2022
 \param [in] construct Whether called from a copy constructor or separately
 */
-template <typename Fields>
-void DistributionBase<Fields>::SetupDistribution(bool construct)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::SetupDistribution(bool construct)
 {
 };
 
@@ -70,8 +70,8 @@ void DistributionBase<Fields>::SetupDistribution(bool construct)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupDistribution()" method.
 */
-template <typename Fields>
-void DistributionBase<Fields>::SetupObject(const DataContainer& cont_in)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupDistribution(false);
@@ -82,8 +82,8 @@ void DistributionBase<Fields>::SetupObject(const DataContainer& cont_in)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-template <typename Fields>
-void DistributionBase<Fields>::AddEvent(void)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::AddEvent(void)
 {
 };
 
@@ -91,8 +91,8 @@ void DistributionBase<Fields>::AddEvent(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-template <typename Fields>
-void DistributionBase<Fields>::AddRecord(void)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::AddRecord(void)
 {
 };
 
@@ -101,8 +101,8 @@ void DistributionBase<Fields>::AddRecord(void)
 \date 09/13/2022
 \param[in] n_records_in Total number of events
 */
-template <typename Fields>
-void DistributionBase<Fields>::SetNRecords(int n_records_in)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::SetNRecords(int n_records_in)
 {
 };
 
@@ -110,8 +110,8 @@ void DistributionBase<Fields>::SetNRecords(int n_records_in)
 \author Vladimir Florinski
 \date 09/13/2022
 */
-template <typename Fields>
-void DistributionBase<Fields>::ResetDistribution(void)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::ResetDistribution(void)
 {
 };
 
@@ -119,8 +119,8 @@ void DistributionBase<Fields>::ResetDistribution(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-template <typename Fields>
-void DistributionBase<Fields>::ResetRecords(void)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::ResetRecords(void)
 {
 };
 
@@ -130,8 +130,8 @@ void DistributionBase<Fields>::ResetRecords(void)
 \param[in] other Second distribution
 \return Reference to this object
 */
-template <typename Fields>
-DistributionBase<Fields>& DistributionBase<Fields>::operator +=(const DistributionBase& other)
+template <typename Trajectory>
+DistributionBase<Trajectory>& DistributionBase<Trajectory>::operator +=(const DistributionBase<Trajectory>& other)
 {
    return *this;
 };
@@ -141,8 +141,8 @@ DistributionBase<Fields>& DistributionBase<Fields>::operator +=(const Distributi
 \date 09/13/2022
 \param[in] other Second distribution
 */
-template <typename Fields>
-void DistributionBase<Fields>::CopyRecords(const DistributionBase& other)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::CopyRecords(const DistributionBase<Trajectory>& other)
 {
 };
 
@@ -152,8 +152,8 @@ void DistributionBase<Fields>::CopyRecords(const DistributionBase& other)
 \param[out] size Size of an element of the "distro" array
 \return Pointer to the distribution storage
 */
-template <typename Fields>
-void* DistributionBase<Fields>::GetDistroAddress(size_t& size)
+template <typename Trajectory>
+void* DistributionBase<Trajectory>::GetDistroAddress(size_t& size)
 {
    size = 0;
    return nullptr;
@@ -165,8 +165,8 @@ void* DistributionBase<Fields>::GetDistroAddress(size_t& size)
 \param[out] size Size of an element of the "weights_record" array
 \return Pointer to the weights storage
 */
-template <typename Fields>
-void* DistributionBase<Fields>::GetWeightsRecordAddress(size_t& size)
+template <typename Trajectory>
+void* DistributionBase<Trajectory>::GetWeightsRecordAddress(size_t& size)
 {
    size = 0;
    return nullptr;
@@ -186,21 +186,19 @@ void* DistributionBase<Fields>::GetWeightsRecordAddress(size_t& size)
 \param[in] fields2   Second fields data class
 \param[in] action_in Action to calculate the weight
 */
-template <typename Fields>
-void DistributionBase<Fields>::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1,
-                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2,
+template <typename Trajectory>
+void DistributionBase<Trajectory>::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1, const ExtremaData& edata1,
+                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const ExtremaData& edata2,
                                          int action_in)
 {
    SetState(t1, pos1, mom1);
-   _spdata._mask = spdata1._mask;
-   _spdata = spdata1;
+   _fields = fields1;
    _t2 = t2;
    _pos2 = pos2;
    _mom2 = mom2;
-   _spdata2._mask = spdata2._mask;
-   _spdata2 = spdata2;
-   _spdata2.Bmag_min = spdata2.Bmag_min;
-   _spdata2.Bmag_max = spdata2.Bmag_max;
+   _fields2 = fields2;
+   _edata2.Bmag_min = edata2.Bmag_min;
+   _edata2.Bmag_max = edata2.Bmag_max;
    EvaluateValue();
    EvaluateWeight(action_in);
    AddEvent();
@@ -211,8 +209,8 @@ void DistributionBase<Fields>::ProcessTrajectory(double t1, const GeoVector& pos
 \author Vladimir Florinski
 \date 09/13/2022
 */
-template <typename Fields>
-void DistributionBase<Fields>::EvaluateValue(void)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::EvaluateValue(void)
 {
 };
 
@@ -221,8 +219,8 @@ void DistributionBase<Fields>::EvaluateValue(void)
 \date 09/13/2022
 \param[in] action_in Action index from "ActionTable"
 */
-template <typename Fields>
-void DistributionBase<Fields>::EvaluateWeight(int action_in)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::EvaluateWeight(int action_in)
 {
 };
 
@@ -231,8 +229,8 @@ void DistributionBase<Fields>::EvaluateWeight(int action_in)
 \date 09/13/2022
 \param[in] file_name Distribution file name
 */
-template <typename Fields>
-void DistributionBase<Fields>::Dump(const std::string& file_name) const
+template <typename Trajectory>
+void DistributionBase<Trajectory>::Dump(const std::string& file_name) const
 {
 };
 
@@ -241,8 +239,8 @@ void DistributionBase<Fields>::Dump(const std::string& file_name) const
 \date 09/13/2022
 \param[in] file_name Distribution file name
 */
-template <typename Fields>
-void DistributionBase<Fields>::Restore(const std::string& file_name)
+template <typename Trajectory>
+void DistributionBase<Trajectory>::Restore(const std::string& file_name)
 {
 };
    
@@ -253,8 +251,8 @@ void DistributionBase<Fields>::Restore(const std::string& file_name)
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Fields>
-void DistributionBase<Fields>::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
+template <typename Trajectory>
+void DistributionBase<Trajectory>::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
 {
 };
 
@@ -267,8 +265,8 @@ void DistributionBase<Fields>::Print1D(int ijk, const std::string& dist_name, bo
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Fields>
-void DistributionBase<Fields>::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
+template <typename Trajectory>
+void DistributionBase<Trajectory>::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
 {
 };
 
@@ -278,8 +276,8 @@ void DistributionBase<Fields>::Print2D(int ijk1, int ijk2, const std::string& di
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Fields>
-void DistributionBase<Fields>::PrintRecords(const std::string& dist_name, bool phys_units) const
+template <typename Trajectory>
+void DistributionBase<Trajectory>::PrintRecords(const std::string& dist_name, bool phys_units) const
 {
 };
 
