@@ -14,8 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if TRAJ_TYPE != TRAJ_PARKER
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,7 +27,21 @@ const std::string diff_name_isotropic_constant = "DiffusionIsotropicConstant";
 
 Parameters: (DiffusionBase), double D0
 */
-class DiffusionIsotropicConstant : public DiffusionBase {
+template <typename Trajectory_>
+class DiffusionIsotropicConstant : public DiffusionBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
+   using DiffusionBase::mu;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -60,10 +72,6 @@ public:
    double GetMuDerivative(void) override;
 };
 
-#endif
-
-#if TRAJ_TYPE != TRAJ_PARKER
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,7 +85,24 @@ const std::string diff_name_qlt_constant = "DiffusionQLTConstant";
 
 Parameters: (DiffusionBase), double A2A, double l_max, double ps_index
 */
-class DiffusionQLTConstant : public DiffusionBase {
+template <typename Trajectory_>
+class DiffusionQLTConstant : public DiffusionBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+//   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
+   using DiffusionBase::mu;
+   using DiffusionBase::Omega;
+   using DiffusionBase::st2;
+   using DiffusionBase::vmag;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionQLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -120,9 +145,7 @@ public:
    CloneFunctionDiffusion(DiffusionQLTConstant);
 };
 
-#endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant class declaration
@@ -140,7 +163,29 @@ const std::string diff_name_wnlt_constant = "DiffusionWNLTConstant";
 
 Parameters: (DiffusionQLTConstant), double A2T, double A2L
 */
-class DiffusionWNLTConstant : public DiffusionQLTConstant {
+template <typename Trajectory_>
+class DiffusionWNLTConstant : public DiffusionQLTConstant<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionQLTConstant = DiffusionQLTConstant<Trajectory>;
+
+   //   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
+   using DiffusionBase::mu;
+   using DiffusionBase::Omega;
+   using DiffusionBase::st2;
+   using DiffusionBase::vmag;
+
+   using DiffusionQLTConstant::ps_index;
+   using DiffusionQLTConstant::k_min;
+   using DiffusionQLTConstant::ps_minus;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionWNLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -191,7 +236,27 @@ const std::string diff_name_wnlt_ramp_vlism = "DiffusionWNLTRampVLISM";
 
 Parameters: (DiffusionWNLTConstant)
 */
-class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant {
+template <typename Trajectory_>
+class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionWNLTConstant = DiffusionWNLTConstant<Trajectory>;
+
+   using DiffusionBase::_pos;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+
+   using DiffusionWNLTConstant::k_min;
+   using DiffusionWNLTConstant::ps_minus;
+   using DiffusionWNLTConstant::A2A;
+   using DiffusionWNLTConstant::A2T;
+   using DiffusionWNLTConstant::A2L;
+   using DiffusionWNLTConstant::l_max;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionWNLTRampVLISM diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -243,8 +308,6 @@ public:
    CloneFunctionDiffusion(DiffusionWNLTRampVLISM);
 };
 
-#endif
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionParaConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -259,11 +322,18 @@ const std::string diff_name_para_constant = "DiffusionParaConstant";
 
 Parameters: (DiffusionBase), double D0
 */
-template <typename Fields>
-class DiffusionParaConstant : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionParaConstant : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -311,11 +381,18 @@ const std::string diff_name_perp_constant = "DiffusionPerpConstant";
 
 Parameters: (DiffusionBase), double D0
 */
-template <typename Fields>
-class DiffusionPerpConstant : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionPerpConstant : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -363,11 +440,18 @@ const std::string diff_name_full_constant = "DiffusionFullConstant";
 
 Parameters: (DiffusionBase), double Dperp, double Dpara
 */
-template <typename Fields>
-class DiffusionFullConstant : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionFullConstant : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -418,11 +502,20 @@ const std::string diff_name_flow_momentum_power_law = "DiffusionFlowMomentumPowe
 
 Parameters: (DiffusionBase), double kap0, double u0, double power_law_U, double p0, double power_law_p, double kap_rat
 */
-template <typename Fields>
-class DiffusionFlowMomentumPowerLaw : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionFlowMomentumPowerLaw : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_mom;
+   using DiffusionBase::_fields;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -485,11 +578,21 @@ const std::string diff_name_kinetic_energy_radial_distance_power_law = "Diffusio
 
 Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
 */
-template <typename Fields>
-class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_pos;
+   using DiffusionBase::_mom;
+   using DiffusionBase::specie;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -552,11 +655,22 @@ const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidi
 
 Parameters: (DiffusionBase), double lam0, double R0, double B0, double pow_law_R, double pow_law_B, double kap_rat
 */
-template <typename Fields>
-class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_mom;
+   using DiffusionBase::specie;
+   using DiffusionBase::_fields;
+   using DiffusionBase::vmag;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -619,11 +733,22 @@ const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
 
 Parameters: (DiffusionBase), int LISM_idx, double lam_in, double lam_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
-template <typename Fields>
-class DiffusionStraussEtAl2013 : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionStraussEtAl2013 : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_mom;
+   using DiffusionBase::specie;
+   using DiffusionBase::_fields;
+   using DiffusionBase::vmag;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -675,8 +800,8 @@ public:
    double GetMuDerivative(void) override;
 };
 
-template <typename Fields>
-using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<Fields>;
+template <typename Trajectory>
+using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<Trajectory>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionPotgieterEtAl2015 class declaration
@@ -692,11 +817,22 @@ const std::string diff_name_potgieter_et_al_2015 = "DiffusionPotgieterEtAl2015";
 
 Parameters: (DiffusionBase), int LISM_idx, double kappa_in, double kappa_out, double R0, double B0, double kap_rat_in, double kap_rat_out
 */
-template <typename Fields>
-class DiffusionPotgieterEtAl2015 : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionPotgieterEtAl2015 : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_mom;
+   using DiffusionBase::specie;
+   using DiffusionBase::_fields;
+   using DiffusionBase::vmag;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -760,11 +896,23 @@ const std::string diff_name_empirical_soqlt_and_unlt = "DiffusionEmpiricalSOQLTa
 \author Juan G Alonso Guzman
 Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double B0, int Bmix_idx, double kap_rat_red, double radial_limit_perp_red, int solar_cycle_idx, double solar_cycle_effect
 */
-template <typename Fields>
-class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<Fields> {
+template <typename Trajectory_>
+class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<Trajectory_> {
 public:
 
-   using DiffusionBase = DiffusionBase<Fields>;
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::_pos;
+   using DiffusionBase::_mom;
+   using DiffusionBase::specie;
+   using DiffusionBase::_fields;
+   using DiffusionBase::vmag;
+   using DiffusionBase::container;
+   using DiffusionBase::comp_eval;
+   using DiffusionBase::Kappa;
 
 protected:
 
@@ -823,5 +971,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "diffusion_other.cc"
 
 #endif

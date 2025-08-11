@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Fields>
-DiffusionBase<Fields>::DiffusionBase(void)
+template <typename Trajectory>
+DiffusionBase<Trajectory>::DiffusionBase(void)
              : Params("", 0, STATE_NONE)
 {
 };
@@ -32,8 +32,8 @@ DiffusionBase<Fields>::DiffusionBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Fields>
-DiffusionBase<Fields>::DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+DiffusionBase<Trajectory>::DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
              : Params(name_in, specie_in, status_in)
 {
 };
@@ -45,8 +45,8 @@ DiffusionBase<Fields>::DiffusionBase(const std::string& name_in, unsigned int sp
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionBase<Fields>::DiffusionBase(const DiffusionBase& other)
+template <typename Trajectory>
+DiffusionBase<Trajectory>::DiffusionBase(const DiffusionBase& other)
              : Params(other)
 {
 // Params' constructor resets all flags
@@ -60,8 +60,8 @@ DiffusionBase<Fields>::DiffusionBase(const DiffusionBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupDiffusion()" method.
 */
-template <typename Fields>
-void DiffusionBase<Fields>::SetupObject(const DataContainer& cont_in)
+template <typename Trajectory>
+void DiffusionBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupDiffusion(false);
@@ -74,8 +74,8 @@ void DiffusionBase<Fields>::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionBase<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionBase<Trajectory>::SetupDiffusion(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -91,36 +91,37 @@ void DiffusionBase<Fields>::SetupDiffusion(bool construct)
 \date 05/09/2022
 \note This is only a stub.
 */
-template <typename Fields>
-void DiffusionBase<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionBase<Trajectory>::EvaluateDiffusion(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
 
 /*!
 \author Vladimir Florinski
-\date 07/06/2022
+\author Lucius Schoenbaum
+\date 08/10/2025
 \param[in] comp      Which component to evaluate
 \param[in] t_in      Time
 \param[in] pos_in    Position
 \param[in] mom_in    Momentum (p,mu,phi) coordinates
-\param[in] spdata_in Spatial data at the required location
+\param[in] fields_in Spatial fields at the required location
 \return One diffusion component
 \note This is a common routine that the derived classes should not change.
 */
-template <typename Fields>
-double DiffusionBase<Fields>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const SpatialData& spdata_in)
+template <typename Trajectory>
+double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in, const DerivativeData& ddata_in)
 {
    SetState(t_in, pos_in, mom_in);
    vmag = Vel(_mom[0], specie);
-   _spdata._mask = spdata_in._mask;
-   _spdata = spdata_in;
-   Omega = CyclotronFrequency(vmag, _spdata.Bmag, specie);
+   _fields = fields_in;
+   _ddata = ddata_in;
+   Omega = CyclotronFrequency(vmag, _fields.Mag(), specie);
 
-#if TRAJ_TYPE != TRAJ_PARKER
-   mu = _mom[1];
-   st2 = 1.0 - Sqr(mu);
-#endif
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      mu = _mom[1];
+      st2 = 1.0 - Sqr(mu);
+   }
 
    comp_eval = comp;
    EvaluateDiffusion();
@@ -135,16 +136,16 @@ double DiffusionBase<Fields>::GetComponent(int comp, double t_in, const GeoVecto
 \return Directional derivative
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionBase<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz)
 {
    double _t_saved, Bmag_saved, derivative, _dr, _dt;
    GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;
 
 // Save diffusion and field values at "current" position
    Kappa_saved = Kappa;
-   Bvec_saved = _spdata.Bvec;
-   Bmag_saved = _spdata.Bmag;
+   Bvec_saved = _fields.Mag();
+   Bmag_saved = _fields.AbsMag();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial derivatives
@@ -154,27 +155,27 @@ double DiffusionBase<Fields>::GetDirectionalDerivative(int xyz)
       _pos_saved = _pos;
 
 // This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough.
-      _dr = 0.5 * _spdata._dr[xyz];
-      if (_spdata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      _dr = 0.5 * _ddata._dr[xyz];
+      if (_ddata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
       else {
          _pos[xyz] += _dr;
-         _spdata.Bvec += _spdata.gradBvec.row[xyz] * _dr;
-         _spdata.Bmag += _spdata.gradBmag[xyz] * _dr;
+         _fields.Mag() += _fields.DelMag().row[xyz] * _dr;
+         _fields.AbsMag() += _fields.DelAbsMag()[xyz] * _dr;
          EvaluateDiffusion();
          Kappa_forw[comp_eval] = Kappa[comp_eval];
       };
 
       _dr *= 2.0;
-      if (_spdata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      if (_ddata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
       else {
          _pos[xyz] -= _dr;
-         _spdata.Bvec -= _spdata.gradBvec.row[xyz] * _dr;
-         _spdata.Bmag -= _spdata.gradBmag[xyz] * _dr;
+         _fields.Mag() -= _fields.DelMag().row[xyz] * _dr;
+         _fields.AbsMag() -= _fields.DelAbsMag()[xyz] * _dr;
          EvaluateDiffusion();
          Kappa_back[comp_eval] = Kappa[comp_eval];
       };
 
-      if (_spdata._dr_forw_fail[xyz] || _spdata._dr_back_fail[xyz]) _dr *= 0.5;
+      if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) _dr *= 0.5;
       derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dr;
 
 // Restore position
@@ -189,27 +190,27 @@ double DiffusionBase<Fields>::GetDirectionalDerivative(int xyz)
       _t_saved = _t;
 
 //A similar comment as the one in the spatial derivatives applies here for "_dt".
-      _dt = 0.5 * _spdata._dt;
-      if (_spdata._dt_forw_fail) {
+      _dt = 0.5 * _ddata._dt;
+      if (_ddata._dt_forw_fail) {
          _t += _dt;
-         _spdata.Bvec += _spdata.dBvecdt * _dt;
-         _spdata.Bmag += _spdata.dBmagdt * _dt;
+         _fields.Mag() += _fields.DdtMag() * _dt;
+         _fields.AbsMag() += _fields.DdtAbsMag() * _dt;
          EvaluateDiffusion();
          Kappa_forw[comp_eval] = Kappa[comp_eval];
       }
       else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
 
       _t += 2.0;
-      if (_spdata._dt_back_fail) {
+      if (_ddata._dt_back_fail) {
          _t -= _dt;
-         _spdata.Bvec -= _spdata.dBvecdt * _dt;
-         _spdata.Bmag -= _spdata.dBmagdt * _dt;
+         _fields.Mag() -= _fields.DdtMag() * _dt;
+         _fields.AbsMag() -= _fields.DdtAbsMag() * _dt;
          EvaluateDiffusion();
          Kappa_back[comp_eval] = Kappa[comp_eval];
       }
       else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
 
-      if (_spdata._dt_forw_fail || _spdata._dt_back_fail) _dt *= 0.5;
+      if (_ddata._dt_forw_fail || _ddata._dt_back_fail) _dt *= 0.5;
       derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dt;
 
 // Restore time
@@ -218,21 +219,22 @@ double DiffusionBase<Fields>::GetDirectionalDerivative(int xyz)
 
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
-   _spdata.Bvec = Bvec_saved;
-   _spdata.Bmag = Bmag_saved;
+   _fields.Mag() = Bvec_saved;
+   _fields.AbsMag() = Bmag_saved;
 
    return derivative;
 };
 
 /*!
 \author Juan G Alonso Guzman
-\author Vladimir Florinsk
-\date 10/19/2022
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 08/10/2025
 \return Derivative in mu
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionBase<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionBase<Trajectory>::GetMuDerivative(void)
 {
    double mu_saved, dmu, derivative;
    GeoVector Kappa_saved;
@@ -243,20 +245,22 @@ double DiffusionBase<Fields>::GetMuDerivative(void)
 
 // Mu derivative (momentum is in (p,mu,phi) coordinates)
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
-#if TRAJ_TYPE != TRAJ_PARKER
-   mu += dmu;
-   st2 = 1.0 - Sqr(mu);
-#endif
+
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      mu += dmu;
+      st2 = 1.0 - Sqr(mu);
+   }
 
    EvaluateDiffusion();
    derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / dmu;
 
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
-#if TRAJ_TYPE != TRAJ_PARKER
-   mu = mu_saved;
-   st2 = 1.0 - Sqr(mu);
-#endif
+
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      mu = mu_saved;
+      st2 = 1.0 - Sqr(mu);
+   }
 
    return derivative;
 };

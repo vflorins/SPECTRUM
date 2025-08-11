@@ -24,7 +24,19 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), double momentum
 */
-class BoundaryMomentum : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryMomentum : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_mom;
+   using BoundaryBase::_delta;
+//   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -65,7 +77,17 @@ const std::string bnd_name_momentum_inject = "BoundaryMomentumInject";
 
 Parameters: (BoundaryMomentum)
 */
-class BoundaryMomentumInject : public BoundaryMomentum {
+template <typename Trajectory_>
+class BoundaryMomentumInject : public BoundaryMomentum<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryMomentum = BoundaryMomentum<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -103,7 +125,17 @@ const std::string bnd_name_momentum_pass = "BoundaryMomentumPass";
 
 Parameters: (BoundaryMomentum)
 */
-class BoundaryMomentumPass : public BoundaryMomentum {
+template <typename Trajectory_>
+class BoundaryMomentumPass : public BoundaryMomentum<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryMomentum = BoundaryMomentum<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -138,7 +170,19 @@ const std::string bnd_name_momentum_inject_restrict_slab = "BoundaryMomentumInje
 
 Parameters: (BoundaryMomentumInject), GeoVector r0, GeoVector r1, GeoVector normal 
 */
-class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentumInject {
+template <typename Trajectory_>
+class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentumInject<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryMomentumInject = BoundaryMomentumInject<Trajectory>;
+
+   using BoundaryBase::container;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_delta_old;
 
 protected:
 
@@ -185,7 +229,19 @@ const std::string bnd_name_momentum_inject_restrict_shell = "BoundaryMomentumInj
 
 Parameters: (BoundaryMomentumInject), GeoVector r0, double r1, double r2 
 */
-class BoundaryMomentumInjectRestrictShell : public BoundaryMomentumInject {
+template <typename Trajectory_>
+class BoundaryMomentumInjectRestrictShell : public BoundaryMomentumInject<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryMomentumInject = BoundaryMomentumInject<Trajectory>;
+
+   using BoundaryBase::container;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_delta_old;
 
 protected:
 
@@ -219,7 +275,6 @@ public:
    CloneFunctionBoundary(BoundaryMomentumInjectRestrictShell);
 };
 
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror class declaration
@@ -234,7 +289,21 @@ const std::string bnd_name_mirror = "BoundaryMirror";
 
 Parameters: (BoundaryBase)
 */
-class BoundaryMirror : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryMirror : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_mom;
+   using BoundaryBase::_fields;
+
+   static_assert(std::same_as<Trajectory, TrajectoryParker<Fields>> || std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -259,7 +328,6 @@ public:
    CloneFunctionBoundary(BoundaryMirror);
 };
 
-#endif
 
 };
 

@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if TRAJ_TYPE != TRAJ_PARKER
+//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant methods
@@ -22,7 +22,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/06/2022
 */
-DiffusionIsotropicConstant::DiffusionIsotropicConstant(void)
+template <typename Trajectory>
+DiffusionIsotropicConstant<Trajectory>::DiffusionIsotropicConstant(void)
                           : DiffusionBase(diff_name_isotropic_constant, 0, DIFF_NOBACKGROUND)
 {
 };
@@ -34,7 +35,8 @@ DiffusionIsotropicConstant::DiffusionIsotropicConstant(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionIsotropicConstant::DiffusionIsotropicConstant(const DiffusionIsotropicConstant& other)
+template <typename Trajectory>
+DiffusionIsotropicConstant<Trajectory>::DiffusionIsotropicConstant(const DiffusionIsotropicConstant& other)
                           : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
@@ -48,7 +50,8 @@ DiffusionIsotropicConstant::DiffusionIsotropicConstant(const DiffusionIsotropicC
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionIsotropicConstant::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionIsotropicConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -59,7 +62,8 @@ void DiffusionIsotropicConstant::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-void DiffusionIsotropicConstant::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionIsotropicConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if ((comp_eval == 0) || (comp_eval == 1)) return;
    Kappa[2] = D0 * (1.0 - Sqr(mu));
@@ -71,14 +75,15 @@ void DiffusionIsotropicConstant::EvaluateDiffusion(void)
 \date 10/19/2022
 \return double       Derivative in mu
 */
-double DiffusionIsotropicConstant::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionIsotropicConstant<Trajectory>::GetMuDerivative(void)
 {
    return -2.0 * D0 * mu;
 };
 
-#endif
+//#endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant methods
@@ -88,7 +93,8 @@ double DiffusionIsotropicConstant::GetMuDerivative(void)
 \author Vladimir Florinski
 \date 05/09/2022
 */
-DiffusionQLTConstant::DiffusionQLTConstant(void)
+template <typename Trajectory>
+DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(void)
                     : DiffusionBase(diff_name_qlt_constant, 0, STATE_NONE)
 {
 };
@@ -100,7 +106,8 @@ DiffusionQLTConstant::DiffusionQLTConstant(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-DiffusionQLTConstant::DiffusionQLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                     : DiffusionBase(name_in, specie_in, status_in)
 {
 };
@@ -112,7 +119,8 @@ DiffusionQLTConstant::DiffusionQLTConstant(const std::string& name_in, unsigned 
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionQLTConstant::DiffusionQLTConstant(const DiffusionQLTConstant& other)
+template <typename Trajectory>
+DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(const DiffusionQLTConstant& other)
                     : DiffusionBase(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
@@ -125,7 +133,8 @@ DiffusionQLTConstant::DiffusionQLTConstant(const DiffusionQLTConstant& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionQLTConstant::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionQLTConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -140,15 +149,16 @@ void DiffusionQLTConstant::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/09/2022
 */
-void DiffusionQLTConstant::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionQLTConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if ((comp_eval == 0) || (comp_eval == 1)) return;
    Kappa[2] = 0.25 * M_PI * ps_minus * fabs(Omega) * st2 * pow(vmag * k_min * fabs(mu / Omega), ps_minus) * A2A;
 };
 
-#endif
+//#endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant methods
@@ -158,7 +168,8 @@ void DiffusionQLTConstant::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-DiffusionWNLTConstant::DiffusionWNLTConstant(void)
+template <typename Trajectory>
+DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(void)
                      : DiffusionQLTConstant(diff_name_wnlt_constant, 0, STATE_NONE)
 {
 };
@@ -170,7 +181,8 @@ DiffusionWNLTConstant::DiffusionWNLTConstant(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-DiffusionWNLTConstant::DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                      : DiffusionQLTConstant(name_in, specie_in, status_in)
 {
 };
@@ -182,7 +194,8 @@ DiffusionWNLTConstant::DiffusionWNLTConstant(const std::string& name_in, unsigne
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionWNLTConstant::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
+template <typename Trajectory>
+DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
                      : DiffusionQLTConstant(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
@@ -195,7 +208,8 @@ DiffusionWNLTConstant::DiffusionWNLTConstant(const DiffusionWNLTConstant& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionWNLTConstant::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionWNLTConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionQLTConstant::SetupDiffusion(false);
@@ -208,7 +222,8 @@ void DiffusionWNLTConstant::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/09/2022
 */
-void DiffusionWNLTConstant::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionWNLTConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 1) return;
    double CT, CL, xi1, xi2, F21, DT1, DT2;
@@ -246,7 +261,8 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(void)
+template <typename Trajectory>
+DiffusionWNLTRampVLISM<Trajectory>::DiffusionWNLTRampVLISM(void)
                       : DiffusionWNLTConstant(diff_name_wnlt_ramp_vlism, 0, STATE_NONE)
 {
 };
@@ -258,7 +274,8 @@ DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& other)
+template <typename Trajectory>
+DiffusionWNLTRampVLISM<Trajectory>::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& other)
                       : DiffusionWNLTConstant(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
@@ -272,7 +289,8 @@ DiffusionWNLTRampVLISM::DiffusionWNLTRampVLISM(const DiffusionWNLTRampVLISM& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionWNLTRampVLISM<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionWNLTConstant::SetupDiffusion(false);
@@ -292,7 +310,8 @@ void DiffusionWNLTRampVLISM::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/09/2022
 */
-void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionWNLTRampVLISM<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 1) return;
    double z0, r0, k_ratio;
@@ -321,7 +340,7 @@ void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
    DiffusionWNLTConstant::EvaluateDiffusion();
 };
 
-#endif
+//#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionParaConstant methods
@@ -332,8 +351,8 @@ void DiffusionWNLTRampVLISM::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 06/07/2023
 */
-template <typename Fields>
-DiffusionParaConstant<Fields>::DiffusionParaConstant(void)
+template <typename Trajectory>
+DiffusionParaConstant<Trajectory>::DiffusionParaConstant(void)
                      : DiffusionBase(diff_name_para_constant, 0, DIFF_NOBACKGROUND)
 {
 };
@@ -346,8 +365,8 @@ DiffusionParaConstant<Fields>::DiffusionParaConstant(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionParaConstant<Fields>::DiffusionParaConstant(const DiffusionParaConstant& other)
+template <typename Trajectory>
+DiffusionParaConstant<Trajectory>::DiffusionParaConstant(const DiffusionParaConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
@@ -362,8 +381,8 @@ DiffusionParaConstant<Fields>::DiffusionParaConstant(const DiffusionParaConstant
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionParaConstant<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionParaConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -375,8 +394,8 @@ void DiffusionParaConstant<Fields>::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 06/07/2023
 */
-template <typename Fields>
-void DiffusionParaConstant<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionParaConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if ((comp_eval == 0) || (comp_eval == 2)) return;
    Kappa[1] = D0;
@@ -390,8 +409,8 @@ void DiffusionParaConstant<Fields>::EvaluateDiffusion(void)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionParaConstant<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int xyz)
 {
    return 0.0;
 };
@@ -401,8 +420,8 @@ double DiffusionParaConstant<Fields>::GetDirectionalDerivative(int xyz)
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionParaConstant<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionParaConstant<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -416,8 +435,8 @@ double DiffusionParaConstant<Fields>::GetMuDerivative(void)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Fields>
-DiffusionPerpConstant<Fields>::DiffusionPerpConstant(void)
+template <typename Trajectory>
+DiffusionPerpConstant<Trajectory>::DiffusionPerpConstant(void)
                      : DiffusionBase(diff_name_perp_constant, 0, DIFF_NOBACKGROUND)
 {
 };
@@ -430,8 +449,8 @@ DiffusionPerpConstant<Fields>::DiffusionPerpConstant(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionPerpConstant<Fields>::DiffusionPerpConstant(const DiffusionPerpConstant& other)
+template <typename Trajectory>
+DiffusionPerpConstant<Trajectory>::DiffusionPerpConstant(const DiffusionPerpConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
@@ -446,8 +465,8 @@ DiffusionPerpConstant<Fields>::DiffusionPerpConstant(const DiffusionPerpConstant
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionPerpConstant<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionPerpConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -459,8 +478,8 @@ void DiffusionPerpConstant<Fields>::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Fields>
-void DiffusionPerpConstant<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionPerpConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if ((comp_eval == 1) || (comp_eval == 2)) return;
    Kappa[0] = D0;
@@ -474,8 +493,8 @@ void DiffusionPerpConstant<Fields>::EvaluateDiffusion(void)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionPerpConstant<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int xyz)
 {
    return 0.0;
 };
@@ -485,8 +504,8 @@ double DiffusionPerpConstant<Fields>::GetDirectionalDerivative(int xyz)
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionPerpConstant<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionPerpConstant<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -500,8 +519,8 @@ double DiffusionPerpConstant<Fields>::GetMuDerivative(void)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Fields>
-DiffusionFullConstant<Fields>::DiffusionFullConstant(void)
+template <typename Trajectory>
+DiffusionFullConstant<Trajectory>::DiffusionFullConstant(void)
                      : DiffusionBase(diff_name_full_constant, 0, DIFF_NOBACKGROUND)
 {
 };
@@ -514,8 +533,8 @@ DiffusionFullConstant<Fields>::DiffusionFullConstant(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionFullConstant<Fields>::DiffusionFullConstant(const DiffusionFullConstant& other)
+template <typename Trajectory>
+DiffusionFullConstant<Trajectory>::DiffusionFullConstant(const DiffusionFullConstant& other)
                      : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
@@ -530,8 +549,8 @@ DiffusionFullConstant<Fields>::DiffusionFullConstant(const DiffusionFullConstant
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionFullConstant<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionFullConstant<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -544,8 +563,8 @@ void DiffusionFullConstant<Fields>::SetupDiffusion(bool construct)
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Fields>
-void DiffusionFullConstant<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionFullConstant<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
    Kappa[0] = Dperp;
@@ -560,8 +579,8 @@ void DiffusionFullConstant<Fields>::EvaluateDiffusion(void)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionFullConstant<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int xyz)
 {
    return 0.0;
 };
@@ -571,8 +590,8 @@ double DiffusionFullConstant<Fields>::GetDirectionalDerivative(int xyz)
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionFullConstant<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionFullConstant<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -586,8 +605,8 @@ double DiffusionFullConstant<Fields>::GetMuDerivative(void)
 \author Swati Sharma
 \date 01/03/2025
 */
-template <typename Fields>
-DiffusionFlowMomentumPowerLaw<Fields>::DiffusionFlowMomentumPowerLaw(void)
+template <typename Trajectory>
+DiffusionFlowMomentumPowerLaw<Trajectory>::DiffusionFlowMomentumPowerLaw(void)
                              : DiffusionBase(diff_name_flow_momentum_power_law, 0, STATE_NONE)
 {
 };
@@ -600,8 +619,8 @@ DiffusionFlowMomentumPowerLaw<Fields>::DiffusionFlowMomentumPowerLaw(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionFlowMomentumPowerLaw<Fields>::DiffusionFlowMomentumPowerLaw(const DiffusionFlowMomentumPowerLaw& other)
+template <typename Trajectory>
+DiffusionFlowMomentumPowerLaw<Trajectory>::DiffusionFlowMomentumPowerLaw(const DiffusionFlowMomentumPowerLaw& other)
                              : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -616,8 +635,8 @@ DiffusionFlowMomentumPowerLaw<Fields>::DiffusionFlowMomentumPowerLaw(const Diffu
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionFlowMomentumPowerLaw<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionFlowMomentumPowerLaw<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -634,11 +653,11 @@ void DiffusionFlowMomentumPowerLaw<Fields>::SetupDiffusion(bool construct)
 \author Swati Sharma
 \date 01/03/2025
 */
-template <typename Fields>
-void DiffusionFlowMomentumPowerLaw<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionFlowMomentumPowerLaw<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   Kappa[1] = kap0 * pow(_spdata.Uvec.Norm() / U0, pow_law_U) * pow(_mom[0] / p0, pow_law_p);
+   Kappa[1] = kap0 * pow(_fields.Vel().Norm() / U0, pow_law_U) * pow(_mom[0] / p0, pow_law_p);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -650,12 +669,12 @@ void DiffusionFlowMomentumPowerLaw<Fields>::EvaluateDiffusion(void)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionFlowMomentumPowerLaw<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
 {
 // Note that this doesn't work in regions were the flow is nearly zero.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
-   else return Kappa[comp_eval] * pow_law_U * (_spdata.dUvecdt * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_fields.DelVel().row[xyz] * _fields.Vel()) / Sqr(_fields.Vel().Norm());
+   else return Kappa[comp_eval] * pow_law_U * (_fields.DdtVel() * _fields.Vel()) / Sqr(_fields.Vel().Norm());
 };
 
 /*!
@@ -664,8 +683,8 @@ double DiffusionFlowMomentumPowerLaw<Fields>::GetDirectionalDerivative(int xyz)
 \date 01/03/2025
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionFlowMomentumPowerLaw<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionFlowMomentumPowerLaw<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -678,8 +697,8 @@ double DiffusionFlowMomentumPowerLaw<Fields>::GetMuDerivative(void)
 \author Juan G Alonso Guzman
 \date 08/18/2023
 */
-template <typename Fields>
-DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::DiffusionKineticEnergyRadialDistancePowerLaw(void)
+template <typename Trajectory>
+DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::DiffusionKineticEnergyRadialDistancePowerLaw(void)
                                             : DiffusionBase(diff_name_kinetic_energy_radial_distance_power_law, 0, DIFF_NOBACKGROUND)
 {
 };
@@ -691,8 +710,8 @@ DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::DiffusionKineticEnergyRadi
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
+template <typename Trajectory>
+DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
                                             : DiffusionBase(other)
 {
    RAISE_BITS(_status, DIFF_NOBACKGROUND);
@@ -706,8 +725,8 @@ DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::DiffusionKineticEnergyRadi
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -723,8 +742,8 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::SetupDiffusion(bool c
 \author Juan G Alonso Guzman
 \date 08/18/2023
 */
-template <typename Fields>
-void DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
    Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
@@ -738,8 +757,8 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::EvaluateDiffusion(voi
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
 {
 // Note that this doesn't work near the origin where the radial distance is close to zero.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(_pos.Norm());
@@ -751,8 +770,8 @@ double DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::GetDirectionalDeriv
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -765,8 +784,8 @@ double DiffusionKineticEnergyRadialDistancePowerLaw<Fields>::GetMuDerivative(voi
 \author Juan G Alonso Guzman
 \date 08/17/2023
 */
-template <typename Fields>
-DiffusionRigidityMagneticFieldPowerLaw<Fields>::DiffusionRigidityMagneticFieldPowerLaw(void)
+template <typename Trajectory>
+DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::DiffusionRigidityMagneticFieldPowerLaw(void)
                                       : DiffusionBase(diff_name_rigidity_magnetic_field_power_law, 0, STATE_NONE)
 {
 };
@@ -778,8 +797,8 @@ DiffusionRigidityMagneticFieldPowerLaw<Fields>::DiffusionRigidityMagneticFieldPo
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionRigidityMagneticFieldPowerLaw<Fields>::DiffusionRigidityMagneticFieldPowerLaw(const DiffusionRigidityMagneticFieldPowerLaw& other)
+template <typename Trajectory>
+DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::DiffusionRigidityMagneticFieldPowerLaw(const DiffusionRigidityMagneticFieldPowerLaw& other)
                                       : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -793,8 +812,8 @@ DiffusionRigidityMagneticFieldPowerLaw<Fields>::DiffusionRigidityMagneticFieldPo
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionRigidityMagneticFieldPowerLaw<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -810,11 +829,11 @@ void DiffusionRigidityMagneticFieldPowerLaw<Fields>::SetupDiffusion(bool constru
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Fields>
-void DiffusionRigidityMagneticFieldPowerLaw<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_fields.Mag() / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -825,12 +844,12 @@ void DiffusionRigidityMagneticFieldPowerLaw<Fields>::EvaluateDiffusion(void)
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
-template <typename Fields>
-double DiffusionRigidityMagneticFieldPowerLaw<Fields>::GetDirectionalDerivative(int xyz)
+template <typename Trajectory>
+double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _spdata.gradBmag[xyz] / _spdata.Bvec.Norm();
-   else return Kappa[comp_eval] * pow_law_B * _spdata.dBmagdt / _spdata.Bvec.Norm();
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelMag()[xyz] / _fields.Mag().Norm();
+   else return Kappa[comp_eval] * pow_law_B * _fields.DdtMag() / _fields.Mag().Norm();
 };
 
 /*!
@@ -838,8 +857,8 @@ double DiffusionRigidityMagneticFieldPowerLaw<Fields>::GetDirectionalDerivative(
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionRigidityMagneticFieldPowerLaw<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -852,8 +871,8 @@ double DiffusionRigidityMagneticFieldPowerLaw<Fields>::GetMuDerivative(void)
 \author Juan G Alonso Guzman
 \date 12/06/2023
 */
-template <typename Fields>
-DiffusionStraussEtAl2013<Fields>::DiffusionStraussEtAl2013(void)
+template <typename Trajectory>
+DiffusionStraussEtAl2013<Trajectory>::DiffusionStraussEtAl2013(void)
                         : DiffusionBase(diff_name_strauss_et_al_2013, 0, STATE_NONE)
 {
 };
@@ -865,8 +884,8 @@ DiffusionStraussEtAl2013<Fields>::DiffusionStraussEtAl2013(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionStraussEtAl2013<Fields>::DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other)
+template <typename Trajectory>
+DiffusionStraussEtAl2013<Trajectory>::DiffusionStraussEtAl2013(const DiffusionStraussEtAl2013& other)
                         : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -880,8 +899,8 @@ DiffusionStraussEtAl2013<Fields>::DiffusionStraussEtAl2013(const DiffusionStraus
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionStraussEtAl2013<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionStraussEtAl2013<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -898,21 +917,21 @@ void DiffusionStraussEtAl2013<Fields>::SetupDiffusion(bool construct)
 \author Juan G Alonso Guzman
 \date 08/01/2024
 */
-template <typename Fields>
-void DiffusionStraussEtAl2013<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionStraussEtAl2013<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
    if (LISM_idx < 0) LISM_ind = 0.0;
-   else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
+   else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
-   double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
+   double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
    double rig = Rigidity(_mom[0], specie);
    double kap_rat;
 
 // Find diffusion coefficients
-   Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _spdata.Bmag);
+   Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _fields.Mag());
    if (comp_eval == 0) {
       kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
       Kappa[0] = kap_rat * Kappa[1];
@@ -924,8 +943,8 @@ void DiffusionStraussEtAl2013<Fields>::EvaluateDiffusion(void)
 \date 05/13/2024
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionStraussEtAl2013<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionStraussEtAl2013<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -938,8 +957,8 @@ double DiffusionStraussEtAl2013<Fields>::GetMuDerivative(void)
 \author Juan G Alonso Guzman
 \date 01/09/2025
 */
-template <typename Fields>
-DiffusionPotgieterEtAl2015<Fields>::DiffusionPotgieterEtAl2015(void)
+template <typename Trajectory>
+DiffusionPotgieterEtAl2015<Trajectory>::DiffusionPotgieterEtAl2015(void)
                           : DiffusionBase(diff_name_potgieter_et_al_2015, 0, STATE_NONE)
 {
 };
@@ -951,8 +970,8 @@ DiffusionPotgieterEtAl2015<Fields>::DiffusionPotgieterEtAl2015(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionPotgieterEtAl2015<Fields>::DiffusionPotgieterEtAl2015(const DiffusionPotgieterEtAl2015& other)
+template <typename Trajectory>
+DiffusionPotgieterEtAl2015<Trajectory>::DiffusionPotgieterEtAl2015(const DiffusionPotgieterEtAl2015& other)
                         : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -966,8 +985,8 @@ DiffusionPotgieterEtAl2015<Fields>::DiffusionPotgieterEtAl2015(const DiffusionPo
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionPotgieterEtAl2015<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionPotgieterEtAl2015<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -984,21 +1003,21 @@ void DiffusionPotgieterEtAl2015<Fields>::SetupDiffusion(bool construct)
 \author Juan G Alonso Guzman
 \date 01/09/2025
 */
-template <typename Fields>
-void DiffusionPotgieterEtAl2015<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionPotgieterEtAl2015<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
    if (LISM_idx < 0) LISM_ind = 0.0;
-   else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
+   else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
-   double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
+   double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
    double rig = Rigidity(_mom[0], specie);
    double kap_rat;
 
 // Find diffusion coefficients
-   Kappa[1] = kappa_para * (vmag / c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
+   Kappa[1] = kappa_para * (vmag / c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _fields.Mag());
    if (comp_eval == 0) {
       kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
       Kappa[0] = kap_rat * Kappa[1];
@@ -1010,8 +1029,8 @@ void DiffusionPotgieterEtAl2015<Fields>::EvaluateDiffusion(void)
 \date 01/09/2025
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionPotgieterEtAl2015<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionPotgieterEtAl2015<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };
@@ -1024,8 +1043,8 @@ double DiffusionPotgieterEtAl2015<Fields>::GetMuDerivative(void)
 \author Juan G Alonso Guzman
 \date 01/09/2025
 */
-template <typename Fields>
-DiffusionEmpiricalSOQLTandUNLT<Fields>::DiffusionEmpiricalSOQLTandUNLT(void)
+template <typename Trajectory>
+DiffusionEmpiricalSOQLTandUNLT<Trajectory>::DiffusionEmpiricalSOQLTandUNLT(void)
                               : DiffusionBase(diff_name_empirical_soqlt_and_unlt, 0, STATE_NONE)
 {
 };
@@ -1036,8 +1055,8 @@ DiffusionEmpiricalSOQLTandUNLT<Fields>::DiffusionEmpiricalSOQLTandUNLT(void)
 \param[in] other Object to initialize from
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Fields>
-DiffusionEmpiricalSOQLTandUNLT<Fields>::DiffusionEmpiricalSOQLTandUNLT(const DiffusionEmpiricalSOQLTandUNLT& other)
+template <typename Trajectory>
+DiffusionEmpiricalSOQLTandUNLT<Trajectory>::DiffusionEmpiricalSOQLTandUNLT(const DiffusionEmpiricalSOQLTandUNLT& other)
                               : DiffusionBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -1050,8 +1069,8 @@ DiffusionEmpiricalSOQLTandUNLT<Fields>::DiffusionEmpiricalSOQLTandUNLT(const Dif
 \param [in] construct Whether called from a copy constructor or separately
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void DiffusionEmpiricalSOQLTandUNLT<Fields>::SetupDiffusion(bool construct)
+template <typename Trajectory>
+void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -1070,8 +1089,8 @@ void DiffusionEmpiricalSOQLTandUNLT<Fields>::SetupDiffusion(bool construct)
 \author Juan G Alonso Guzman
 \date 01/09/2025
 */
-template <typename Fields>
-void DiffusionEmpiricalSOQLTandUNLT<Fields>::EvaluateDiffusion(void)
+template <typename Trajectory>
+void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
    double lam, rig_dep;
@@ -1088,12 +1107,12 @@ void DiffusionEmpiricalSOQLTandUNLT<Fields>::EvaluateDiffusion(void)
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
       if (Bmix_idx < 0) Bmix_ind = 1.0;
-      Bmix_ind = (_spdata.region[Bmix_idx] < 0.0 ? 0.0 : 1.0);
+      Bmix_ind = (_fields.IvBmix() < 0.0 ? 0.0 : 1.0);
       if (_pos.Norm() < radial_limit_perp_red) lam = lam_perp * (Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red);
       else lam = lam_perp;
    };
-   Kappa[comp_eval] = (lam * vmag / 3.0) * rig_dep * (B0 / _spdata.Bmag);
-   Kappa[comp_eval] /= 1.0 + solar_cycle_effect * Sqr(cos(0.5 * _spdata.region[solar_cycle_idx]));
+   Kappa[comp_eval] = (lam * vmag / 3.0) * rig_dep * (B0 / _fields.Mag());
+   Kappa[comp_eval] /= 1.0 + solar_cycle_effect * Sqr(cos(0.5 * _fields.IvSolarCycle()));
 };
 
 /*!
@@ -1101,8 +1120,8 @@ void DiffusionEmpiricalSOQLTandUNLT<Fields>::EvaluateDiffusion(void)
 \date 01/09/2025
 \return double       Derivative in mu
 */
-template <typename Fields>
-double DiffusionEmpiricalSOQLTandUNLT<Fields>::GetMuDerivative(void)
+template <typename Trajectory>
+double DiffusionEmpiricalSOQLTandUNLT<Trajectory>::GetMuDerivative(void)
 {
    return 0.0;
 };

@@ -18,7 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 02/28/2024
 */
-BoundaryMomentum::BoundaryMomentum(void)
+template <typename Trajectory>
+BoundaryMomentum<Trajectory>::BoundaryMomentum(void)
                 : BoundaryBase("", 0, BOUNDARY_MOMENTUM)
 {
 };
@@ -30,7 +31,8 @@ BoundaryMomentum::BoundaryMomentum(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryMomentum::BoundaryMomentum(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryMomentum<Trajectory>::BoundaryMomentum(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                 : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -40,7 +42,8 @@ BoundaryMomentum::BoundaryMomentum(const std::string& name_in, unsigned int spec
 \date 03/25/2022
 \param[in] other Object to initialize from
 */
-BoundaryMomentum::BoundaryMomentum(const BoundaryMomentum& other)
+template <typename Trajectory>
+BoundaryMomentum<Trajectory>::BoundaryMomentum(const BoundaryMomentum& other)
                 : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
@@ -54,7 +57,8 @@ BoundaryMomentum::BoundaryMomentum(const BoundaryMomentum& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMomentum::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMomentum<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -66,13 +70,19 @@ void BoundaryMomentum::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 02/23/2024
 */
-void BoundaryMomentum::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryMomentum<Trajectory>::EvaluateBoundary(void)
 {
-#if (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   _delta = _mom.Norm() - momentum;
-#elif (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
-   _delta = _mom[0] - momentum;
-#endif
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+      _delta = _mom.Norm() - momentum;
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      _delta = _mom[0] - momentum;
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>){
+// TODO
+      ;
+   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,7 +93,8 @@ void BoundaryMomentum::EvaluateBoundary(void)
 \author Juan G Alonso Guzman
 \date 02/28/2024
 */
-BoundaryMomentumInject::BoundaryMomentumInject(void)
+template <typename Trajectory>
+BoundaryMomentumInject<Trajectory>::BoundaryMomentumInject(void)
                       : BoundaryMomentum(bnd_name_momentum_inject, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -96,7 +107,8 @@ BoundaryMomentumInject::BoundaryMomentumInject(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryMomentumInject::BoundaryMomentumInject(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryMomentumInject<Trajectory>::BoundaryMomentumInject(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                       : BoundaryMomentum(name_in, specie_in, status_in)
 {
    max_crossings = 1;
@@ -107,7 +119,8 @@ BoundaryMomentumInject::BoundaryMomentumInject(const std::string& name_in, unsig
 \date 02/28/2024
 \param[in] other Object to initialize from
 */
-BoundaryMomentumInject::BoundaryMomentumInject(const BoundaryMomentumInject& other)
+template <typename Trajectory>
+BoundaryMomentumInject<Trajectory>::BoundaryMomentumInject(const BoundaryMomentumInject& other)
                       : BoundaryMomentum(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -122,7 +135,8 @@ BoundaryMomentumInject::BoundaryMomentumInject(const BoundaryMomentumInject& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMomentumInject::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMomentumInject<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryMomentum::SetupBoundary(false);
@@ -137,7 +151,8 @@ void BoundaryMomentumInject::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 06/25/2025
 */
-BoundaryMomentumPass::BoundaryMomentumPass(void)
+template <typename Trajectory>
+BoundaryMomentumPass<Trajectory>::BoundaryMomentumPass(void)
                     : BoundaryMomentum(bnd_name_momentum_pass, 0, BOUNDARY_MOMENTUM)
 {
 };
@@ -147,7 +162,8 @@ BoundaryMomentumPass::BoundaryMomentumPass(void)
 \date 06/25/2025
 \param[in] other Object to initialize from
 */
-BoundaryMomentumPass::BoundaryMomentumPass(const BoundaryMomentumPass& other)
+template <typename Trajectory>
+BoundaryMomentumPass<Trajectory>::BoundaryMomentumPass(const BoundaryMomentumPass& other)
                     : BoundaryMomentum(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
@@ -160,7 +176,8 @@ BoundaryMomentumPass::BoundaryMomentumPass(const BoundaryMomentumPass& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMomentumPass::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMomentumPass<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryMomentum::SetupBoundary(false);
@@ -175,7 +192,8 @@ void BoundaryMomentumPass::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 06/26/2025
 */
-BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(void)
+template <typename Trajectory>
+BoundaryMomentumInjectRestrictSlab<Trajectory>::BoundaryMomentumInjectRestrictSlab(void)
                                   : BoundaryMomentumInject(bnd_name_momentum_inject_restrict_slab, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
 {
 };
@@ -185,7 +203,8 @@ BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(void)
 \date 06/26/2025
 \param[in] other Object to initialize from
 */
-BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(const BoundaryMomentumInjectRestrictSlab& other)
+template <typename Trajectory>
+BoundaryMomentumInjectRestrictSlab<Trajectory>::BoundaryMomentumInjectRestrictSlab(const BoundaryMomentumInjectRestrictSlab& other)
                                   : BoundaryMomentumInject(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
@@ -198,7 +217,8 @@ BoundaryMomentumInjectRestrictSlab::BoundaryMomentumInjectRestrictSlab(const Bou
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMomentumInjectRestrictSlab::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMomentumInjectRestrictSlab<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryMomentumInject::SetupBoundary(false);
@@ -212,7 +232,8 @@ void BoundaryMomentumInjectRestrictSlab::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 06/26/2025
 */
-void BoundaryMomentumInjectRestrictSlab::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryMomentumInjectRestrictSlab<Trajectory>::EvaluateBoundary(void)
 {
    BoundaryMomentumInject::EvaluateBoundary();
 
@@ -230,7 +251,8 @@ void BoundaryMomentumInjectRestrictSlab::EvaluateBoundary(void)
 \author Vladimir Florinski
 \date 06/27/2025
 */
-BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(void)
+template <typename Trajectory>
+BoundaryMomentumInjectRestrictShell<Trajectory>::BoundaryMomentumInjectRestrictShell(void)
                                    : BoundaryMomentumInject(bnd_name_momentum_inject_restrict_shell, 0, BOUNDARY_MOMENTUM | BOUNDARY_TERMINAL)
 {
 };
@@ -240,7 +262,8 @@ BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(void)
 \date 06/27/2025
 \param[in] other Object to initialize from
 */
-BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(const BoundaryMomentumInjectRestrictShell& other)
+template <typename Trajectory>
+BoundaryMomentumInjectRestrictShell<Trajectory>::BoundaryMomentumInjectRestrictShell(const BoundaryMomentumInjectRestrictShell& other)
                                    : BoundaryMomentumInject(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
@@ -253,7 +276,8 @@ BoundaryMomentumInjectRestrictShell::BoundaryMomentumInjectRestrictShell(const B
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMomentumInjectRestrictShell::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMomentumInjectRestrictShell<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryMomentumInject::SetupBoundary(false);
@@ -266,7 +290,8 @@ void BoundaryMomentumInjectRestrictShell::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 06/27/2025
 */
-void BoundaryMomentumInjectRestrictShell::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryMomentumInjectRestrictShell<Trajectory>::EvaluateBoundary(void)
 {
    BoundaryMomentumInject::EvaluateBoundary();
 
@@ -277,7 +302,6 @@ void BoundaryMomentumInjectRestrictShell::EvaluateBoundary(void)
    };
 };
 
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BoundaryMirror methods
@@ -287,7 +311,8 @@ void BoundaryMomentumInjectRestrictShell::EvaluateBoundary(void)
 \author Vladimir Florinski
 \date 03/25/2022
 */
-BoundaryMirror::BoundaryMirror(void)
+template <typename Trajectory>
+BoundaryMirror<Trajectory>::BoundaryMirror(void)
               : BoundaryBase(bnd_name_mirror, 0, BOUNDARY_MOMENTUM | BOUNDARY_REFLECT)
 {
    max_crossings = -1;
@@ -298,7 +323,8 @@ BoundaryMirror::BoundaryMirror(void)
 \date 03/07/2022
 \param[in] other Object to initialize from
 */
-BoundaryMirror::BoundaryMirror(const BoundaryMirror& other)
+template <typename Trajectory>
+BoundaryMirror<Trajectory>::BoundaryMirror(const BoundaryMirror& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_MOMENTUM);
@@ -314,7 +340,8 @@ BoundaryMirror::BoundaryMirror(const BoundaryMirror& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryMirror::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryMirror<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -326,18 +353,20 @@ void BoundaryMirror::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 03/07/2022
 */
-void BoundaryMirror::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryMirror<Trajectory>::EvaluateBoundary(void)
 {
 // Delta is the parallel momentum component
-#if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   _delta = _mom[2];
-#elif TRAJ_TYPE == TRAJ_FOCUSED
-   _delta = _mom[0] * _mom[1];
-#elif TRAJ_TYPE == TRAJ_LORENTZ
-   _delta = _mom * bhat;
-#endif
+   if constexpr (std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+      _delta = _mom[2];
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
+      _delta = _mom[0] * _mom[1];
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>) {
+      _delta = _mom * _fields.AbsMag();
+   }
 };
 
-#endif
 
 };

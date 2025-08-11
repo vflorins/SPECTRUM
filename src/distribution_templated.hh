@@ -53,9 +53,6 @@ public:
    using DistributionBase::class_name;
    using DistributionBase::specie;
    using DistributionBase::BinCent;
-   // methods:
-   using DistributionBase::Trajectory_is;
-
 
 protected:
 

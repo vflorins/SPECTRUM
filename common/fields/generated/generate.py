@@ -139,6 +139,9 @@ else:
         Field("Iv3", "Scalar", "Third (general purpose) Indicator variable", R=0, S=0),
         Field("Iv4", "Scalar", "Fourth (general purpose) Indicator variable", R=0, S=0),
         Field("Iv5", "Scalar", "Fifth (general purpose) Indicator variable", R=0, S=0),
+        Field("IvLISM", "Scalar", "LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)", R=0, S=0),
+        Field("IvBmix", "Scalar", "magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
+        Field("IvSolarCycle", "Scalar", "solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
     ]
     speciess = [
         Species("PrimitiveGasDyn", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for general gas dynamics"),

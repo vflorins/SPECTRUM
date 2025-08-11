@@ -26,7 +26,17 @@ const std::string init_name_time_fixed = "InitialTimeFixed";
 
 Parameters: (InitialBase), double inittime
 */
-class InitialTimeFixed : public InitialBase {
+template <typename Trajectory_>
+class InitialTimeFixed : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_t;
 
 protected:
 
@@ -64,7 +74,18 @@ const std::string init_name_time_interval = "InitialTimeInterval";
 
 Parameters: (InitialBase), double starttime, double endtime, int n_intervals
 */
-class InitialTimeInterval : public InitialBase {
+template <typename Trajectory_>
+class InitialTimeInterval : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_t;
+   using InitialBase::rng;
 
 protected:
 
@@ -114,7 +135,24 @@ const std::string init_name_time_table = "InitialTimeTable";
 
 Parameters: (InitialTable)
 */
-class InitialTimeTable : public InitialTable<double> {
+template <typename Trajectory_>
+class InitialTimeTable : public InitialTable<Trajectory_, double> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialTable = InitialTable<Trajectory, double>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_t;
+   using InitialBase::rng;
+
+   using InitialTable::random;
+   using InitialTable::table_counter;
+   using InitialTable::initquant;
+   using InitialTable::SetupInitial;
 
 protected:
 
@@ -134,5 +172,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "initial_time.cc"
 
 #endif

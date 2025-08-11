@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/01/2020
 */
-BoundaryBase::BoundaryBase(void)
+template <typename Trajectory>
+BoundaryBase<Trajectory>::BoundaryBase(void)
             : Params("", 0, STATE_NONE)
 {
 };
@@ -31,7 +32,8 @@ BoundaryBase::BoundaryBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryBase::BoundaryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryBase<Trajectory>::BoundaryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
             : Params(name_in, specie_in, status_in)
 {
 };
@@ -43,7 +45,8 @@ BoundaryBase::BoundaryBase(const std::string& name_in, unsigned int specie_in, u
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBoundary()" with the argument of "true".
 */
-BoundaryBase::BoundaryBase(const BoundaryBase& other)
+template <typename Trajectory>
+BoundaryBase<Trajectory>::BoundaryBase(const BoundaryBase& other)
             : Params(other)
 {
 // Params' constructor resets all flags
@@ -57,7 +60,8 @@ BoundaryBase::BoundaryBase(const BoundaryBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupBoundary()" method.
 */
-void BoundaryBase::SetupObject(const DataContainer& cont_in)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupBoundary(false);
@@ -70,7 +74,8 @@ void BoundaryBase::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryBase::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::SetupBoundary(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -87,7 +92,8 @@ void BoundaryBase::SetupBoundary(bool construct)
 \date 12/27/2021
 \note This is only a stub.
 */
-void BoundaryBase::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::EvaluateBoundary(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -95,14 +101,16 @@ void BoundaryBase::EvaluateBoundary(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\author Lucius Schoenbaum
+\date 08/10/2025
 \param[in] t_in    Time
 \param[in] pos_in  Position
 \param[in] mom_in  Momentum
-\param[in] bhat_in Magnetic field direction
+\param[in] fields_in Fields
 \note This is a common routine that the derived classes should not change.
 */
-void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -111,8 +119,14 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
 
 // Set internal coordinates and evaluate boundary
    SetState(t_in, pos_in, mom_in);
-   bhat = bhat_in;
-   region = region_in;
+   if constexpr (Fields::AbsMag_found())
+      _fields.AbsMag() = fields_in.AbsMag();
+   if constexpr (Fields::Iv0_found())
+      _fields.Iv0() = fields_in.Iv0();
+   if constexpr (Fields::Iv1_found())
+      _fields.Iv1() = fields_in.Iv1();
+   if constexpr (Fields::Iv2_found())
+      _fields.Iv2() = fields_in.Iv2();
    EvaluateBoundary();
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
 
@@ -124,13 +138,16 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\author Lucius Schoenbaum
+\date 08/10/2025
 \param[in] t_in   Time
 \param[in] pos_in Position
 \param[in] mom_in Momentum
+\param[in] fields_in Fields
 \note This is a common routine that the derived classes should not change.
 */
-void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const GeoVector& bhat_in, const GeoVector& region_in)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -145,8 +162,14 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
 
 // Determine the state of the boundary for the given position and set the initial "_delta_old"
    SetState(t_in, pos_in, mom_in);
-   bhat = bhat_in;
-   region = region_in;
+   if constexpr (Fields::AbsMag_found())
+      _fields.AbsMag() = fields_in.AbsMag();
+   if constexpr (Fields::Iv0_found())
+      _fields.Iv0() = fields_in.Iv0();
+   if constexpr (Fields::Iv1_found())
+      _fields.Iv1() = fields_in.Iv1();
+   if constexpr (Fields::Iv2_found())
+      _fields.Iv2() = fields_in.Iv2();
    EvaluateBoundary();
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
    _delta_old = _delta;
@@ -160,7 +183,8 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
 \author Vladimir Florinski
 \date 04/15/2022
 */
-void BoundaryBase::RecordBoundary(void)
+template <typename Trajectory>
+void BoundaryBase<Trajectory>::RecordBoundary(void)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);

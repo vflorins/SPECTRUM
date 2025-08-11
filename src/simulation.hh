@@ -36,10 +36,12 @@ class SimulationWorker {
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields_;
+   using Fields = Trajectory::Fields;
    using BackgroundBase = BackgroundBase<Fields>;
-   using DistributionBase = DistributionBase<Fields>;
-   using DiffusionBase = DiffusionBase<Fields>;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using InitialBase = InitialBase<Trajectory>;
 
 protected:
 
@@ -154,10 +156,10 @@ public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using DistributionBase = DistributionBase<Fields>;
-   using DiffusionBase = DiffusionBase<Fields>;
-   using SimulationWorker = SimulationWorker<Fields>;
+   using BackgroundBase = BackgroundBase<Trajectory>;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using SimulationWorker = SimulationWorker<Trajectory>;
    using SimulationWorker::current_batch_size;
    using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
@@ -213,12 +215,12 @@ public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using DistributionBase = DistributionBase<Fields>;
-   using DiffusionBase = DiffusionBase<Fields>;
-   using TrajectoryBase = TrajectoryBase<Fields>;
-   using SimulationWorker = SimulationWorker<Fields>;
-   using SimulationBoss = SimulationBoss<Fields>;
+   using BackgroundBase = BackgroundBase<Trajectory>;
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using TrajectoryBase = TrajectoryBase<Trajectory>;
+   using SimulationWorker = SimulationWorker<Trajectory>;
+   using SimulationBoss = SimulationBoss<Trajectory>;
    using SimulationWorker::current_batch_size;
    using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
@@ -328,8 +330,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Generate a complete simulation object
-template <typename Fields>
-std::unique_ptr<SimulationWorker<Fields>> CreateSimulation(int argc, char** argv);
+template <typename Trajectory>
+std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
 
 };
 

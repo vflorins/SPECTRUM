@@ -15,8 +15,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_FIELDLINE)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumFixed class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,7 +31,20 @@ const std::string init_name_momentum_fixed = "InitialMomentumFixed";
 
 Parameters: (InitialBase), GeoVector initmom, or double p0, double theta0, double phi0
 */
-class InitialMomentumFixed : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumFixed : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+
+   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -78,10 +89,6 @@ public:
    CloneFunctionInitial(InitialMomentumFixed);
 };
 
-#endif
-
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumBeam class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,7 +102,22 @@ const std::string init_name_momentum_beam = "InitialMomentumBeam";
 
 Parameters: (InitialBase), double p0
 */
-class InitialMomentumBeam : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumBeam : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   // methods:
+   using InitialBase::GetMomSample;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumBeam initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -123,10 +145,6 @@ public:
    CloneFunctionInitial(InitialMomentumBeam);
 };
 
-#endif
-
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumRing class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,7 +158,21 @@ const std::string init_name_momentum_ring = "InitialMomentumRing";
 
 Parameters: (InitialBase), double p0, double theta0
 */
-class InitialMomentumRing : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumRing : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   using InitialBase::rng;
+
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -174,8 +206,6 @@ public:
    CloneFunctionInitial(InitialMomentumRing);
 };
 
-#endif
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumShell class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -189,7 +219,19 @@ const std::string init_name_momentum_shell = "InitialMomentumShell";
 
 Parameters: (InitialBase), double p0
 */
-class InitialMomentumShell : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumShell : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   using InitialBase::rng;
 
 protected:
 
@@ -230,7 +272,19 @@ const std::string init_name_momentum_thickshell = "InitialMomentumThickShell";
 
 Parameters: (InitialBase), double p1, double p2, bool log_bias
 */
-class InitialMomentumThickShell : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumThickShell : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   using InitialBase::rng;
 
 protected:
 
@@ -277,7 +331,25 @@ const std::string init_name_momentum_table = "InitialMomentumTable";
 
 Parameters: (InitialTable)
 */
-class InitialMomentumTable : public InitialTable<GeoVector> {
+template <typename Trajectory_>
+class InitialMomentumTable : public InitialTable<Trajectory_, GeoVector> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialTable = InitialTable<Trajectory, GeoVector>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   using InitialBase::rng;
+
+   using InitialTable::table_counter;
+   using InitialTable::initquant;
+   // methods:
+   using InitialTable::SetupInitial;
 
 protected:
 
@@ -309,7 +381,19 @@ const std::string init_name_momentum_maxwell = "InitialMomentumMaxwell";
 
 Parameters: (InitialBase), double p0, double dp_para, double dp_perp
 */
-class InitialMomentumMaxwell : public InitialBase {
+template <typename Trajectory_>
+class InitialMomentumMaxwell : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_mom;
+   using InitialBase::axis;
+   using InitialBase::rng;
 
 protected:
 
@@ -344,5 +428,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "initial_momentum.cc"
 
 #endif

@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-TrajectoryParker::TrajectoryParker(void)
+template <typename Fields>
+TrajectoryParker<Fields>::TrajectoryParker(void)
                 : TrajectoryBase(traj_name_parker, 0, STATE_NONE, defsize_parker)
 {
 };
@@ -32,7 +33,8 @@ TrajectoryParker::TrajectoryParker(void)
 \param[in] status_in Initial status
 \param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-TrajectoryParker::TrajectoryParker(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+template <typename Fields>
+TrajectoryParker<Fields>::TrajectoryParker(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
                 : TrajectoryBase(name_in, specie_in, status_in, presize_in)
 {
 };
@@ -41,7 +43,8 @@ TrajectoryParker::TrajectoryParker(const std::string& name_in, unsigned int spec
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-bool TrajectoryParker::IsSimmulationReady(void) const
+template <typename Fields>
+bool TrajectoryParker<Fields>::IsSimmulationReady(void) const
 {
    if (!TrajectoryBase::IsSimmulationReady()) return false;
 
@@ -55,24 +58,22 @@ bool TrajectoryParker::IsSimmulationReady(void) const
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-void TrajectoryParker::SetStart(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
-
-// Redefine mask
-   _spdata._mask = BACKGROUND_U | BACKGROUND_B | BACKGROUND_gradU | BACKGROUND_gradB;
-   spdata0._mask = BACKGROUND_U | BACKGROUND_B | BACKGROUND_gradU | BACKGROUND_gradB;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-void TrajectoryParker::FieldAlignedFrame(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::FieldAlignedFrame(void)
 {
-   fa_basis[2] = _spdata.bhat;
-   fa_basis[0] = GetSecondUnitVec(_spdata.bhat);
+   fa_basis[2] = _fields.AbsMag();
+   fa_basis[0] = GetSecondUnitVec(_fields.AbsMag());
    fa_basis[1] = fa_basis[2] ^ fa_basis[0];
 };
 
@@ -80,22 +81,22 @@ void TrajectoryParker::FieldAlignedFrame(void)
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-void TrajectoryParker::DiffusionCoeff(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::DiffusionCoeff(void)
 try {
    int i,j;
 
 #if TRAJ_PARKER_DIVK_METHOD == 0
    GeoVector pos_tmp;
-   SpatialData spdata_forw, spdata_back;
+   Fields fields_forw, fields_back;
    double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-   double delta = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
+   double delta = fmin(LarmorRadius(_mom[0], _fields.Mag(), specie), _ddata.dmax);
 
 // TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
-   spdata_forw._mask = BACKGROUND_B;
-   spdata_back._mask = BACKGROUND_B;
+
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
 
 // Loop over dimensions to find derivatives of Kappa.
    divK = gv_zeros;
@@ -103,17 +104,18 @@ try {
    for (j = 0; j < 3; j++) {
 // Forward evaluation
       pos_tmp = _pos + delta * cart_unit_vec[j];
-      CommonFields(_t, pos_tmp, _mom, spdata_forw);
-      Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_forw);
-      Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_forw);
+      CommonFields(_t, pos_tmp, _mom, fields_forw);
+// TODO [spdata-fields update] evaluating CommonFields does not modify _ddata, review (step into GetComponent)
+      Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_forw, _ddata);
+      Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_forw, _ddata);
 // Backward evaluation
       pos_tmp[j] -= 2.0 * delta;
-      CommonFields(_t, pos_tmp, _mom, spdata_back);
-      Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, spdata_back);
-      Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, spdata_back);
+      CommonFields(_t, pos_tmp, _mom, fields_back);
+      Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_back, _ddata);
+      Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_back, _ddata);
       for (i = 0; i < 3; i++) {
-         Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * spdata_forw.bhat[j] * spdata_forw.bhat[i];
-         Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * spdata_back.bhat[j] * spdata_back.bhat[i];
+         Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * fields_forw.AbsMag()[j] * fields_forw.AbsMag()[i];
+         Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * fields_back.AbsMag()[j] * fields_back.AbsMag()[i];
          divK[i] += 0.5 * (Kappa_forw - Kappa_back) / delta;
       };
    };
@@ -122,21 +124,22 @@ try {
    GeoMatrix bhatbhat;
 
 // Compute Kperp and grad(Kperp)
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
    gradKperp[0] = diffusion->GetDirectionalDerivative(0);
    gradKperp[1] = diffusion->GetDirectionalDerivative(1);
    gradKperp[2] = diffusion->GetDirectionalDerivative(2);
 
 // Compute Kpara and grad(Kpara)
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
    gradKpara[0] = diffusion->GetDirectionalDerivative(0);
    gradKpara[1] = diffusion->GetDirectionalDerivative(1);
    gradKpara[2] = diffusion->GetDirectionalDerivative(2);
 
 // Assemble diffusion tensor
-   bhatbhat.Dyadic(_spdata.bhat);
+   GeoVector bhat = _fields.AbsMag();
+   bhatbhat.Dyadic(bhat);
    divK = gradKperp + bhatbhat * (gradKpara - gradKperp)
-        + (Kpara - Kperp) * (_spdata.divbhat() * _spdata.bhat + _spdata.bhat * _spdata.gradbhat());
+        + (Kpara - Kperp) * (_fields.divbhat() * bhat + bhat * _fields.DelAbsMag());
 #endif
 
 // Scale magnitude to an upper limit of v/2 if necessary.
@@ -156,7 +159,8 @@ catch(ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-void TrajectoryParker::EulerDiffSlopes(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::EulerDiffSlopes(void)
 {
    double dWx, dWy, dWz;
    FieldAlignedFrame();
@@ -167,8 +171,8 @@ void TrajectoryParker::EulerDiffSlopes(void)
    dWz = sqrt(dt) * rng->GetNormal();
 
 // Recompute Kperp and Kpara at the beginning of the step
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
 
 // Compute random displacement
    dr_perp[0] = sqrt(2.0 * Kperp) * dWx;
@@ -186,22 +190,23 @@ void TrajectoryParker::EulerDiffSlopes(void)
 \date 06/07/2023
 \note "Bvec", "Bmag", and "bhat" must be available, so "CommonFields()" must be called prior to this function.
 */
-void TrajectoryParker::DriftCoeff(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::DriftCoeff(void)
 {
 #ifdef TRAJ_PARKER_USE_B_DRIFTS
 // Compute |B|*curl(b/|B|)
-   drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag ^ _spdata.bhat)) / _spdata.Bmag;
+   drift_vel = (_fields.curlB() - 2.0 * (_fields.DelAbsMag() ^ _fields.AbsMag())) / _fields.Mag();
 // Scale by pvc/3q|B| = r_L*v/3
-   drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
+   drift_vel *= LarmorRadius(_mom[0], _fields.Mag(), specie) * _vel[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
    if (drift_vel.Norm() > 0.5 * _vel[0]) {
       drift_vel.Normalize();
       drift_vel *= 0.5 * _vel[0];
    };
 // Add bulk flow velocity
-   drift_vel += _spdata.Uvec;
+   drift_vel += _fields.Vel();
 #else
-   drift_vel = _spdata.Uvec;
+   drift_vel = _fields.Vel();
 #endif
 };
 
@@ -209,15 +214,16 @@ void TrajectoryParker::DriftCoeff(void)
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-void TrajectoryParker::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryParker<Fields>::PhysicalStep(void)
 {
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel + divK).Norm();
+   dt_physical = cfl_adv_tp * _ddata.dmax / (drift_vel + divK).Norm();
 #else
-   dt_physical = cfl_adv_tp * _spdata.dmax / (drift_vel - divK).Norm();
+   dt_physical = cfl_adv_tp * _ddata.dmax / (drift_vel - divK).Norm();
 #endif
-   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_spdata.dmax) / fmax(Kperp, Kpara));
-   dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dlnpmax / fabs(_spdata.divU()));
+   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_ddata.dmax) / fmax(Kperp, Kpara));
+   dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dlnpmax / fabs(_fields.divU()));
 };
 
 /*!
@@ -226,7 +232,8 @@ void TrajectoryParker::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Fields>
+void TrajectoryParker<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    DriftCoeff();
    DiffusionCoeff();
@@ -240,7 +247,7 @@ void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_
 #endif
 
 // Momentum slopes
-   slope_mom_istage[0] = -_mom[0] * _spdata.divU() / 3.0;
+   slope_mom_istage[0] = -_mom[0] * _fields.divU() / 3.0;
    slope_mom_istage[1] = 0.0;
    slope_mom_istage[2] = 0.0;
 };
@@ -252,7 +259,8 @@ void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryParker::Advance(void)
+template <typename Fields>
+bool TrajectoryParker<Fields>::Advance(void)
 {
 // Retrieve latest point of the trajectory and store locally
    Load();

@@ -17,7 +17,7 @@ namespace Spectrum {
 #define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
 
 //! Flag to use gradient and curvature drifts in drift velocity calculation
-// #define TRAJ_PARKER_USE_B_DRIFTS
+//#define TRAJ_PARKER_USE_B_DRIFTS
 
 //! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
 #define TRAJ_PARKER_DIVK_METHOD 0
@@ -52,21 +52,42 @@ public:
 
    using Fields = Fields_;
    using TrajectoryBase = TrajectoryBase<Fields>;
-   using DistributionBase = DistributionBase<TrajectoryBase>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+   using DistributionBase = DistributionBase<TrajectoryParker<Fields>>;
+   using BackgroundBase = BackgroundBase<TrajectoryParker<Fields>>;
+   using DiffusionBase = DiffusionBase<TrajectoryParker<Fields>>;
+   using InitialBase = InitialBase<TrajectoryParker<Fields>>;
 
-//   using TrajectoryBase::_t;
-//   using TrajectoryBase::_pos;
-//   using TrajectoryBase::_mom;
+   using TrajectoryBase::_t;
+   using TrajectoryBase::_pos;
+   using TrajectoryBase::_vel;
+   using TrajectoryBase::_mom;
+   using TrajectoryBase::_status;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::rng;
 //   using TrajectoryBase::traj_t;
 //   using TrajectoryBase::traj_pos;
 //   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::_vel;
-//   using TrajectoryBase::specie;
+   using TrajectoryBase::specie;
 //   using TrajectoryBase::local_t;
 //   using TrajectoryBase::local_pos;
 //   using TrajectoryBase::local_mom;
+   using TrajectoryBase::diffusion;
+
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_ddata;
+   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::slope_pos;
+   using TrajectoryBase::slope_mom;
+   // methods:
+   using TrajectoryBase::Load;
+   using TrajectoryBase::Store;
+   using TrajectoryBase::StoreLocal;
+   using TrajectoryBase::TimeBoundaryProximityCheck;
+   using TrajectoryBase::RKSlopes;
+   using TrajectoryBase::RKStep;
+   using TrajectoryBase::HandleBoundaries;
+   using TrajectoryBase::CommonFields;
 
 protected:
 

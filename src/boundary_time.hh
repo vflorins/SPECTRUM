@@ -23,7 +23,18 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), double timemark
 */
-class BoundaryTime : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryTime : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory_>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_t;
+   using BoundaryBase::_delta;
 
 protected:
 
@@ -64,7 +75,17 @@ const std::string bnd_name_time_expire = "BoundaryTimeExpire";
 
 Parameters: (BoundaryTime)
 */
-class BoundaryTimeExpire : public BoundaryTime {
+template <typename Trajectory_>
+class BoundaryTimeExpire : public BoundaryTime<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory_>;
+   using BoundaryTime = BoundaryTime<Trajectory_>;
+
+   using BoundaryBase::max_crossings;
+   using BoundaryBase::_status;
 
 protected:
 
@@ -99,7 +120,16 @@ const std::string bnd_name_time_pass = "BoundaryTimePass";
 
 Parameters: (BoundaryTime)
 */
-class BoundaryTimePass : public BoundaryTime {
+template <typename Trajectory_>
+class BoundaryTimePass : public BoundaryTime<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory_>;
+   using BoundaryTime = BoundaryTime<Trajectory_>;
+
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -134,7 +164,21 @@ const std::string bnd_name_time_recur = "BoundaryTimeRecurrent";
 
 Parameters: (BoundaryTime)
 */
-class BoundaryTimeRecurrent : public BoundaryTime {
+template <typename Trajectory_>
+class BoundaryTimeRecurrent : public BoundaryTime<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory_>;
+   using BoundaryTime = BoundaryTime<Trajectory_>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::_t;
+   using BoundaryBase::_delta;
+   using BoundaryBase::CrossingsMade;
+
+   using BoundaryTime::timemark;
 
 protected:
 
@@ -160,5 +204,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "boundary_time.cc"
 
 #endif

@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/17/2020
 */
-BoundaryPlane::BoundaryPlane(void)
+template <typename Trajectory>
+BoundaryPlane<Trajectory>::BoundaryPlane(void)
              : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -31,7 +32,8 @@ BoundaryPlane::BoundaryPlane(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryPlane::BoundaryPlane(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryPlane<Trajectory>::BoundaryPlane(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
              : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -41,7 +43,8 @@ BoundaryPlane::BoundaryPlane(const std::string& name_in, unsigned int specie_in,
 \date 12/17/2020
 \param[in] other Object to initialize from
 */
-BoundaryPlane::BoundaryPlane(const BoundaryPlane& other)
+template <typename Trajectory>
+BoundaryPlane<Trajectory>::BoundaryPlane(const BoundaryPlane& other)
              : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -55,7 +58,8 @@ BoundaryPlane::BoundaryPlane(const BoundaryPlane& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryPlane::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryPlane<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -68,7 +72,8 @@ void BoundaryPlane::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/27/2021
 */
-void BoundaryPlane::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryPlane<Trajectory>::EvaluateBoundary(void)
 {
 //         |
 // delta<0 | delta>0  
@@ -92,7 +97,8 @@ void BoundaryPlane::EvaluateBoundary(void)
 \author Vladimir Florinski
 \date 12/17/2020
 */
-BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(void)
+template <typename Trajectory>
+BoundaryPlaneAbsorb<Trajectory>::BoundaryPlaneAbsorb(void)
                    : BoundaryPlane(bnd_name_plane_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -103,7 +109,8 @@ BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(void)
 \date 01/21/2022
 \param[in] other Object to initialize from
 */
-BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(const BoundaryPlaneAbsorb& other)
+template <typename Trajectory>
+BoundaryPlaneAbsorb<Trajectory>::BoundaryPlaneAbsorb(const BoundaryPlaneAbsorb& other)
                    : BoundaryPlane(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -118,7 +125,8 @@ BoundaryPlaneAbsorb::BoundaryPlaneAbsorb(const BoundaryPlaneAbsorb& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryPlaneAbsorb::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryPlaneAbsorb<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryPlane::SetupBoundary(false);
@@ -133,7 +141,8 @@ void BoundaryPlaneAbsorb::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/25/2021
 */
-BoundaryPlaneReflect::BoundaryPlaneReflect(void)
+template <typename Trajectory>
+BoundaryPlaneReflect<Trajectory>::BoundaryPlaneReflect(void)
                     : BoundaryPlane(bnd_name_plane_reflect, 0, BOUNDARY_SPACE | BOUNDARY_REFLECT)
 {
 };
@@ -143,7 +152,8 @@ BoundaryPlaneReflect::BoundaryPlaneReflect(void)
 \date 01/21/2022
 \param[in] other Object to initialize from
 */
-BoundaryPlaneReflect::BoundaryPlaneReflect(const BoundaryPlaneReflect& other)
+template <typename Trajectory>
+BoundaryPlaneReflect<Trajectory>::BoundaryPlaneReflect(const BoundaryPlaneReflect& other)
                     : BoundaryPlane(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
@@ -157,7 +167,8 @@ BoundaryPlaneReflect::BoundaryPlaneReflect(const BoundaryPlaneReflect& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryPlaneReflect::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryPlaneReflect<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryPlane::SetupBoundary(false);
@@ -172,7 +183,8 @@ void BoundaryPlaneReflect::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/25/2021
 */
-BoundaryPlanePass::BoundaryPlanePass(void)
+template <typename Trajectory>
+BoundaryPlanePass<Trajectory>::BoundaryPlanePass(void)
                  : BoundaryPlane(bnd_name_plane_pass, 0, BOUNDARY_SPACE)
 {
 };
@@ -182,7 +194,8 @@ BoundaryPlanePass::BoundaryPlanePass(void)
 \date 01/21/2022
 \param[in] other Object to initialize from
 */
-BoundaryPlanePass::BoundaryPlanePass(const BoundaryPlanePass& other)
+template <typename Trajectory>
+BoundaryPlanePass<Trajectory>::BoundaryPlanePass(const BoundaryPlanePass& other)
                  : BoundaryPlane(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
@@ -195,7 +208,8 @@ BoundaryPlanePass::BoundaryPlanePass(const BoundaryPlanePass& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryPlanePass::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryPlanePass<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryPlane::SetupBoundary(false);
@@ -210,7 +224,8 @@ void BoundaryPlanePass::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 11/02/2023
 */
-BoundaryBox::BoundaryBox(void)
+template <typename Trajectory>
+BoundaryBox<Trajectory>::BoundaryBox(void)
            : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -222,7 +237,8 @@ BoundaryBox::BoundaryBox(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryBox::BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryBox<Trajectory>::BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
            : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -232,7 +248,8 @@ BoundaryBox::BoundaryBox(const std::string& name_in, unsigned int specie_in, uin
 \date 11/02/2023
 \param[in] other Object to initialize from
 */
-BoundaryBox::BoundaryBox(const BoundaryBox& other)
+template <typename Trajectory>
+BoundaryBox<Trajectory>::BoundaryBox(const BoundaryBox& other)
            : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -246,7 +263,8 @@ BoundaryBox::BoundaryBox(const BoundaryBox& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryBox::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryBox<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -268,7 +286,8 @@ void BoundaryBox::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 11/02/2023
 */
-void BoundaryBox::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryBox<Trajectory>::EvaluateBoundary(void)
 {
 //                          delta>0
 //   +---------------------+
@@ -305,7 +324,8 @@ void BoundaryBox::EvaluateBoundary(void)
 \author Juan G Alonso Guzman
 \date 11/02/2023
 */
-BoundaryBoxReflect::BoundaryBoxReflect(void)
+template <typename Trajectory>
+BoundaryBoxReflect<Trajectory>::BoundaryBoxReflect(void)
                   : BoundaryBox(bnd_name_box_reflect, 0, BOUNDARY_SPACE | BOUNDARY_REFLECT)
 {
 };
@@ -315,7 +335,8 @@ BoundaryBoxReflect::BoundaryBoxReflect(void)
 \date 11/02/2023
 \param[in] other Object to initialize from
 */
-BoundaryBoxReflect::BoundaryBoxReflect(const BoundaryBoxReflect& other)
+template <typename Trajectory>
+BoundaryBoxReflect<Trajectory>::BoundaryBoxReflect(const BoundaryBoxReflect& other)
                   : BoundaryBox(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
@@ -329,7 +350,8 @@ BoundaryBoxReflect::BoundaryBoxReflect(const BoundaryBoxReflect& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryBoxReflect::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryBoxReflect<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBox::SetupBoundary(false);
@@ -344,7 +366,8 @@ void BoundaryBoxReflect::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/27/2021
 */
-BoundarySphere::BoundarySphere(void)
+template <typename Trajectory>
+BoundarySphere<Trajectory>::BoundarySphere(void)
               : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -356,7 +379,8 @@ BoundarySphere::BoundarySphere(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundarySphere::BoundarySphere(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundarySphere<Trajectory>::BoundarySphere(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
               : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -366,7 +390,8 @@ BoundarySphere::BoundarySphere(const std::string& name_in, unsigned int specie_i
 \date 12/17/2020
 \param[in] other Object to initialize from
 */
-BoundarySphere::BoundarySphere(const BoundarySphere& other)
+template <typename Trajectory>
+BoundarySphere<Trajectory>::BoundarySphere(const BoundarySphere& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -380,7 +405,8 @@ BoundarySphere::BoundarySphere(const BoundarySphere& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundarySphere::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundarySphere<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -392,7 +418,8 @@ void BoundarySphere::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/25/2022
 */
-void BoundarySphere::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundarySphere<Trajectory>::EvaluateBoundary(void)
 {
 //        . -- ~~~ -- .
 //    .-~               ~-.
@@ -418,7 +445,8 @@ void BoundarySphere::EvaluateBoundary(void)
 \author Vladimir Florinski
 \date 12/17/2020
 */
-BoundarySphereAbsorb::BoundarySphereAbsorb(void)
+template <typename Trajectory>
+BoundarySphereAbsorb<Trajectory>::BoundarySphereAbsorb(void)
                     : BoundarySphere(bnd_name_sphere_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -429,7 +457,8 @@ BoundarySphereAbsorb::BoundarySphereAbsorb(void)
 \date 01/25/2022
 \param[in] other Object to initialize from
 */
-BoundarySphereAbsorb::BoundarySphereAbsorb(const BoundarySphereAbsorb& other)
+template <typename Trajectory>
+BoundarySphereAbsorb<Trajectory>::BoundarySphereAbsorb(const BoundarySphereAbsorb& other)
                     : BoundarySphere(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -444,7 +473,8 @@ BoundarySphereAbsorb::BoundarySphereAbsorb(const BoundarySphereAbsorb& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundarySphereAbsorb::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundarySphereAbsorb<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundarySphere::SetupBoundary(false);
@@ -459,7 +489,8 @@ void BoundarySphereAbsorb::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/25/2021
 */
-BoundarySphereReflect::BoundarySphereReflect(void)
+template <typename Trajectory>
+BoundarySphereReflect<Trajectory>::BoundarySphereReflect(void)
                      : BoundarySphere(bnd_name_sphere_reflect, 0, BOUNDARY_SPACE | BOUNDARY_REFLECT)
 {
 };
@@ -469,7 +500,8 @@ BoundarySphereReflect::BoundarySphereReflect(void)
 \date 01/25/2022
 \param[in] other Object to initialize from
 */
-BoundarySphereReflect::BoundarySphereReflect(const BoundarySphereReflect& other)
+template <typename Trajectory>
+BoundarySphereReflect<Trajectory>::BoundarySphereReflect(const BoundarySphereReflect& other)
                      : BoundarySphere(other)
 {
    RAISE_BITS(_status, BOUNDARY_REFLECT);
@@ -483,7 +515,8 @@ BoundarySphereReflect::BoundarySphereReflect(const BoundarySphereReflect& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundarySphereReflect::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundarySphereReflect<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundarySphere::SetupBoundary(false);
@@ -498,7 +531,8 @@ void BoundarySphereReflect::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 02/28/2024
 */
-BoundaryRankine::BoundaryRankine(void)
+template <typename Trajectory>
+BoundaryRankine<Trajectory>::BoundaryRankine(void)
                : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -510,7 +544,8 @@ BoundaryRankine::BoundaryRankine(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryRankine::BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryRankine<Trajectory>::BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -520,7 +555,8 @@ BoundaryRankine::BoundaryRankine(const std::string& name_in, unsigned int specie
 \date 01/25/2022
 \param[in] other Object to initialize from
 */
-BoundaryRankine::BoundaryRankine(const BoundaryRankine& other)
+template <typename Trajectory>
+BoundaryRankine<Trajectory>::BoundaryRankine(const BoundaryRankine& other)
                : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -534,7 +570,8 @@ BoundaryRankine::BoundaryRankine(const BoundaryRankine& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryRankine::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryRankine<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -547,7 +584,8 @@ void BoundaryRankine::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 01/25/2022
 */
-void BoundaryRankine::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryRankine<Trajectory>::EvaluateBoundary(void)
 {
    GeoVector pos_rel = _pos - origin;
    double z = pos_rel * axis;
@@ -565,7 +603,8 @@ void BoundaryRankine::EvaluateBoundary(void)
 \author Juan G Alonso Guzman
 \date 02/28/2024
 */
-BoundaryRankineAbsorb::BoundaryRankineAbsorb(void)
+template <typename Trajectory>
+BoundaryRankineAbsorb<Trajectory>::BoundaryRankineAbsorb(void)
                      : BoundaryRankine(bnd_name_rankine_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -576,7 +615,8 @@ BoundaryRankineAbsorb::BoundaryRankineAbsorb(void)
 \date 02/28/2024
 \param[in] other Object to initialize from
 */
-BoundaryRankineAbsorb::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
+template <typename Trajectory>
+BoundaryRankineAbsorb<Trajectory>::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
                      : BoundaryRankine(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -591,7 +631,8 @@ BoundaryRankineAbsorb::BoundaryRankineAbsorb(const BoundaryRankineAbsorb& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryRankineAbsorb::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryRankineAbsorb<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryRankine::SetupBoundary(false);
@@ -606,7 +647,8 @@ void BoundaryRankineAbsorb::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 05/19/2023
 */
-BoundaryCylinder::BoundaryCylinder(void)
+template <typename Trajectory>
+BoundaryCylinder<Trajectory>::BoundaryCylinder(void)
                 : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -618,7 +660,8 @@ BoundaryCylinder::BoundaryCylinder(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryCylinder::BoundaryCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryCylinder<Trajectory>::BoundaryCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                 : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -628,7 +671,8 @@ BoundaryCylinder::BoundaryCylinder(const std::string& name_in, unsigned int spec
 \date 05/19/2023
 \param[in] other Object to initialize from
 */
-BoundaryCylinder::BoundaryCylinder(const BoundaryCylinder& other)
+template <typename Trajectory>
+BoundaryCylinder<Trajectory>::BoundaryCylinder(const BoundaryCylinder& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -642,7 +686,8 @@ BoundaryCylinder::BoundaryCylinder(const BoundaryCylinder& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryCylinder::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryCylinder<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -660,7 +705,8 @@ void BoundaryCylinder::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 05/19/2023
 */
-void BoundaryCylinder::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryCylinder<Trajectory>::EvaluateBoundary(void)
 {
 //        . -- ~~~ -- .
 //    .-~               ~-.
@@ -691,7 +737,8 @@ void BoundaryCylinder::EvaluateBoundary(void)
 \author Juan G Alonso Guzman
 \date 05/19/2023
 */
-BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(void)
+template <typename Trajectory>
+BoundaryCylinderAbsorb<Trajectory>::BoundaryCylinderAbsorb(void)
                       : BoundaryCylinder(bnd_name_cylinder_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -702,7 +749,8 @@ BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(void)
 \date 05/19/2023
 \param[in] other Object to initialize from
 */
-BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(const BoundaryCylinderAbsorb& other)
+template <typename Trajectory>
+BoundaryCylinderAbsorb<Trajectory>::BoundaryCylinderAbsorb(const BoundaryCylinderAbsorb& other)
                       : BoundaryCylinder(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -717,7 +765,8 @@ BoundaryCylinderAbsorb::BoundaryCylinderAbsorb(const BoundaryCylinderAbsorb& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryCylinderAbsorb::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryCylinderAbsorb<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryCylinder::SetupBoundary(false);
@@ -732,7 +781,8 @@ void BoundaryCylinderAbsorb::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 12/07/2023
 */
-BoundaryRegion::BoundaryRegion(void)
+template <typename Trajectory>
+BoundaryRegion<Trajectory>::BoundaryRegion(void)
               : BoundaryBase("", 0, BOUNDARY_SPACE)
 {
 };
@@ -744,7 +794,8 @@ BoundaryRegion::BoundaryRegion(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-BoundaryRegion::BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+BoundaryRegion<Trajectory>::BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
               : BoundaryBase(name_in, specie_in, status_in)
 {
 };
@@ -754,7 +805,8 @@ BoundaryRegion::BoundaryRegion(const std::string& name_in, unsigned int specie_i
 \date 12/07/2023
 \param[in] other Object to initialize from
 */
-BoundaryRegion::BoundaryRegion(const BoundaryRegion& other)
+template <typename Trajectory>
+BoundaryRegion<Trajectory>::BoundaryRegion(const BoundaryRegion& other)
               : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_SPACE);
@@ -768,11 +820,13 @@ BoundaryRegion::BoundaryRegion(const BoundaryRegion& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryRegion::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryRegion<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
-   container.Read(region_ind);
+   // TODO: allow the indicator variable type to vary
+//   container.Read(region_ind);
    container.Read(region_val);
 };
 
@@ -780,7 +834,8 @@ void BoundaryRegion::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 12/07/2023
 */
-void BoundaryRegion::EvaluateBoundary(void)
+template <typename Trajectory>
+void BoundaryRegion<Trajectory>::EvaluateBoundary(void)
 {
 //        
 //    _ .. -- ~~~~ -- . _
@@ -794,7 +849,9 @@ void BoundaryRegion::EvaluateBoundary(void)
 //    ` ~ - . ____ . - ~ *
 //
 
-   _delta = region[region_ind] - region_val;
+   // TODO: allow the indicator variable type to vary
+   _delta = _fields.Iv0() - region_val;
+//   _delta = region[region_ind] - region_val;
 
 //"_normal" is impossible to predict for an arbitrary geometry. This means that reflections across this type of boundary are unreliable.
    _normal = gv_zeros;
@@ -808,7 +865,8 @@ void BoundaryRegion::EvaluateBoundary(void)
 \author Juan G Alonso Guzman
 \date 12/07/2023
 */
-BoundaryRegionAbsorb::BoundaryRegionAbsorb(void)
+template <typename Trajectory>
+BoundaryRegionAbsorb<Trajectory>::BoundaryRegionAbsorb(void)
                     : BoundaryRegion(bnd_name_region_absorb, 0, BOUNDARY_SPACE | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
@@ -819,7 +877,8 @@ BoundaryRegionAbsorb::BoundaryRegionAbsorb(void)
 \date 12/07/2023
 \param[in] other Object to initialize from
 */
-BoundaryRegionAbsorb::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
+template <typename Trajectory>
+BoundaryRegionAbsorb<Trajectory>::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
                     : BoundaryRegion(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -834,7 +893,8 @@ BoundaryRegionAbsorb::BoundaryRegionAbsorb(const BoundaryRegionAbsorb& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void BoundaryRegionAbsorb::SetupBoundary(bool construct)
+template <typename Trajectory>
+void BoundaryRegionAbsorb<Trajectory>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryRegion::SetupBoundary(false);

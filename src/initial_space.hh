@@ -27,7 +27,17 @@ const std::string init_name_space_fixed = "InitialSpaceFixed";
 
 Parameters: (InitialBase), GeoVector initpos
 */
-class InitialSpaceFixed : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceFixed : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
 
 protected:
 
@@ -65,7 +75,18 @@ const std::string init_name_space_line = "InitialSpaceLine";
 
 Parameters: (InitialBase), GeoVector startpos, GeoVector endpos, int n_intervals
 */
-class InitialSpaceLine : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceLine : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
 
 protected:
 
@@ -115,7 +136,18 @@ const std::string init_name_space_circle = "InitialSpaceCircle";
 
 Parameters: (InitialBase), GeoVector center, GeoVector normal, double radius
 */
-class InitialSpaceCircle : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceCircle : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
 
 protected:
 
@@ -162,7 +194,24 @@ const std::string init_name_space_box = "InitialSpaceBox";
 
 Parameters: (InitialSpaceLine)
 */
-class InitialSpaceBox : public InitialSpaceLine {
+template <typename Trajectory_>
+class InitialSpaceBox : public InitialSpaceLine<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialSpaceLine = InitialSpaceLine<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
+
+   using InitialSpaceLine::startpos;
+   using InitialSpaceLine::endpos;
+   using InitialSpaceLine::SetupInitial;
+
 
 protected:
 
@@ -194,7 +243,18 @@ const std::string init_name_space_sphere = "InitialSpaceSphere";
 
 Parameters: (InitialBase), GeoVector origin, double radius
 */
-class InitialSpaceSphere : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceSphere : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
 
 protected:
 
@@ -238,7 +298,22 @@ const std::string init_name_space_sphere_sector = "InitialSpaceSphereSector";
 
 Parameters: (InitialSpaceSphere), theta1, theta2, phi1, phi2
 */
-class InitialSpaceSphereSector : public InitialSpaceSphere {
+template <typename Trajectory_>
+class InitialSpaceSphereSector : public InitialSpaceSphere<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialSpaceSphere = InitialSpaceSphere<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
+
+   using InitialSpaceSphere::origin;
+   using InitialSpaceSphere::radius;
 
 protected:
 
@@ -283,7 +358,18 @@ const std::string init_name_space_rankine_half_body = "InitialSpaceRankineHalfBo
 
 Parameters: (InitialBase), GeoVector origin, GeoVector axis, double z_nose, double radius
 */
-class InitialSpaceRankineHalfBody : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceRankineHalfBody : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
 
 protected:
 
@@ -333,7 +419,24 @@ const std::string init_name_space_table = "InitialSpaceTable";
 
 Parameters: (InitialTable)
 */
-class InitialSpaceTable : public InitialTable<GeoVector> {
+template <typename Trajectory_>
+class InitialSpaceTable : public InitialTable<Trajectory_, GeoVector> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialTable = InitialTable<Trajectory, GeoVector>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
+
+   using InitialTable::random;
+   using InitialTable::table_counter;
+   using InitialTable::initquant;
+   using InitialTable::SetupInitial;
 
 protected:
 
@@ -365,7 +468,18 @@ const std::string init_name_space_cylinder = "InitialSpaceCylinder";
 
 Parameters: (InitialBase), GeoVector origin, GeoVector height, GeoVector radius_x
 */
-class InitialSpaceCylinder : public InitialBase {
+template <typename Trajectory_>
+class InitialSpaceCylinder : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
 
 protected:
 
@@ -415,7 +529,24 @@ const std::string init_name_space_cylinder_sector = "InitialSpaceCylinderSector"
 
 Parameters: (InitialSpaceCylinder), phi1, phi2
 */
-class InitialSpaceCylinderSector : public InitialSpaceCylinder {
+template <typename Trajectory_>
+class InitialSpaceCylinderSector : public InitialSpaceCylinder<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+   using InitialSpaceCylinder = InitialSpaceCylinder<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
+   using InitialBase::_pos;
+   using InitialBase::rng;
+
+   using InitialSpaceCylinder::origin;
+   using InitialSpaceCylinder::radius_x;
+   using InitialSpaceCylinder::radius_y;
+   using InitialSpaceCylinder::height;
 
 protected:
 
@@ -442,4 +573,9 @@ public:
 
 };
 
+// Something like this is needed for templated classes
+#include "initial_space.cc"
+
 #endif
+
+

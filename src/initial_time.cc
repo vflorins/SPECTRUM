@@ -18,7 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-InitialTimeFixed::InitialTimeFixed(void)
+template <typename Trajectory>
+InitialTimeFixed<Trajectory>::InitialTimeFixed(void)
                 : InitialBase(init_name_time_fixed, 0, INITIAL_TIME | INITIAL_POINT)
 {
 };
@@ -30,7 +31,8 @@ InitialTimeFixed::InitialTimeFixed(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialTimeFixed::InitialTimeFixed(const InitialTimeFixed& other)
+template <typename Trajectory>
+InitialTimeFixed<Trajectory>::InitialTimeFixed(const InitialTimeFixed& other)
                 : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
@@ -45,7 +47,8 @@ InitialTimeFixed::InitialTimeFixed(const InitialTimeFixed& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialTimeFixed::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialTimeFixed<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -59,7 +62,8 @@ void InitialTimeFixed::SetupInitial(bool construct)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-void InitialTimeFixed::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialTimeFixed<Trajectory>::EvaluateInitial(void)
 {
 // Nothing to do - the value of "_t" was assigned in "Setupinitial()"
 };
@@ -72,7 +76,8 @@ void InitialTimeFixed::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-InitialTimeInterval::InitialTimeInterval(void)
+template <typename Trajectory>
+InitialTimeInterval<Trajectory>::InitialTimeInterval(void)
                    : InitialBase(init_name_time_interval, 0, INITIAL_TIME | INITIAL_CURVE)
 {
 };
@@ -84,7 +89,8 @@ InitialTimeInterval::InitialTimeInterval(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-InitialTimeInterval::InitialTimeInterval(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+InitialTimeInterval<Trajectory>::InitialTimeInterval(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                    : InitialBase(name_in, specie_in, status_in)
 {
 };
@@ -96,7 +102,8 @@ InitialTimeInterval::InitialTimeInterval(const std::string& name_in, unsigned in
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialTimeInterval::InitialTimeInterval(const InitialTimeInterval& other)
+template <typename Trajectory>
+InitialTimeInterval<Trajectory>::InitialTimeInterval(const InitialTimeInterval& other)
                    : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
@@ -111,7 +118,8 @@ InitialTimeInterval::InitialTimeInterval(const InitialTimeInterval& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialTimeInterval::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialTimeInterval<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -133,7 +141,8 @@ void InitialTimeInterval::SetupInitial(bool construct)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-void InitialTimeInterval::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialTimeInterval<Trajectory>::EvaluateInitial(void)
 {
    if (randomtime) _t = starttime + (endtime - starttime) * rng->GetUniform();
    else _t += increment;
@@ -147,7 +156,8 @@ void InitialTimeInterval::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-InitialTimeTable::InitialTimeTable(void)
+template <typename Trajectory>
+InitialTimeTable<Trajectory>::InitialTimeTable(void)
                 : InitialTable(init_name_time_table, 0, INITIAL_TIME | INITIAL_POINT)
 {
 };
@@ -159,7 +169,8 @@ InitialTimeTable::InitialTimeTable(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialTimeTable::InitialTimeTable(const InitialTimeTable& other)
+template <typename Trajectory>
+InitialTimeTable<Trajectory>::InitialTimeTable(const InitialTimeTable& other)
                 : InitialTable(other)
 {
    RAISE_BITS(_status, INITIAL_TIME);
@@ -171,7 +182,8 @@ InitialTimeTable::InitialTimeTable(const InitialTimeTable& other)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-void InitialTimeTable::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialTimeTable<Trajectory>::EvaluateInitial(void)
 {
    if (random) {
 // Generate random integer between 0 and initquant.size() - 1

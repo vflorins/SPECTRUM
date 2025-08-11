@@ -11,6 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_BOUNDARY_SPACE_HH
 
 #include "boundary_base.hh"
+#include "common/fields/generated/field_lists.hh"
 
 namespace Spectrum {
 
@@ -24,7 +25,19 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), GeoVector origin, GeoVector normal
 */
-class BoundaryPlane : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryPlane : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_normal;
 
 protected:
 
@@ -68,7 +81,17 @@ const std::string bnd_name_plane_absorb = "BoundaryPlaneAbsorb";
 
 Parameters: (BoundaryPlane)
 */
-class BoundaryPlaneAbsorb : public BoundaryPlane {
+template <typename Trajectory_>
+class BoundaryPlaneAbsorb : public BoundaryPlane<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryPlane = BoundaryPlane<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -103,7 +126,17 @@ const std::string bnd_name_plane_reflect = "BoundaryPlaneReflect";
 
 Parameters: (BoundaryPlane)
 */
-class BoundaryPlaneReflect : public BoundaryPlane {
+template <typename Trajectory_>
+class BoundaryPlaneReflect : public BoundaryPlane<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryPlane = BoundaryPlane<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -138,7 +171,17 @@ const std::string bnd_name_plane_pass = "BoundaryPlanePass";
 
 Parameters: (BoundaryPlane)
 */
-class BoundaryPlanePass : public BoundaryPlane {
+template <typename Trajectory_>
+class BoundaryPlanePass : public BoundaryPlane<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryPlane = BoundaryPlane<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -170,7 +213,20 @@ public:
 
 Parameters: (BoundaryBase), GeoVector corners[0], GeoVector[3] normals
 */
-class BoundaryBox : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryBox : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_normal;
 
 protected:
 
@@ -214,7 +270,17 @@ const std::string bnd_name_box_reflect = "BoundaryBoxReflect";
 
 Parameters: (BoundaryBox)
 */
-class BoundaryBoxReflect : public BoundaryBox {
+template <typename Trajectory_>
+class BoundaryBoxReflect : public BoundaryBox<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryBox = BoundaryBox<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -246,7 +312,19 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, double radius
 */
-class BoundarySphere : public BoundaryBase {
+template <typename Trajectory_>
+class BoundarySphere : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_normal;
 
 protected:
 
@@ -290,7 +368,17 @@ const std::string bnd_name_sphere_absorb = "BoundarySphereAbsorb";
 
 Parameters: (BoundarySphere)
 */
-class BoundarySphereAbsorb : public BoundarySphere {
+template <typename Trajectory_>
+class BoundarySphereAbsorb : public BoundarySphere<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundarySphere = BoundarySphere<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -325,7 +413,17 @@ const std::string bnd_name_sphere_reflect = "BoundarySphereReflect";
 
 Parameters: (BoundarySphere)
 */
-class BoundarySphereReflect : public BoundarySphere {
+template <typename Trajectory_>
+class BoundarySphereReflect : public BoundarySphere<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundarySphere = BoundarySphere<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -357,7 +455,18 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, double radius
 */
-class BoundaryRankine : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryRankine : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_pos;
 
 protected:
 
@@ -404,7 +513,17 @@ const std::string bnd_name_rankine_absorb = "BoundaryRankineAbsorb";
 
 Parameters: (BoundaryRankine)
 */
-class BoundaryRankineAbsorb : public BoundaryRankine {
+template <typename Trajectory_>
+class BoundaryRankineAbsorb : public BoundaryRankine<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryRankine = BoundaryRankine<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -436,7 +555,19 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, GeoVector fa_basis[2], double radius
 */
-class BoundaryCylinder : public BoundaryBase {
+template <typename Trajectory_>
+class BoundaryCylinder : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_pos;
+   using BoundaryBase::_normal;
 
 protected:
 
@@ -483,7 +614,17 @@ const std::string bnd_name_cylinder_absorb = "BoundaryCylinderAbsorb";
 
 Parameters: (BoundaryCylinder)
 */
-class BoundaryCylinderAbsorb : public BoundaryCylinder {
+template <typename Trajectory_>
+class BoundaryCylinderAbsorb : public BoundaryCylinder<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryCylinder = BoundaryCylinder<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -515,12 +656,25 @@ public:
 
 Parameters: (BoundaryBase), int region_ind, double region_val
 */
-class BoundaryRegion : public BoundaryBase {
+// TODO: allow the region indicator variable to vary
+template <typename Trajectory_>
+class BoundaryRegion : public BoundaryBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_delta;
+   using BoundaryBase::_fields;
+   using BoundaryBase::_normal;
 
 protected:
 
 //! Region index (persistent)
-   int region_ind;
+//   int region_ind;
 
 //! Region threshold value (persistent)
    double region_val;
@@ -559,7 +713,17 @@ const std::string bnd_name_region_absorb = "BoundaryRegionAbsorb";
 
 Parameters: (BoundaryRegion)
 */
-class BoundaryRegionAbsorb : public BoundaryRegion {
+template <typename Trajectory_>
+class BoundaryRegionAbsorb : public BoundaryRegion<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using BoundaryRegion = BoundaryRegion<Trajectory>;
+
+   using BoundaryBase::_status;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -582,5 +746,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "boundary_space.cc"
 
 #endif

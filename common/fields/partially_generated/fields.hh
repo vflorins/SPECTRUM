@@ -72,7 +72,7 @@ protected:
 
 
 /*!
-\brief Assignment if types match, otherwise do not compile.
+\brief Assignment if types match, otherwise take no action (private helper used by store method).
 \author Lucius Schoenbaum
 \date 06/25/2025
 \param[in] x1, x2 possibly mismatched value/variable instances
@@ -211,6 +211,22 @@ This should not occur in fluid or MHD applications.
       Fields<Ts...>::store(x);
    }
 
+/*!
+\brief Get a quantity by type
+\author Lucius Schoenbaum
+\date 08/10/2025
+Note: This method is functionally invalid if the tuple
+contains multiple members with the same data type.
+This should not occur in fluid or MHD applications.
+ */
+ // TODO: not functional yet
+   template <typename T_get>
+   T_get get() {
+      if constexpr (std::is_same<T, T_get>::value)
+         return data;
+      else
+         return Fields<Ts...>::get();
+   }
 
    // BEGIN(fields/generate, class)
 
@@ -1469,6 +1485,120 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
+\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   IvLISM_t& IvLISM(void) {
+      if constexpr (std::is_same<T, IvLISM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvLISM();
+   };
+
+/*!
+\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const IvLISM_t& IvLISM(void) const {
+      if constexpr (std::is_same<T, IvLISM_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvLISM();
+   };
+
+
+/*!
+\brief Whether IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool IvLISM_found(void) {
+      if constexpr (std::is_same<T, IvLISM_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::IvLISM_found();
+   };
+   
+
+/*!
+\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   IvBmix_t& IvBmix(void) {
+      if constexpr (std::is_same<T, IvBmix_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvBmix();
+   };
+
+/*!
+\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const IvBmix_t& IvBmix(void) const {
+      if constexpr (std::is_same<T, IvBmix_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvBmix();
+   };
+
+
+/*!
+\brief Whether IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool IvBmix_found(void) {
+      if constexpr (std::is_same<T, IvBmix_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::IvBmix_found();
+   };
+   
+
+/*!
+\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   IvSolarCycle_t& IvSolarCycle(void) {
+      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvSolarCycle();
+   };
+
+/*!
+\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const IvSolarCycle_t& IvSolarCycle(void) const {
+      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
+         return data;
+      else
+         return Fields<Ts...>::IvSolarCycle();
+   };
+
+
+/*!
+\brief Whether IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool IvSolarCycle_found(void) {
+      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
+         return true;
+      else
+         return Fields<Ts...>::IvSolarCycle_found();
+   };
+   
+
+/*!
 \brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
@@ -2413,6 +2543,19 @@ public:
       assign(data, x);
    }
 
+   // TODO: not functional yet
+   template <typename T_get>
+   T_get get() {
+      try {
+         if constexpr (std::is_same<T, T_get>::value)
+            return data;
+         else {
+            throw std::invalid_argument("[Fields] Type T in caller's get<T> was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type.");
+         }
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   }
+
    // BEGIN(fields/generate, base)
 
    Pos_t& Pos(void) {
@@ -3301,6 +3444,87 @@ public:
    
    static constexpr bool Iv5_found(void) {
       if constexpr (std::is_same<T, Iv5_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   IvLISM_t& IvLISM(void) {
+      try {
+        if constexpr (std::is_same<T, IvLISM_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Fields] IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   };
+   
+  const IvLISM_t& IvLISM(void) const {
+    try {
+      if constexpr (std::is_same<T, IvLISM_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Fields] IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
+   
+   static constexpr bool IvLISM_found(void) {
+      if constexpr (std::is_same<T, IvLISM_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   IvBmix_t& IvBmix(void) {
+      try {
+        if constexpr (std::is_same<T, IvBmix_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Fields] IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   };
+   
+  const IvBmix_t& IvBmix(void) const {
+    try {
+      if constexpr (std::is_same<T, IvBmix_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Fields] IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
+   
+   static constexpr bool IvBmix_found(void) {
+      if constexpr (std::is_same<T, IvBmix_t>::value)
+         return true;
+      else
+         return false;
+   };
+
+   IvSolarCycle_t& IvSolarCycle(void) {
+      try {
+        if constexpr (std::is_same<T, IvSolarCycle_t>::value)
+          return data;
+        else
+          throw std::invalid_argument( "[Fields] IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+      }
+      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   };
+   
+  const IvSolarCycle_t& IvSolarCycle(void) const {
+    try {
+      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
+        return data;
+      else
+        throw std::invalid_argument( "[Fields] IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+    }
+    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+  };
+   
+   static constexpr bool IvSolarCycle_found(void) {
+      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
          return true;
       else
          return false;

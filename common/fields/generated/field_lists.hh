@@ -60,6 +60,9 @@ Iv2,
 Iv3,
 Iv4,
 Iv5,
+IvLISM,
+IvBmix,
+IvSolarCycle,
 PrimitiveGasDyn,
 ConservedGasDyn,
 PrimitiveMHD,
@@ -90,7 +93,7 @@ Formatted names for distinguished code-wide fields
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-const constexpr std::array<std::string_view, 56> Names = {
+const constexpr std::array<std::string_view, 59> Names = {
    std::string_view(""),
    std::string_view("Pos"),
    std::string_view("Time"),
@@ -125,6 +128,9 @@ const constexpr std::array<std::string_view, 56> Names = {
    std::string_view("Iv3"),
    std::string_view("Iv4"),
    std::string_view("Iv5"),
+   std::string_view("IvLISM"),
+   std::string_view("IvBmix"),
+   std::string_view("IvSolarCycle"),
    std::string_view("PrimitiveGasDyn"),
    std::string_view("ConservedGasDyn"),
    std::string_view("PrimitiveMHD"),

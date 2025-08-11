@@ -250,6 +250,27 @@ using Iv4_t = ScalarField<Field::Id::Iv4, 0, 0>;
 */
 using Iv5_t = ScalarField<Field::Id::Iv5, 0, 0>;
 
+/*!
+\brief LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015) type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using IvLISM_t = ScalarField<Field::Id::IvLISM, 0, 0>;
+
+/*!
+\brief magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT) type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using IvBmix_t = ScalarField<Field::Id::IvBmix, 0, 0>;
+
+/*!
+\brief solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT) type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using IvSolarCycle_t = ScalarField<Field::Id::IvSolarCycle, 0, 0>;
+
 };
 
 #endif

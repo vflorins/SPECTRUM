@@ -43,6 +43,24 @@ const uint16_t INITIAL_VOLUME = 0x0400;
 //! Clone function pattern
 #define CloneFunctionInitial(T) std::unique_ptr<InitialBase> Clone(void) const override {return std::make_unique<T>();};
 
+//! Forward-declare Trajectory types
+template <typename Fields>
+class TrajectoryFieldline;
+template <typename Fields>
+class TrajectoryFocused;
+template <typename Fields>
+class TrajectoryGuiding;
+template <typename Fields>
+class TrajectoryGuidingDiff;
+template <typename Fields>
+class TrajectoryGuidingDiffScatt;
+template <typename Fields>
+class TrajectoryGuidingScatt;
+template <typename Fields>
+class TrajectoryLorentz;
+template <typename Fields>
+class TrajectoryParker;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialBase class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +73,12 @@ The InitialXXXXX" classes describe initial phase space coordinates for trajector
 
 Parameters:
 */
+template <typename Trajectory_>
 class InitialBase : public Params {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
 
 protected:
 
@@ -117,7 +140,16 @@ public:
 
 Parameters: (InitialBase), std::string init_file_name, double scale, bool random
 */
-template <class tableClass> class InitialTable : public InitialBase {
+template <typename Trajectory_, class tableClass>
+class InitialTable : public InitialBase<Trajectory_> {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
+   using InitialBase = InitialBase<Trajectory>;
+
+   using InitialBase::_status;
+   using InitialBase::container;
 
 protected:
 
@@ -152,7 +184,8 @@ protected:
 \date 07/01/2024
 \return True if the class describes initial condition in time
 */
-inline bool InitialBase::IsInitialTime(void) const
+template <typename Trajectory>
+inline bool InitialBase<Trajectory>::IsInitialTime(void) const
 {
    return BITS_RAISED(_status, INITIAL_TIME);
 };
@@ -162,7 +195,8 @@ inline bool InitialBase::IsInitialTime(void) const
 \date 10/01/2021
 \return True if the class describes initial condition in space
 */
-inline bool InitialBase::IsInitialSpace(void) const
+template <typename Trajectory>
+inline bool InitialBase<Trajectory>::IsInitialSpace(void) const
 {
    return BITS_RAISED(_status, INITIAL_SPACE);
 };
@@ -172,11 +206,15 @@ inline bool InitialBase::IsInitialSpace(void) const
 \date 10/01/2021
 \return True if the class describes initial condition in momentum
 */
-inline bool InitialBase::IsInitialMomentum(void) const
+template <typename Trajectory>
+inline bool InitialBase<Trajectory>::IsInitialMomentum(void) const
 {
    return BITS_RAISED(_status, INITIAL_MOMENTUM);
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "initial_base.cc"
 
 #endif

@@ -14,6 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "config.h"
 #include "common/params.hh"
 #include "common/physics.hh"
+#include "common/derivativedata.hh"
 #include <memory>
 
 namespace Spectrum {
@@ -23,6 +24,24 @@ const uint16_t DIFF_NOBACKGROUND = 0x0010;
 
 //! Clone function pattern
 #define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
+
+//! Forward-declare Trajectory types
+template <typename Fields>
+class TrajectoryFieldline;
+template <typename Fields>
+class TrajectoryFocused;
+template <typename Fields>
+class TrajectoryGuiding;
+template <typename Fields>
+class TrajectoryGuidingDiff;
+template <typename Fields>
+class TrajectoryGuidingDiffScatt;
+template <typename Fields>
+class TrajectoryGuidingScatt;
+template <typename Fields>
+class TrajectoryLorentz;
+template <typename Fields>
+class TrajectoryParker;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionBase class declaration
@@ -36,13 +55,20 @@ The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. 
 
 Parameters:
 */
-template <typename Fields>
+template <typename Trajectory_>
 class DiffusionBase : public Params {
+public:
+
+   using Trajectory = Trajectory_;
+   using Fields = Trajectory::Fields;
 
 protected:
 
 //! Fields data (transient)
-   Fields _spdata;
+   Fields _fields;
+
+//! Derivative data (transient)
+   DerivativeData _ddata;
 
 //! Velocity magnitude (transient)
    double vmag;
@@ -89,7 +115,7 @@ public:
    void SetupObject(const DataContainer& cont_in);
 
 //! Evaluate and return one diffusion component
-   double GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const SpatialData& spdata_in);
+   double GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in, const DerivativeData& ddata_in);
 
 //! Compute derivative of diffusion coefficient in position or time. By default, it is computed numerically, but specific classes can override with analytic expressions.
    virtual double GetDirectionalDerivative(int xyz);
@@ -99,5 +125,8 @@ public:
 };
 
 };
+
+// Something like this is needed for templated classes
+#include "diffusion_base.cc"
 
 #endif

@@ -21,7 +21,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/27/2021
 */
-InitialBase::InitialBase(void)
+template <typename Trajectory>
+InitialBase<Trajectory>::InitialBase(void)
            : Params("", 0, STATE_NONE)
 {
 };
@@ -33,7 +34,8 @@ InitialBase::InitialBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-InitialBase::InitialBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory>
+InitialBase<Trajectory>::InitialBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
            : Params(name_in, specie_in, status_in)
 {
 };
@@ -46,7 +48,8 @@ InitialBase::InitialBase(const std::string& name_in, unsigned int specie_in, uin
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialBase::InitialBase(const InitialBase& other)
+template <typename Trajectory>
+InitialBase<Trajectory>::InitialBase(const InitialBase& other)
            : Params(other)
 {
 // Params' constructor sets the state to "STATE_NONE"
@@ -60,7 +63,8 @@ InitialBase::InitialBase(const InitialBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupInitial()" method.
 */
-void InitialBase::SetupObject(const DataContainer& cont_in)
+template <typename Trajectory>
+void InitialBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupInitial(false);
@@ -73,7 +77,8 @@ void InitialBase::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialBase::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialBase<Trajectory>::SetupInitial(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -86,7 +91,8 @@ void InitialBase::SetupInitial(bool construct)
 \date 12/27/2021
 \note This is only a stub
 */
-void InitialBase::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialBase<Trajectory>::EvaluateInitial(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -98,7 +104,8 @@ void InitialBase::EvaluateInitial(void)
 \return Initial time from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-double InitialBase::GetTimeSample(void)
+template <typename Trajectory>
+double InitialBase<Trajectory>::GetTimeSample(void)
 {
 // Evaluate internal distribution.
    EvaluateInitial();
@@ -114,7 +121,8 @@ double InitialBase::GetTimeSample(void)
 \return Initial position from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-GeoVector InitialBase::GetPosSample(void)
+template <typename Trajectory>
+GeoVector InitialBase<Trajectory>::GetPosSample(void)
 {
 // Evaluate internal distribution.
    EvaluateInitial();
@@ -131,7 +139,8 @@ GeoVector InitialBase::GetPosSample(void)
 \return Initial momentum from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-GeoVector InitialBase::GetMomSample(const GeoVector& axis_in)
+template <typename Trajectory>
+GeoVector InitialBase<Trajectory>::GetMomSample(const GeoVector& axis_in)
 {
 // Evaluate internal distribution. The only possible error is if "axis" is zero, so we don't throw an exception here.
    axis = UnitVec(axis_in);
@@ -149,8 +158,8 @@ GeoVector InitialBase::GetMomSample(const GeoVector& axis_in)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-template <class tableClass>
-InitialTable<tableClass>::InitialTable(void)
+template <typename Trajectory, class tableClass>
+InitialTable<Trajectory, tableClass>::InitialTable(void)
                         : InitialBase("", 0, INITIAL_POINT)
 {
 };
@@ -162,8 +171,8 @@ InitialTable<tableClass>::InitialTable(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <class tableClass>
-InitialTable<tableClass>::InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
+template <typename Trajectory, class tableClass>
+InitialTable<Trajectory, tableClass>::InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
                         : InitialBase(name_in, specie_in, status_in)
 {
 };
@@ -175,8 +184,8 @@ InitialTable<tableClass>::InitialTable(const std::string& name_in, unsigned int 
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <class tableClass>
-InitialTable<tableClass>::InitialTable(const InitialTable& other)
+template <typename Trajectory, class tableClass>
+InitialTable<Trajectory, tableClass>::InitialTable(const InitialTable& other)
                         : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_POINT);
@@ -190,8 +199,8 @@ InitialTable<tableClass>::InitialTable(const InitialTable& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <class tableClass>
-void InitialTable<tableClass>::SetupInitial(bool construct)
+template <typename Trajectory, class tableClass>
+void InitialTable<Trajectory, tableClass>::SetupInitial(bool construct)
 {
    std::string init_file_name, coord_type;
    std::ifstream init_file;
@@ -242,7 +251,7 @@ void InitialTable<tableClass>::SetupInitial(bool construct)
    table_counter = 0;
 };
 
-template class InitialTable<double>;
-template class InitialTable<GeoVector>;
+//template class InitialTable<double>;
+//template class InitialTable<GeoVector>;
 
 };

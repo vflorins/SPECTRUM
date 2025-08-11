@@ -25,7 +25,7 @@ namespace Spectrum {
 #define RECORD_TRAJECTORY
 
 //! Record |B| extrema flag
-// #define RECORD_BMAG_EXTREMA
+//#define RECORD_BMAG_EXTREMA
 
 //! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
 #define TRAJ_ADV_SAFETY_LEVEL 2
@@ -166,10 +166,11 @@ class TrajectoryBase : public Params {
 public:
 
    using Fields = Fields_;
-   using DistributionBase = DistributionBase<TrajectoryBase<Fields>>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase<Fields>>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase<Fields>>;
-
+//   using DistributionBase = DistributionBase<TrajectoryBase<Fields>>;
+//   using BackgroundBase = BackgroundBase<TrajectoryBase<Fields>>;
+//   using DiffusionBase = DiffusionBase<TrajectoryBase<Fields>>;
+//   using InitialBase = InitialBase<TrajectoryBase<Fields>>;
+   using BoundaryBase = BoundaryBase<Fields>;
 
 protected:
 
@@ -256,10 +257,14 @@ protected:
    DerivativeData _ddata;
 
 //! Extrema data (transient)
-   GeoVector _edata;
+   ExtremaData _edata;
 
 //! Spatial data (transient)
    Fields _fields;
+
+//! Extrema data at the start of the trajectory (transient)
+// todo review use in distribution::ProcessTrajectory
+   ExtremaData edata0;
 
 //! Spatial data at the start of the trajectory (transient)
    Fields fields0;

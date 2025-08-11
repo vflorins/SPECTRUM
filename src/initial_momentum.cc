@@ -11,8 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_FIELDLINE)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumFixed methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,7 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 06/14/2021
 */
-InitialMomentumFixed::InitialMomentumFixed(void)
+template <typename Trajectory>
+InitialMomentumFixed<Trajectory>::InitialMomentumFixed(void)
                     : InitialBase(init_name_momentum_fixed, 0, INITIAL_MOMENTUM | INITIAL_POINT)
 {
 };
@@ -33,7 +32,8 @@ InitialMomentumFixed::InitialMomentumFixed(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumFixed::InitialMomentumFixed(const InitialMomentumFixed& other)
+template <typename Trajectory>
+InitialMomentumFixed<Trajectory>::InitialMomentumFixed(const InitialMomentumFixed& other)
                     : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -48,7 +48,8 @@ InitialMomentumFixed::InitialMomentumFixed(const InitialMomentumFixed& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumFixed::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumFixed<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -79,7 +80,8 @@ void InitialMomentumFixed::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-void InitialMomentumFixed::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumFixed<Trajectory>::EvaluateInitial(void)
 {
 // Nothing to do for FIXED_COORD - the value of "_mom" was assigned in "Setupinitial()"
 #if INITIAL_MOM_FIXED_COORD != 0
@@ -97,9 +99,7 @@ void InitialMomentumFixed::EvaluateInitial(void)
 #endif
 };
 
-#endif
 
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumBeam methods
@@ -109,7 +109,8 @@ void InitialMomentumFixed::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 04/04/2023
 */
-InitialMomentumBeam::InitialMomentumBeam(void)
+template <typename Trajectory>
+InitialMomentumBeam<Trajectory>::InitialMomentumBeam(void)
                    : InitialBase(init_name_momentum_beam, 0, INITIAL_MOMENTUM | INITIAL_POINT)
 {
 };
@@ -121,7 +122,8 @@ InitialMomentumBeam::InitialMomentumBeam(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumBeam::InitialMomentumBeam(const InitialMomentumBeam& other)
+template <typename Trajectory>
+InitialMomentumBeam<Trajectory>::InitialMomentumBeam(const InitialMomentumBeam& other)
                    : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -131,39 +133,49 @@ InitialMomentumBeam::InitialMomentumBeam(const InitialMomentumBeam& other)
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 08/10/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumBeam::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumBeam<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-#if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   _mom = GeoVector(0.0, 0.0, p0);
-#elif TRAJ_TYPE == TRAJ_FOCUSED
-   _mom = GeoVector(p0, 0.0, 0.0);
-#endif
+   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
+
+   if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
+      _mom = GeoVector(p0, 0.0, 0.0);
+   }
+   else if constexpr (Trajectory_Guiding_All) {
+      _mom = GeoVector(0.0, 0.0, p0);
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+// Nothing to do.
+      ;
+   }
 };
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 08/10/2025
 */
-void InitialMomentumBeam::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumBeam<Trajectory>::EvaluateInitial(void)
 {
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+      _mom = p0 * axis;
+   }
+   else {
 // For non-Lorentz trajectories the value of "_mom" is assigned in "SetupInitial()"
-#if (TRAJ_TYPE == TRAJ_LORENTZ)
-   _mom = p0 * axis;
-#endif
+      ;
+   }
 };
-
-#endif
-
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumRing methods
@@ -173,7 +185,8 @@ void InitialMomentumBeam::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-InitialMomentumRing::InitialMomentumRing(void)
+template <typename Trajectory>
+InitialMomentumRing<Trajectory>::InitialMomentumRing(void)
                    : InitialBase(init_name_momentum_ring, 0, INITIAL_MOMENTUM | INITIAL_CURVE)
 {
 };
@@ -185,7 +198,8 @@ InitialMomentumRing::InitialMomentumRing(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumRing::InitialMomentumRing(const InitialMomentumRing& other)
+template <typename Trajectory>
+InitialMomentumRing<Trajectory>::InitialMomentumRing(const InitialMomentumRing& other)
                    : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -200,7 +214,8 @@ InitialMomentumRing::InitialMomentumRing(const InitialMomentumRing& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumRing::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumRing<Trajectory>::SetupInitial(bool construct)
 {
    double theta0;
 
@@ -212,38 +227,45 @@ void InitialMomentumRing::SetupInitial(bool construct)
    mu0 = cos(theta0);
    st0 = sin(theta0);
 
-#if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   _mom = GeoVector(p0 * st0, 0.0, p0 * mu0);
-#elif TRAJ_TYPE == TRAJ_FOCUSED
-   _mom = GeoVector(p0, mu0, 0.0);
-#endif
+   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
+
+   if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
+      _mom = GeoVector(p0, mu0, 0.0);
+   }
+   else if constexpr (Trajectory_Guiding_All) {
+      _mom = GeoVector(p0 * st0, 0.0, p0 * mu0);
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+// Nothing to do.
+      ;
+   }
+
 };
 
 /*!
 \author Vladimir Florinski
 \date 06/21/2021
 */
-void InitialMomentumRing::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumRing<Trajectory>::EvaluateInitial(void)
 {
-#if (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT) || (TRAJ_TYPE == TRAJ_FOCUSED)
-// Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
-#elif (TRAJ_TYPE == TRAJ_LORENTZ)
-
-   double phi = M_2PI * rng->GetUniform();
-   GeoVector e1, e2;
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+      double phi = M_2PI * rng->GetUniform();
+      GeoVector e1, e2;
 
 // Component parallel to "axis"
-   _mom = p0 * mu0 * axis;
+      _mom = p0 * mu0 * axis;
 
 // Components normal to "axis"
-   e1 = GetSecondUnitVec(axis);
-   e2 = axis ^ e1;
-   _mom += p0 * st0 * (cos(phi) * e1 + sin(phi) * e2);
-
-#endif
+      e1 = GetSecondUnitVec(axis);
+      e2 = axis ^ e1;
+      _mom += p0 * st0 * (cos(phi) * e1 + sin(phi) * e2);
+   }
+   else {
+// Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
+      ;
+   }
 };
-
-#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumShell methods
@@ -253,7 +275,8 @@ void InitialMomentumRing::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-InitialMomentumShell::InitialMomentumShell(void)
+template <typename Trajectory>
+InitialMomentumShell<Trajectory>::InitialMomentumShell(void)
                     : InitialBase(init_name_momentum_shell, 0, INITIAL_MOMENTUM | INITIAL_SURFACE)
 {
 };
@@ -265,7 +288,8 @@ InitialMomentumShell::InitialMomentumShell(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumShell::InitialMomentumShell(const InitialMomentumShell& other)
+template <typename Trajectory>
+InitialMomentumShell<Trajectory>::InitialMomentumShell(const InitialMomentumShell& other)
                     : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -280,49 +304,61 @@ InitialMomentumShell::InitialMomentumShell(const InitialMomentumShell& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumShell::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumShell<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-#if TRAJ_TYPE == TRAJ_PARKER
-   _mom = GeoVector(p0, 0.0, 0.0);
-#elif TRAJ_TYPE == TRAJ_FIELDLINE
-   _mom = GeoVector(0.0, 0.0, p0);
-#endif
+   if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      _mom = GeoVector(p0, 0.0, 0.0);
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+      _mom = GeoVector(0.0, 0.0, p0);
+   }
+   else {
+// Nothing to do.
+      ;
+   }
 };
 
 /*!
 \author Vladimir Florinski
 \date 06/21/2021
 */
-void InitialMomentumShell::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumShell<Trajectory>::EvaluateInitial(void)
 {
-#if (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_FIELDLINE)
+
+   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
+
+   if constexpr (Trajectory_Guiding_All || std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
+
+      double mu, st;
+
+      mu = -1.0 + 2.0 * rng->GetUniform();
+      st = sqrt(1.0 - Sqr(mu));
+
+      if constexpr (Trajectory_Guiding_All) {
+         _mom = GeoVector(p0 * st, 0.0, p0 * mu);
+      }
+      else {
+         _mom = GeoVector(p0, mu, 0.0);
+      }
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>) {
+      double mu, st, phi;
+      mu = -1.0 + 2.0 * rng->GetUniform();
+      st = sqrt(1.0 - Sqr(mu));
+      phi = M_2PI * rng->GetUniform();
+      _mom = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
+   }
+   else {
+// Parker, Fieldline
 // Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
-#elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT) || (TRAJ_TYPE == TRAJ_FOCUSED)
-
-   double mu, st;
-
-   mu = -1.0 + 2.0 * rng->GetUniform();
-   st = sqrt(1.0 - Sqr(mu));
-
-#if TRAJ_TYPE == TRAJ_FOCUSED
-   _mom = GeoVector(p0, mu, 0.0);
-#else
-   _mom = GeoVector(p0 * st, 0.0, p0 * mu);
-#endif
-
-#elif TRAJ_TYPE == TRAJ_LORENTZ
-
-   double mu, st, phi;
-   mu = -1.0 + 2.0 * rng->GetUniform();
-   st = sqrt(1.0 - Sqr(mu));
-   phi = M_2PI * rng->GetUniform();
-   _mom = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
-
-#endif
+      ;
+   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -333,7 +369,8 @@ void InitialMomentumShell::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/21/2021
 */
-InitialMomentumThickShell::InitialMomentumThickShell(void)
+template <typename Trajectory>
+InitialMomentumThickShell<Trajectory>::InitialMomentumThickShell(void)
                          : InitialBase(init_name_momentum_thickshell, 0, INITIAL_MOMENTUM | INITIAL_VOLUME)
 {
 };
@@ -345,7 +382,8 @@ InitialMomentumThickShell::InitialMomentumThickShell(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumThickShell::InitialMomentumThickShell(const InitialMomentumThickShell& other)
+template <typename Trajectory>
+InitialMomentumThickShell<Trajectory>::InitialMomentumThickShell(const InitialMomentumThickShell& other)
                          : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -360,7 +398,8 @@ InitialMomentumThickShell::InitialMomentumThickShell(const InitialMomentumThickS
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumThickShell::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumThickShell<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -378,39 +417,41 @@ void InitialMomentumThickShell::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 06/21/2021
 */
-void InitialMomentumThickShell::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumThickShell<Trajectory>::EvaluateInitial(void)
 {
    double p;
 
    if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
-   
-#if TRAJ_TYPE == TRAJ_PARKER
-   _mom = GeoVector(p, 0.0, 0.0);
-#elif TRAJ_TYPE == TRAJ_FIELDLINE
-   _mom = GeoVector(0.0, 0.0, p);
-#elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT) || (TRAJ_TYPE == TRAJ_FOCUSED)
 
-   double mu, st;
+   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
-   mu = -1.0 + 2.0 * rng->GetUniform();
-   st = sqrt(1.0 - Sqr(mu));
+   if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      _mom = GeoVector(p, 0.0, 0.0);
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+      _mom = GeoVector(0.0, 0.0, p);
+   }
+   else if constexpr (Trajectory_Guiding_All || std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
+      double mu, st;
 
-#if TRAJ_TYPE == TRAJ_FOCUSED
-   _mom = GeoVector(p, mu, 0.0);
-#else
-   _mom = GeoVector(p * st, 0.0, p * mu);
-#endif
-
-#elif TRAJ_TYPE == TRAJ_LORENTZ
-
-   double mu, st, phi;
-   mu = -1.0 + 2.0 * rng->GetUniform();
-   st = sqrt(1.0 - Sqr(mu));
-   phi = M_2PI * rng->GetUniform();
-   _mom = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
-
-#endif
+      mu = -1.0 + 2.0 * rng->GetUniform();
+      st = sqrt(1.0 - Sqr(mu));
+      if constexpr (Trajectory_Guiding_All) {
+         _mom = GeoVector(p * st, 0.0, p * mu);
+      }
+      else {
+         _mom = GeoVector(p, mu, 0.0);
+      }
+   }
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+      double mu, st, phi;
+      mu = -1.0 + 2.0 * rng->GetUniform();
+      st = sqrt(1.0 - Sqr(mu));
+      phi = M_2PI * rng->GetUniform();
+      _mom = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
+   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -421,7 +462,8 @@ void InitialMomentumThickShell::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-InitialMomentumTable::InitialMomentumTable(void)
+template <typename Trajectory>
+InitialMomentumTable<Trajectory>::InitialMomentumTable(void)
                     : InitialTable(init_name_momentum_table, 0, INITIAL_MOMENTUM | INITIAL_POINT)
 {
 };
@@ -433,7 +475,8 @@ InitialMomentumTable::InitialMomentumTable(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
+template <typename Trajectory>
+InitialMomentumTable<Trajectory>::InitialMomentumTable(const InitialMomentumTable& other)
                     : InitialTable(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -445,7 +488,8 @@ InitialMomentumTable::InitialMomentumTable(const InitialMomentumTable& other)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-void InitialMomentumTable::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumTable<Trajectory>::EvaluateInitial(void)
 {
    if (random) {
 
@@ -473,7 +517,8 @@ void InitialMomentumTable::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 04/04/2023
 */
-InitialMomentumMaxwell::InitialMomentumMaxwell(void)
+template <typename Trajectory>
+InitialMomentumMaxwell<Trajectory>::InitialMomentumMaxwell(void)
                       : InitialBase(init_name_momentum_maxwell, 0, INITIAL_MOMENTUM | INITIAL_VOLUME)
 {
 };
@@ -485,7 +530,8 @@ InitialMomentumMaxwell::InitialMomentumMaxwell(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-InitialMomentumMaxwell::InitialMomentumMaxwell(const InitialMomentumMaxwell& other)
+template <typename Trajectory>
+InitialMomentumMaxwell<Trajectory>::InitialMomentumMaxwell(const InitialMomentumMaxwell& other)
                       : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_MOMENTUM);
@@ -500,7 +546,8 @@ InitialMomentumMaxwell::InitialMomentumMaxwell(const InitialMomentumMaxwell& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-void InitialMomentumMaxwell::SetupInitial(bool construct)
+template <typename Trajectory>
+void InitialMomentumMaxwell<Trajectory>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -517,39 +564,40 @@ void InitialMomentumMaxwell::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 04/04/2023
 */
-void InitialMomentumMaxwell::EvaluateInitial(void)
+template <typename Trajectory>
+void InitialMomentumMaxwell<Trajectory>::EvaluateInitial(void)
 {
-#if TRAJ_TYPE == TRAJ_FIELDLINE
-   _mom = GeoVector(0.0, 0.0, p0);
-   return;
-#endif
+
+   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
+
+   if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+      _mom = GeoVector(0.0, 0.0, p0);
+      return;
+   }
 
    double p_para = p0 + dp_para * rng->GetNormal();
    double p_perp = dp_perp * rng->GetRayleigh();
 
-#if TRAJ_TYPE == TRAJ_LORENTZ
-
-   double phi = M_2PI * rng->GetUniform();
-   GeoVector e1, e2;
-   e1 = GetSecondUnitVec(axis);
-   e2 = axis ^ e1;
-   _mom = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
-
-#elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   _mom = GeoVector(p_perp, 0.0, p_para);
-
-#else
-
-   double p = sqrt(Sqr(p_para) + Sqr(p_perp));
-
-#if (TRAJ_TYPE == TRAJ_FOCUSED)
-   double mu = p_para / p;
-   _mom = GeoVector(p, mu, 0.0);
-#elif (TRAJ_TYPE == TRAJ_PARKER)
-   _mom = GeoVector(p, 0.0, 0.0);
-#endif
-
-#endif
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){
+      double phi = M_2PI * rng->GetUniform();
+      GeoVector e1, e2;
+      e1 = GetSecondUnitVec(axis);
+      e2 = axis ^ e1;
+      _mom = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
+   }
+   else if constexpr (Trajectory_Guiding_All) {
+      _mom = GeoVector(p_perp, 0.0, p_para);
+   }
+   else {
+      double p = sqrt(Sqr(p_para) + Sqr(p_perp));
+      if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>){
+         double mu = p_para / p;
+         _mom = GeoVector(p, mu, 0.0);
+      }
+      else if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+         _mom = GeoVector(p, 0.0, 0.0);
+      }
+   }
 };
 
 };

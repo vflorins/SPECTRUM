@@ -74,16 +74,15 @@ void TrajectoryBase<Fields>::ResetAllBoundaries(void)
 
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
       bcond_t[bnd]->SetScale(_ddata.dmax / c_code);
-      // todo ResetBoundary's signature must be modified ____________________
-      bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+      bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _fields);
    };
    for (bnd = 0; bnd < bcond_s.size(); bnd++) {
       bcond_s[bnd]->SetScale(_ddata.dmax);
-      bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+      bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _fields);
    };
    for (bnd = 0; bnd < bcond_m.size(); bnd++) {
       bcond_m[bnd]->SetScale(_mom.Norm());
-      bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+      bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _fields);
    };
 };
 
@@ -96,10 +95,9 @@ void TrajectoryBase<Fields>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
-   // todo ComputeBoundary's signature must be modified ____________________
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _fields);
+   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _fields);
+   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _fields);
 };
 
 /*!
@@ -210,7 +208,7 @@ try {
 // Only check whether at least one absorbing boundary was crossed.
    bactive_s = -1;
    while ((bactive_s == -1) && (bnd < bcond_s.size())) {
-      bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+      bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _fields);
       bnd_status = bcond_s[bnd]->GetStatus();
 
 // Terminal boundary crossed, so the trajectory cannot continue
@@ -227,7 +225,7 @@ try {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
          // todo modify signature of ProcessTrajectory
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
       };
    };
 
@@ -466,7 +464,7 @@ void TrajectoryBase<Fields>::HandleBoundaries(void)
    if (bactive_m >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_m[bactive_m]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
       };
       bactive_m = -1;
    };
@@ -497,7 +495,7 @@ void TrajectoryBase<Fields>::HandleBoundaries(void)
 #endif
 
 // Recompute the boundary since the position and momentum have changed.
-            bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+            bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _fields);
 // Manually decrement crossings_left, because recomputing the boundary changes _delta again so that _delta * _old_delta > 0.0
             bcond_s[bnd]->DecrCrossingsLeft();
 // FIXME: This _should_ in principle count as mirroring, but doing so requires an evaluation of the mirroring boundary (TODO). Manually increment n_mirr for now.
@@ -520,7 +518,7 @@ void TrajectoryBase<Fields>::HandleBoundaries(void)
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
       };
       bactive_s = -1;
    };
@@ -547,7 +545,7 @@ void TrajectoryBase<Fields>::HandleBoundaries(void)
    if (bactive_t >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_t[bactive_t]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
       };
       bactive_t = -1;
    };
@@ -604,14 +602,16 @@ bool TrajectoryBase<Fields>::RKAdvance(void)
 #ifdef RECORD_BMAG_EXTREMA
 /*!
 \author Juan G Alonso Guzman
-\date 06/22/2023
+\author Lucius Schoenbaum
+\date 08/11/2025
 */
-void TrajectoryBase::UpdateBmagExtrema(void)
+template <typename Fields>
+void TrajectoryBase<Fields>::UpdateBmagExtrema(void)
 {
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) {
-      _spdata.Bmag_min = fmin(_spdata.Bmag_min, _spdata.Bmag);
-      _spdata.Bmag_max = fmax(_spdata.Bmag_max, _spdata.Bmag);
-   };
+   if constexpr (Fields::Mag_found()) {
+      _edata.Bmag_min = fmin(_edata.Bmag_min, _fields.Mag());
+      _edata.Bmag_max = fmax(_edata.Bmag_max, _fields.Mag());
+   }
 };
 #endif
 
@@ -798,9 +798,10 @@ void TrajectoryBase<Fields>::AddInitial(const InitialBase& initial_in, const Dat
 \date 06/22/2023
 \return Minimum |B| along trajectory
 */
-double TrajectoryBase::GetBmagMin(void) const
+template <typename Fields>
+double TrajectoryBase<Fields>::GetBmagMin(void) const
 {
-   return _spdata.Bmag_min;
+   return _edata.Bmag_min;
 };
 
 /*!
@@ -808,9 +809,10 @@ double TrajectoryBase::GetBmagMin(void) const
 \date 06/22/2023
 \return Maximum |B| along trajectory
 */
-double TrajectoryBase::GetBmagMax(void) const
+template <typename Fields>
+double TrajectoryBase<Fields>::GetBmagMax(void) const
 {
-   return _spdata.Bmag_max;
+   return _edata.Bmag_max;
 };
 #endif
 
@@ -939,20 +941,28 @@ try {
    _mom = icond_m->GetMomSample(gv_ones);
 
 // Obtain the fields for that position
-   _spdata._mask = BACKGROUND_ALL | BACKGROUND_gradALL | BACKGROUND_dALLdt;
-   spdata0._mask = BACKGROUND_ALL | BACKGROUND_gradALL | BACKGROUND_dALLdt;
    CommonFields();
 
 // Record the initial spatial data for distribution purposes.
-   spdata0 = _spdata;
+// todo review - is edata needed, is ddata needed?
+   fields0 = _fields;
+   edata0 = _edata;
 #ifdef RECORD_BMAG_EXTREMA
 // Initialize field extrema.
-   _spdata.Bmag_min = _spdata.Bmag;
-   _spdata.Bmag_max = _spdata.Bmag;
+   if constexpr (Fields::Mag_found()) {
+      _edata.Bmag_min = _fields.Mag();
+      _edata.Bmag_max = _fields.Mag();
+   }
 #endif
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   _mom = icond_m->GetMomSample(_spdata.bhat);
+   if constexpr (Fields::AbsMag_found()) {
+      _mom = icond_m->GetMomSample(_fields.AbsMag());
+   }
+   else {
+// TODO
+      ;
+   }
    _vel = Vel(_mom, specie);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
