@@ -146,6 +146,7 @@ void InitialMomentumBeam<Trajectory>::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
+   // todo std:: subclass of TrajectoryGuiding
    constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
@@ -227,6 +228,7 @@ void InitialMomentumRing<Trajectory>::SetupInitial(bool construct)
    mu0 = cos(theta0);
    st0 = sin(theta0);
 
+   // todo std:: subclass of TrajectoryGuiding
    constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
@@ -331,6 +333,7 @@ template <typename Trajectory>
 void InitialMomentumShell<Trajectory>::EvaluateInitial(void)
 {
 
+   // todo std:: subclass of TrajectoryGuiding
    constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
    if constexpr (Trajectory_Guiding_All || std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
@@ -425,6 +428,7 @@ void InitialMomentumThickShell<Trajectory>::EvaluateInitial(void)
    if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
 
+   // todo std:: subclass of TrajectoryGuiding
    constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
    if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
@@ -568,6 +572,7 @@ template <typename Trajectory>
 void InitialMomentumMaxwell<Trajectory>::EvaluateInitial(void)
 {
 
+   // todo std:: subclass of TrajectoryGuiding
    constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
 
    if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {

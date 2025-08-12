@@ -292,6 +292,7 @@ void DistributionMomentumUniform<Trajectory>::EvaluateValue(void)
          this->_value[1] = 0.0;
          this->_value[2] = 0.0;
       }
+         // todo std:: subclass of TrajectoryGuiding
       else if constexpr (std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
          this->_value[0] = momentum.Norm();
          this->_value[1] = momentum[2] / this->_value[0];
@@ -591,6 +592,7 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::EvaluateValue(void)
    else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
       this->_value[0] = EnrKin(this->_mom[2], this->specie);
    }
+      // todo std:: subclass of TrajectoryGuiding
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
       this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
    }
@@ -616,6 +618,7 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
    else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
       mom2mag = this->_mom2[2];
    }
+      // todo std:: subclass of TrajectoryGuiding
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
       mom2mag = this->_mom2.Norm();
    }

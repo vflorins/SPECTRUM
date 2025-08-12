@@ -30,8 +30,9 @@ const unsigned int defsize_guidingdiffscatt = 10000;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
+// todo crumbs, this one is very broken after the experiment...
 template <typename Fields_>
-class TrajectoryGuidingDiffScatt : public TrajectoryGuidingDiff<Fields_>, public TrajectoryGuidingScatt<Fields_> {
+class TrajectoryGuidingDiffScatt : public TrajectoryGuidingBase<TrajectoryGuidingDiffScatt<Fields_>, Fields_> {
 public:
 
    using Fields = Fields_;

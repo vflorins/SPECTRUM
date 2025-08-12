@@ -25,8 +25,8 @@ constexpr unsigned int n_max_calls = -1;
 \author Vladimir Florinski
 \date 11/24/2020
 */
-template <typename Fields>
-TrajectoryBase<Fields>::TrajectoryBase(void)
+template <typename Trajectory, typename Fields>
+TrajectoryBase<Trajectory, Fields>::TrajectoryBase(void)
               : Params("", 0, STATE_NONE)
 {
 };
@@ -39,8 +39,8 @@ TrajectoryBase<Fields>::TrajectoryBase(void)
 \param[in] specie_in  Particle's specie
 \param[in] presize_in Initial lengths of the containers
 */
-template <typename Fields>
-TrajectoryBase<Fields>::TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+template <typename Trajectory, typename Fields>
+TrajectoryBase<Trajectory, Fields>::TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
               : Params(name_in, specie_in, status_in)
 {
    PreSize(presize_in);
@@ -51,8 +51,8 @@ TrajectoryBase<Fields>::TrajectoryBase(const std::string& name_in, unsigned int 
 \date 04/15/2022
 \param[in] init_cap Initial array capacity
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::PreSize(int init_cap)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::PreSize(int init_cap)
 {
    traj_t.clear();
    traj_pos.clear();
@@ -67,8 +67,8 @@ void TrajectoryBase<Fields>::PreSize(int init_cap)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::ResetAllBoundaries(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::ResetAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -90,8 +90,8 @@ void TrajectoryBase<Fields>::ResetAllBoundaries(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::ComputeAllBoundaries(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -104,8 +104,8 @@ void TrajectoryBase<Fields>::ComputeAllBoundaries(void)
 \author Vladimir Florinski
 \date 02/06/2021
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::UpdateAllBoundaries(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -121,8 +121,8 @@ void TrajectoryBase<Fields>::UpdateAllBoundaries(void)
 \param[out] pt     Nearest index on the small side
 \param[out] weight Weight of the nearest point
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::GetIdx(double t_in, int& pt, double& weight) const
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::GetIdx(double t_in, int& pt, double& weight) const
 {
 // For a negative "t_in", return an index of "-1" and weight of 0. The calling program must check for this to avoid a memory access error.
    if (t_in < 0.0) {
@@ -148,8 +148,8 @@ void TrajectoryBase<Fields>::GetIdx(double t_in, int& pt, double& weight) const
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::ReverseMomentum(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::ReverseMomentum(void)
 {
    _mom *= -1.0;
 };
@@ -161,8 +161,8 @@ void TrajectoryBase<Fields>::ReverseMomentum(void)
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::TimeBoundaryProximityCheck(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::TimeBoundaryProximityCheck(void)
 {
    unsigned int bnd;
    double delta, delta_next;
@@ -199,8 +199,8 @@ void TrajectoryBase<Fields>::TimeBoundaryProximityCheck(void)
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
 */
-template <typename Fields>
-bool TrajectoryBase<Fields>::SpaceTerminateCheck(void)
+template <typename Trajectory, typename Fields>
+bool TrajectoryBase<Trajectory, Fields>::SpaceTerminateCheck(void)
 try {
    uint16_t bnd_status;
    unsigned int bnd = 0, distro;
@@ -257,8 +257,8 @@ catch (ExBoundaryError& exception) {
 \author Juan G Alonso Guzman
 \date 02/21/2025
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::CommonFields(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::CommonFields(void)
 try {
    background->GetFields(_t, _pos, ConvertMomentum(), _fields);
 }
@@ -294,8 +294,8 @@ catch (ExFieldError& exception) {
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
 \param[out] spdata Spatial data at t_in and pos_in for output
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
 try {
    background->GetFields(t_in, pos_in, mom_in, fields);
 }
@@ -330,8 +330,8 @@ catch (ExFieldError& exception) {
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Fields>
-bool TrajectoryBase<Fields>::RKSlopes(void)
+template <typename Trajectory, typename Fields>
+bool TrajectoryBase<Trajectory, Fields>::RKSlopes(void)
 {
    unsigned int istage, islope;
 
@@ -378,8 +378,8 @@ bool TrajectoryBase<Fields>::RKSlopes(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Fields>
-bool TrajectoryBase<Fields>::RKStep(void)
+template <typename Trajectory, typename Fields>
+bool TrajectoryBase<Trajectory, Fields>::RKStep(void)
 {
    unsigned int islope;
    double error = 1.0;
@@ -429,8 +429,8 @@ bool TrajectoryBase<Fields>::RKStep(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::HandleBoundaries(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
 {
    unsigned int bnd, bnd_status, distro;
 
@@ -562,8 +562,8 @@ void TrajectoryBase<Fields>::HandleBoundaries(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Fields>
-bool TrajectoryBase<Fields>::RKAdvance(void)
+template <typename Trajectory, typename Fields>
+bool TrajectoryBase<Trajectory, Fields>::RKAdvance(void)
 {
 // Retrieve latest point of the trajectory and store locally
    Load();
@@ -605,8 +605,8 @@ bool TrajectoryBase<Fields>::RKAdvance(void)
 \author Lucius Schoenbaum
 \date 08/11/2025
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::UpdateBmagExtrema(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::UpdateBmagExtrema(void)
 {
    if constexpr (Fields::Mag_found()) {
       _edata.Bmag_min = fmin(_edata.Bmag_min, _fields.Mag());
@@ -619,8 +619,8 @@ void TrajectoryBase<Fields>::UpdateBmagExtrema(void)
 \author Vladimir Florinski
 \date 09/30/2022
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::MomentumCorrection(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::MomentumCorrection(void)
 {
 };
 
@@ -629,8 +629,8 @@ void TrajectoryBase<Fields>::MomentumCorrection(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-template <typename Fields>
-bool TrajectoryBase<Fields>::IsSimmulationReady(void) const
+template <typename Trajectory, typename Fields>
+bool TrajectoryBase<Trajectory, Fields>::IsSimmulationReady(void) const
 {
 // Particle specie must be known
    if ((specie < 0) || (specie >= MAX_PARTICLE_SPECIES)) return false;
@@ -669,8 +669,8 @@ bool TrajectoryBase<Fields>::IsSimmulationReady(void) const
 \date 10/08/2024
 \param[in] specie_in Index of the particle species defined in physics.hh
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::SetSpecie(unsigned int specie_in)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::SetSpecie(unsigned int specie_in)
 {
    int bnd;
 
@@ -695,8 +695,8 @@ void TrajectoryBase<Fields>::SetSpecie(unsigned int specie_in)
 \param[in] background_in Background object for type recognition
 \param[in] container_in  Data container for initializating the background object
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
 {
    background = background_in.Clone();
    background->SetSpecie(specie);
@@ -712,13 +712,13 @@ void TrajectoryBase<Fields>::AddBackground(const BackgroundBase& background_in, 
 \param[in] diffusion_in Diffusion object for type recognitions
 \param[in] container_in Data container for initializating the diffusion object
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    diffusion = diffusion_in.Clone();
    diffusion->SetSpecie(specie);
    diffusion->SetupObject(container_in);
-   
+
    if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
@@ -728,8 +728,8 @@ void TrajectoryBase<Fields>::AddDiffusion(const DiffusionBase& diffusion_in, con
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
 // Time boundary
    if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
@@ -762,8 +762,8 @@ void TrajectoryBase<Fields>::AddBoundary(const BoundaryBase& boundary_in, const 
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
 // Time condition
    if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
@@ -779,7 +779,7 @@ void TrajectoryBase<Fields>::AddInitial(const InitialBase& initial_in, const Dat
       icond_s->SetSpecie(specie);
       icond_s->ConnectRNG(rng);
       icond_s->SetupObject(container_in);
-   }      
+   }
 
 // Momentum condition
    else if (BITS_RAISED(initial_in.GetStatus(), INITIAL_MOMENTUM)) {
@@ -798,8 +798,8 @@ void TrajectoryBase<Fields>::AddInitial(const InitialBase& initial_in, const Dat
 \date 06/22/2023
 \return Minimum |B| along trajectory
 */
-template <typename Fields>
-double TrajectoryBase<Fields>::GetBmagMin(void) const
+template <typename Trajectory, typename Fields>
+double TrajectoryBase<Trajectory, Fields>::GetBmagMin(void) const
 {
    return _edata.Bmag_min;
 };
@@ -809,8 +809,8 @@ double TrajectoryBase<Fields>::GetBmagMin(void) const
 \date 06/22/2023
 \return Maximum |B| along trajectory
 */
-template <typename Fields>
-double TrajectoryBase<Fields>::GetBmagMax(void) const
+template <typename Trajectory, typename Fields>
+double TrajectoryBase<Trajectory, Fields>::GetBmagMax(void) const
 {
    return _edata.Bmag_max;
 };
@@ -822,8 +822,8 @@ double TrajectoryBase<Fields>::GetBmagMax(void) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Position
 */
-template <typename Fields>
-GeoVector TrajectoryBase<Fields>::GetPosition(double t_in) const
+template <typename Trajectory, typename Fields>
+GeoVector TrajectoryBase<Trajectory, Fields>::GetPosition(double t_in) const
 {
    int pt;
    double weight;
@@ -844,8 +844,8 @@ GeoVector TrajectoryBase<Fields>::GetPosition(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Velocity
 */
-template <typename Fields>
-GeoVector TrajectoryBase<Fields>::GetVelocity(double t_in) const
+template <typename Trajectory, typename Fields>
+GeoVector TrajectoryBase<Trajectory, Fields>::GetVelocity(double t_in) const
 {
    int pt;
    double weight, mom1, vel1, mom2, vel2;
@@ -878,8 +878,8 @@ GeoVector TrajectoryBase<Fields>::GetVelocity(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Kinetic energy
 */
-template <typename Fields>
-double TrajectoryBase<Fields>::GetEnergy(double t_in) const
+template <typename Trajectory, typename Fields>
+double TrajectoryBase<Trajectory, Fields>::GetEnergy(double t_in) const
 {
    int pt;
    double weight;
@@ -900,8 +900,8 @@ double TrajectoryBase<Fields>::GetEnergy(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Integral along trajectory
 */
-template <typename Fields>
-double TrajectoryBase<Fields>::GetDistance(double t_in) const
+template <typename Trajectory, typename Fields>
+double TrajectoryBase<Trajectory, Fields>::GetDistance(double t_in) const
 {
    int pt, ipt;
    double weight, length = 0.0;
@@ -929,8 +929,8 @@ double TrajectoryBase<Fields>::GetDistance(double t_in) const
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done is "Advance()" at the beginning of each step.
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::SetStart(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::SetStart(void)
 try {
 
 // Get the starting time from the initial time distribution
@@ -956,8 +956,8 @@ try {
 #endif
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   if constexpr (Fields::AbsMag_found()) {
-      _mom = icond_m->GetMomSample(_fields.AbsMag());
+   if constexpr (Fields::HatMag_found()) {
+      _mom = icond_m->GetMomSample(_fields.HatMag());
    }
    else {
 // TODO
@@ -1013,8 +1013,8 @@ catch (ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 12/17/2020
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::Integrate(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::Integrate(void)
 {
    bool was_advanced;
 #if TRAJ_ADV_SAFETY_LEVEL == 2
@@ -1070,8 +1070,8 @@ void TrajectoryBase<Fields>::Integrate(void)
 \author Vladimir Florinski
 \date 02/17/2023
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::StopBackground(void)
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::StopBackground(void)
 {
    background->StopServerFront();
 };
@@ -1084,8 +1084,8 @@ void TrajectoryBase<Fields>::StopBackground(void)
 \param[in] bnd    Which boundary condition to use
 \return int number of crossings
 */
-template <typename Fields>
-int TrajectoryBase<Fields>::Crossings(unsigned int output, unsigned int bnd) const
+template <typename Trajectory, typename Fields>
+int TrajectoryBase<Trajectory, Fields>::Crossings(unsigned int output, unsigned int bnd) const
 {
    if (bnd < 0) return 0;
 
@@ -1104,8 +1104,8 @@ int TrajectoryBase<Fields>::Crossings(unsigned int output, unsigned int bnd) con
 \param[in] stride     Distance between points in the output (optional). If stride = 0, output based on dt_out.
 \param[in] dt_out     Time increment at which to output quantities when stride = 0
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output,
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output,
                                      unsigned int stride, double dt_out) const
 {
    unsigned int pt, iter_out = 0, max_out = 1000000;
@@ -1170,8 +1170,8 @@ void TrajectoryBase<Fields>::PrintTrajectory(const std::string traj_name, bool p
 \param[in] phys_units Use physical units for output
 \param[in] stride     Distance between points in the output (optional)
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride) const
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride) const
 {
    unsigned int pt;
    std::ofstream trajfile;
@@ -1201,8 +1201,8 @@ void TrajectoryBase<Fields>::PrintCSV(const std::string traj_name, bool phys_uni
 \author Vladimir Florinski
 \date 12/27/2021
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::InterpretStatus(void) const
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::InterpretStatus(void) const
 {
    std::cerr << "Trajectory status: ";
    if (BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
@@ -1220,8 +1220,8 @@ void TrajectoryBase<Fields>::InterpretStatus(void) const
 \author Vladimir Florinski
 \date 02/22/2023
 */
-template <typename Fields>
-void TrajectoryBase<Fields>::PrintInfo(void) const
+template <typename Trajectory, typename Fields>
+void TrajectoryBase<Trajectory, Fields>::PrintInfo(void) const
 {
    int obj;
    std::cerr << std::endl;

@@ -51,11 +51,8 @@ class TrajectoryParker : public TrajectoryBase<Fields_> {
 public:
 
    using Fields = Fields_;
+   using BackgroundBase = BackgroundBase<Fields>;
    using TrajectoryBase = TrajectoryBase<Fields>;
-   using DistributionBase = DistributionBase<TrajectoryParker<Fields>>;
-   using BackgroundBase = BackgroundBase<TrajectoryParker<Fields>>;
-   using DiffusionBase = DiffusionBase<TrajectoryParker<Fields>>;
-   using InitialBase = InitialBase<TrajectoryParker<Fields>>;
 
    using TrajectoryBase::_t;
    using TrajectoryBase::_pos;
@@ -71,7 +68,6 @@ public:
 //   using TrajectoryBase::local_t;
 //   using TrajectoryBase::local_pos;
 //   using TrajectoryBase::local_mom;
-   using TrajectoryBase::diffusion;
 
    using TrajectoryBase::_fields;
    using TrajectoryBase::_ddata;
@@ -88,6 +84,34 @@ public:
    using TrajectoryBase::RKStep;
    using TrajectoryBase::HandleBoundaries;
    using TrajectoryBase::CommonFields;
+   using TrajectoryBase::ConnectRNG;
+
+
+
+
+   // todo BEGIN EXPERIMENTAL
+//   // todo decide on visibility - methods that depend on Trajectory via Trajectory-based classes
+//
+//   //! Connect to an existing distribution object
+//   void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
+//
+////! Disconnect an existing distribution object
+//   void DisconnectDistribution(int distro);
+//
+////! Replace an existing distribution object with another
+//   void ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in);
+//
+////! Assign diffusion model parameters
+//   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
+//
+////! Add a boundary condition
+//   void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
+//
+////! Add an initial condition
+//   void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
+
+   // todo END EXPERIMENTAL
+
 
 protected:
 
@@ -162,6 +186,7 @@ public:
 // TrajectoryParker inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
@@ -171,7 +196,6 @@ template <typename Fields>
 inline void TrajectoryParker<Fields>::ReverseMomentum(void)
 {
 };
-
 
 };
 

@@ -13,7 +13,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/mpi_config.hh"
 #include "common/workload_manager.hh"
 #include "server_config.hh"
-#include "trajectory.hh"
+//#include "trajectory.hh"
+#include "background_base.hh"
+#include "diffusion_base.hh"
+#include "distribution_base.hh"
+#include "initial_base.hh"
+#include "boundary_base.hh"
+#include "trajectory_base.hh"
 #include <memory>
 #include <chrono>
 
@@ -38,6 +44,7 @@ public:
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
    using BackgroundBase = BackgroundBase<Fields>;
+
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using BoundaryBase = BoundaryBase<Trajectory>;
@@ -117,14 +124,28 @@ public:
 //! Add a background object (passthrough to trajectory)
    void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
+// TODO: experiment
 //! Add boundary condition object (passthrough to trajectory)
-   void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
+template <typename Boundary>
+   void AddBoundary(const Boundary& boundary_in, const DataContainer& container_in) {
+      trajectory->AddBoundary(boundary_in, container_in);
+      PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
+   }
 
+// TODO: experiment
 //! Add initial condition object (passthrough to trajectory)
-   void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
+template <typename Initial>
+   void AddInitial(const Initial& initial_in, const DataContainer& container_in) {
+      trajectory->AddInitial(initial_in, container_in);
+      PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
+   }
 
+// TODO: experiment
 //! Add diffusion object (passthrough to trajectory)
-   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
+   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in) {
+      trajectory->AddDiffusion(diffusion_in, container_in);
+      PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
+   }
 
 //! Restore distribution (stub)
    virtual void RestoreDistro(int distro);
@@ -156,7 +177,8 @@ public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Trajectory>;
+   using BackgroundBase = BackgroundBase<Fields>;
+
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using SimulationWorker = SimulationWorker<Trajectory>;
@@ -215,10 +237,11 @@ public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Trajectory>;
+   using BackgroundBase = BackgroundBase<Fields>;
+   using TrajectoryBase = TrajectoryBase<Trajectory, Fields>;
+
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
-   using TrajectoryBase = TrajectoryBase<Trajectory>;
    using SimulationWorker = SimulationWorker<Trajectory>;
    using SimulationBoss = SimulationBoss<Trajectory>;
    using SimulationWorker::current_batch_size;
@@ -303,8 +326,19 @@ public:
 //! Set the particle count and the size of one batch
    void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0) override;
 
+// TODO: experiment
 //! Add a distribution object
-   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
+   template <typename Distribution>
+   void AddDistribution(const Distribution& distribution_in, const DataContainer& container_in) {
+      // TODO this should use make_unique instead of shared
+      partial_distros.push_back(distribution_in.Clone());
+      partial_distros.back()->SetSpecie(specie);
+      partial_distros.back()->SetupObject(container_in);
+      SimulationWorker::AddDistribution(distribution_in, container_in);
+
+// Preset all restore_distro flags to false
+      restore_distros.push_back(false);
+   }
 
 //! Print simulation info
    void PrintMPICommsInfo(void);
@@ -329,9 +363,9 @@ public:
 // Top level methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Generate a complete simulation object
-template <typename Trajectory>
-std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
+////! Generate a complete simulation object
+//template <typename Trajectory>
+//std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
 
 };
 

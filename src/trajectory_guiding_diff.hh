@@ -36,8 +36,9 @@ const double cfl_dif_gd = 0.5;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
+// todo update
 template <typename Fields_>
-class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<Fields_> {
+class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields_>, Fields_> {
 
 public:
 

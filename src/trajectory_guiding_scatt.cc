@@ -21,8 +21,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-TrajectoryGuidingScatt::TrajectoryGuidingScatt(void)
-                      : TrajectoryGuiding(traj_name_guidingscatt, 0, STATE_NONE, defsize_guidingscatt)
+template <typename Fields>
+TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(void)
+                      : TrajectoryGuidingBase(traj_name_guidingscatt, 0, STATE_NONE, defsize_guidingscatt)
 {
 };
 
@@ -34,8 +35,9 @@ TrajectoryGuidingScatt::TrajectoryGuidingScatt(void)
 \param[in] status_in Initial status
 \param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-TrajectoryGuidingScatt::TrajectoryGuidingScatt(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                      : TrajectoryGuiding(name_in, specie_in, status_in, presize_in)
+template <typename Fields>
+TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+                      : TrajectoryGuidingBase(name_in, specie_in, status_in, presize_in)
 {
 };
 
@@ -43,7 +45,8 @@ TrajectoryGuidingScatt::TrajectoryGuidingScatt(const std::string& name_in, unsig
 \author Vladimir Florinski
 \date 05/27/2022
 */
-bool TrajectoryGuidingScatt::IsSimmulationReady(void) const
+template <typename Fields>
+bool TrajectoryGuidingScatt<Fields>::IsSimmulationReady(void) const
 {
    if (!TrajectoryBase::IsSimmulationReady()) return false;
 
@@ -58,9 +61,10 @@ bool TrajectoryGuidingScatt::IsSimmulationReady(void) const
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-void TrajectoryGuidingScatt::DiffusionCoeff(void)
+template <typename Fields>
+void TrajectoryGuidingScatt<Fields>::DiffusionCoeff(void)
 try {
-   Dmumu = diffusion->GetComponent(2, _t, _pos, ConvertMomentum(), _spdata);
+   Dmumu = diffusion->GetComponent(2, _t, _pos, ConvertMomentum(), _fields, _ddata);
 
 // Compute the derivative in mu
    Vmu = diffusion->GetMuDerivative();
@@ -78,7 +82,8 @@ catch(ExFieldError& exception) {
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-void TrajectoryGuidingScatt::EulerPitchAngleScatt(bool second)
+template <typename Fields>
+void TrajectoryGuidingScatt<Fields>::EulerPitchAngleScatt(bool second)
 {
    double mu_new, dt_local;
    GeoVector mom_conv = ConvertMomentum();
@@ -110,7 +115,8 @@ void TrajectoryGuidingScatt::EulerPitchAngleScatt(bool second)
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
+template <typename Fields>
+void TrajectoryGuidingScatt<Fields>::MilsteinPitchAngleScatt(bool second)
 {
    double mu_new, dmu, mu = _mom[2] / _mom.Norm();
    double dt_local, b, b1, dW, Dmumu_new;
@@ -126,7 +132,7 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
    b = sqrt(2.0 * Dmumu);
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
    mom_conv[1] += dmu;
-   Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _spdata);
+   Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields, _ddata);
    b1 = (sqrt(2.0 * Dmumu_new) - b) / dmu;
 
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
@@ -152,7 +158,8 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
 
 Computes RK stochastic step with 2 evaluations of the drift term, 3 evaluations of the variance term, and 1 derivative of the variance term
 */
-void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
+template <typename Fields>
+void TrajectoryGuidingScatt<Fields>::RK2PitchAngleScatt(bool second)
 {
    double slope_Vmu[2], slope_Dmumu[3];
    double gambar = 1.0 / sqrt(3.0);
@@ -187,12 +194,12 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
 
       dmu = sp_small * (mom_conv[1] + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] += dmu;
 
-      Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
+      Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
       slope_Vmu[1] = (Dmumu_new - Dmumu) / dmu;
 
 // Compute second slope for Dmumu
@@ -206,7 +213,7 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
       slope_Dmumu[1] = sqrt(2.0 * Dmumu);
 
 // Compute third slope for Dmumu
@@ -220,13 +227,13 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _spdata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
       slope_Dmumu[2] = sqrt(2.0 * Dmumu);
 
 // Compute additional fit term
       dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] = mu + dmu;
-      Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _spdata);
+      Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields, _ddata);
       dfit = (sqrt(2.0 * Dmumu_new) - slope_Dmumu[0]) / dmu;
 
 // Add all the stuff
@@ -249,7 +256,8 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-void TrajectoryGuidingScatt::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryGuidingScatt<Fields>::PhysicalStep(void)
 {
 #if CONST_DMUMAX == 0
    double dmumax = sqrt(1 - fabs(_mom[2] / _mom.Norm())) * dthetamax + 0.5 * fabs(_mom[2] / _mom.Norm()) * Sqr(dthetamax);
@@ -266,7 +274,8 @@ void TrajectoryGuidingScatt::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryGuidingScatt::Advance(void)
+template <typename Fields>
+bool TrajectoryGuidingScatt<Fields>::Advance(void)
 {
 // Retrieve latest point of the trajectory
    Load();
@@ -275,7 +284,7 @@ bool TrajectoryGuidingScatt::Advance(void)
    DiffusionCoeff();
    DriftCoeff();
 
-   TrajectoryGuiding::PhysicalStep();
+   TrajectoryGuidingBase::PhysicalStep();
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
    TimeBoundaryProximityCheck();

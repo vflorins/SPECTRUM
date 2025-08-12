@@ -116,7 +116,7 @@ double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoV
    vmag = Vel(_mom[0], specie);
    _fields = fields_in;
    _ddata = ddata_in;
-   Omega = CyclotronFrequency(vmag, _fields.Mag(), specie);
+   Omega = CyclotronFrequency(vmag, _fields.AbsMag(), specie);
 
    if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       mu = _mom[1];

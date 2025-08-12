@@ -73,6 +73,7 @@ void BoundaryMomentum<Trajectory>::SetupBoundary(bool construct)
 template <typename Trajectory>
 void BoundaryMomentum<Trajectory>::EvaluateBoundary(void)
 {
+   // todo std:: subclass of TrajectoryGuiding
    if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
       _delta = _mom.Norm() - momentum;
    }
@@ -357,6 +358,7 @@ template <typename Trajectory>
 void BoundaryMirror<Trajectory>::EvaluateBoundary(void)
 {
 // Delta is the parallel momentum component
+   // todo std:: subclass of TrajectoryGuiding
    if constexpr (std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
       _delta = _mom[2];
    }

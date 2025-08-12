@@ -160,17 +160,22 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-template <typename Fields_>
+// todo an abstract Trajectory - templated over Trajectory and Fields
+// TODO change the names of template arg #1 to Trajectory!!!
+template <typename Trajectory_, typename Fields_>
 class TrajectoryBase : public Params {
 
 public:
 
+   using Trajectory = Trajectory_;
    using Fields = Fields_;
-//   using DistributionBase = DistributionBase<TrajectoryBase<Fields>>;
-//   using BackgroundBase = BackgroundBase<TrajectoryBase<Fields>>;
-//   using DiffusionBase = DiffusionBase<TrajectoryBase<Fields>>;
-//   using InitialBase = InitialBase<TrajectoryBase<Fields>>;
-   using BoundaryBase = BoundaryBase<Fields>;
+   using BackgroundBase = BackgroundBase<Fields>;
+
+   // Trajectory-dependent classes
+   using DistributionBase = DistributionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<Trajectory>;
+   using BoundaryBase = BoundaryBase<Trajectory>;
+   using InitialBase = InitialBase<Trajectory>;
 
 protected:
 
@@ -180,11 +185,14 @@ protected:
 //! Particle's charge to mass ratio (persistent)
    double q;
 
+   //! Background object (persistent)
+   std::unique_ptr<BackgroundBase> background = nullptr;
+
+
+   // todo decide visibility - public for now
+
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
-
-//! Background object (persistent)
-   std::unique_ptr<BackgroundBase> background = nullptr;
 
 //! Diffusion object (persistent)
    std::unique_ptr<DiffusionBase> diffusion = nullptr;
@@ -206,6 +214,7 @@ protected:
 
 //! Initial condition in momentum (persistent)
    std::unique_ptr<InitialBase> icond_m = nullptr;
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -383,7 +392,10 @@ public:
 //! Set the particle specie
    void SetSpecie(unsigned int specie_in);
 
-//! Connect to an existing distribution object 
+   //! Add a background object
+   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in);
+
+   //! Connect to an existing distribution object
    void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
 
 //! Disconnect an existing distribution object
@@ -391,9 +403,6 @@ public:
 
 //! Replace an existing distribution object with another
    void ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in);
-
-//! Add a background object
-   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in);
 
 //! Assign diffusion model parameters
    void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
@@ -470,8 +479,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -482,8 +491,8 @@ inline void TrajectoryBase<Fields>::ConnectDistribution(const std::shared_ptr<Di
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -493,8 +502,8 @@ inline void TrajectoryBase<Fields>::ReplaceDistribution(int distro, const std::s
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::DisconnectDistribution(int distro)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
@@ -503,8 +512,8 @@ inline void TrajectoryBase<Fields>::DisconnectDistribution(int distro)
 \author Vladimir Florinski
 \date 09/25/2020
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::Load(void)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::Load(void)
 {
 #ifdef RECORD_TRAJECTORY
    _t = traj_t.back();
@@ -518,8 +527,8 @@ inline void TrajectoryBase<Fields>::Load(void)
 \author Vladimir Florinski
 \date 09/25/2020
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::Store(void)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::Store(void)
 {
 #ifdef RECORD_TRAJECTORY
    traj_t.push_back(_t);
@@ -535,8 +544,8 @@ inline void TrajectoryBase<Fields>::Store(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::LoadLocal(void)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::LoadLocal(void)
 {
    _t = local_t;
    _pos = local_pos;
@@ -549,8 +558,8 @@ inline void TrajectoryBase<Fields>::LoadLocal(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Fields>
-inline void TrajectoryBase<Fields>::StoreLocal(void)
+template <typename Trajectory, typename Fields>
+inline void TrajectoryBase<Trajectory, Fields>::StoreLocal(void)
 {
    local_t = _t;
    local_pos = _pos;
@@ -562,8 +571,8 @@ inline void TrajectoryBase<Fields>::StoreLocal(void)
 \date 06/12/2024
 \return Momentum in (p,mu,phi) coordinates
 */
-template <typename Fields>
-inline GeoVector TrajectoryBase<Fields>::ConvertMomentum(void) const
+template <typename Trajectory, typename Fields>
+inline GeoVector TrajectoryBase<Trajectory, Fields>::ConvertMomentum(void) const
 {
    return _mom;
 };
@@ -573,8 +582,8 @@ inline GeoVector TrajectoryBase<Fields>::ConvertMomentum(void) const
 \date 12/03/2020
 \return Largest index in the trajectory arrays
 */
-template <typename Fields>
-inline int TrajectoryBase<Fields>::Segments(void) const
+template <typename Trajectory, typename Fields>
+inline int TrajectoryBase<Trajectory, Fields>::Segments(void) const
 {
 #ifdef RECORD_TRAJECTORY
    return traj_t.size() - 1;
@@ -588,8 +597,8 @@ inline int TrajectoryBase<Fields>::Segments(void) const
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-template <typename Fields>
-inline double TrajectoryBase<Fields>::ElapsedTime(void) const
+template <typename Trajectory, typename Fields>
+inline double TrajectoryBase<Trajectory, Fields>::ElapsedTime(void) const
 {
 #ifdef RECORD_TRAJECTORY
    return traj_t.back() - traj_t.front();

@@ -72,8 +72,8 @@ void TrajectoryParker<Fields>::SetStart(void)
 template <typename Fields>
 void TrajectoryParker<Fields>::FieldAlignedFrame(void)
 {
-   fa_basis[2] = _fields.AbsMag();
-   fa_basis[0] = GetSecondUnitVec(_fields.AbsMag());
+   fa_basis[2] = _fields.HatMag();
+   fa_basis[0] = GetSecondUnitVec(_fields.HatMag());
    fa_basis[1] = fa_basis[2] ^ fa_basis[0];
 };
 
@@ -90,7 +90,7 @@ try {
    GeoVector pos_tmp;
    Fields fields_forw, fields_back;
    double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-   double delta = fmin(LarmorRadius(_mom[0], _fields.Mag(), specie), _ddata.dmax);
+   double delta = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _ddata.dmax);
 
 // TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
 
@@ -105,7 +105,7 @@ try {
 // Forward evaluation
       pos_tmp = _pos + delta * cart_unit_vec[j];
       CommonFields(_t, pos_tmp, _mom, fields_forw);
-// TODO [spdata-fields update] evaluating CommonFields does not modify _ddata, review (step into GetComponent)
+// TODO [spdata-fields update] evaluating CommonFields does not modify _ddata, probably ok, review (step into GetComponent)
       Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_forw, _ddata);
       Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_forw, _ddata);
 // Backward evaluation
@@ -114,8 +114,8 @@ try {
       Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_back, _ddata);
       Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_back, _ddata);
       for (i = 0; i < 3; i++) {
-         Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * fields_forw.AbsMag()[j] * fields_forw.AbsMag()[i];
-         Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * fields_back.AbsMag()[j] * fields_back.AbsMag()[i];
+         Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * fields_forw.HatMag()[j] * fields_forw.HatMag()[i];
+         Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * fields_back.HatMag()[j] * fields_back.HatMag()[i];
          divK[i] += 0.5 * (Kappa_forw - Kappa_back) / delta;
       };
    };
@@ -136,7 +136,7 @@ try {
    gradKpara[2] = diffusion->GetDirectionalDerivative(2);
 
 // Assemble diffusion tensor
-   GeoVector bhat = _fields.AbsMag();
+   GeoVector bhat = _fields.HatMag();
    bhatbhat.Dyadic(bhat);
    divK = gradKperp + bhatbhat * (gradKpara - gradKperp)
         + (Kpara - Kperp) * (_fields.divbhat() * bhat + bhat * _fields.DelAbsMag());

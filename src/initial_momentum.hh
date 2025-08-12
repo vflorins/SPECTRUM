@@ -348,6 +348,7 @@ public:
 
    using InitialTable::table_counter;
    using InitialTable::initquant;
+   using InitialTable::random;
    // methods:
    using InitialTable::SetupInitial;
 

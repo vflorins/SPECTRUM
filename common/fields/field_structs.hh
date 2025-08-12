@@ -35,6 +35,10 @@ struct ScalarField {
       value(value)
    {}
 
+   ScalarField(ScalarField<nameid> field_in) {
+      value = field_in.value;
+   }
+
    operator double&() {
       return value;
    }

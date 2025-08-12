@@ -453,7 +453,7 @@ void BackgroundBase<Fields>::GetFields(double t_in, const GeoVector& pos_in, con
       }
       if constexpr (Fields::HatMag_found()) {
          if (AbsMag < sp_tiny) RAISE_BITS(_status, STATE_INVALID);
-         else _fields.AbsMag() = _fields.Mag() / AbsMag;
+         else _fields.HatMag() = _fields.Mag() / AbsMag;
       };
    }
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();

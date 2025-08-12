@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 TrajectoryFieldline<Fields>::TrajectoryFieldline(void)
-                   : TrajectoryBase<Fields>(traj_name_fieldline, 0, STATE_NONE, defsize_fieldline)
+                   : TrajectoryBase(traj_name_fieldline, 0, STATE_NONE, defsize_fieldline)
 {
 };
 
@@ -34,7 +34,7 @@ template <typename Fields>
 void TrajectoryFieldline<Fields>::SetStart(void)
 {
 // Call the base version of this function.
-   TrajectoryBase<Fields>::SetStart();
+   TrajectoryBase::SetStart();
 
 // Redefine which field line to follow based on header file parameter
    _spdata._mask = which_field_to_follow;

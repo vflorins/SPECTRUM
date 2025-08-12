@@ -141,12 +141,12 @@ void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
-{
-   trajectory->AddBoundary(boundary_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
-};
+//template <typename Trajectory, typename Boundary>
+//void SimulationWorker<Trajectory>::AddBoundary(const Boundary& boundary_in, const DataContainer& container_in)
+//{
+//   trajectory->AddBoundary(boundary_in, container_in);
+//   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
+//};
 
 /*!
 \author Vladimir Florinski
@@ -154,12 +154,12 @@ void SimulationWorker<Trajectory>::AddBoundary(const BoundaryBase& boundary_in, 
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
-{
-   trajectory->AddInitial(initial_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
-};
+//template <typename Trajectory, typename Initial>
+//void SimulationWorker<Trajectory>::AddInitial(const Initial& initial_in, const DataContainer& container_in)
+//{
+//   trajectory->AddInitial(initial_in, container_in);
+//   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
+//};
 
 /*!
 \author Vladimir Florinski
@@ -167,12 +167,12 @@ void SimulationWorker<Trajectory>::AddInitial(const InitialBase& initial_in, con
 \param[in] diffusion_in Diffusion object for type recognition
 \param[in] container_in Data container for initializating the diffusion object
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
-{
-   trajectory->AddDiffusion(diffusion_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
-};
+//template <typename Trajectory, typename Diffusion>
+//void SimulationWorker<Trajectory>::AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in)
+//{
+//   trajectory->AddDiffusion(diffusion_in, container_in);
+//   PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
+//};
 
 /*!
 \author Juan G Alonso Guzman
@@ -549,18 +549,18 @@ void SimulationMaster<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, in
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
-{
-// TODO this should use make_unique instead of shared
-   partial_distros.push_back(distribution_in.Clone());
-   partial_distros.back()->SetSpecie(specie);
-   partial_distros.back()->SetupObject(container_in);
-   SimulationWorker::AddDistribution(distribution_in, container_in);
-
-// Preset all restore_distro flags to false
-   restore_distros.push_back(false);
-};
+//template <typename Trajectory, typename Distribution>
+//void SimulationMaster<Trajectory>::AddDistribution(const Distribution& distribution_in, const DataContainer& container_in)
+//{
+//// TODO this should use make_unique instead of shared
+//   partial_distros.push_back(distribution_in.Clone());
+//   partial_distros.back()->SetSpecie(specie);
+//   partial_distros.back()->SetupObject(container_in);
+//   SimulationWorker::AddDistribution(distribution_in, container_in);
+//
+//// Preset all restore_distro flags to false
+//   restore_distros.push_back(false);
+//};
 
 /*!
 \author Juan G Alonso Guzman
@@ -907,14 +907,27 @@ void SimulationMaster<Trajectory>::PrintRecords(int distro, const std::string& f
 \param[in] argv Command line arguments
 */
 template <typename Trajectory>
-std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv)
+//std::unique_ptr<SimulationWorker<Trajectory>>
+decltype(auto) CreateSimulation(int argc, char** argv)
 {
 // Initialize a single instance of "MPI_Config" that will persist until the program terminates
    static MPI_Config mpicfg(argc, argv);
 
-   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
-   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();
-   else return std::make_unique<SimulationWorker<Trajectory>>();
+   std::unique_ptr<SimulationWorker<Trajectory>> simulation_p;
+   if (MPI_Config::is_master) {
+      simulation_p = std::make_unique<SimulationMaster<Trajectory>>();
+   }
+   else if (MPI_Config::is_boss) {
+      simulation_p = std::make_unique<SimulationBoss<Trajectory>>();
+   }
+   else {
+      simulation_p = std::make_unique<SimulationWorker<Trajectory>>();
+   }
+   return simulation_p;
+
+//   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
+//   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();
+//   else return std::make_unique<SimulationWorker<Trajectory>>();
 };
 
 };

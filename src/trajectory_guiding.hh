@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_HH
 
-#include "trajectory_base.hh"
+#include "trajectory_guiding_base.hh"
 
 namespace Spectrum {
 
@@ -20,17 +20,17 @@ namespace Spectrum {
 //! Readable name of the TrajectoryGuiding class
 const std::string traj_name_guiding = "TrajectoryGuiding";
 
-//! Default initial size
-const unsigned int defsize_guiding = 10000;
+////! Default initial size
+//const unsigned int defsize_guiding = 10000;
 
-//! CFL condition for advection
-const double cfl_adv_tg = 0.5;
-
-//! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-const double drift_safety_tg = 0.5;
-
-//! How many time steps to allow before recording a mirror event
-const int mirror_thresh_guiding = 10;
+////! CFL condition for advection
+//const double cfl_adv_tg = 0.5;
+//
+////! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+//const double drift_safety_tg = 0.5;
+//
+////! How many time steps to allow before recording a mirror event
+//const int mirror_thresh_guiding = 10;
 
 /*!
 \brief Trajectory tracer for the relativistic guiding center equations
@@ -38,66 +38,87 @@ const int mirror_thresh_guiding = 10;
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
+// todo an abstract Trajectory - templated over Trajectory
 template <typename Fields_>
-class TrajectoryGuiding : public TrajectoryBase<Fields_> {
+class TrajectoryGuiding : public TrajectoryGuidingBase<TrajectoryGuiding<Fields_>, Fields_> {
 
 public:
 
    using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Fields>;
-   using DistributionBase = DistributionBase<TrajectoryBase>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuiding<Fields>, Fields_>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryGuiding<Fields>, Fields>;
 
-//   using TrajectoryBase::_t;
-//   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::_vel;
-//   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryGuidingBase::_status;
+//   using TrajectoryGuidingBase::_t;
+   using TrajectoryGuidingBase::_vel;
+//   using TrajectoryGuidingBase::_pos;
+   using TrajectoryGuidingBase::_mom;
+   using TrajectoryGuidingBase::q;
+   using TrajectoryGuidingBase::_fields;
+   using TrajectoryGuidingBase::_ddata;
+//   using TrajectoryGuidingBase::traj_t;
+//   using TrajectoryGuidingBase::traj_pos;
+   using TrajectoryGuidingBase::traj_mom;
+   using TrajectoryGuidingBase::specie;
+//   using TrajectoryGuidingBase::local_t;
+//   using TrajectoryGuidingBase::local_pos;
+//   using TrajectoryGuidingBase::local_mom;
+   using TrajectoryGuidingBase::dt_physical;
+   using TrajectoryGuidingBase::RKAdvance;
+
+   using TrajectoryGuidingBase::mag_mom;
+   using TrajectoryGuidingBase::Evec_star;
+   using TrajectoryGuidingBase::Bvec_star;
+   using TrajectoryGuidingBase::drift_vel;
+   // methods
+   using TrajectoryGuidingBase::ConvertMomentum;
+   using TrajectoryGuidingBase::ReverseMomentum;
+   using TrajectoryGuidingBase::ModifiedFields;
+   using TrajectoryGuidingBase::DriftCoeff;
+   using TrajectoryGuidingBase::Slopes;
+   using TrajectoryGuidingBase::PhysicalStep;
+   using TrajectoryGuidingBase::Advance;
+   using TrajectoryGuidingBase::MomentumCorrection;
+   using TrajectoryGuidingBase::SetStart;
+
 
 protected:
 
-//! Magnetic moment (transient)
-   double mag_mom;
-
-//! Modified electric field (transient)
-   GeoVector Evec_star;
-
-//! Modified magnetic field (transient)
-   GeoVector Bvec_star;
-
-//! Drift elocity (transient)
-   GeoVector drift_vel;
-
-//! Conversion from (p_perp,0,p_para) to (p,mu,0)
-   GeoVector ConvertMomentum(void) const override;
-
-//! Momentum transformation on reflection at a boundary
-   void ReverseMomentum(void) override;
-
-//! Compute the modified electromagnetic fields
-   void ModifiedFields(void);
+////! Magnetic moment (transient)
+//   double mag_mom;
+//
+////! Modified electric field (transient)
+//   GeoVector Evec_star;
+//
+////! Modified magnetic field (transient)
+//   GeoVector Bvec_star;
+//
+////! Drift elocity (transient)
+//   GeoVector drift_vel;
+//
+////! Conversion from (p_perp,0,p_para) to (p,mu,0)
+//   GeoVector ConvertMomentum(void) const override;
+//
+////! Momentum transformation on reflection at a boundary
+//   void ReverseMomentum(void) override;
+//
+////! Compute the modified electromagnetic fields
+//   void ModifiedFields(void);
 
 //! Compute the drift coefficient
-   void DriftCoeff(void);
+//   void DriftCoeff(void);
 
-//! Compute the RK slopes
-   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
-
-//! Compute the physical time step
-   void PhysicalStep(void) override;
-
-//! Take a step
-   bool Advance(void) override;
-
-//! Adjust perp momentum to conserve magnetic moment
-   void MomentumCorrection(void) override;
+////! Compute the RK slopes
+//   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
+//
+////! Compute the physical time step
+//   void PhysicalStep(void) override;
+//
+////! Take a step
+//   bool Advance(void) override;
+//
+////! Adjust perp momentum to conserve magnetic moment
+//   void MomentumCorrection(void) override;
 
 public:
 
@@ -116,36 +137,37 @@ public:
 //! Clone function
    CloneFunctionTrajectory(TrajectoryGuiding);
 
-//! Clear the trajectory and start a new one with specified position and momentum
-   void SetStart(void) override;
+////! Clear the trajectory and start a new one with specified position and momentum
+//   void SetStart(void) override;
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuiding inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\date 04/11/2022
-\return A vector in the (p,mu,0) format
-*/
-template <typename Fields>
-inline GeoVector TrajectoryGuiding<Fields>::ConvertMomentum(void) const
-{
-   return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
-};
+///*!
+//\author Vladimir Florinski
+//\date 04/11/2022
+//\return A vector in the (p,mu,0) format
+//*/
+//template <typename Fields>
+//inline GeoVector TrajectoryGuiding<Fields>::ConvertMomentum(void) const
+//{
+//   return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
+//};
 
 
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 07/07/2023
-*/
-template <typename Fields>
-inline void TrajectoryGuiding<Fields>::ReverseMomentum(void)
-{
-   _mom[2] = -_mom[2];
-};
+///*!
+//\author Juan G Alonso Guzman
+//\author Vladimir Florinski
+//\date 07/07/2023
+//*/
+//template <typename Fields>
+//inline void TrajectoryGuiding<Fields>::ReverseMomentum(void)
+//{
+//   _mom[2] = -_mom[2];
+//};
 
 
 };
