@@ -142,7 +142,8 @@ template <typename Initial>
 
 // TODO: experiment
 //! Add diffusion object (passthrough to trajectory)
-   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in) {
+template <typename Diffusion>
+   void AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in) {
       trajectory->AddDiffusion(diffusion_in, container_in);
       PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
    }

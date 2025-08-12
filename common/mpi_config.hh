@@ -16,6 +16,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <mpi.h>
 
+
 //! Do not compile if server is needed in a serial run. The autotools configure process should not allow this but config.h could still be edited manually.
 #if (EXEC_TYPE == EXEC_SERIAL) && (SERVER_TYPE != SERVER_SELF)
 #error "SERIAL execution can only used with a SELF server type"

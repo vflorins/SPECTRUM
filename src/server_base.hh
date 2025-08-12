@@ -154,6 +154,8 @@ protected:
 //! Current inquiry
    Inquiry _inquiry;
 
+#ifdef USE_MPI
+
 //! MPI data type for the "Inquiry" class
    MPI_Datatype MPIInquiryType;
 
@@ -162,6 +164,8 @@ protected:
 
 //! MPI data type for the "Stencil" class
    MPI_Datatype MPIStencilType;
+
+#endif
 
 //! Default constructor
    ServerBase(void) = default;
@@ -289,11 +293,15 @@ protected:
    int* index_needvars = nullptr;
    int* index_stopserve = nullptr;
 
+#ifdef USE_MPI
+
 //! Request arrays
    MPI_Request* req_needblock = nullptr;
    MPI_Request* req_needstencil = nullptr;
    MPI_Request* req_needvars = nullptr;
    MPI_Request* req_stopserve = nullptr;
+
+#endif
 
 //! Buffers (not required for stopserve because the message is of zero length)
    Inquiry* buf_needblock = nullptr;
