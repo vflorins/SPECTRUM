@@ -73,11 +73,11 @@ void TrajectoryBase<Trajectory, Fields>::ResetAllBoundaries(void)
    unsigned int bnd;
 
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
-      bcond_t[bnd]->SetScale(_ddata.dmax / c_code);
+      bcond_t[bnd]->SetScale(_dmax / c_code);
       bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _fields);
    };
    for (bnd = 0; bnd < bcond_s.size(); bnd++) {
-      bcond_s[bnd]->SetScale(_ddata.dmax);
+      bcond_s[bnd]->SetScale(_dmax);
       bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _fields);
    };
    for (bnd = 0; bnd < bcond_m.size(); bnd++) {
@@ -167,9 +167,9 @@ void TrajectoryBase<Trajectory, Fields>::TimeBoundaryProximityCheck(void)
    unsigned int bnd;
    double delta, delta_next;
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   delta_next = -sp_large * _ddata.dmax / c_code;
+   delta_next = -sp_large * _dmax / c_code;
 #else
-   delta_next = sp_large * _ddata.dmax / c_code;
+   delta_next = sp_large * _dmax / c_code;
 #endif
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
@@ -186,9 +186,9 @@ void TrajectoryBase<Trajectory, Fields>::TimeBoundaryProximityCheck(void)
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _ddata.dmax / c_code);
+   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
 #else
-   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _ddata.dmax / c_code);
+   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
 #endif
 };
 
@@ -255,12 +255,16 @@ catch (ExBoundaryError& exception) {
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 02/21/2025
+\author Lucius Schoenbaum
+\date 08/14/2025
 */
 template <typename Trajectory, typename Fields>
 void TrajectoryBase<Trajectory, Fields>::CommonFields(void)
 try {
+// Compute fields and reset derivative data
    background->GetFields(_t, _pos, ConvertMomentum(), _fields);
+// Set field-dependent dmax, for use by trajectories while advancing
+   _dmax = background->GetDmax();
 }
 
 catch (ExUninitialized& exception) {
@@ -927,7 +931,7 @@ double TrajectoryBase<Trajectory, Fields>::GetDistance(double t_in) const
 \author Juan G Alonso Guzman
 \date 10/08/2024
 
-To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done is "Advance()" at the beginning of each step.
+To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done in"Advance()" at the beginning of each step.
 */
 template <typename Trajectory, typename Fields>
 void TrajectoryBase<Trajectory, Fields>::SetStart(void)
@@ -940,19 +944,16 @@ try {
 // Get a momentum sample along an arbitrary axis (bhat is unknown at this step). Only the momentum magnitude is needed for the first call to CommonFields().
    _mom = icond_m->GetMomSample(gv_ones);
 
-// Obtain the fields for that position
+// Obtain the fields for that position (this initializes _dmax)
    CommonFields();
 
 // Record the initial spatial data for distribution purposes.
-// todo review - is edata needed, is ddata needed?
    fields0 = _fields;
-   edata0 = _edata;
 #ifdef RECORD_BMAG_EXTREMA
 // Initialize field extrema.
-   if constexpr (Fields::Mag_found()) {
-      _edata.Bmag_min = _fields.Mag();
-      _edata.Bmag_max = _fields.Mag();
-   }
+   _edata.Bmag_min = _fields.Mag();
+   _edata.Bmag_max = _fields.Mag();
+   edata0 = _edata;
 #endif
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
@@ -966,7 +967,7 @@ try {
    _vel = Vel(_mom, specie);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
-   dt_adaptive = sp_large * _ddata.dmax / c_code;
+   dt_adaptive = sp_large * _dmax / c_code;
 
 // Re-initialize the trajectory arrays
 #ifdef RECORD_TRAJECTORY
@@ -1052,7 +1053,7 @@ void TrajectoryBase<Trajectory, Fields>::Integrate(void)
 
 #if TRAJ_ADV_SAFETY_LEVEL > 0
 // Time step is too small - terminate
-      if (dt < sp_tiny * _ddata.dmax / c_code) {
+      if (dt < sp_tiny * _dmax / c_code) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepTooSmall();
       }

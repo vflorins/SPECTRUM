@@ -200,6 +200,9 @@ public:
 //! Return maximum distance allowed per time step
    double GetDmax(void) const;
 
+//! Return the derivative data (a small struct)
+   DerivativeData GetDerivativeData(void) const;
+
 //! Return fields at the internal position, evaluated or previously stored
    void GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields);
 

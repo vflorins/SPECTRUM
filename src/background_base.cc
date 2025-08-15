@@ -66,6 +66,19 @@ double BackgroundBase<Fields>::GetDmax(void) const
 };
 
 /*!
+\author Lucius Schoenbaum
+\date 08/15/2025
+\return Derivative Data, a small struct containing information about the most recent derivative computed, and dmax
+\note This information from the background is currently only needed by Diffusion classes
+when numerical directional derivatives are computed.
+ */
+template <typename Fields>
+DerivativeData BackgroundBase<Fields>::GetDerivativeData(void) const
+{
+   return _ddata;
+}
+
+/*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
@@ -421,6 +434,7 @@ double BackgroundBase<Fields>::GetSafeIncr(const GeoVector& dir)
 \param[in]  pos_in Position
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
 \param[out] fields All fields data
+\param[out] dmax The caller's dmax
 \note This is a common routine that the derived classes should not change.
 */
 template <typename Fields>

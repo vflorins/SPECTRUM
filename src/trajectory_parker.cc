@@ -89,14 +89,15 @@ try {
 #if TRAJ_PARKER_DIVK_METHOD == 0
    GeoVector pos_tmp;
    Fields fields_forw, fields_back;
+   DerivativeData ddata_forw, ddata_back;
    double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
    double delta = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _ddata.dmax);
 
 // TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
 
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields);
 
 // Loop over dimensions to find derivatives of Kappa.
    divK = gv_zeros;
@@ -124,16 +125,18 @@ try {
    GeoMatrix bhatbhat;
 
 // Compute Kperp and grad(Kperp)
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
-   gradKperp[0] = diffusion->GetDirectionalDerivative(0);
-   gradKperp[1] = diffusion->GetDirectionalDerivative(1);
-   gradKperp[2] = diffusion->GetDirectionalDerivative(2);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields);
+   auto ddata = background->GetDerivativeData();
+   gradKperp[0] = diffusion->GetDirectionalDerivative(0, ddata);
+   gradKperp[1] = diffusion->GetDirectionalDerivative(1, ddata);
+   gradKperp[2] = diffusion->GetDirectionalDerivative(2, ddata);
 
 // Compute Kpara and grad(Kpara)
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
-   gradKpara[0] = diffusion->GetDirectionalDerivative(0);
-   gradKpara[1] = diffusion->GetDirectionalDerivative(1);
-   gradKpara[2] = diffusion->GetDirectionalDerivative(2);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields);
+   ddata = background->GetDerivativeData();
+   gradKpara[0] = diffusion->GetDirectionalDerivative(0, ddata);
+   gradKpara[1] = diffusion->GetDirectionalDerivative(1, ddata);
+   gradKpara[2] = diffusion->GetDirectionalDerivative(2, ddata);
 
 // Assemble diffusion tensor
    GeoVector bhat = _fields.HatMag();

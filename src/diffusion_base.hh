@@ -115,10 +115,10 @@ public:
    void SetupObject(const DataContainer& cont_in);
 
 //! Evaluate and return one diffusion component
-   double GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in, const DerivativeData& ddata_in);
+   double GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in);
 
 //! Compute derivative of diffusion coefficient in position or time. By default, it is computed numerically, but specific classes can override with analytic expressions.
-   virtual double GetDirectionalDerivative(int xyz);
+   virtual double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in);
 
 //! Compute derivative of diffusion coefficient in mu. By default, it is computed numerically, but specific classes can override with analytic expressions.
    virtual double GetMuDerivative(void);

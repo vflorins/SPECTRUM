@@ -262,8 +262,8 @@ protected:
 //! Local momentum for Advance function (transient)
    GeoVector local_mom;
 
-//! Derivative data (transient)
-   DerivativeData _ddata;
+//! Background-dependent dmax (transient)
+   double _dmax;
 
 //! Extrema data (transient)
    ExtremaData _edata;

@@ -70,7 +70,7 @@ public:
 //   using TrajectoryBase::local_mom;
 
    using TrajectoryBase::_fields;
-   using TrajectoryBase::_ddata;
+   using TrajectoryBase::_dmax;
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::slope_pos;

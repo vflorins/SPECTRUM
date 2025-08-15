@@ -114,7 +114,7 @@ public:
 \date 05/28/2025
 \return size of tuple
 */
-   size_t size() const {
+   static size_t size() {
       return sizeof...(Ts)+1;
    }
   
@@ -1653,7 +1653,7 @@ public:
       return *this;
    };
 
-   size_t size() const {
+   static size_t size() {
       return 1;
    }
   

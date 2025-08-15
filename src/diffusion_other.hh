@@ -361,7 +361,7 @@ public:
    CloneFunctionDiffusion(DiffusionParaConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -420,7 +420,7 @@ public:
    CloneFunctionDiffusion(DiffusionPerpConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -482,7 +482,7 @@ public:
    CloneFunctionDiffusion(DiffusionFullConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -558,7 +558,7 @@ public:
    CloneFunctionDiffusion(DiffusionFlowMomentumPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -635,7 +635,7 @@ public:
    CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;
@@ -713,7 +713,7 @@ public:
    CloneFunctionDiffusion(DiffusionRigidityMagneticFieldPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz) override;
+   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(void) override;

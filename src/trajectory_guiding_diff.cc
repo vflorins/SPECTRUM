@@ -76,9 +76,10 @@ try {
    Dperp = diffusion->GetComponent(0, _t, _pos, ConvertMomentum(), _spdata);
 
 // Compute gradient of Dperp
-   gradDperp[0] = diffusion->GetDirectionalDerivative(0);
-   gradDperp[1] = diffusion->GetDirectionalDerivative(1);
-   gradDperp[2] = diffusion->GetDirectionalDerivative(2);
+   auto ddata = background->GetDerivativeData();
+   gradDperp[0] = diffusion->GetDirectionalDerivative(0, ddata);
+   gradDperp[1] = diffusion->GetDirectionalDerivative(1, ddata);
+   gradDperp[2] = diffusion->GetDirectionalDerivative(2, ddata);
 
 // Find components of Vperp in field aligned frame 
    Vperp[0] = gradDperp * fa_basis[0];

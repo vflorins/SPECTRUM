@@ -47,6 +47,7 @@ public:
    // methods
    using BackgroundSphericalObstacle::EvaluateBmag;
    using BackgroundSphericalObstacle::EvaluateDmax;
+   using BackgroundBase::GetDmax;
    using BackgroundSphericalObstacle::StopServerFront;
    using BackgroundSphericalObstacle::SetupBackground;
    using BackgroundSphericalObstacle::EvaluateBackground;

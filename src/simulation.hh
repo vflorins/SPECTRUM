@@ -118,32 +118,37 @@ public:
 //! Set the particle specie
    void SetSpecie(unsigned int specie_in);
 
-//! Add a distribution object
-   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
-
 //! Add a background object (passthrough to trajectory)
    void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
-// TODO: experiment
+   // TODO: experiment
+//! Add a distribution object
+   virtual void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) {
+         local_distros.push_back(distribution_in.Clone());
+         local_distros.back()->SetSpecie(specie);
+         local_distros.back()->SetupObject(container_in);
+         trajectory->ConnectDistribution(local_distros.back());
+         PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
+   }
+
+
+   // TODO: experiment
 //! Add boundary condition object (passthrough to trajectory)
-template <typename Boundary>
-   void AddBoundary(const Boundary& boundary_in, const DataContainer& container_in) {
+   virtual void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in) {
       trajectory->AddBoundary(boundary_in, container_in);
       PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
    }
 
 // TODO: experiment
 //! Add initial condition object (passthrough to trajectory)
-template <typename Initial>
-   void AddInitial(const Initial& initial_in, const DataContainer& container_in) {
+   virtual void AddInitial(const InitialBase& initial_in, const DataContainer& container_in) {
       trajectory->AddInitial(initial_in, container_in);
       PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
    }
 
 // TODO: experiment
 //! Add diffusion object (passthrough to trajectory)
-template <typename Diffusion>
-   void AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in) {
+   virtual void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in) {
       trajectory->AddDiffusion(diffusion_in, container_in);
       PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
    }
@@ -329,8 +334,7 @@ public:
 
 // TODO: experiment
 //! Add a distribution object
-   template <typename Distribution>
-   void AddDistribution(const Distribution& distribution_in, const DataContainer& container_in) {
+   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) override {
       // TODO this should use make_unique instead of shared
       partial_distros.push_back(distribution_in.Clone());
       partial_distros.back()->SetSpecie(specie);
@@ -364,9 +368,16 @@ public:
 // Top level methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+//template <typename Trajectory>
+//using Simulation = std::variant<std::unique_ptr<SimulationWorker<Trajectory>>, std::unique_ptr<SimulationBoss<Trajectory>>, std::unique_ptr<SimulationMaster<Trajectory>>>;
+
 ////! Generate a complete simulation object
 //template <typename Trajectory>
 //std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
+
+
+
 
 };
 

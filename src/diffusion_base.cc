@@ -110,12 +110,11 @@ void DiffusionBase<Trajectory>::EvaluateDiffusion(void)
 \note This is a common routine that the derived classes should not change.
 */
 template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in, const DerivativeData& ddata_in)
+double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
 {
    SetState(t_in, pos_in, mom_in);
    vmag = Vel(_mom[0], specie);
    _fields = fields_in;
-   _ddata = ddata_in;
    Omega = CyclotronFrequency(vmag, _fields.AbsMag(), specie);
 
    if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
@@ -133,11 +132,12 @@ double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoV
 \author Vladimir Florinski
 \date 07/12/2024
 \param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return Directional derivative
 \note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
    double _t_saved, Bmag_saved, derivative, _dr, _dt;
    GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;

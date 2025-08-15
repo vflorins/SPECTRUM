@@ -406,11 +406,12 @@ void DiffusionParaConstant<Trajectory>::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 06/07/2023
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
    return 0.0;
 };
@@ -490,11 +491,12 @@ void DiffusionPerpConstant<Trajectory>::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 10/18/2022
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
    return 0.0;
 };
@@ -576,11 +578,12 @@ void DiffusionFullConstant<Trajectory>::EvaluateDiffusion(void)
 \author Vladimir Florinski
 \date 10/18/2022
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
    return 0.0;
 };
@@ -666,11 +669,12 @@ void DiffusionFlowMomentumPowerLaw<Trajectory>::EvaluateDiffusion(void)
 \author Swati Sharma
 \date 01/03/2025
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
 // Note that this doesn't work in regions were the flow is nearly zero.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_fields.DelVel().row[xyz] * _fields.Vel()) / Sqr(_fields.Vel().Norm());
@@ -754,11 +758,12 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::EvaluateDiffusion
 \author Juan G Alonso Guzman
 \date 02/18/2025
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
 // Note that this doesn't work near the origin where the radial distance is close to zero.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(_pos.Norm());
@@ -841,11 +846,12 @@ void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(void)
 \author Juan G Alonso Guzman
 \date 02/18/2025
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 template <typename Trajectory>
-double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz)
+double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelMag()[xyz] / _fields.Mag().Norm();

@@ -39,6 +39,7 @@ public:
    using Fields = Fields_;
    using BackgroundDiscontinuity = BackgroundDiscontinuity<Fields>;
    using BackgroundBase = BackgroundBase<Fields>;
+
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -52,6 +53,7 @@ public:
    // methods
    using BackgroundBase::EvaluateBmag;
    using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
    using BackgroundBase::EvaluateBackground;

@@ -64,7 +64,7 @@ bool TrajectoryGuidingScatt<Fields>::IsSimmulationReady(void) const
 template <typename Fields>
 void TrajectoryGuidingScatt<Fields>::DiffusionCoeff(void)
 try {
-   Dmumu = diffusion->GetComponent(2, _t, _pos, ConvertMomentum(), _fields, _ddata);
+   Dmumu = diffusion->GetComponent(2, _t, _pos, ConvertMomentum(), _fields);
 
 // Compute the derivative in mu
    Vmu = diffusion->GetMuDerivative();
@@ -132,7 +132,7 @@ void TrajectoryGuidingScatt<Fields>::MilsteinPitchAngleScatt(bool second)
    b = sqrt(2.0 * Dmumu);
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
    mom_conv[1] += dmu;
-   Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields, _ddata);
+   Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields);
    b1 = (sqrt(2.0 * Dmumu_new) - b) / dmu;
 
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
@@ -194,12 +194,12 @@ void TrajectoryGuidingScatt<Fields>::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
 
       dmu = sp_small * (mom_conv[1] + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] += dmu;
 
-      Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
+      Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
       slope_Vmu[1] = (Dmumu_new - Dmumu) / dmu;
 
 // Compute second slope for Dmumu
@@ -213,7 +213,7 @@ void TrajectoryGuidingScatt<Fields>::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
       slope_Dmumu[1] = sqrt(2.0 * Dmumu);
 
 // Compute third slope for Dmumu
@@ -227,13 +227,13 @@ void TrajectoryGuidingScatt<Fields>::RK2PitchAngleScatt(bool second)
       };
 
       mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields, _ddata);
+      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
       slope_Dmumu[2] = sqrt(2.0 * Dmumu);
 
 // Compute additional fit term
       dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
       mom_conv[1] = mu + dmu;
-      Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields, _ddata);
+      Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields);
       dfit = (sqrt(2.0 * Dmumu_new) - slope_Dmumu[0]) / dmu;
 
 // Add all the stuff

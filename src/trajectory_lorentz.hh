@@ -33,11 +33,11 @@ const unsigned int mirror_thresh_lorentz = 300;
 \author Vladimir Florinski
 */
 template <typename Fields_>
-class TrajectoryLorentz : public TrajectoryBase<Fields_> {
+class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<Fields_>, Fields_> {
 public:
 
    using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Fields>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryLorentz<Fields_>, Fields>;
    using DistributionBase = DistributionBase<TrajectoryBase>;
    using BackgroundBase = BackgroundBase<TrajectoryBase>;
    using DiffusionBase = DiffusionBase<TrajectoryBase>;

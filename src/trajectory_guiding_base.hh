@@ -55,7 +55,7 @@ public:
    using TrajectoryBase::_mom;
    using TrajectoryBase::q;
    using TrajectoryBase::_fields;
-   using TrajectoryBase::_ddata;
+   using TrajectoryBase::_dmax;
 //   using TrajectoryBase::traj_t;
 //   using TrajectoryBase::traj_pos;
    using TrajectoryBase::traj_mom;

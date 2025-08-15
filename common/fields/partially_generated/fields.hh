@@ -112,7 +112,7 @@ public:
 \date 05/28/2025
 \return size of tuple
 */
-   size_t size() const {
+   static size_t size() {
       return sizeof...(Ts)+1;
    }
   
@@ -2436,9 +2436,153 @@ This should not occur in fluid or MHD applications.
 
    // END(fields/generate, class)
 
+   /*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Divergence of U
+*/
+   inline double divU(void)
+   {
+      return DelVel().Trace();
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Divergence of B
+*/
+   inline double divB(void)
+   {
+      return DelMag().Trace();
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Divergence of E
+*/
+   inline double divE(void)
+   {
+      return DelElc().Trace();
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Curl of U
+*/
+   inline GeoVector curlU(void)
+   {
+      GeoVector vec_tmp;
+      GeoMatrix G = DelVel();
+      vec_tmp[0] = G[1][2] - G[2][1];
+      vec_tmp[1] = G[2][0] - G[0][2];
+      vec_tmp[2] = G[0][1] - G[1][0];
+      return vec_tmp;
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Curl of B
+*/
+   inline GeoVector curlB(void)
+   {
+      GeoVector vec_tmp;
+      GeoMatrix G = DelMag();
+      vec_tmp[0] = G[1][2] - G[2][1];
+      vec_tmp[1] = G[2][0] - G[0][2];
+      vec_tmp[2] = G[0][1] - G[1][0];
+      return vec_tmp;
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/18/2022
+\return Curl of E
+*/
+   inline GeoVector curlE(void)
+   {
+      GeoVector vec_tmp;
+      GeoMatrix G = DelElc();
+      vec_tmp[0] = G[1][2] - G[2][1];
+      vec_tmp[1] = G[2][0] - G[0][2];
+      vec_tmp[2] = G[0][1] - G[1][0];
+      return vec_tmp;
+   };
+
 
 
 /*!
+\author Juan G Alonso Guzman
+\date 07/02/2024
+\return Divergence of bhat
+\note The formula comes from applying vector identity (7) in the NRL Plasma formulary
+*/
+   double divbhat()
+   {
+      auto bhat = DdtMag();
+      auto Bmag = AbsMag();
+      auto gradBmag = DelAbsMag();
+      auto Bdiv = divB();
+      double x1 = gradBmag * bhat;
+      auto x2 = Bdiv - x1;
+      auto x3 = x2/Bmag;
+      return x3;
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/02/2024
+\return Curl of bhat
+\note The formula comes from applying vector identity (8) in the NRL Plasma formulary
+*/
+   GeoVector curlbhat()
+   {
+      auto bhat = HatMag();
+      // todo fix when using auto or MmagT to set type
+      double Bmag = AbsMag();
+      auto gradBmag = DelAbsMag();
+      return (curlB() - (gradBmag ^ bhat)) / Bmag;
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/02/2024
+\return Gradient of bhat
+\note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
+*/
+   GeoMatrix gradbhat()
+   {
+      auto bhat = HatMag();
+      double Bmag = AbsMag();
+      auto gradB = DelMag();
+      auto gradBmag = DelAbsMag();
+      // todo Dyadic can be made static
+      GeoMatrix tmp;
+      tmp.Dyadic(gradBmag, bhat);
+      return (gradB - tmp) / Bmag;
+   };
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/02/2024
+\return Time derivative of bhat
+*/
+   GeoVector dbhatdt()
+   {
+      auto dBvecdt = DdtMag();
+      auto dBmagdt = DdtAbsMag();
+      auto bhat = HatMag();
+      double Bmag = AbsMag();
+      return (dBvecdt - (dBmagdt * bhat)) / Bmag;
+   };
+
+
+
+
+
+   /*!
 \author Lucius Schoenbaum
 \date 05/28/2025
 \return string representation of state, for testing purposes
@@ -2494,7 +2638,7 @@ public:
       return *this;
    };
 
-   size_t size() const {
+   static size_t size() {
       return 1;
    }
   

@@ -102,7 +102,11 @@ template <typename Trajectory, typename Fields>
 void TrajectoryGuidingBase<Trajectory, Fields>::PhysicalStep(void)
 {
 // If the pitch angle is at 90 degrees we only have the perpendicular component of "drift_vel", which may be too small, but can increase by a large (relative) factor during the integration step. For this reason a small fraction of the total speed is added to the characteristic speed.
-   dt_physical = cfl_adv_tg * _ddata.dmax / (drift_vel.Norm() + drift_safety_tg * _vel.Norm());
+// TODO: experiment/debug
+   auto tmp1 = cfl_adv_tg * _dmax;
+   auto tmp2 = drift_vel.Norm() + drift_safety_tg * _vel.Norm();
+   dt_physical = tmp1/tmp2;
+//   dt_physical = cfl_adv_tg * _ddata.dmax / (drift_vel.Norm() + drift_safety_tg * _vel.Norm());
 };
 
 /*!

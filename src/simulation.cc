@@ -109,15 +109,15 @@ void SimulationWorker<Trajectory>::SetSpecie(unsigned int specie_in)
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
-{
-   local_distros.push_back(distribution_in.Clone());
-   local_distros.back()->SetSpecie(specie);
-   local_distros.back()->SetupObject(container_in);
-   trajectory->ConnectDistribution(local_distros.back());
-   PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
-};
+//template <typename Trajectory>
+//void SimulationWorker<Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
+//{
+//   local_distros.push_back(distribution_in.Clone());
+//   local_distros.back()->SetSpecie(specie);
+//   local_distros.back()->SetupObject(container_in);
+//   trajectory->ConnectDistribution(local_distros.back());
+//   PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
+//};
 
 /*!
 \author Vladimir Florinski
@@ -907,9 +907,8 @@ void SimulationMaster<Trajectory>::PrintRecords(int distro, const std::string& f
 \param[in] argv Command line arguments
 */
 template <typename Trajectory>
-// todo Experiment
-//std::unique_ptr<SimulationWorker<Trajectory>>
-decltype(auto) CreateSimulation(int argc, char** argv)
+// todo Experimenting...
+std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv)
 {
 // Initialize a single instance of "MPI_Config" that will persist until the program terminates
    static MPI_Config mpicfg(argc, argv);
@@ -920,8 +919,8 @@ decltype(auto) CreateSimulation(int argc, char** argv)
 //      return simulation_p;
 //   }
 //   else if (MPI_Config::is_boss) {
-      auto simulation_p = std::make_unique<SimulationBoss<Trajectory>>();
-      return simulation_p;
+//      auto simulation_p = std::make_unique<SimulationBoss<Trajectory>>();
+//      return simulation_p;
 //   }
 //   else {
 //      auto simulation_p = std::make_unique<SimulationWorker<Trajectory>>();
@@ -929,9 +928,9 @@ decltype(auto) CreateSimulation(int argc, char** argv)
 //   }
 //   return simulation_p;
 
-//   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
-//   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();
-//   else return std::make_unique<SimulationWorker<Trajectory>>();
+   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
+   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();
+   else return std::make_unique<SimulationWorker<Trajectory>>();
 };
 
 };
