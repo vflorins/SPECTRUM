@@ -54,7 +54,6 @@ const double cfl_pa_gs = 0.5;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-// todo a true Trajectory - templated over Fields
 template <typename Fields_>
 class TrajectoryGuidingScatt : public TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields_>, Fields_> {
 public:
@@ -62,9 +61,6 @@ public:
    using Fields = Fields_;
    using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields>, Fields>;
    using TrajectoryBase = TrajectoryBase<TrajectoryGuidingScatt<Fields_>, Fields>;
-//   using DistributionBase = DistributionBase<TrajectoryBase>;
-//   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-//   using DiffusionBase = DiffusionBase<TrajectoryBase>;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_t;

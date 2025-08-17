@@ -16,29 +16,29 @@ namespace Spectrum {
 // TrajectoryGuidingBase methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\date 12/17/2020
-*/
-template <typename Trajectory, typename Fields>
-TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(void)
-                 : TrajectoryBase(traj_name_guiding_base, 0, STATE_NONE, defsize_guiding)
-{
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/28/2022
-\param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
-\param[in] status_in Initial status
-\param[in] presize_in Whether to pre-allocate memory for trajectory arrays
-*/
-template <typename Trajectory, typename Fields>
-TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                 : TrajectoryBase(name_in, specie_in, status_in, presize_in)
-{
-};
+///*!
+//\author Vladimir Florinski
+//\date 12/17/2020
+//*/
+//template <typename Trajectory, typename Fields>
+//TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(void)
+//                 : TrajectoryBase(traj_name_guiding_base, 0, STATE_NONE, defsize_guiding_base)
+//{
+//};
+//
+///*!
+//\author Vladimir Florinski
+//\date 01/28/2022
+//\param[in] name_in   Readable name of the class
+//\param[in] specie_in Particle's specie
+//\param[in] status_in Initial status
+//\param[in] presize_in Whether to pre-allocate memory for trajectory arrays
+//*/
+//template <typename Trajectory, typename Fields>
+//TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+//                 : TrajectoryBase(name_in, specie_in, status_in, presize_in)
+//{
+//};
 
 /*!
 \author Vladimir Florinski

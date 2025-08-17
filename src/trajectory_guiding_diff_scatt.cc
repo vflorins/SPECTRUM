@@ -21,10 +21,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-TrajectoryGuidingDiffScatt::TrajectoryGuidingDiffScatt(void)
-                          : TrajectoryGuidingDiff(traj_name_guidingdiffscatt, 0, STATE_NONE, defsize_guidingdiffscatt),
-                            TrajectoryGuidingScatt(traj_name_guidingdiffscatt, 0, STATE_NONE, defsize_guidingdiffscatt),
-                            TrajectoryGuiding(traj_name_guidingdiffscatt, 0, STATE_NONE, defsize_guidingdiffscatt)
+template <typename Fields>
+TrajectoryGuidingDiffScatt<Fields>::TrajectoryGuidingDiffScatt(void)
+                          : TrajectoryBase(traj_name_guidingdiffscatt, 0, STATE_NONE, defsize_guidingdiffscatt)
 {
 };
 
@@ -32,7 +31,8 @@ TrajectoryGuidingDiffScatt::TrajectoryGuidingDiffScatt(void)
 \author Vladimir Florinski
 \date 05/27/2022
 */
-bool TrajectoryGuidingDiffScatt::IsSimmulationReady(void) const
+template <typename Fields>
+bool TrajectoryGuidingDiffScatt<Fields>::IsSimmulationReady(void) const
 {
    return TrajectoryGuidingDiff::IsSimmulationReady();
 };
@@ -42,24 +42,28 @@ bool TrajectoryGuidingDiffScatt::IsSimmulationReady(void) const
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-void TrajectoryGuidingDiffScatt::DiffusionCoeff(void)
-try {
-   TrajectoryGuidingDiff::DiffusionCoeff();
-   TrajectoryGuidingScatt::DiffusionCoeff();
-}
+template <typename Fields>
+void TrajectoryGuidingDiffScatt<Fields>::DiffusionCoeff(void)
+{
+   try {
+      TrajectoryGuidingDiff::DiffusionCoeff();
+      TrajectoryGuidingScatt::DiffusionCoeff();
+   }
 
-catch(ExFieldError& exception) {
+   catch (ExFieldError &exception) {
 //   PrintError(__FILE__, __LINE__, "Error in field increment evaluation", true);
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-};
+      RAISE_BITS(_status, TRAJ_DISCARD);
+      throw;
+   };
+}
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-void TrajectoryGuidingDiffScatt::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryGuidingDiffScatt<Fields>::PhysicalStep(void)
 {
    TrajectoryGuidingDiff::PhysicalStep();
    TrajectoryGuidingScatt::PhysicalStep();
@@ -73,7 +77,8 @@ void TrajectoryGuidingDiffScatt::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryGuidingDiffScatt::Advance(void)
+template <typename Fields>
+bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
 {
 // Retrieve latest point of the trajectory
    Load();
@@ -84,6 +89,7 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
+// TODO: yo no se
    TimeBoundaryBefore();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -92,11 +98,11 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 
 // Perform first half of PA scattering
 #if STOCHASTIC_METHOD_MU == 0
-   EulerPitchAngleScatt(0);
+   TrajectoryGuidingScatt::EulerPitchAngleScatt(0);
 #elif STOCHASTIC_METHOD_MU == 1
-   MilsteinPitchAngleScatt(0);
+   TrajectoryGuidingScatt::MilsteinPitchAngleScatt(0);
 #elif STOCHASTIC_METHOD_MU == 2
-   RK2PitchAngleScatt(0);
+   TrajectoryGuidingScatt::RK2PitchAngleScatt(0);
 #endif
 
 // Store position and momentum locally
@@ -112,11 +118,11 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 
 // Stochastic RK slopes
 #if STOCHASTIC_METHOD_PERP == 0
-   EulerPerpDiffSlopes();
+   TrajectoryGuidingDiff::EulerPerpDiffSlopes();
 #elif STOCHASTIC_METHOD_PERP == 1
-   MilsteinPerpDiffSlopes();
+   TrajectoryGuidingDiff::MilsteinPerpDiffSlopes();
 #elif STOCHASTIC_METHOD_PERP == 2
-   if (RK2PerpDiffSlopes()) return true;
+   if (TrajectoryGuidingDiff::RK2PerpDiffSlopes()) return true;
 #endif
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
@@ -147,11 +153,11 @@ bool TrajectoryGuidingDiffScatt::Advance(void)
 
 // Perform second half of PA scattering
 #if STOCHASTIC_METHOD_MU == 0
-   EulerPitchAngleScatt(1);
+   TrajectoryGuidingScatt::EulerPitchAngleScatt(1);
 #elif STOCHASTIC_METHOD_MU == 1
-   MilsteinPitchAngleScatt(1);
+   TrajectoryGuidingScatt::MilsteinPitchAngleScatt(1);
 #elif STOCHASTIC_METHOD_MU == 2
-   RK2PitchAngleScatt(1);
+   TrajectoryGuidingScatt::RK2PitchAngleScatt(1);
 #endif
 
 #endif

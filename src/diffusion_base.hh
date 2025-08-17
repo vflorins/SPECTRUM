@@ -25,8 +25,13 @@ const uint16_t DIFF_NOBACKGROUND = 0x0010;
 //! Clone function pattern
 #define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
 
+//! Forward-declare Trajectory base types
+template <typename Trajectory, typename Fields>
+class TrajectoryFieldlineBase;
+template <typename Trajectory, typename Fields>
+class TrajectoryGuidingBase;
 //! Forward-declare Trajectory types
-template <typename Fields>
+template <typename Fields, typename Trace_t>
 class TrajectoryFieldline;
 template <typename Fields>
 class TrajectoryFocused;

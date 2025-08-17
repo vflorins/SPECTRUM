@@ -44,7 +44,7 @@ public:
    using InitialBase::_mom;
    using InitialBase::axis;
 
-   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
+   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -117,7 +117,7 @@ public:
    // methods:
    using InitialBase::GetMomSample;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumBeam initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>, "InitialMomentumBeam initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -172,7 +172,7 @@ public:
    using InitialBase::axis;
    using InitialBase::rng;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::same_as<Trajectory, TrajectoryFieldline<Fields>>, "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>, "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 

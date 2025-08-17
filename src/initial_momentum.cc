@@ -316,7 +316,7 @@ void InitialMomentumShell<Trajectory>::SetupInitial(bool construct)
    if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       _mom = GeoVector(p0, 0.0, 0.0);
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
       _mom = GeoVector(0.0, 0.0, p0);
    }
    else {
@@ -428,13 +428,12 @@ void InitialMomentumThickShell<Trajectory>::EvaluateInitial(void)
    if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
 
-   // todo std:: subclass of TrajectoryGuiding
-   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
+   constexpr bool Trajectory_Guiding_All = std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>;
 
    if constexpr (std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       _mom = GeoVector(p, 0.0, 0.0);
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
       _mom = GeoVector(0.0, 0.0, p);
    }
    else if constexpr (Trajectory_Guiding_All || std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
@@ -572,10 +571,7 @@ template <typename Trajectory>
 void InitialMomentumMaxwell<Trajectory>::EvaluateInitial(void)
 {
 
-   // todo std:: subclass of TrajectoryGuiding
-   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
-
-   if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+   if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
       _mom = GeoVector(0.0, 0.0, p0);
       return;
    }
@@ -590,7 +586,7 @@ void InitialMomentumMaxwell<Trajectory>::EvaluateInitial(void)
       e2 = axis ^ e1;
       _mom = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
    }
-   else if constexpr (Trajectory_Guiding_All) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
       _mom = GeoVector(p_perp, 0.0, p_para);
    }
    else {

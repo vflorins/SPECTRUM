@@ -287,13 +287,12 @@ void DistributionMomentumUniform<Trajectory>::EvaluateValue(void)
 // Focused and Parker trajectories are already in locally spherical coordinates
          this->_value = momentum;
       }
-      else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+      else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
          this->_value[0] = momentum[2];
          this->_value[1] = 0.0;
          this->_value[2] = 0.0;
       }
-         // todo std:: subclass of TrajectoryGuiding
-      else if constexpr (std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+      else if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
          this->_value[0] = momentum.Norm();
          this->_value[1] = momentum[2] / this->_value[0];
          this->_value[2] = 0.0;
@@ -589,11 +588,10 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::EvaluateValue(void)
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       this->_value[0] = EnrKin(this->_mom[0], this->specie);
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
       this->_value[0] = EnrKin(this->_mom[2], this->specie);
    }
-      // todo std:: subclass of TrajectoryGuiding
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
       this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
    }
    else {
@@ -615,11 +613,10 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       mom2mag = this->_mom2[0];
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
       mom2mag = this->_mom2[2];
    }
-      // todo std:: subclass of TrajectoryGuiding
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
       mom2mag = this->_mom2.Norm();
    }
    else {

@@ -31,8 +31,13 @@ const uint16_t DISTRO_MOMENTUM = 0x0040;
 //! Function type to respond to different actions
 using WeightAction = std::function<void(void)>;
 
+//! Forward-declare Trajectory base types
+template <typename Trajectory, typename Fields>
+class TrajectoryFieldlineBase;
+template <typename Trajectory, typename Fields>
+class TrajectoryGuidingBase;
 //! Forward-declare Trajectory types
-template <typename Fields>
+template <typename Fields, typename Trace_t>
 class TrajectoryFieldline;
 template <typename Fields>
 class TrajectoryFocused;

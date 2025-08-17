@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_TRAJECTORY_FOCUSED_HH
 
 #include "trajectory_base.hh"
+#include "common/fields.hh"
 
 namespace Spectrum {
 
@@ -41,31 +42,42 @@ const int mirror_thresh_focused = 10;
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
 template <typename Fields_>
-class TrajectoryFocused : public TrajectoryBase<Fields_> {
+class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<Fields_>, Fields_> {
 
 public:
 
    using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Fields>;
-   using DistributionBase = DistributionBase<TrajectoryBase>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<Fields_>, Fields>;
 
    using TrajectoryBase::_t;
    using TrajectoryBase::_pos;
+   using TrajectoryBase::_vel;
    using TrajectoryBase::_mom;
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_dmax;
+   using TrajectoryBase::dt_physical;
    using TrajectoryBase::traj_t;
    using TrajectoryBase::traj_pos;
    using TrajectoryBase::traj_mom;
-   using TrajectoryBase::_vel;
    using TrajectoryBase::specie;
    using TrajectoryBase::local_t;
    using TrajectoryBase::local_pos;
    using TrajectoryBase::local_mom;
+   // methods:
+   using TrajectoryBase::RKAdvance;
+
+   static_assert(!Fields::template found<Vel_t>(), "Vel must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<AbsMag_t>(), "AbsMag must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<HatMag_t>(), "HatMag must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<DelMag_t>(), "DelMag must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<DelVel_t>(), "DelVel must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<DdtVel_t>(), "DdtVel must be tracked by TrajectoryFocused. Add it to the Fields type defined during configuration.");
 
 protected:
 
 //! Magnetic moment (transient)
+// todo Mom() and Mom_t is momentum...
    double mag_mom;
 
 //! Drift elocity (transient)

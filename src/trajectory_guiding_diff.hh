@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 
-#include "trajectory_guiding.hh"
+#include "trajectory_guiding_base.hh"
 #include "diffusion_base.hh"
 
 namespace Spectrum {
@@ -36,29 +36,52 @@ const double cfl_dif_gd = 0.5;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-// todo update
 template <typename Fields_>
 class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields_>, Fields_> {
 
 public:
 
    using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Fields>;
-   using DistributionBase = DistributionBase<TrajectoryBase>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase>;
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields>, Fields>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryGuidingDiff<Fields_>, Fields>;
 
-//   using TrajectoryBase::_t;
-//   using TrajectoryBase::_pos;
+   using TrajectoryBase::_status;
+   using TrajectoryBase::_t;
+   using TrajectoryBase::_pos;
    using TrajectoryBase::_mom;
+   using TrajectoryBase::_vel;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::rng;
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_dmax;
+   using TrajectoryBase::background;
 //   using TrajectoryBase::traj_t;
 //   using TrajectoryBase::traj_pos;
 //   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::_vel;
-//   using TrajectoryBase::specie;
+   using TrajectoryBase::specie;
 //   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
+   using TrajectoryBase::local_pos;
 //   using TrajectoryBase::local_mom;
+   using TrajectoryBase::diffusion;
+   using TrajectoryBase::slope_pos;
+   using TrajectoryBase::slope_mom;
+   using TrajectoryGuidingBase::drift_vel;
+   // methods:
+   using TrajectoryBase::CommonFields;
+   using TrajectoryBase::SpaceTerminateCheck;
+   using TrajectoryBase::Load;
+   using TrajectoryBase::Store;
+   using TrajectoryBase::StoreLocal;
+   using TrajectoryBase::TimeBoundaryProximityCheck;
+   using TrajectoryBase::RKSlopes;
+   using TrajectoryBase::RKStep;
+   using TrajectoryBase::HandleBoundaries;
+
+   using TrajectoryGuidingBase::ConvertMomentum;
+   using TrajectoryGuidingBase::MomentumCorrection;
+
 
 protected:
 

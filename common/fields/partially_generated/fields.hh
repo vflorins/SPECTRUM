@@ -228,6 +228,20 @@ This should not occur in fluid or MHD applications.
          return Fields<Ts...>::get();
    }
 
+/*!
+\brief Check anonymously for presence of a type in the tuple
+\author Lucius Schoenbaum
+\date 08/16/2025
+ */
+   template <typename T_found>
+   static bool constexpr found() {
+      if constexpr (std::is_same<T, T_found>::value)
+         return true;
+      else
+         return Fields<Ts...>::found();
+   }
+
+
    // BEGIN(fields/generate, class)
 
 /*!
@@ -2698,6 +2712,14 @@ public:
          }
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
+   }
+
+   template <typename T_found>
+   static bool constexpr found() {
+      if constexpr (std::is_same<T, T_found>::value)
+         return true;
+      else
+         return false;
    }
 
    // BEGIN(fields/generate, base)

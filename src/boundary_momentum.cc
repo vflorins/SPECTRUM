@@ -73,14 +73,13 @@ void BoundaryMomentum<Trajectory>::SetupBoundary(bool construct)
 template <typename Trajectory>
 void BoundaryMomentum<Trajectory>::EvaluateBoundary(void)
 {
-   // todo std:: subclass of TrajectoryGuiding
-   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>>) {
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
       _delta = _mom.Norm() - momentum;
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       _delta = _mom[0] - momentum;
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryFieldline<Fields>>){
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>){
 // TODO
       ;
    }

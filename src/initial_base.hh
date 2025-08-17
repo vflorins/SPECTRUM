@@ -43,8 +43,13 @@ const uint16_t INITIAL_VOLUME = 0x0400;
 //! Clone function pattern
 #define CloneFunctionInitial(T) std::unique_ptr<InitialBase> Clone(void) const override {return std::make_unique<T>();};
 
+//! Forward-declare Trajectory base types
+template <typename Trajectory, typename Fields>
+class TrajectoryFieldlineBase;
+template <typename Trajectory, typename Fields>
+class TrajectoryGuidingBase;
 //! Forward-declare Trajectory types
-template <typename Fields>
+template <typename Fields, typename Trace_t>
 class TrajectoryFieldline;
 template <typename Fields>
 class TrajectoryFocused;

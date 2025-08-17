@@ -18,6 +18,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+/*!
+\author Lucius Schoenbaum
+\date 08/16/2025
+The flow direction (temporal) for particle trace simulations.
+ */
+enum class FlowType {
+   forward,
+   backward
+};
+
 //! Zero state (for initialization)
 const uint16_t STATE_NONE = 0x0000;
 

@@ -19,7 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-TrajectoryFocused::TrajectoryFocused(void)
+template <typename Fields>
+TrajectoryFocused<Fields>::TrajectoryFocused(void)
                  : TrajectoryBase(traj_name_focused, 0, STATE_NONE, defsize_focused)
 {
 };
@@ -32,7 +33,8 @@ TrajectoryFocused::TrajectoryFocused(void)
 \param[in] status_in Initial status
 \param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-TrajectoryFocused::TrajectoryFocused(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+template <typename Fields>
+TrajectoryFocused<Fields>::TrajectoryFocused(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
                  : TrajectoryBase(name_in, specie_in, status_in, presize_in)
 {
 };
@@ -41,17 +43,14 @@ TrajectoryFocused::TrajectoryFocused(const std::string& name_in, unsigned int sp
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-void TrajectoryFocused::SetStart(void)
+template <typename Fields>
+void TrajectoryFocused<Fields>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
 
-// Redefine mask
-   _spdata._mask = BACKGROUND_ALL | BACKGROUND_gradB | BACKGROUND_gradU | BACKGROUND_dUdt;
-   spdata0._mask = BACKGROUND_ALL | BACKGROUND_gradB | BACKGROUND_gradU | BACKGROUND_dUdt;
-
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment(traj_mom[0][0] * sqrt(1.0 - Sqr(traj_mom[0][1])), _spdata.Bmag, specie);
+   mag_mom = MagneticMoment(traj_mom[0][0] * sqrt(1.0 - Sqr(traj_mom[0][1])), _fields.AbsMag(), specie);
 };
 
 /*!
@@ -59,23 +58,28 @@ void TrajectoryFocused::SetStart(void)
 \author Vladimir Florinski
 \date 03/11/2024
 */
-void TrajectoryFocused::DriftCoeff(void)
+template <typename Fields>
+void TrajectoryFocused<Fields>::DriftCoeff(void)
 {
+   auto U = _fields.Vel();
+   auto bhat = _fields.HatMag();
 #ifdef TRAJ_FOCUSED_USE_B_DRIFTS
 // Compute st2 and ct2
    ct2 = Sqr(_mom[1]);
    st2 = 1.0 - ct2;
 // Compute gradient drift
-   drift_vel = 0.5 * st2 * (_spdata.bhat ^ _spdata.gradBmag) / _spdata.Bmag;
+   auto B = _fields.Mag();
+   auto absB = _fields.AbsMag();
+   drift_vel = 0.5 * st2 * (bhat ^ _fields.DelAbsMag()) / absB;
 // Add curvature drift. Note that (Bvec * grad)Bvec = [Bvec]^T * [gradBvec].
-   drift_vel += ( 0.5 * st2 * _spdata.bhat * (_spdata.Bvec * _spdata.curlB())
-                + ct2 * (_spdata.bhat ^ (_spdata.Bvec * _spdata.gradBvec)) ) / Sqr(_spdata.Bmag);
+   drift_vel += ( 0.5 * st2 * bhat * (B * _fields.curlB())
+                + ct2 * (bhat ^ (B * _fields.DelMag())) ) / Sqr(absB);
 // Scale by pvc/qB
-   drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0];
+   drift_vel *= LarmorRadius(_mom[0], _fields.AbsMag(), specie) * _vel[0];
 // Add bulk flow and parallel velocities
-   drift_vel += _spdata.Uvec + _vel[0] * _mom[1] * _spdata.bhat;
+   drift_vel += U + _vel[0] * _mom[1] * bhat;
 #else
-   drift_vel = _spdata.Uvec + _vel[0] * _mom[1] * _spdata.bhat;
+   drift_vel = U + _vel[0] * _mom[1] * bhat;
 #endif
 };
 
@@ -84,10 +88,11 @@ void TrajectoryFocused::DriftCoeff(void)
 \author Vladimir Florinski
 \date 08/07/2023
 */
-void TrajectoryFocused::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryFocused<Fields>::PhysicalStep(void)
 {
 // If the pitch angle is at 90 degrees we only have the perpendicular component of "drift_vel", which may be too small, but can increase by a large (relative) factor during the integration step. For this reason a small fraction of the total speed is added to the characteristic speed.
-   dt_physical = cfl_adv_tf * _spdata.dmax / (drift_vel.Norm() + drift_safety_tf * _vel[0]);
+   dt_physical = cfl_adv_tf * _dmax / (drift_vel.Norm() + drift_safety_tf * _vel[0]);
 };
 
 /*!
@@ -97,7 +102,8 @@ void TrajectoryFocused::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Fields>
+void TrajectoryFocused<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    GeoMatrix bhatbhat;
    GeoVector cdUvecdt;
@@ -110,18 +116,22 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
    st2 = 1.0 - Sqr(_mom[1]);
 #endif
 // Compute bb : grad U
-   bhatbhat.Dyadic(_spdata.bhat);
-   bhatbhat_gradUvec = bhatbhat % _spdata.gradUvec;
+   auto U = _fields.Vel();
+   auto bhat = _fields.HatMag();
+   auto gradU = _fields.DelVel();
+   auto DdtU = _fields.DdtVel();
+   bhatbhat.Dyadic(bhat);
+   bhatbhat_gradUvec = bhatbhat % gradU;
 // Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
-   cdUvecdt = _spdata.dUvecdt + (_spdata.Uvec * _spdata.gradUvec);
-   bhat_cdUvecdt = 2.0 * _spdata.bhat * cdUvecdt / _vel[0];
+   cdUvecdt = DdtU+ (U * gradU);
+   bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _vel[0];
 
    slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 
-                                         - st2 * _spdata.divU() - _mom[1] * bhat_cdUvecdt);
+                                         - st2 * _fields.divU() - _mom[1] * bhat_cdUvecdt);
 
 #if PPERP_METHOD == 1
-   slope_mom_istage[1] = 0.5 * st2 * ( _vel[0] * _spdata.divbhat() - bhat_cdUvecdt 
-                                     + _mom[1] * (_spdata.divU() - 3.0 * bhatbhat_gradUvec) );
+   slope_mom_istage[1] = 0.5 * st2 * ( _vel[0] * _fields.divbhat() - bhat_cdUvecdt
+                                     + _mom[1] * (_fields.divU() - 3.0 * bhatbhat_gradUvec) );
 #else
    slope_mom_istage[1] = 0.0;
 #endif
@@ -136,7 +146,8 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryFocused::Advance(void)
+template <typename Fields>
+bool TrajectoryFocused<Fields>::Advance(void)
 {
    return RKAdvance();
 };
@@ -145,11 +156,12 @@ bool TrajectoryFocused::Advance(void)
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-inline void TrajectoryFocused::MomentumCorrection(void)
+template <typename Fields>
+inline void TrajectoryFocused<Fields>::MomentumCorrection(void)
 {
 // Adjust perp component to conserve magnetic moment
 #if PPERP_METHOD == 0
-   _mom[1] = sqrt(1.0 - Sqr(PerpMomentum(mag_mom, _spdata.Bmag, specie) / _mom[0]));
+   _mom[1] = sqrt(1.0 - Sqr(PerpMomentum(mag_mom, _fields.AbsMag(), specie) / _mom[0]));
 #endif
 
 //Check to enforce |mu| <= 1.0

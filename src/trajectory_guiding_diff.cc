@@ -21,8 +21,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-TrajectoryGuidingDiff::TrajectoryGuidingDiff(void)
-                     : TrajectoryGuiding(traj_name_guidingdiff, 0, STATE_NONE, defsize_guidingdiff)
+template <typename Fields>
+TrajectoryGuidingDiff<Fields>::TrajectoryGuidingDiff(void)
+                     : TrajectoryBase(traj_name_guidingdiff, 0, STATE_NONE, defsize_guidingdiff)
 {
 };
 
@@ -34,8 +35,9 @@ TrajectoryGuidingDiff::TrajectoryGuidingDiff(void)
 \param[in] status_in Initial status
 \param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-TrajectoryGuidingDiff::TrajectoryGuidingDiff(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                     : TrajectoryGuiding(name_in, specie_in, status_in, presize_in)
+template <typename Fields>
+TrajectoryGuidingDiff<Fields>::TrajectoryGuidingDiff(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+                     : TrajectoryBase(name_in, specie_in, status_in, presize_in)
 {
 };
 
@@ -43,7 +45,8 @@ TrajectoryGuidingDiff::TrajectoryGuidingDiff(const std::string& name_in, unsigne
 \author Vladimir Florinski
 \date 05/27/2022
 */
-bool TrajectoryGuidingDiff::IsSimmulationReady(void) const
+template <typename Fields>
+bool TrajectoryGuidingDiff<Fields>::IsSimmulationReady(void) const
 {
    if(!TrajectoryBase::IsSimmulationReady()) return false;
 
@@ -57,51 +60,58 @@ bool TrajectoryGuidingDiff::IsSimmulationReady(void) const
 \author Vladimir Florinski
 \date 04/22/2022
 */
-void TrajectoryGuidingDiff::FieldAlignedFrame(void)
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::FieldAlignedFrame(void)
 {
-   fa_basis[2] = _spdata.bhat;
-   fa_basis[0] = GetSecondUnitVec(_spdata.bhat);
+   auto bhat = _fields.HatMag();
+   fa_basis[2] = bhat;
+   fa_basis[0] = GetSecondUnitVec(bhat);
    fa_basis[1] = fa_basis[2] ^ fa_basis[0];
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 04/29/2022
+\author Lucius Schoenbaum
+\date 08/16/2025
 */
-void TrajectoryGuidingDiff::DiffusionCoeff(void)
-try {
-   GeoVector gradDperp;
-   FieldAlignedFrame();
-   Dperp = diffusion->GetComponent(0, _t, _pos, ConvertMomentum(), _spdata);
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::DiffusionCoeff(void)
+{
+   try {
+      GeoVector gradDperp;
+      FieldAlignedFrame();
+      Dperp = diffusion->GetComponent(0, _t, _pos, ConvertMomentum(), _fields);
 
 // Compute gradient of Dperp
-   auto ddata = background->GetDerivativeData();
-   gradDperp[0] = diffusion->GetDirectionalDerivative(0, ddata);
-   gradDperp[1] = diffusion->GetDirectionalDerivative(1, ddata);
-   gradDperp[2] = diffusion->GetDirectionalDerivative(2, ddata);
+      auto ddata = background->GetDerivativeData();
+      gradDperp[0] = diffusion->GetDirectionalDerivative(0, ddata);
+      gradDperp[1] = diffusion->GetDirectionalDerivative(1, ddata);
+      gradDperp[2] = diffusion->GetDirectionalDerivative(2, ddata);
 
-// Find components of Vperp in field aligned frame 
-   Vperp[0] = gradDperp * fa_basis[0];
-   Vperp[1] = gradDperp * fa_basis[1];
-   Vperp[2] = 0.0;
+// Find components of Vperp in field aligned frame
+      Vperp[0] = gradDperp * fa_basis[0];
+      Vperp[1] = gradDperp * fa_basis[1];
+      Vperp[2] = 0.0;
 
 // Convert "Vperp" to global coordinates
-   Vperp.ChangeFromBasis(fa_basis);
-}
+      Vperp.ChangeFromBasis(fa_basis);
+   }
 
-catch(ExFieldError& exception) {
-   // PrintError(__FILE__, __LINE__, "Error in field increment evaluation");
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-};
+   catch (ExFieldError &exception) {
+      // PrintError(__FILE__, __LINE__, "Error in field increment evaluation");
+      RAISE_BITS(_status, TRAJ_DISCARD);
+      throw;
+   };
+}
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 05/16/2022
 */
-void TrajectoryGuidingDiff::EulerPerpDiffSlopes(void)
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::EulerPerpDiffSlopes(void)
 {
    double dWx, dWy;
    GeoVector mom_conv = ConvertMomentum();
@@ -111,7 +121,7 @@ void TrajectoryGuidingDiff::EulerPerpDiffSlopes(void)
    dWy = sqrt(dt) * rng->GetNormal();
 
 // Recompute Dperp at the beginning of the step
-   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _spdata);
+   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _fields);
 
 // Compute random displacement
    dr_perp[0] = sqrt(2.0 * Dperp) * dWx;
@@ -127,19 +137,20 @@ void TrajectoryGuidingDiff::EulerPerpDiffSlopes(void)
 \author Vladimir Florinski
 \date 10/05/2023
 */
-void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::MilsteinPerpDiffSlopes(void)
 {
    double dWx, dWy, Vxy, random, Dperp_new;
    double dbdx, dbdy, dx, dy, slope_Dperp;
    GeoVector mom_conv = ConvertMomentum(), pos_new, xhat, yhat;
-   SpatialData spdata_new;
+   Fields fields_new;
 
 // Generate stochastic factors
    dWx = sqrt(dt) * rng->GetNormal();
    dWy = sqrt(dt) * rng->GetNormal();
 
 // Recompute Dperp at the beginning of the step
-   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _spdata);
+   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _fields);
    slope_Dperp = sqrt(2.0 * Dperp);
 
 // Compute random displacement
@@ -152,16 +163,16 @@ void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
    xhat.ChangeFromBasis(fa_basis);
    dx = background->GetSafeIncr(xhat);
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dbdx = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dx;
 
    yhat = gv_ny;
    yhat.ChangeFromBasis(fa_basis);
    dy = background->GetSafeIncr(yhat);
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dbdy = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dy;
 
 // Add extra Miltein terms to Euler step
@@ -180,21 +191,22 @@ void TrajectoryGuidingDiff::MilsteinPerpDiffSlopes(void)
 \author Vladimir Florinski
 \date 05/16/2022
 */
-bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
+template <typename Fields>
+bool TrajectoryGuidingDiff<Fields>::RK2PerpDiffSlopes(void)
 {
    double dWx, dWy, Rx, Ry, Vxy, random;
    double dbdx, dbdy, d2bdx2, d2bdy2, d2bdxdy, dx, dy;
    double slope_Dperp[3], Dperp_newx, Dperp_newy, Dperp_new;
    double gambar = 1.0 / sqrt(3.0);
    GeoVector mom_conv = ConvertMomentum(), dpos, pos_new, xhat, yhat;
-   SpatialData spdata_new;
+   Fields fields_new;
 
 // Generate stochastic factors
    dWx = sqrt(dt) * rng->GetNormal();
    dWy = sqrt(dt) * rng->GetNormal();
 
 // Compute first contribution to stochastic slope
-   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _spdata);
+   Dperp = diffusion->GetComponent(0, _t, _pos, mom_conv, _fields);
    slope_Dperp[0] = sqrt(2.0 * Dperp);
 
 // Compute displacement for slope calculation
@@ -207,8 +219,8 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    _pos += gambar * dpos;
    if(SpaceTerminateCheck()) return true;
 
-   CommonFields(_t + dt, _pos, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, spdata_new);
+   CommonFields(_t + dt, _pos, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, fields_new);
    slope_Dperp[1] = sqrt(2.0 * Dperp_new);
    _pos = local_pos;
 
@@ -216,8 +228,8 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    _pos -= dpos / (3.0 * gambar);
    if(SpaceTerminateCheck()) return true;
 
-   CommonFields(_t + dt, _pos, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, spdata_new);
+   CommonFields(_t + dt, _pos, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t + dt, _pos, mom_conv, fields_new);
    slope_Dperp[2] = sqrt(2.0 * Dperp_new);
    _pos = local_pos;
 
@@ -228,12 +240,12 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    xhat.ChangeFromBasis(fa_basis);
    dx = background->GetSafeIncr(xhat);
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dx *= 0.5;
    pos_new = _pos + dx * xhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_newx = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_newx = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dbdx = (sqrt(2.0 * Dperp_newx) - slope_Dperp[0]) / dx;
    d2bdx2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newx) + slope_Dperp[0]) / Sqr(dx);
 
@@ -242,19 +254,19 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
    yhat.ChangeFromBasis(fa_basis);
    dy = background->GetSafeIncr(yhat);
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);   
-   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dy *= 0.5;
    pos_new = _pos + dy * yhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_newy = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_newy = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    dbdy = (sqrt(2.0 * Dperp_newy) - slope_Dperp[0]) / dy;
    d2bdy2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / Sqr(dy);
 
 // mixed second derivative
    pos_new = _pos + dx * xhat + dy * yhat;
-   CommonFields(_t, pos_new, mom_conv, spdata_new);
-   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, spdata_new);
+   CommonFields(_t, pos_new, mom_conv, fields_new);
+   Dperp_new = diffusion->GetComponent(0, _t, pos_new, mom_conv, fields_new);
    d2bdxdy = (sqrt(2.0 * Dperp_new) - sqrt(2.0 * Dperp_newx) - sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / (dx * dy);
 
 // combination
@@ -288,9 +300,10 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
 \param[out] position slopes
 \param[out] momentum slopes
 */
-void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
-   TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
+   TrajectoryGuidingBase::Slopes(slope_pos_istage, slope_mom_istage);
    TrajectoryGuidingDiff::DiffusionCoeff();
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    slope_pos_istage += Vperp;
@@ -304,14 +317,15 @@ void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope
 \author Juan G Alonso Guzman
 \date 03/12/2024
 */
-void TrajectoryGuidingDiff::PhysicalStep(void)
+template <typename Fields>
+void TrajectoryGuidingDiff<Fields>::PhysicalStep(void)
 {
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   dt_physical = cfl_adv_tg * _spdata.dmax / ((drift_vel + Vperp).Norm() + drift_safety_tg * _vel.Norm());
+   dt_physical = cfl_adv_tg * _dmax / ((drift_vel + Vperp).Norm() + drift_safety_tg * _vel.Norm());
 #else
-   dt_physical = cfl_adv_tg * _spdata.dmax / ((drift_vel - Vperp).Norm() + drift_safety_tg * _vel.Norm());
+   dt_physical = cfl_adv_tg * _dmax / ((drift_vel - Vperp).Norm() + drift_safety_tg * _vel.Norm());
 #endif
-   dt_physical = fmin(dt_physical, cfl_dif_gd * Sqr(_spdata.dmax) / Dperp);
+   dt_physical = fmin(dt_physical, cfl_dif_gd * Sqr(_dmax) / Dperp);
 };
 
 /*!
@@ -322,7 +336,8 @@ void TrajectoryGuidingDiff::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-bool TrajectoryGuidingDiff::Advance(void)
+template <typename Fields>
+bool TrajectoryGuidingDiff<Fields>::Advance(void)
 {
 // Retrieve latest point of the trajectory and store locally
    Load();
