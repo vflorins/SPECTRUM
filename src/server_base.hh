@@ -267,7 +267,7 @@ public:
 
 //! Obtain the gradients
    template <typename Fields>
-   virtual void GetGradients(Fields& fields) = 0;
+   virtual void GetGradients(Fields& fields, DerivativeData& ddata) = 0;
 #endif
 
 };

@@ -94,7 +94,7 @@ template <typename Fields>
 void BackgroundServer<Fields>::EvaluateBackgroundDerivatives(void)
 {
 #ifdef NEED_SERVER
-   server_front->GetGradients(_fields);
+   server_front->GetGradients(_fields, _ddata);
 #endif
    // todo review after moving BACKGROUND_grad_FAIL to _ddata._status from _spdata._mask
    if (BITS_RAISED(_ddata._status, BACKGROUND_grad_FAIL)) NumericalDerivatives();

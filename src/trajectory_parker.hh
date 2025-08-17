@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define TRAJECTORY_PARKER_HH
 
 #include "trajectory_base.hh"
+#include "common/fields.hh"
 
 namespace Spectrum {
 
@@ -47,12 +48,12 @@ const double dlnpmax = 0.01;
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 template <typename Fields_>
-class TrajectoryParker : public TrajectoryBase<Fields_> {
+class TrajectoryParker : public TrajectoryBase<TrajectoryParker<Fields_>, Fields_> {
 public:
 
    using Fields = Fields_;
    using BackgroundBase = BackgroundBase<Fields>;
-   using TrajectoryBase = TrajectoryBase<Fields>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryParker<Fields_>, Fields_>;
 
    using TrajectoryBase::_t;
    using TrajectoryBase::_pos;
@@ -65,9 +66,12 @@ public:
 //   using TrajectoryBase::traj_pos;
 //   using TrajectoryBase::traj_mom;
    using TrajectoryBase::specie;
+
 //   using TrajectoryBase::local_t;
 //   using TrajectoryBase::local_pos;
 //   using TrajectoryBase::local_mom;
+   using TrajectoryBase::diffusion;
+   using TrajectoryBase::background;
 
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
@@ -86,32 +90,10 @@ public:
    using TrajectoryBase::CommonFields;
    using TrajectoryBase::ConnectRNG;
 
-
-
-
-   // todo BEGIN EXPERIMENTAL
-//   // todo decide on visibility - methods that depend on Trajectory via Trajectory-based classes
-//
-//   //! Connect to an existing distribution object
-//   void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
-//
-////! Disconnect an existing distribution object
-//   void DisconnectDistribution(int distro);
-//
-////! Replace an existing distribution object with another
-//   void ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in);
-//
-////! Assign diffusion model parameters
-//   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
-//
-////! Add a boundary condition
-//   void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
-//
-////! Add an initial condition
-//   void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
-
-   // todo END EXPERIMENTAL
-
+// todo: the list of checks is not exhausive
+   static_assert(!Fields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

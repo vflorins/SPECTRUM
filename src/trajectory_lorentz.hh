@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_TRAJECTORY_LORENTZ_HH
 
 #include "trajectory_base.hh"
+#include "common/fields.hh"
 
 namespace Spectrum {
 
@@ -38,21 +39,27 @@ public:
 
    using Fields = Fields_;
    using TrajectoryBase = TrajectoryBase<TrajectoryLorentz<Fields_>, Fields>;
-   using DistributionBase = DistributionBase<TrajectoryBase>;
-   using BackgroundBase = BackgroundBase<TrajectoryBase>;
-   using DiffusionBase = DiffusionBase<TrajectoryBase>;
 
 //   using TrajectoryBase::_t;
 //   using TrajectoryBase::_pos;
+   using TrajectoryBase::_vel;
    using TrajectoryBase::_mom;
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_dmax;
 //   using TrajectoryBase::traj_t;
 //   using TrajectoryBase::traj_pos;
 //   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::_vel;
-//   using TrajectoryBase::specie;
+   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::specie;
+   using TrajectoryBase::q;
 //   using TrajectoryBase::local_t;
 //   using TrajectoryBase::local_pos;
 //   using TrajectoryBase::local_mom;
+   // methods
+   using TrajectoryBase::RKAdvance;
+
+   static_assert(!Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(!Fields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

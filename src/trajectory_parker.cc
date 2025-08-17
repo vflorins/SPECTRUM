@@ -89,11 +89,8 @@ try {
 #if TRAJ_PARKER_DIVK_METHOD == 0
    GeoVector pos_tmp;
    Fields fields_forw, fields_back;
-   DerivativeData ddata_forw, ddata_back;
    double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-   double delta = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _ddata.dmax);
-
-// TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
+   double delta = fmin(LarmorRadius(_mom[0], _fields.AbsMag(), specie), _dmax);
 
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
    Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields);
@@ -106,14 +103,13 @@ try {
 // Forward evaluation
       pos_tmp = _pos + delta * cart_unit_vec[j];
       CommonFields(_t, pos_tmp, _mom, fields_forw);
-// TODO [spdata-fields update] evaluating CommonFields does not modify _ddata, probably ok, review (step into GetComponent)
-      Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_forw, _ddata);
-      Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_forw, _ddata);
+      Kperp_forw = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_forw);
+      Kpara_forw = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_forw);
 // Backward evaluation
       pos_tmp[j] -= 2.0 * delta;
       CommonFields(_t, pos_tmp, _mom, fields_back);
-      Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_back, _ddata);
-      Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_back, _ddata);
+      Kperp_back = diffusion->GetComponent(0, _t, pos_tmp, _mom, fields_back);
+      Kpara_back = diffusion->GetComponent(1, _t, pos_tmp, _mom, fields_back);
       for (i = 0; i < 3; i++) {
          Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * fields_forw.HatMag()[j] * fields_forw.HatMag()[i];
          Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * fields_back.HatMag()[j] * fields_back.HatMag()[i];
@@ -174,8 +170,8 @@ void TrajectoryParker<Fields>::EulerDiffSlopes(void)
    dWz = sqrt(dt) * rng->GetNormal();
 
 // Recompute Kperp and Kpara at the beginning of the step
-   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields, _ddata);
-   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields, _ddata);
+   Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _fields);
+   Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _fields);
 
 // Compute random displacement
    dr_perp[0] = sqrt(2.0 * Kperp) * dWx;
@@ -221,11 +217,11 @@ template <typename Fields>
 void TrajectoryParker<Fields>::PhysicalStep(void)
 {
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   dt_physical = cfl_adv_tp * _ddata.dmax / (drift_vel + divK).Norm();
+   dt_physical = cfl_adv_tp * _dmax / (drift_vel + divK).Norm();
 #else
-   dt_physical = cfl_adv_tp * _ddata.dmax / (drift_vel - divK).Norm();
+   dt_physical = cfl_adv_tp * _dmax / (drift_vel - divK).Norm();
 #endif
-   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_ddata.dmax) / fmax(Kperp, Kpara));
+   dt_physical = fmin(dt_physical, cfl_dif_tp * Sqr(_dmax) / fmax(Kperp, Kpara));
    dt_physical = fmin(dt_physical, cfl_acc_tp * 3.0 * dlnpmax / fabs(_fields.divU()));
 };
 

@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "block_cartesian.hh"
 #include "reader_cartesian.hh"
 #include "common/print_warn.hh"
+#include "common/matrix.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -37,8 +38,6 @@ void ServerCartesianFront::GetVariablesFromReader(Fields& fields)
    MPI_Recv(vars, n_variables, MPI_DOUBLE, 0, tag_sendvars, MPI_Config::node_comm, MPI_STATUS_IGNORE);
    stencil_outcomes[2]++;
 
-// TODO: review, possibly revise after spdata-fields update
-
 // Mass density, if provided
 #ifdef SERVER_VAR_INDEX_RHO
    rho = vars[SERVER_VAR_INDEX_RHO];
@@ -46,57 +45,53 @@ void ServerCartesianFront::GetVariablesFromReader(Fields& fields)
 
 // Number density, if provided
 #ifdef SERVER_VAR_INDEX_DEN
+// Note: fields.Den(), formerly spdata.n_dens
    if constexpr (Fields::Den_found())
       fields.Den() = vars[SERVER_VAR_INDEX_DEN];
 #endif
 
 // Thermal pressure, if provided
-#ifdef SERVER_VAR_INDEX_PTH
 // Note: fields.Prs(), formerly spdata.p_ther
+#ifdef SERVER_VAR_INDEX_PTH
    if constexpr (Fields::Prs_found())
       fields.Prs() = vars[SERVER_VAR_INDEX_PTH];
 #endif
 
-   for (xyz = 0; xyz < 3; xyz++) {
-
-      if constexpr (Fields::Vel_found()) {
+   if constexpr (Fields::Vel_found()) {
 // Bulk flow from mass density and momentum, if provided
-#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
 // Note: fields.Vel(), formerly spdata.Uvec
+#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
+      for (xyz = 0; xyz < 3; ++xyz)
          fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
-// Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
+      for (xyz = 0; xyz < 3; ++xyz)
          fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_FLO + xyz];
 #else
-         fields.Vel()[xyz] = 0.0;
+      fields.Vel() = gv_zeros;
 #endif
-      }
+   }
 
 // The magnetic field must be always provided
+   for (xyz = 0; xyz < 3; ++xyz)
       fields.Mag()[xyz] = vars[SERVER_VAR_INDEX_MAG + xyz];
 
-      if constexpr (Fields::Elc_found()) {
+   if constexpr (Fields::Elc_found()) {
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
+      for (xyz = 0; xyz < 3; ++xyz)
          fields.Elc()[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
 #elif defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-         fields.Elc()[xyz] = 0.0;
+      fields.Elc() = gv_zeros;
 #endif
-      }
-
-   };
-
-   if constexpr (!Fields::Elc_found() && Fields::Vel_found()) {
-// Electric field, if B and U provided
+   // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
       fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
 #endif
 #endif
-
    }
 
-// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out.
+// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
 
 // Region(s) indicator variable(s), if provided
 //#ifdef SERVER_VAR_INDEX_REG
@@ -153,53 +148,89 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, Fields& fie
 #endif
 
 // Number density, if provided
+// Note: fields.Den(), formerly spdata.n_dens
 #ifdef SERVER_VAR_INDEX_DEN
-   spdata.n_dens = block_pri->GetValue(zone, SERVER_VAR_INDEX_DEN);
+   if constexpr (Fields::Den_found())
+      fields.Den() = block_pri->GetValue(zone, SERVER_VAR_INDEX_DEN);
 #endif
 
 // Thermal pressure, if provided
+// Note: fields.Prs(), formerly spdata.p_ther
 #ifdef SERVER_VAR_INDEX_PTH
-   spdata.p_ther = block_pri->GetValue(zone, SERVER_VAR_INDEX_PTH);
+   if constexpr (Fields::Prs_found())
+      fields.Prs() = block_pri->GetValue(zone, SERVER_VAR_INDEX_PTH);
 #endif
 
 // Convert the variables to SPECTRUM format
-   for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
+// Note: fields.Vel(), formerly spdata.Uvec
+   if constexpr (Fields::Vel_found()) {
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
-      spdata.Uvec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_MOM + xyz) / rho;
-// Bulk flow, if provided
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Vel()[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_MOM + xyz) / rho;
 #elif defined(SERVER_VAR_INDEX_FLO)
-      spdata.Uvec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_FLO + xyz);
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Vel()[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_FLO + xyz);
 #else
-      spdata.Uvec[xyz] = 0.0;
+      fields.Vel() = gv_zeros;
 #endif
+   }
 
 // The magnetic field must be always provided
-      spdata.Bvec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_MAG + xyz);
+   for (xyz = 0; xyz < 3; xyz++)
+      fields.Mag()[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_MAG + xyz);
 
+   if constexpr (Fields::Elc_found()) {
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
-      spdata.Evec[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_ELE + xyz);
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Elc()[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_ELE + xyz);
 #elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-      spdata.Evec[xyz] = 0.0;
+      fields.Elc() = gv_zeros;
 #endif
-
-   };
-
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
-   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
+      fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
 #endif
 #endif
+   }
+
+// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
+
+//// Region(s) indicator variable(s), if provided
+//#ifdef SERVER_VAR_INDEX_REG
+//   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++)
+//       spdata.region[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + xyz);
+//#else
+//   spdata.region = gv_zeros;
+//#endif
 
 // Region(s) indicator variable(s), if provided
+   if constexpr (Fields::Iv0_found()) {
 #ifdef SERVER_VAR_INDEX_REG
-   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + xyz);
+      fields.Iv0() = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + 0);
 #else
-   spdata.region = gv_zeros;
+      fields.Iv0() = 0.0;
 #endif
+   }
+   if constexpr (Fields::Iv1_found()) {
+#ifdef SERVER_VAR_INDEX_REG
+      fields.Iv1() = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + 1);
+#else
+      fields.Iv1() = 0.0;
+#endif
+   }
+   if constexpr (Fields::Iv2_found()) {
+#ifdef SERVER_VAR_INDEX_REG
+      fields.Iv2() = block_pri->GetValue(zone, SERVER_VAR_INDEX_REG + 2);
+#else
+      fields.Iv2() = 0.0;
+#endif
+   }
+
+
 };
 
 /*!
@@ -217,7 +248,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, Fields& fie
 
 // Build the stencil. This is a time consuming operation.
    stencil_status = BuildInterpolationStencil(pos);
-   spdata.Bmag = 0.0;
+   fields.AbsMag() = 0.0;
 
 // Internal interpolation
    if (stencil_status == 0) {
@@ -231,7 +262,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, Fields& fie
          _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
       };
    }
 
@@ -252,7 +283,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, Fields& fie
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
       };
    }
 
@@ -271,7 +302,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, Fields& fie
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         spdata.Bmag += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
       };
    };
 
@@ -281,53 +312,88 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, Fields& fie
 #endif
 
 // Number density, if provided
+// Note: fields.Den(), formerly spdata.n_dens
 #ifdef SERVER_VAR_INDEX_DEN
-   spdata.n_dens = vars[SERVER_VAR_INDEX_DEN];
+   if constexpr (Fields::Den_found())
+      fields.Den() = vars[SERVER_VAR_INDEX_DEN];
 #endif
 
 // Thermal pressure, if provided
+// Note: fields.Prs(), formerly spdata.p_ther
 #ifdef SERVER_VAR_INDEX_PTH
-   spdata.p_ther = vars[SERVER_VAR_INDEX_PTH];
+   if constexpr (Fields::Prs_found())
+      fields.Prs() = vars[SERVER_VAR_INDEX_PTH];
 #endif
 
 // Convert the variables to SPECTRUM format
-   for (xyz = 0; xyz < 3; xyz++) {
 
 // Bulk flow from mass density and momentum, if provided
+// Note: fields.Vel(), formerly spdata.Uvec
+   if constexpr (Fields::Vel_found()) {
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
-      spdata.Uvec[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
-// Bulk flow, if provided
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
 #elif defined(SERVER_VAR_INDEX_FLO)
-      spdata.Uvec[xyz] = vars[SERVER_VAR_INDEX_FLO + xyz];
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_FLO + xyz];
 #else
-      spdata.Uvec[xyz] = 0.0;
+      fields.Vel() = gv_zeros;
 #endif
+   }
 
 // The magnetic field must be always provided
-      spdata.Bvec[xyz] = vars[SERVER_VAR_INDEX_MAG + xyz];
+   for (xyz = 0; xyz < 3; xyz++)
+      fields.Mag()[xyz] = vars[SERVER_VAR_INDEX_MAG + xyz];
 
 // Electric field, if provided
+   if constexpr (Fields::Elc_found()) {
 #if defined(SERVER_VAR_INDEX_ELE)
-      spdata.Evec[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
+      for (xyz = 0; xyz < 3; xyz++)
+         fields.Elc()[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
 #elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-      spdata.Evec[xyz] = 0.0;
+      fields.Elc()[xyz] = gv_zeros;
 #endif
-
-   };
-
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
-   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
+      fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
 #endif
 #endif
+   }
+
+// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
 
 // Region(s) indicator variable(s), if provided
+//#ifdef SERVER_VAR_INDEX_REG
+//   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++)
+//      spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
+//#else
+//   spdata.region = gv_zeros;
+//#endif
+
+// Region(s) indicator variable(s), if provided
+   if constexpr (Fields::Iv0_found()) {
 #ifdef SERVER_VAR_INDEX_REG
-   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
+      fields.Iv0() = vars[SERVER_VAR_INDEX_REG + 0];
 #else
-   spdata.region = gv_zeros;
+      fields.Iv0() = 0.0;
 #endif
+   }
+   if constexpr (Fields::Iv1_found()) {
+#ifdef SERVER_VAR_INDEX_REG
+      fields.Iv1() = vars[SERVER_VAR_INDEX_REG + 1];
+#else
+      fields.Iv1() = 0.0;
+#endif
+   }
+   if constexpr (Fields::Iv2_found()) {
+#ifdef SERVER_VAR_INDEX_REG
+      fields.Iv2() = vars[SERVER_VAR_INDEX_REG + 2];
+#else
+      fields.Iv2() = 0.0;
+#endif
+   }
+
 };
 
 /*!
@@ -369,10 +435,23 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, Fields& 
 #error Unsupported interpolation order!
 #endif
 
-// Perform unit conversion for fields and region
+// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
+
+//// Perform unit conversion for fields and region
+//#ifdef SERVER_VAR_INDEX_DEN
+//   fields.region /= spdata.n_dens;
+//#endif
+
 #ifdef SERVER_VAR_INDEX_DEN
-   spdata.region /= spdata.n_dens;
+   if constexpr (Fields::Iv0_found())
+      fields.Iv0() /= fields.Den();
+   if constexpr (Fields::Iv1_found())
+      fields.Iv1() /= fields.Den();
+   if constexpr (Fields::Iv2_found())
+      fields.Iv2() /= fields.Den();
 #endif
+
+
    fields.Den() *= unit_number_density_server / unit_number_density_fluid;
    fields.Vel() *= unit_velocity_server / unit_velocity_fluid;
    fields.Mag() *= unit_magnetic_server / unit_magnetic_fluid;
@@ -393,10 +472,9 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
    int vidx, xyz, uvw, iz, pri_idx, sec_idx;
 
    double grads[Fields::size()][3] = {0.0};
-   spdata.gradBmag = gv_zeros;
+   fields.DelAbsMag() = gv_zeros;
 
    ddata.BACKGROUND_grad_FAIL = false;
-//   LOWER_BITS(spdata._mask, BACKGROUND_grad_FAIL);
 
 // Internal interpolation
    if (stencil_status == 0) {
@@ -413,7 +491,7 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
          _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
@@ -437,7 +515,7 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    }
 
@@ -459,7 +537,7 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
          _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                 + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) spdata.gradBmag[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
       };
    };
 
@@ -467,35 +545,43 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
    for (uvw = 0; uvw < 3; uvw++) {
       for (xyz = 0; xyz < 3; xyz++) {
 
+         if constexpr (Fields::DelVel_found()) {
 // Bulk flow from mass density and momentum, if provided
 #if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
-         spdata.gradUvec[uvw][xyz] = (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - spdata.Uvec[xyz] * grads[SERVER_VAR_INDEX_RHO][uvw]) / rho;
+            fields.DelVel()[uvw][xyz] =
+                  (grads[SERVER_VAR_INDEX_MOM + xyz][uvw] - fields.Vel()[xyz] * grads[SERVER_VAR_INDEX_RHO][uvw]) / rho;
 // Bulk flow, if provided
 #elif defined(SERVER_VAR_INDEX_FLO)
-         spdata.gradUvec[uvw][xyz] = grads[SERVER_VAR_INDEX_FLO + xyz][uvw];
+            fields.DelVel()[uvw][xyz] = grads[SERVER_VAR_INDEX_FLO + xyz][uvw];
 #else
-         spdata.gradUvec[uvw][xyz] = 0.0;
+            fields.DelVel()[uvw][xyz] = 0.0;
 #endif
+         }
 
 // The magnetic field must be always provided
-         spdata.gradBvec[uvw][xyz] = grads[SERVER_VAR_INDEX_MAG + xyz][uvw];
+         if constexpr (Fields::DelMag_found())
+            fields.DelMag()[uvw][xyz] = grads[SERVER_VAR_INDEX_MAG + xyz][uvw];
 
 // Electric field, if provided
+         if constexpr (Fields::DelElc_found()) {
 #ifdef SERVER_VAR_INDEX_ELE
-         spdata.gradEvec[uvw][xyz] = grads[SERVER_VAR_INDEX_ELE + xyz][uvw];
+            fields.DelElc()[uvw][xyz] = grads[SERVER_VAR_INDEX_ELE + xyz][uvw];
 #elif !defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-         spdata.gradEvec[uvw][xyz] = 0.0;
+            fields.DelElc()[uvw][xyz] = 0.0;
 #endif
+         }
 
       };
    };
 
+   if constexpr (Fields::DelElc_found()) {
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-   spdata.gradEvec = -((spdata.gradUvec ^ spdata.Bvec) + (spdata.Uvec ^ spdata.gradBvec)) / c_code;
+      fields.DelElc() = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
 #endif
 #endif
+   }
 
 };
 
@@ -506,29 +592,29 @@ void ServerCartesianFront::GetGradientsInterp1(Fields& fields, DerivativeData& d
 \param[out] spdata Field gradients
 */
 template <typename Fields>
-void ServerCartesianFront::GetGradients(Fields& fields)
+void ServerCartesianFront::GetGradients(Fields& fields, DerivativeData& ddata)
 {
 #if SERVER_INTERP_ORDER == -1
 // Gradients must be computed numerically
-   RAISE_BITS(spdata._mask, BACKGROUND_grad_FAIL);
+   ddata.BACKGROUND_grad_FAIL = true;
    return;
 #elif SERVER_INTERP_ORDER == 0
 // All gradients are explicitly set to zero, and the background must not attempt to compute them using "NumericalDerivatives()"
-   spdata.gradUvec = gm_zeros;
-   spdata.gradBvec = gm_zeros;
-   spdata.gradBmag = gv_zeros;
-   spdata.gradEvec = gm_zeros;
+   fields.DelVel() = gm_zeros;
+   fields.DelMag() = gm_zeros;
+   fields.DelAbsMag() = gv_zeros;
+   fields.DelElc() = gm_zeros;
 #elif SERVER_INTERP_ORDER == 1
 // Gradients can be obtained from the stencil construction
-   GetGradientsInterp1(spdata);
+   GetGradientsInterp1(fields, ddata);
 #else
 #error Unsupported interpolation order!
 #endif
 
 // Perform unit conversion for gradients
-   spdata.gradUvec *= unit_velocity_server / unit_velocity_fluid;
-   spdata.gradBvec *= unit_magnetic_server / unit_magnetic_fluid;
-   spdata.gradEvec *= unit_electric_server / unit_electric_fluid;
+   fields.DelVel() *= unit_velocity_server / unit_velocity_fluid;
+   fields.DelMag() *= unit_magnetic_server / unit_magnetic_fluid;
+   fields.DelElc() *= unit_electric_server / unit_electric_fluid;
 };
 
 

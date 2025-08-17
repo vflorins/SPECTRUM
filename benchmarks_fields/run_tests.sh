@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# File run_tests.sh created by Lucius Schoenbaum August 17, 2025
+#
+# Modified based on /benchmarks/run_tests.sh for the purpose
+# of one-to-one comparison of performance of spdata versus fields+ddata.
+
+#######################################################
+
 # File to hold benchmark results
 results_file="benchmark_results.txt"
 

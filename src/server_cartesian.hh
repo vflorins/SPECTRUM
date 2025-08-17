@@ -10,8 +10,20 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SERVER_CARTESIAN_HH
 
 #include "server_base.hh"
+#include "common/derivativedata.hh"
 
 namespace Spectrum {
+
+// delete me
+#define SERVER_VAR_INDEX_REG 1
+#define SERVER_VAR_INDEX_ELE 2
+#define SERVER_VAR_INDEX_FLO 2
+#define SERVER_VAR_INDEX_MOM 2
+#define SERVER_VAR_INDEX_RHO 2
+#define SERVER_VAR_INDEX_MAG 2
+#define SERVER_VAR_INDEX_DEN 2
+#define SERVER_VAR_INDEX_PTH 2
+
 
 /*!
 \brief Interpolation stencil for Cartesian
@@ -137,7 +149,7 @@ protected:
 
 //! Get gradients using 1st order interpolation
    template <typename Fields>
-   void GetGradientsInterp1(Fields& fields);
+   void GetGradientsInterp1(Fields& fields, DerivativeData& ddata);
 
 public:
 
@@ -160,15 +172,15 @@ public:
 
 //! Obtain the gradients
    template <typename Fields>
-   void GetGradients(Fields& fields) override;
+   void GetGradients(Fields& fields, DerivativeData& ddata) override;
 #else
 //! Obtain the variables
    template <typename Fields>
-   void GetVariables(double t, const GeoVector& pos, Fields& fields);
+   void GetVariables(double t, const GeoVector& pos, Fields& fields, double& dmax);
 
 //! Obtain the gradients
    template <typename Fields>
-   void GetGradients(Fields& fields);
+   void GetGradients(Fields& fields, DerivativeData& ddata);
 #endif
 
 //! Print how many times internal/external interpolators were used
