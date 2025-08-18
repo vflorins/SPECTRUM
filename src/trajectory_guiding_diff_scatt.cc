@@ -89,8 +89,8 @@ bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
 
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
-// TODO: yo no se
-   TimeBoundaryBefore();
+// TODO: ?
+//   TimeBoundaryBefore();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // First half of stochastic pitch angle contribution and advection term

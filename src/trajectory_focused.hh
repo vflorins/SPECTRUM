@@ -66,13 +66,13 @@ public:
    // methods:
    using TrajectoryBase::RKAdvance;
 
-   static_assert(!Fields::template found<Vel_t>(), "Vel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<DdtVel_t>(), "DdtVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<Vel_t>(), "Vel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<DdtVel_t>(), "DdtVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

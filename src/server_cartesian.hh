@@ -14,17 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// delete me
-#define SERVER_VAR_INDEX_REG 1
-#define SERVER_VAR_INDEX_ELE 2
-#define SERVER_VAR_INDEX_FLO 2
-#define SERVER_VAR_INDEX_MOM 2
-#define SERVER_VAR_INDEX_RHO 2
-#define SERVER_VAR_INDEX_MAG 2
-#define SERVER_VAR_INDEX_DEN 2
-#define SERVER_VAR_INDEX_PTH 2
-
-
 /*!
 \brief Interpolation stencil for Cartesian
 \author Vladimir Florinski

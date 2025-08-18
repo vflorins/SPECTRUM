@@ -37,14 +37,18 @@ public:
    using TrajectoryBase = TrajectoryBase<TrajectoryFieldline<Fields, Field_t>, Fields>;
    using TrajectoryFieldlineBase = TrajectoryFieldlineBase<TrajectoryFieldline<Fields, Field_t>, Fields>;
 
+protected:
+
    using TrajectoryFieldlineBase::_mom;
    using TrajectoryFieldlineBase::ConvertMomentum;
    using TrajectoryFieldlineBase::PhysicalStep;
-   using TrajectoryFieldlineBase::SetStart;
    using TrajectoryFieldlineBase::Advance;
    using TrajectoryFieldlineBase::_vel;
    using TrajectoryFieldlineBase::_fields;
 
+public:
+
+   using TrajectoryFieldlineBase::SetStart;
    using TrajectoryFieldlineBase::ConnectRNG;
 
 // static assert(s) for Field_t

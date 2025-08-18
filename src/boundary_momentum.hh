@@ -331,4 +331,7 @@ public:
 
 };
 
+// Something like this is needed for templated classes
+#include "boundary_momentum.cc"
+
 #endif

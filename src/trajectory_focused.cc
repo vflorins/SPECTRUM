@@ -61,19 +61,20 @@ void TrajectoryFocused<Fields>::SetStart(void)
 template <typename Fields>
 void TrajectoryFocused<Fields>::DriftCoeff(void)
 {
-   auto U = _fields.Vel();
-   auto bhat = _fields.HatMag();
+// TODO: improve Field types for these algebraic procedures to avoid explicit casting
+   auto U = static_cast<GeoVector>(_fields.Vel());
+   auto bhat = static_cast<GeoVector>(_fields.HatMag());
 #ifdef TRAJ_FOCUSED_USE_B_DRIFTS
 // Compute st2 and ct2
    ct2 = Sqr(_mom[1]);
    st2 = 1.0 - ct2;
 // Compute gradient drift
-   auto B = _fields.Mag();
-   auto absB = _fields.AbsMag();
-   drift_vel = 0.5 * st2 * (bhat ^ _fields.DelAbsMag()) / absB;
+   auto B = static_cast<GeoVector>(_fields.Mag());
+   auto absB = static_cast<double>(_fields.AbsMag());
+   drift_vel = 0.5 * st2 * (bhat ^ static_cast<GeoVector>(_fields.DelAbsMag())) / absB;
 // Add curvature drift. Note that (Bvec * grad)Bvec = [Bvec]^T * [gradBvec].
-   drift_vel += ( 0.5 * st2 * bhat * (B * _fields.curlB())
-                + ct2 * (bhat ^ (B * _fields.DelMag())) ) / Sqr(absB);
+   drift_vel += ( 0.5 * st2 * bhat * (B * static_cast<GeoVector>(_fields.curlB()))
+                + ct2 * (bhat ^ (B * static_cast<GeoMatrix>(_fields.DelMag()))) ) / Sqr(absB);
 // Scale by pvc/qB
    drift_vel *= LarmorRadius(_mom[0], _fields.AbsMag(), specie) * _vel[0];
 // Add bulk flow and parallel velocities
@@ -116,15 +117,15 @@ void TrajectoryFocused<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& s
    st2 = 1.0 - Sqr(_mom[1]);
 #endif
 // Compute bb : grad U
-   auto U = _fields.Vel();
-   auto bhat = _fields.HatMag();
-   auto gradU = _fields.DelVel();
-   auto DdtU = _fields.DdtVel();
+   GeoVector U = _fields.Vel();
+   GeoVector bhat = static_cast<GeoVector>(_fields.HatMag());
+   GeoMatrix gradU = _fields.DelVel();
+   GeoVector DdtU = _fields.DdtVel();
    bhatbhat.Dyadic(bhat);
    bhatbhat_gradUvec = bhatbhat % gradU;
 // Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
 // TODO: improve Field types for these algebraic procedures
-   auto tmp = U * gradU;
+   GeoVector tmp = U * gradU;
    cdUvecdt = DdtU + tmp;
    bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _vel[0];
 

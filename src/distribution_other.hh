@@ -782,9 +782,7 @@ protected:
    using DistributionTemplated::_fields;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
-   using DistributionTemplated::_fields;
    using DistributionTemplated::_edata;
-   using DistributionTemplated::_fields2;
    using DistributionTemplated::_edata2;
 
 protected:

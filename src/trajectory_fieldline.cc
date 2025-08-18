@@ -22,7 +22,7 @@ namespace Spectrum {
 */
 template <typename Fields, typename Field_t>
 TrajectoryFieldline<Fields, Field_t>::TrajectoryFieldline(void)
-                   : TrajectoryFieldlineBase(traj_name_fieldline, 0, STATE_NONE, defsize_fieldline)
+                   : TrajectoryFieldlineBase(traj_name_fieldline + std::string(Field_t::name), 0, STATE_NONE, defsize_fieldline)
 {
 };
 

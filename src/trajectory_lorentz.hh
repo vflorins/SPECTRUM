@@ -111,7 +111,7 @@ public:
 template <typename Fields>
 inline GeoVector TrajectoryLorentz<Fields>::ConvertMomentum(void) const
 {
-   return GeoVector(_mom.Norm(), (_mom * _spdata.bhat) / _mom.Norm(), 0.0);
+   return GeoVector(_mom.Norm(), (_mom * _fields.HatMag()) / _mom.Norm(), 0.0);
 };
 
 
