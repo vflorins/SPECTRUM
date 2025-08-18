@@ -33,26 +33,28 @@ class TrajectoryGuiding : public TrajectoryGuidingBase<TrajectoryGuiding<Fields_
 public:
 
    using Fields = Fields_;
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuiding<Fields>, Fields_>;
-   using TrajectoryBase = TrajectoryBase<TrajectoryGuiding<Fields>, Fields>;
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuiding<Fields>, Fields>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryGuiding<Fields_>, Fields>;
 
-   using TrajectoryGuidingBase::_status;
-//   using TrajectoryGuidingBase::_t;
-   using TrajectoryGuidingBase::_vel;
-//   using TrajectoryGuidingBase::_pos;
-   using TrajectoryGuidingBase::_mom;
-   using TrajectoryGuidingBase::q;
-   using TrajectoryGuidingBase::_fields;
-   using TrajectoryGuidingBase::_ddata;
-//   using TrajectoryGuidingBase::traj_t;
-//   using TrajectoryGuidingBase::traj_pos;
-   using TrajectoryGuidingBase::traj_mom;
-   using TrajectoryGuidingBase::specie;
-//   using TrajectoryGuidingBase::local_t;
-//   using TrajectoryGuidingBase::local_pos;
-//   using TrajectoryGuidingBase::local_mom;
-   using TrajectoryGuidingBase::dt_physical;
-   using TrajectoryGuidingBase::RKAdvance;
+protected:
+
+   using TrajectoryBase::_status;
+//   using TrajectoryBase::_t;
+   using TrajectoryBase::_vel;
+//   using TrajectoryBase::_pos;
+   using TrajectoryBase::_mom;
+   using TrajectoryBase::q;
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_dmax;
+//   using TrajectoryBase::traj_t;
+//   using TrajectoryBase::traj_pos;
+   using TrajectoryBase::traj_mom;
+   using TrajectoryBase::specie;
+//   using TrajectoryBase::local_t;
+//   using TrajectoryBase::local_pos;
+//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::RKAdvance;
 
    using TrajectoryGuidingBase::mag_mom;
    using TrajectoryGuidingBase::Evec_star;
@@ -67,6 +69,9 @@ public:
    using TrajectoryGuidingBase::PhysicalStep;
    using TrajectoryGuidingBase::Advance;
    using TrajectoryGuidingBase::MomentumCorrection;
+
+public:
+
    using TrajectoryGuidingBase::SetStart;
 
 public:

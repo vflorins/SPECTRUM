@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
 #include "src/background_server_cartesian.hh"
@@ -7,6 +9,10 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
+// todo when all trajectories are updated
+//#include "src/trajectory.hh"
+#include "src/trajectory_parker.hh"
+#include <gsl/gsl_const.h>
 #include <iostream>
 #include <iomanip>
 
@@ -18,17 +24,37 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t, HatMag_t, AbsMag_t, DelAbsMag_t>;
+   using Trajectory = TrajectoryParker<Fields>;
+   using Background = BackgroundServerCartesian<Fields>;
+
+   using Simulation = SimulationWorker<Trajectory>;
+   using InitialTime = InitialTimeFixed<Trajectory>;
+   using InitialSpace = InitialSpaceFixed<Trajectory>;
+   using InitialMomentum = InitialMomentumThickShell<Trajectory>;
+   using Boundary1 = BoundarySphereAbsorb<Trajectory>;
+   using Boundary2 = BoundaryTimeExpire<Trajectory>;
+   using Diffusion = DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>;
+
+   using Distribution1 = DistributionSpectrumKineticEnergyPowerLaw<Trajectory>;
+   using Distribution2 = DistributionPositionCumulativeOrder2<Trajectory>;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a simulation object
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<SimulationWorker> simulation;
-   simulation = CreateSimulation(argc, argv);
+   std::unique_ptr<Simulation> simulation;
+   simulation = CreateSimulation<Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +81,7 @@ int main(int argc, char** argv)
    container.Insert(dmax);
 
    std::string fname_pattern = "../cartesian_backgrounds/parker_20_20_20";
-   simulation->AddBackground(BackgroundServerCartesian(), container, fname_pattern);
+   simulation->AddBackground(Background(), container, fname_pattern);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -67,7 +93,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   simulation->AddInitial(InitialTimeFixed(), container);
+   simulation->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -78,7 +104,7 @@ int main(int argc, char** argv)
    GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
    container.Insert(init_pos);
 
-   simulation->AddInitial(InitialSpaceFixed(), container);
+   simulation->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -98,7 +124,7 @@ int main(int argc, char** argv)
    bool log_bias = true;
    container.Insert(log_bias);
 
-   simulation->AddInitial(InitialMomentumThickShell(), container);
+   simulation->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Inner boundary
@@ -122,7 +148,7 @@ int main(int argc, char** argv)
    double inner_boundary = 0.05 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(inner_boundary);
 
-   simulation->AddBoundary(BoundarySphereAbsorb(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Outer boundary
@@ -146,7 +172,7 @@ int main(int argc, char** argv)
    double outer_boundary = 80.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(outer_boundary);
 
-   simulation->AddBoundary(BoundarySphereAbsorb(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time limit
@@ -167,7 +193,7 @@ int main(int argc, char** argv)
    double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
    container.Insert(maxtime);
 
-   simulation->AddBoundary(BoundaryTimeExpire(), container);
+   simulation->AddBoundary(Boundary2(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Diffusion model
@@ -200,7 +226,7 @@ int main(int argc, char** argv)
    container.Insert(kap_rat);
 
 // Pass ownership of "diffusion" to simulation
-   simulation->AddDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw(), container);
+   simulation->AddDiffusion(Diffusion(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution
@@ -257,7 +283,7 @@ int main(int argc, char** argv)
    double val_cold = 0.0;
    container.Insert(val_cold);
 
-   simulation->AddDistribution(DistributionSpectrumKineticEnergyPowerLaw(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

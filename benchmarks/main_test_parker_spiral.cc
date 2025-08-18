@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/background_solarwind.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -5,7 +7,10 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-#include "src/trajectory.hh"
+// todo when all trajectories are updated
+//#include "src/trajectory.hh"
+#include "src/trajectory_fieldline.hh"
+#include <gsl/gsl_const.h>
 #include <iostream>
 #include <iomanip>
 
@@ -17,10 +22,23 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t>;
+   using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
+   using Background = BackgroundSolarWind<Fields>;
+
+   using InitialTime = InitialTimeFixed<Trajectory>;
+   using InitialSpace = InitialSpaceFixed<Trajectory>;
+   using InitialMomentum = InitialMomentumShell<Trajectory>;
+   using Boundary = BoundarySphereAbsorb<Trajectory>;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<TrajectoryBase> trajectory = std::make_unique<TrajectoryType>();
+   std::unique_ptr<Trajectory> trajectory = std::make_unique<Trajectory>();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -33,7 +51,8 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -79,7 +98,7 @@ int main(int argc, char** argv)
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(BackgroundSolarWind(), container);
+   trajectory->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -91,7 +110,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   trajectory->AddInitial(InitialTimeFixed(), container);
+   trajectory->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -106,7 +125,7 @@ int main(int argc, char** argv)
    start_pos.RTP_XYZ();
    container.Insert(start_pos);
 
-   trajectory->AddInitial(InitialSpaceFixed(), container);
+   trajectory->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -118,7 +137,7 @@ int main(int argc, char** argv)
    double MeV_kinetic_energy = 100.0;
    container.Insert(Mom(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie));
 
-   trajectory->AddInitial(InitialMomentumShell(), container);
+   trajectory->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 1 (source surface)
@@ -140,7 +159,7 @@ int main(int argc, char** argv)
 // Radius
    container.Insert(RS);
 
-   trajectory->AddBoundary(BoundarySphereAbsorb(), container);
+   trajectory->AddBoundary(Boundary(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 2 (termination shock)
@@ -161,7 +180,7 @@ int main(int argc, char** argv)
    double r_out = 10.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(r_out);
 
-   trajectory->AddBoundary(BoundarySphereAbsorb(), container);
+   trajectory->AddBoundary(Boundary(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

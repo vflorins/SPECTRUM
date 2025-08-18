@@ -40,6 +40,21 @@ public:
 
 protected:
 
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+   using DistributionTemplated::_t;
+   using DistributionTemplated::_t2;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+
+protected:
+
 //! Constant value for the "hot" condition (persistent)
    distroClass val_hot;
 
@@ -95,6 +110,17 @@ public:
 
 protected:
 
+   using DistributionUniform::_status;
+   using DistributionUniform::container;
+   using DistributionUniform::ActionTable;
+   using DistributionUniform::_weight;
+   using DistributionUniform::dims;
+   using DistributionUniform::_value;
+   using DistributionUniform::_t;
+   using DistributionUniform::_t2;
+
+protected:
+
 //! Which coordinates to use for value: 0 initial, 1 final (persistent)
    int val_time;
 
@@ -141,6 +167,17 @@ public:
    using Fields = Trajectory::Fields;
    using DistributionBase = DistributionBase<Trajectory>;
    using DistributionUniform = DistributionUniform<Trajectory, double>;
+
+protected:
+
+   using DistributionUniform::_status;
+   using DistributionUniform::container;
+   using DistributionUniform::ActionTable;
+   using DistributionUniform::_weight;
+   using DistributionUniform::dims;
+   using DistributionUniform::_value;
+   using DistributionUniform::_pos;
+   using DistributionUniform::_pos2;
 
 protected:
 
@@ -196,6 +233,23 @@ public:
 
 protected:
 
+   using DistributionUniform::_status;
+   using DistributionUniform::container;
+   using DistributionUniform::ActionTable;
+   using DistributionUniform::_weight;
+   using DistributionUniform::dims;
+   using DistributionUniform::_value;
+   using DistributionUniform::_mom;
+   using DistributionUniform::_mom2;
+   using DistributionUniform::_fields;
+   using DistributionUniform::_fields2;
+
+protected:
+
+//   using DistributionUniform::_
+
+protected:
+
 //! Which coordinates to use for value: 0 initial, 1 final (persistent)
    int val_time;
 
@@ -248,6 +302,21 @@ public:
 
 protected:
 
+   using DistributionUniform::_status;
+   using DistributionUniform::container;
+   using DistributionUniform::ActionTable;
+   using DistributionUniform::_weight;
+   using DistributionUniform::dims;
+   using DistributionUniform::_value;
+   using DistributionUniform::_pos;
+   using DistributionUniform::_pos2;
+   using DistributionUniform::_mom;
+   using DistributionUniform::_mom2;
+   using DistributionUniform::_fields;
+   using DistributionUniform::_fields2;
+
+protected:
+
 //! Which coordinates to use for value: 0 initial, 1 final (persistent)
    int val_time;
 
@@ -278,8 +347,6 @@ public:
    CloneFunctionDistribution(DistributionPositionMomentumUniform);
 };
 
-//#if TRAJ_TYPE == TRAJ_LORENTZ
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -302,6 +369,26 @@ public:
    using Fields = Trajectory::Fields;
    using DistributionBase = DistributionBase<Trajectory>;
    using DistributionTemplated = DistributionTemplated<Trajectory, double>;
+
+   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>>, "DistributionAnisotropyLISM requires Lorentz Trajectory.");
+
+protected:
+
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+//   using DistributionTemplated::_t;
+//   using DistributionTemplated::_t2;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_pos;
+   using DistributionTemplated::_pos2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::specie;
 
 protected:
 
@@ -356,8 +443,6 @@ public:
    CloneFunctionDistribution(DistributionAnisotropyLISM);
 };
 
-//#endif
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionSpectrumKineticEnergyPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -383,6 +468,24 @@ public:
    using Fields = Trajectory::Fields;
    using DistributionBase = DistributionBase<Trajectory>;
    using DistributionTemplated = DistributionTemplated<Trajectory, double>;
+
+protected:
+
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+//   using DistributionTemplated::_t;
+//   using DistributionTemplated::_t2;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_pos;
+   using DistributionTemplated::_pos2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::specie;
 
 protected:
 
@@ -456,6 +559,22 @@ public:
 
    using DistributionSpectrumKineticEnergyPowerLaw::pow_law;
    using DistributionSpectrumKineticEnergyPowerLaw::kin_energy;
+protected:
+
+   using DistributionSpectrumKineticEnergyPowerLaw::_status;
+   using DistributionSpectrumKineticEnergyPowerLaw::container;
+   using DistributionSpectrumKineticEnergyPowerLaw::ActionTable;
+   using DistributionSpectrumKineticEnergyPowerLaw::_weight;
+   using DistributionSpectrumKineticEnergyPowerLaw::dims;
+   using DistributionSpectrumKineticEnergyPowerLaw::_value;
+   using DistributionSpectrumKineticEnergyPowerLaw::_mom;
+   using DistributionSpectrumKineticEnergyPowerLaw::_mom2;
+   using DistributionSpectrumKineticEnergyPowerLaw::_pos;
+   using DistributionSpectrumKineticEnergyPowerLaw::_pos2;
+   using DistributionSpectrumKineticEnergyPowerLaw::_fields;
+   using DistributionSpectrumKineticEnergyPowerLaw::_fields2;
+   using DistributionSpectrumKineticEnergyPowerLaw::specie;
+
 
 protected:
 
@@ -515,6 +634,24 @@ public:
 
 protected:
 
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+   using DistributionTemplated::_t;
+   using DistributionTemplated::_t2;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_pos;
+   using DistributionTemplated::_pos2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::specie;
+
+protected:
+
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
 
@@ -565,6 +702,24 @@ public:
 
 protected:
 
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+   using DistributionTemplated::_t;
+   using DistributionTemplated::_t2;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_pos;
+   using DistributionTemplated::_pos2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::specie;
+
+protected:
+
 //! Set up the distribution accumulator based on "params"
    void SetupDistribution(bool construct) override;
 
@@ -612,10 +767,25 @@ public:
    using DistributionBase = DistributionBase<Trajectory>;
    using DistributionTemplated = DistributionTemplated<Trajectory, GeoVector>;
 
-   using DistributionBase::_fields;
-   using DistributionBase::_edata;
-   using DistributionBase::_fields2;
-   using DistributionBase::_edata2;
+protected:
+
+   using DistributionTemplated::_status;
+   using DistributionTemplated::container;
+   using DistributionTemplated::ActionTable;
+   using DistributionTemplated::_weight;
+   using DistributionTemplated::dims;
+   using DistributionTemplated::_value;
+   using DistributionTemplated::_mom;
+   using DistributionTemplated::_mom2;
+   using DistributionTemplated::_pos;
+   using DistributionTemplated::_pos2;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::specie;
+   using DistributionTemplated::_fields;
+   using DistributionTemplated::_edata;
+   using DistributionTemplated::_fields2;
+   using DistributionTemplated::_edata2;
 
 protected:
 

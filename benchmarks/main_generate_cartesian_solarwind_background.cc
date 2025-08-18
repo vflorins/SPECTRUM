@@ -1,15 +1,22 @@
+
+#include "common/fields.hh"
 #include "src/background_solarwind.hh"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <gsl/gsl_const.h>
 
 using namespace Spectrum;
 
 int main(void)
 {
-   BackgroundSolarWind background;
-   SpatialData spdata;
+
+   using Fields = Fields<Vel_t, Mag_t, Elc_t>;
+   using Background = BackgroundSolarWind<Fields>;
+
+   Background background;
+   Fields fields;
    int Nb = 20;
    std::string Nbs = std::to_string(Nb);
    std::string fname_pattern = "parker_" + Nbs + "_" + Nbs + "_" + Nbs;
@@ -25,9 +32,6 @@ int main(void)
 
 // Variables to output
    int Nvar = 9;
-   RAISE_BITS(spdata._mask, BACKGROUND_U);
-   RAISE_BITS(spdata._mask, BACKGROUND_B);
-   RAISE_BITS(spdata._mask, BACKGROUND_E);
 
    DataContainer container;
    container.Clear();
@@ -131,10 +135,10 @@ int main(void)
                   for(iz = 0; iz < block_size[0]; iz++) {
                      zone_idx.i = iz;
                      pos = center_min + zone_idx * zone_length;
-                     background.GetFields(t, pos, mom, spdata);
-                     for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Uvec[var]), sizeof(double));
-                     for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Bvec[var]), sizeof(double));
-                     for(var = 0; var < 3; var++) data_file.write((char*)(&spdata.Evec[var]), sizeof(double));
+                     background.GetFields(t, pos, mom, fields);
+                     for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Vel()[var]), sizeof(double));
+                     for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Mag()[var]), sizeof(double));
+                     for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Elc()[var]), sizeof(double));
                   };
                };
             };

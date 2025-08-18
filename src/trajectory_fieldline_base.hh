@@ -36,7 +36,7 @@ of which is the traced field.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
 template <typename Trajectory_, typename Fields_>
-class TrajectoryFieldlineBase : public TrajectoryBase<TrajectoryFieldline<Trajectory_, Fields_>, Fields_> {
+class TrajectoryFieldlineBase : public TrajectoryBase<Trajectory_, Fields_> {
 public:
 
    using Fields = Fields_;
@@ -66,7 +66,7 @@ protected:
    GeoVector ConvertMomentum(void) const override;
 
 //! Compute the RK slopes
-   virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage);
+   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
 
 //! Compute the physical time step
    void PhysicalStep(void) override;
@@ -78,6 +78,9 @@ public:
 
 //! Default constructor
    TrajectoryFieldlineBase(void);
+
+//! Constructor with arguments (to speed up construction of derived classes)
+   TrajectoryFieldlineBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryFieldlineBase(const TrajectoryFieldlineBase& other) = delete;

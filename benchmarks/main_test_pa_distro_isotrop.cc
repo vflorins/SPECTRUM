@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
@@ -7,6 +9,9 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
+// todo when all trajectories are updated
+//#include "src/trajectory.hh"
+#include "src/trajectory_guiding_scatt.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -18,17 +23,37 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t>;
+   using Trajectory = TrajectoryGuidingScatt<Fields>;
+   using Background = BackgroundUniform<Fields>;
+
+   using SimulationWorker = SimulationWorker<Trajectory>;
+   using InitialTime = InitialTimeFixed<Trajectory>;
+   using InitialSpace = InitialSpaceFixed<Trajectory>;
+   using InitialMomentum = InitialMomentumRing<Trajectory>;
+   using Diffusion = DiffusionIsotropicConstant<Trajectory>;
+   using Boundary1 = BoundaryTimePass<Trajectory>;
+   using Boundary2 = BoundaryTimeExpire<Trajectory>;
+
+   using Distribution1 = DistributionMomentumUniform<Trajectory>;
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a simulation object
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    std::unique_ptr<SimulationWorker> simulation;
-   simulation = CreateSimulation(argc, argv);
+   simulation = CreateSimulation<Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -56,7 +81,7 @@ int main(int argc, char** argv)
    double dmax = 0.1;
    container.Insert(dmax);
 
-   simulation->AddBackground(BackgroundUniform(), container);
+   simulation->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -68,7 +93,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   simulation->AddInitial(InitialTimeFixed(), container);
+   simulation->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -78,7 +103,7 @@ int main(int argc, char** argv)
 
    container.Insert(gv_zeros);
 
-   simulation->AddInitial(InitialSpaceFixed(), container);
+   simulation->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -93,7 +118,7 @@ int main(int argc, char** argv)
    double theta = DegToRad(45.0);
    container.Insert(theta);
 
-   simulation->AddInitial(InitialMomentumRing(), container);
+   simulation->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Diffusion model
@@ -106,7 +131,7 @@ int main(int argc, char** argv)
    container.Insert(D0);
 
 // Pass ownership of "diffusion" to simulation
-   simulation->AddDiffusion(DiffusionIsotropicConstant(), container);
+   simulation->AddDiffusion(Diffusion(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 1 (pass)
@@ -130,7 +155,7 @@ int main(int argc, char** argv)
    double timemark1 = 0.5 / D0;
    container.Insert(timemark1);
 
-   simulation->AddBoundary(BoundaryTimePass(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 2 (pass)
@@ -153,7 +178,7 @@ int main(int argc, char** argv)
    double timemark2 = 2.0 * timemark1;
    container.Insert(timemark2);
 
-   simulation->AddBoundary(BoundaryTimePass(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 3 (pass)
@@ -176,7 +201,7 @@ int main(int argc, char** argv)
    double timemark3 = 2.0 * timemark2;
    container.Insert(timemark3);
 
-   simulation->AddBoundary(BoundaryTimePass(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 4 (cutoff)
@@ -201,7 +226,7 @@ int main(int argc, char** argv)
    double maxtime = 2.0 * timemark3;
    container.Insert(maxtime);
 
-   simulation->AddBoundary(BoundaryTimeExpire(), container);
+   simulation->AddBoundary(Boundary2(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 1
@@ -258,7 +283,7 @@ int main(int argc, char** argv)
    int val_coord = 1;
    container.Insert(val_coord);
 
-   simulation->AddDistribution(DistributionMomentumUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 2
@@ -304,7 +329,7 @@ int main(int argc, char** argv)
 // Coordinate representation to use (native or locally spherical)
    container.Insert(val_coord);
 
-   simulation->AddDistribution(DistributionMomentumUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 3
@@ -349,7 +374,7 @@ int main(int argc, char** argv)
 // Coordinate representation to use (native or locally spherical)
    container.Insert(val_coord);
 
-   simulation->AddDistribution(DistributionMomentumUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 4
@@ -394,7 +419,7 @@ int main(int argc, char** argv)
 // Coordinate representation to use (native or locally spherical)
    container.Insert(val_coord);
 
-   simulation->AddDistribution(DistributionMomentumUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 5
@@ -439,7 +464,7 @@ int main(int argc, char** argv)
 // Coordinate representation to use (native or locally spherical)
    container.Insert(val_coord);
 
-   simulation->AddDistribution(DistributionMomentumUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

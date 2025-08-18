@@ -907,26 +907,10 @@ void SimulationMaster<Trajectory>::PrintRecords(int distro, const std::string& f
 \param[in] argv Command line arguments
 */
 template <typename Trajectory>
-// todo Experimenting...
 std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv)
 {
 // Initialize a single instance of "MPI_Config" that will persist until the program terminates
    static MPI_Config mpicfg(argc, argv);
-
-//   std::unique_ptr<SimulationWorker<Trajectory>> simulation_p;
-//   if (MPI_Config::is_master) {
-//      auto simulation_p = std::make_unique<SimulationMaster<Trajectory>>();
-//      return simulation_p;
-//   }
-//   else if (MPI_Config::is_boss) {
-//      auto simulation_p = std::make_unique<SimulationBoss<Trajectory>>();
-//      return simulation_p;
-//   }
-//   else {
-//      auto simulation_p = std::make_unique<SimulationWorker<Trajectory>>();
-//      return simulation_p;
-//   }
-//   return simulation_p;
 
    if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
    else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();

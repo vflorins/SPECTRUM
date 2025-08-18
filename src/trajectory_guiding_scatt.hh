@@ -62,6 +62,8 @@ public:
    using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields>, Fields>;
    using TrajectoryBase = TrajectoryBase<TrajectoryGuidingScatt<Fields_>, Fields>;
 
+protected:
+
    using TrajectoryBase::_status;
    using TrajectoryBase::_t;
    using TrajectoryBase::_pos;
@@ -87,7 +89,6 @@ public:
    using TrajectoryBase::ConvertMomentum;
    using TrajectoryBase::Load;
    using TrajectoryBase::Store;
-//   using TrajectoryBase::Drif;
    using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::StoreLocal;
    using TrajectoryBase::RKSlopes;
@@ -99,8 +100,6 @@ public:
 
    using TrajectoryGuidingBase::DriftCoeff;
    using TrajectoryGuidingBase::Slopes;
-
-
 
 
 protected:

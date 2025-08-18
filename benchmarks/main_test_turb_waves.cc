@@ -4,6 +4,7 @@
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 #include "src/trajectory.hh"
+#include <gsl/gsl_const.h>
 #include <iostream>
 #include <iomanip>
 
@@ -11,14 +12,26 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
-
    DataContainer container;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t, Elc_t>;
+   using Trajectory = TrajectoryFieldline<Fields, Elc_t>;
+   using Background = BackgroundWaves<Fields>;
+
+   using InitialTime = InitialTimeFixed<Trajectory>;
+   using InitialSpace = InitialSpaceBox<Trajectory>;
+   using InitialMomentum = InitialMomentumFixed<Trajectory>;
+   using BoundaryTime = BoundaryTimeExpire<Trajectory>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<TrajectoryBase> trajectory = std::make_unique<TrajectoryType>();
+   std::unique_ptr<Trajectory> trajectory = std::make_unique<Trajectory>();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -31,7 +44,8 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -107,7 +121,7 @@ int main(int argc, char** argv)
    turb_prop.variance = 1.0 * variance;
    container.Insert(turb_prop);
 
-   trajectory->AddBackground(BackgroundWaves(), container);
+   trajectory->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -119,7 +133,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   trajectory->AddInitial(InitialTimeFixed(), container);
+   trajectory->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -132,7 +146,7 @@ int main(int argc, char** argv)
    container.Insert(-cube_size / 2.0 * gv_ones);
    container.Insert( cube_size / 2.0 * gv_ones);
 
-   trajectory->AddInitial(InitialSpaceBox(), container);
+   trajectory->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -146,7 +160,7 @@ int main(int argc, char** argv)
 
    container.Insert(init_mom);
 
-   trajectory->AddInitial(InitialMomentumFixed(), container);
+   trajectory->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition (end)
@@ -166,7 +180,7 @@ int main(int argc, char** argv)
    double maxtime = 100.0 / unit_time_fluid;
    container.Insert(maxtime);
 
-   trajectory->AddBoundary(BoundaryTimeExpire(), container);
+   trajectory->AddBoundary(BoundaryTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

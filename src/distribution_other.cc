@@ -61,14 +61,14 @@ void DistributionUniform<Trajectory, distroClass>::SetupDistribution(bool constr
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_hot);
-   this->container.Read(val_cold);
+   container.Read(val_hot);
+   container.Read(val_cold);
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {UniformHot();});
-   this->ActionTable.push_back([this]() {UniformCold();});
+   ActionTable.push_back([this]() {UniformHot();});
+   ActionTable.push_back([this]() {UniformCold();});
 };
 
 /*!
@@ -78,7 +78,7 @@ void DistributionUniform<Trajectory, distroClass>::SetupDistribution(bool constr
 template <typename Trajectory, class distroClass>
 void DistributionUniform<Trajectory, distroClass>::UniformHot(void)
 {
-   this->_weight = val_hot;
+   _weight = val_hot;
 };
 
 /*!
@@ -88,7 +88,7 @@ void DistributionUniform<Trajectory, distroClass>::UniformHot(void)
 template <typename Trajectory, class distroClass>
 void DistributionUniform<Trajectory, distroClass>::UniformCold(void)
 {
-   this->_weight = val_cold;
+   _weight = val_cold;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ template <typename Trajectory>
 DistributionTimeUniform<Trajectory>::DistributionTimeUniform(const DistributionTimeUniform& other)
                        : DistributionUniform(other)
 {
-   RAISE_BITS(this->_status, DISTRO_TIME);
+   RAISE_BITS(_status, DISTRO_TIME);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -131,12 +131,12 @@ void DistributionTimeUniform<Trajectory>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_time);
+   container.Read(val_time);
 
 // Check that ONLY the first dimension is active.
-   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 1) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -147,8 +147,8 @@ void DistributionTimeUniform<Trajectory>::SetupDistribution(bool construct)
 template <typename Trajectory>
 void DistributionTimeUniform<Trajectory>::EvaluateValue(void)
 {
-   if (val_time == 0) this->_value[0] = this->_t;
-   else this->_value[0] = this->_t2;
+   if (val_time == 0) _value[0] = _t;
+   else _value[0] = _t2;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ template <typename Trajectory>
 DistributionPositionUniform<Trajectory>::DistributionPositionUniform(const DistributionPositionUniform& other)
                            : DistributionUniform(other)
 {
-   RAISE_BITS(this->_status, DISTRO_SPACE);
+   RAISE_BITS(_status, DISTRO_SPACE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -190,13 +190,13 @@ void DistributionPositionUniform<Trajectory>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_time);
-   this->container.Read(val_coord);
+   container.Read(val_time);
+   container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
-   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 7) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -206,10 +206,10 @@ void DistributionPositionUniform<Trajectory>::SetupDistribution(bool construct)
 template <typename Trajectory>
 void DistributionPositionUniform<Trajectory>::EvaluateValue(void)
 {
-   if (val_time == 0) this->_value = this->_pos;
-   else this->_value = this->_pos2;
+   if (val_time == 0) _value = _pos;
+   else _value = _pos2;
 
-   if (val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) _value.XYZ_RTP();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ template <typename Trajectory>
 DistributionMomentumUniform<Trajectory>::DistributionMomentumUniform(const DistributionMomentumUniform& other)
                            : DistributionUniform(other)
 {
-   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   RAISE_BITS(_status, DISTRO_MOMENTUM);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -251,13 +251,13 @@ void DistributionMomentumUniform<Trajectory>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_time);
-   this->container.Read(val_coord);
+   container.Read(val_time);
+   container.Read(val_coord);
 
 // Check that ALL three dimensions are active.
-   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 7) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -273,34 +273,34 @@ void DistributionMomentumUniform<Trajectory>::EvaluateValue(void)
 {
    GeoVector momentum, bhat;
    if (val_time == 0) {
-      momentum = this->_mom;
-      bhat = this->_spdata.bhat;
+      momentum = _mom;
+      bhat = _fields.HatMag();
    }
    else {
-      momentum = this->_mom2;
-      bhat = this->_spdata2.bhat;
+      momentum = _mom2;
+      bhat = _fields2.HatMag();
    };
 
-   if (val_coord == 0) this->_value = momentum;
+   if (val_coord == 0) _value = momentum;
    else {
       if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
 // Focused and Parker trajectories are already in locally spherical coordinates
-         this->_value = momentum;
+         _value = momentum;
       }
       else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
-         this->_value[0] = momentum[2];
-         this->_value[1] = 0.0;
-         this->_value[2] = 0.0;
+         _value[0] = momentum[2];
+         _value[1] = 0.0;
+         _value[2] = 0.0;
       }
       else if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
-         this->_value[0] = momentum.Norm();
-         this->_value[1] = momentum[2] / this->_value[0];
-         this->_value[2] = 0.0;
+         _value[0] = momentum.Norm();
+         _value[1] = momentum[2] / _value[0];
+         _value[2] = 0.0;
       }
       else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>) {
-         this->_value[0] = momentum.Norm();
-         this->_value[1] = momentum * bhat / this->_value[0];
-         this->_value[2] = 0.0;
+         _value[0] = momentum.Norm();
+         _value[1] = momentum * bhat / _value[0];
+         _value[2] = 0.0;
       }
    }
 };
@@ -330,7 +330,7 @@ template <typename Trajectory>
 DistributionPositionMomentumUniform<Trajectory>::DistributionPositionMomentumUniform(const DistributionPositionMomentumUniform& other)
                                    : DistributionUniform(other)
 {
-   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   RAISE_BITS(_status, DISTRO_MOMENTUM);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -344,14 +344,14 @@ void DistributionPositionMomentumUniform<Trajectory>::SetupDistribution(bool con
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_time);
-   this->container.Read(pos_idx);
-   this->container.Read(mom_idx);
+   container.Read(val_time);
+   container.Read(pos_idx);
+   container.Read(mom_idx);
 
 // Check that ONLY the first two dimensions are active.
-   if (this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 5) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -362,16 +362,14 @@ template <typename Trajectory>
 void DistributionPositionMomentumUniform<Trajectory>::EvaluateValue(void)
 {
    if (val_time == 0) {
-      this->_value[0] = this->_pos[pos_idx];
-      this->_value[1] = this->_mom[mom_idx];
+      _value[0] = _pos[pos_idx];
+      _value[1] = _mom[mom_idx];
    }
    else {
-      this->_value[0] = this->_pos2[pos_idx];
-      this->_value[1] = this->_mom2[mom_idx];
+      _value[0] = _pos2[pos_idx];
+      _value[1] = _mom2[mom_idx];
    };
 };
-
-//#if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DistributionAnisotropyLISM methods
@@ -398,7 +396,7 @@ template <typename Trajectory>
 DistributionAnisotropyLISM<Trajectory>::DistributionAnisotropyLISM(const DistributionAnisotropyLISM& other)
                           : DistributionTemplated(other)
 {
-   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   RAISE_BITS(_status, DISTRO_MOMENTUM);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -412,24 +410,24 @@ void DistributionAnisotropyLISM<Trajectory>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(rot_matrix[0]);
-   this->container.Read(rot_matrix[1]);
-   this->container.Read(rot_matrix[2]);
-   this->container.Read(U_LISM);
-   this->container.Read(mom_pow_law);
-   this->container.Read(grad_perp_dens);
+   container.Read(rot_matrix[0]);
+   container.Read(rot_matrix[1]);
+   container.Read(rot_matrix[2]);
+   container.Read(U_LISM);
+   container.Read(mom_pow_law);
+   container.Read(grad_perp_dens);
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {ComptonGettingFactor();});
-   this->ActionTable.push_back([this]() {MomPowerLawAnisotropy();});
-   this->ActionTable.push_back([this]() {FirstLegendreAnisotropy();});
-   this->ActionTable.push_back([this]() {SecondLegendreAnisotropy();});
-   this->ActionTable.push_back([this]() {bCrossGradientAnisotropy();});
+   ActionTable.push_back([this]() {ComptonGettingFactor();});
+   ActionTable.push_back([this]() {MomPowerLawAnisotropy();});
+   ActionTable.push_back([this]() {FirstLegendreAnisotropy();});
+   ActionTable.push_back([this]() {SecondLegendreAnisotropy();});
+   ActionTable.push_back([this]() {bCrossGradientAnisotropy();});
 
 // Check that ONLY the first two dimensions are active.
-   if (this->dims != 5) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 5) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -440,14 +438,14 @@ template <typename Trajectory>
 void DistributionAnisotropyLISM<Trajectory>::EvaluateValue(void)
 {
 // Find incoming direction in specified coordinate frame
-   mom_rel = this->_mom;
+   mom_rel = _mom;
    mom_rel.ChangeToBasis(rot_matrix);
    mom_rel.XYZ_RTP();
-   this->_value[0] = mom_rel[1];
-   this->_value[1] = mom_rel[2];
+   _value[0] = mom_rel[1];
+   _value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = this->_mom2 - RelFactor1(this->_mom2.Norm(), this->specie) * SpeciesMasses[this->specie] * U_LISM;
+   mom_rel = _mom2 - RelFactor1(_mom2.Norm(), specie) * SpeciesMasses[specie] * U_LISM;
 };
 
 /*!
@@ -460,11 +458,11 @@ void DistributionAnisotropyLISM<Trajectory>::ComptonGettingFactor(void)
    double vel;
    GeoVector mom_hat;
 
-   vel = Vel(this->_mom.Norm(), this->specie);
-   mom_hat = UnitVec(this->_mom);
+   vel = Vel(_mom.Norm(), specie);
+   mom_hat = UnitVec(_mom);
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
-   this->_weight = 1.0 - mom_pow_law * U_LISM * mom_hat / vel;
+   _weight = 1.0 - mom_pow_law * U_LISM * mom_hat / vel;
 };
 
 /*!
@@ -474,7 +472,7 @@ void DistributionAnisotropyLISM<Trajectory>::ComptonGettingFactor(void)
 template <typename Trajectory>
 void DistributionAnisotropyLISM<Trajectory>::MomPowerLawAnisotropy(void)
 {
-   this->_weight = pow(mom_rel.Norm() / this->_mom.Norm(), mom_pow_law);
+   _weight = pow(mom_rel.Norm() / _mom.Norm(), mom_pow_law);
 };
 
 /*!
@@ -484,7 +482,7 @@ void DistributionAnisotropyLISM<Trajectory>::MomPowerLawAnisotropy(void)
 template <typename Trajectory>
 void DistributionAnisotropyLISM<Trajectory>::FirstLegendreAnisotropy(void)
 {
-   this->_weight = UnitVec(mom_rel) * this->_spdata2.bhat;
+   _weight = UnitVec(mom_rel) * _fields2.HatMag();
 };
 
 /*!
@@ -494,7 +492,7 @@ void DistributionAnisotropyLISM<Trajectory>::FirstLegendreAnisotropy(void)
 template <typename Trajectory>
 void DistributionAnisotropyLISM<Trajectory>::SecondLegendreAnisotropy(void)
 {
-   this->_weight = 0.5 * (3.0 * Sqr(UnitVec(mom_rel) * this->_spdata2.bhat) - 1.0);
+   _weight = 0.5 * (3.0 * Sqr(UnitVec(mom_rel) * _fields2.HagMat()) - 1.0);
 };
 
 /*!
@@ -505,7 +503,7 @@ template <typename Trajectory>
 void DistributionAnisotropyLISM<Trajectory>::bCrossGradientAnisotropy(void)
 {
 // FIXME: This is according to Zhang et al. 2020, but (perhaps) differs from Zhang et al. 2014. We should investigate this further.
-   this->_weight = grad_perp_dens * (this->_pos2 + LarmorRadius(mom_rel.Norm(), this->_spdata2.Bmag, this->specie) * (UnitVec(mom_rel) ^ this->_spdata2.bhat));
+   _weight = grad_perp_dens * (_pos2 + LarmorRadius(mom_rel.Norm(), _fields2.AbsMag(), specie) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
 };
 
 //#endif
@@ -548,7 +546,7 @@ template <typename Trajectory>
 DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other)
                                          : DistributionTemplated(other)
 {
-   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   RAISE_BITS(_status, DISTRO_MOMENTUM);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -562,19 +560,19 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SetupDistribution(bo
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(J0);
-   this->container.Read(T0);
-   this->container.Read(pow_law);
-   this->container.Read(val_cold);
+   container.Read(J0);
+   container.Read(T0);
+   container.Read(pow_law);
+   container.Read(val_cold);
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
-   this->ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawCold();});
+   ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawHot();});
+   ActionTable.push_back([this]() {SpectrumKineticEnergyPowerLawCold();});
 
 // Check that ONLY the first dimension is active.
-   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 1) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -586,13 +584,13 @@ template <typename Trajectory>
 void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::EvaluateValue(void)
 {
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
-      this->_value[0] = EnrKin(this->_mom[0], this->specie);
+      _value[0] = EnrKin(_mom[0], specie);
    }
    else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
-      this->_value[0] = EnrKin(this->_mom[2], this->specie);
+      _value[0] = EnrKin(_mom[2], specie);
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
-      this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
+      _value[0] = EnrKin(_mom.Norm(), specie);
    }
    else {
 // stub
@@ -611,30 +609,30 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
 {
    double mom2mag;
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
-      mom2mag = this->_mom2[0];
+      mom2mag = _mom2[0];
    }
    else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>) {
-      mom2mag = this->_mom2[2];
+      mom2mag = _mom2[2];
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
-      mom2mag = this->_mom2.Norm();
+      mom2mag = _mom2.Norm();
    }
    else {
 // stub
       ;
    }
-   kin_energy = EnrKin(mom2mag, this->specie);
+   kin_energy = EnrKin(mom2mag, specie);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel(mom2mag, this->specie);
+   double velocity = Vel(mom2mag, specie);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
-   this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
+   _weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
 // The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
-   this->_weight = J0 * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
+   _weight = J0 * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 2
 // The power law is the distribution function f(p), no weighting necessary
-   this->_weight = J0 * pow(kin_energy / T0, pow_law);
+   _weight = J0 * pow(kin_energy / T0, pow_law);
 #else
    std::cerr << "DistributionSpectrumKineticEnergyPowerLaw Error: TYPE not recognized." << std::endl;
 #endif
@@ -647,7 +645,7 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
 template <typename Trajectory>
 void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnergyPowerLawCold(void)
 {
-   this->_weight = val_cold;
+   _weight = val_cold;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -676,7 +674,7 @@ template <typename Trajectory>
 DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyBentPowerLaw(const DistributionSpectrumKineticEnergyBentPowerLaw& other)
                                              : DistributionSpectrumKineticEnergyPowerLaw(other)
 {
-   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   RAISE_BITS(_status, DISTRO_MOMENTUM);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -690,16 +688,16 @@ void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SetupDistributio
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
    double pow_law_b;
-   this->container.Read(T_b);
-   this->container.Read(pow_law_b);
-   this->container.Read(bend_smoothness);
+   container.Read(T_b);
+   container.Read(pow_law_b);
+   container.Read(bend_smoothness);
    pow_law_comb = (pow_law - pow_law_b) / bend_smoothness;
 
 // Check that ONLY the first dimension is active.
-   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 1) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -711,7 +709,7 @@ void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SpectrumKineticE
 {
    DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot();
 // The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
-   this->_weight /= pow(1.0 + pow(kin_energy / T_b, pow_law_comb), bend_smoothness);
+   _weight /= pow(1.0 + pow(kin_energy / T_b, pow_law_comb), bend_smoothness);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -739,7 +737,7 @@ template <typename Trajectory>
 DistributionPositionCumulativeOrder1<Trajectory>::DistributionPositionCumulativeOrder1(const DistributionPositionCumulativeOrder1& other)
                                     : DistributionTemplated(other)
 {
-   RAISE_BITS(this->_status, DISTRO_TIME);
+   RAISE_BITS(_status, DISTRO_TIME);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -753,13 +751,13 @@ void DistributionPositionCumulativeOrder1<Trajectory>::SetupDistribution(bool co
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {RecordPosition();});
+   ActionTable.push_back([this]() {RecordPosition();});
 
 // Check that ONLY the first dimension is active.
-   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 1) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -769,7 +767,7 @@ void DistributionPositionCumulativeOrder1<Trajectory>::SetupDistribution(bool co
 template <typename Trajectory>
 void DistributionPositionCumulativeOrder1<Trajectory>::EvaluateValue(void)
 {
-   this->_value[0] = this->_t2;
+   _value[0] = _t2;
 };
 
 /*!
@@ -779,7 +777,7 @@ void DistributionPositionCumulativeOrder1<Trajectory>::EvaluateValue(void)
 template <typename Trajectory>
 void DistributionPositionCumulativeOrder1<Trajectory>::RecordPosition(void)
 {
-   this->_weight = this->_pos2 - this->_pos;
+   _weight = _pos2 - _pos;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -807,7 +805,7 @@ template <typename Trajectory>
 DistributionPositionCumulativeOrder2<Trajectory>::DistributionPositionCumulativeOrder2(const DistributionPositionCumulativeOrder2& other)
                                     : DistributionTemplated(other)
 {
-   RAISE_BITS(this->_status, DISTRO_TIME);
+   RAISE_BITS(_status, DISTRO_TIME);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -821,13 +819,13 @@ void DistributionPositionCumulativeOrder2<Trajectory>::SetupDistribution(bool co
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {RecordPosition();});
+   ActionTable.push_back([this]() {RecordPosition();});
 
 // Check that ONLY the first dimension is active.
-   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 1) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -837,7 +835,7 @@ void DistributionPositionCumulativeOrder2<Trajectory>::SetupDistribution(bool co
 template <typename Trajectory>
 void DistributionPositionCumulativeOrder2<Trajectory>::EvaluateValue(void)
 {
-   this->_value[0] = this->_t2;
+   _value[0] = _t2;
 };
 
 /*!
@@ -847,7 +845,7 @@ void DistributionPositionCumulativeOrder2<Trajectory>::EvaluateValue(void)
 template <typename Trajectory>
 void DistributionPositionCumulativeOrder2<Trajectory>::RecordPosition(void)
 {
-   this->_weight.Dyadic(this->_pos2 - this->_pos);
+   _weight.Dyadic(_pos2 - _pos);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -875,7 +873,7 @@ template <typename Trajectory>
 DistributionLossCone<Trajectory>::DistributionLossCone(const DistributionLossCone& other)
                     : DistributionTemplated(other)
 {
-   RAISE_BITS(this->_status, DISTRO_SPACE);
+   RAISE_BITS(_status, DISTRO_SPACE);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
 };
 
@@ -889,16 +887,16 @@ void DistributionLossCone<Trajectory>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
-   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
 
-   this->container.Read(val_time);
-   this->container.Read(val_coord);
+   container.Read(val_time);
+   container.Read(val_coord);
 
 // Place the actions into the table
-   this->ActionTable.push_back([this]() {RecordLossCone();});
+   ActionTable.push_back([this]() {RecordLossCone();});
 
 // Check that ALL three dimensions are active.
-   if (this->dims != 7) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+   if (dims != 7) LOWER_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
 /*!
@@ -908,10 +906,10 @@ void DistributionLossCone<Trajectory>::SetupDistribution(bool construct)
 template <typename Trajectory>
 void DistributionLossCone<Trajectory>::EvaluateValue(void)
 {
-   if (val_time == 0) this->_value = this->_pos;
-   else this->_value = this->_pos2;
+   if (val_time == 0) _value = _pos;
+   else _value = _pos2;
 
-   if (val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) _value.XYZ_RTP();
 };
 
 /*!
@@ -922,8 +920,8 @@ void DistributionLossCone<Trajectory>::EvaluateValue(void)
 template <typename Trajectory>
 void DistributionLossCone<Trajectory>::RecordLossCone(void)
 {
-   if (val_time == 0) this->_weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields.Mag() / _edata2.Bmag_max)));
-   else this->_weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields2.Mag() / _edata2.Bmag_max)));
+   if (val_time == 0) _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields.Mag() / _edata2.Bmag_max)));
+   else _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields2.Mag() / _edata2.Bmag_max)));
 };
 
 };

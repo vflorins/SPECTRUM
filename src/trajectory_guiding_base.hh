@@ -17,11 +17,11 @@ namespace Spectrum {
 // Switch controlling how to calculate p_perp. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
 #define PPERP_METHOD 1
 
-////! Readable name of the TrajectoryGuiding class
-//const std::string traj_name_guiding_base = "TrajectoryGuidingBase";
-//
-////! Default initial size
-//const unsigned int defsize_guiding_base = 10000;
+//! Readable name of the TrajectoryGuiding class
+const std::string traj_name_guiding_base = "TrajectoryGuidingBase";
+
+//! Default initial size
+const unsigned int defsize_guiding_base = 10000;
 
 //! CFL condition for advection
 const double cfl_adv_tg = 0.5;
@@ -45,6 +45,8 @@ public:
 
    using Fields = Fields_;
    using TrajectoryBase = TrajectoryBase<Trajectory_, Fields_>;
+
+protected:
 
    using TrajectoryBase::_status;
 //   using TrajectoryBase::_t;
@@ -105,10 +107,10 @@ protected:
 public:
 
 //! Default constructor
-   TrajectoryGuidingBase(void) = default;
+   TrajectoryGuidingBase(void);
 
-////! Constructor with arguments (to speed up construction of derived classes)
-//   TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+//! Constructor with arguments (to speed up construction of derived classes)
+   TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryGuidingBase(const TrajectoryGuidingBase& other) = delete;

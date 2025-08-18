@@ -303,7 +303,7 @@ public:
    using BoundaryBase::_mom;
    using BoundaryBase::_fields;
 
-   static_assert(std::same_as<Trajectory, TrajectoryParker<Fields>> || std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>, "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
+   static_assert(!(std::same_as<Trajectory, TrajectoryParker<Fields>> || std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>), "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
 
 protected:
 

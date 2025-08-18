@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <gsl/gsl_const.h>
+#include <numeric>
 
 using namespace Spectrum;
 

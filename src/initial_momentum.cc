@@ -146,13 +146,10 @@ void InitialMomentumBeam<Trajectory>::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-   // todo std:: subclass of TrajectoryGuiding
-   constexpr bool Trajectory_Guiding_All = std::same_as<Trajectory, TrajectoryGuiding<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiff<Fields>> || std::same_as<Trajectory, TrajectoryGuidingDiffScatt<Fields>> || std::same_as<Trajectory, TrajectoryGuidingScatt<Fields>>;
-
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {
       _mom = GeoVector(p0, 0.0, 0.0);
    }
-   else if constexpr (Trajectory_Guiding_All) {
+   else if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
       _mom = GeoVector(0.0, 0.0, p0);
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>){

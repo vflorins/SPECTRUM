@@ -23,7 +23,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(void)
-                      : TrajectoryBase(traj_name_guidingscatt, 0, STATE_NONE, defsize_guidingscatt)
+                      : TrajectoryGuidingBase(traj_name_guidingscatt, 0, STATE_NONE, defsize_guidingscatt)
 {
 };
 
@@ -37,7 +37,7 @@ TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(void)
 */
 template <typename Fields>
 TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                      : TrajectoryBase(name_in, specie_in, status_in, presize_in)
+                      : TrajectoryGuidingBase(name_in, specie_in, status_in, presize_in)
 {
 };
 

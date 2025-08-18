@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
@@ -5,6 +7,10 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
+// todo when all trajectories are updated
+//#include "src/trajectory.hh"
+#include "src/trajectory_focused.hh"
+#include <gsl/gsl_const.h>
 #include <iostream>
 #include <iomanip>
 
@@ -15,18 +21,37 @@ int main(int argc, char** argv)
 
    DataContainer container;
 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t>;
+   using Trajectory = TrajectoryFocused<Fields>;
+   using Background = BackgroundUniform<Fields>;
+
+   using SimulationWorker = SimulationWorker<Trajectory>;
+   using InitialTime = InitialTimeInterval<Trajectory>;
+   using InitialSpace = InitialSpaceSphere<Trajectory>;
+   using InitialMomentum = InitialMomentumRing<Trajectory>;
+   using BoundaryTime = BoundaryTimeExpire<Trajectory>;
+
+   using Distribution1 = DistributionTimeUniform<Trajectory>;
+   using Distribution2 = DistributionPositionUniform<Trajectory>;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a simulation object
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    std::unique_ptr<SimulationWorker> simulation;
-   simulation = CreateSimulation(argc, argv);
+   simulation = CreateSimulation<Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+// todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +79,7 @@ int main(int argc, char** argv)
    double dmax = 0.1;
    container.Insert(dmax);
 
-   simulation->AddBackground(BackgroundUniform(), container);
+   simulation->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -74,7 +99,7 @@ int main(int argc, char** argv)
    int n_intervals = 0;
    container.Insert(n_intervals);
 
-   simulation->AddInitial(InitialTimeInterval(), container);
+   simulation->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -87,7 +112,7 @@ int main(int argc, char** argv)
    double radius = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(radius);
 
-   simulation->AddInitial(InitialSpaceSphere(), container);
+   simulation->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -102,7 +127,7 @@ int main(int argc, char** argv)
    double theta = DegToRad(90.0);
    container.Insert(theta);
 
-   simulation->AddInitial(InitialMomentumRing(), container);
+   simulation->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition (terminal)
@@ -124,7 +149,7 @@ int main(int argc, char** argv)
    double maxtime = 10.0 / unit_time_fluid;
    container.Insert(maxtime);
 
-   simulation->AddBoundary(BoundaryTimeExpire(), container);
+   simulation->AddBoundary(BoundaryTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 1 (time)
@@ -177,7 +202,7 @@ int main(int argc, char** argv)
    int val_time1 = 0;
    container.Insert(val_time1);
 
-   simulation->AddDistribution(DistributionTimeUniform(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 2 (position)
@@ -234,7 +259,7 @@ int main(int argc, char** argv)
    int val_coord2 = 0;
    container.Insert(val_coord2);
 
-   simulation->AddDistribution(DistributionPositionUniform(), container);
+   simulation->AddDistribution(Distribution2(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

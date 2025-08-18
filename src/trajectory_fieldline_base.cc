@@ -27,6 +27,21 @@ TrajectoryFieldlineBase<Trajectory, Fields>::TrajectoryFieldlineBase(void)
 };
 
 /*!
+\author Vladimir Florinski
+\date 01/28/2022
+\param[in] name_in   Readable name of the class
+\param[in] specie_in Particle's specie
+\param[in] status_in Initial status
+\param[in] presize_in Whether to pre-allocate memory for trajectory arrays
+*/
+template <typename Trajectory, typename Fields>
+TrajectoryFieldlineBase<Trajectory, Fields>::TrajectoryFieldlineBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+      : TrajectoryBase(name_in, specie_in, status_in, presize_in)
+{
+};
+
+
+/*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \author Lucius Schoenbaum
@@ -38,6 +53,16 @@ void TrajectoryFieldlineBase<Trajectory, Fields>::SetStart(void)
 // Call the base version of this function.
    TrajectoryBase::SetStart();
 };
+
+/*!
+\author Lucius Schoenbaum
+\date 08/17/2025
+This is a stub overriding the method in the lower base class.
+ */
+template <typename Trajectory, typename Fields>
+void TrajectoryFieldlineBase<Trajectory, Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+{}
+
 
 /*!
 \author Vladimir Florinski

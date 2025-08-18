@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
@@ -7,6 +9,9 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
+// todo when all trajectories are updated
+//#include "src/trajectory.hh"
+#include "src/trajectory_parker.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -18,17 +23,39 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set the types
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Fields = Fields<Mag_t, HatMag_t, AbsMag_t, DelAbsMag_t>;
+   using Trajectory = TrajectoryParker<Fields>;
+   using Background = BackgroundUniform<Fields>;
+
+   using Simulation = SimulationWorker<Trajectory>;
+   using InitialTime = InitialTimeFixed<Trajectory>;
+   using InitialSpace = InitialSpaceFixed<Trajectory>;
+   using InitialMomentum = InitialMomentumShell<Trajectory>;
+   using Diffusion = DiffusionFullConstant<Trajectory>;
+
+   using Boundary1 = BoundaryTimeRecurrent<Trajectory>;
+   using Boundary2 = BoundaryTimeExpire<Trajectory>;
+
+   using Distribution1 = DistributionPositionCumulativeOrder1<Trajectory>;
+   using Distribution2 = DistributionPositionCumulativeOrder2<Trajectory>;
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a simulation object
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<SimulationWorker> simulation;
-   simulation = CreateSimulation(argc, argv);
+   std::unique_ptr<Simulation> simulation;
+   simulation = CreateSimulation<Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -56,7 +83,7 @@ int main(int argc, char** argv)
    double dmax = 0.1;
    container.Insert(dmax);
 
-   simulation->AddBackground(BackgroundUniform(), container);
+   simulation->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -68,7 +95,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   simulation->AddInitial(InitialTimeFixed(), container);
+   simulation->AddInitial(InitialTime(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -78,7 +105,7 @@ int main(int argc, char** argv)
 
    container.Insert(gv_zeros);
 
-   simulation->AddInitial(InitialSpaceFixed(), container);
+   simulation->AddInitial(InitialSpace(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -90,7 +117,7 @@ int main(int argc, char** argv)
    double momentum = Mom(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
    container.Insert(momentum);
 
-   simulation->AddInitial(InitialMomentumShell(), container);
+   simulation->AddInitial(InitialMomentum(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Diffusion model
@@ -106,7 +133,7 @@ int main(int argc, char** argv)
    container.Insert(D0);
 
 // Pass ownership of "diffusion" to simulation
-   simulation->AddDiffusion(DiffusionFullConstant(), container);
+   simulation->AddDiffusion(Diffusion(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 1 (recurrent)
@@ -127,7 +154,7 @@ int main(int argc, char** argv)
    double timemark = 0.1 * D0 / Sqr(Vel(momentum));
    container.Insert(timemark);
 
-   simulation->AddBoundary(BoundaryTimeRecurrent(), container);
+   simulation->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition 2 (cutoff)
@@ -149,7 +176,7 @@ int main(int argc, char** argv)
    double maxtime = 1001.0 * timemark;
    container.Insert(maxtime);
 
-   simulation->AddBoundary(BoundaryTimeExpire(), container);
+   simulation->AddBoundary(Boundary2(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 1
@@ -190,7 +217,7 @@ int main(int argc, char** argv)
    bool keep_records1 = false;
    container.Insert(keep_records1);
 
-   simulation->AddDistribution(DistributionPositionCumulativeOrder1(), container);
+   simulation->AddDistribution(Distribution1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Distribution 2
@@ -224,7 +251,7 @@ int main(int argc, char** argv)
 // Don't keep records
    container.Insert(keep_records1);
 
-   simulation->AddDistribution(DistributionPositionCumulativeOrder2(), container);
+   simulation->AddDistribution(Distribution2(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

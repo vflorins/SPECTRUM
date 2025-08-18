@@ -123,7 +123,9 @@ void TrajectoryFocused<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& s
    bhatbhat.Dyadic(bhat);
    bhatbhat_gradUvec = bhatbhat % gradU;
 // Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
-   cdUvecdt = DdtU+ (U * gradU);
+// TODO: improve Field types for these algebraic procedures
+   auto tmp = U * gradU;
+   cdUvecdt = DdtU + tmp;
    bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _vel[0];
 
    slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 

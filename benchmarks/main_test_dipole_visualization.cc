@@ -1,3 +1,5 @@
+
+#include "common/fields.hh"
 #include "src/background_dipole.hh"
 #include <fstream>
 #include <iostream>
@@ -7,16 +9,16 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
-   BackgroundDipole background;
+   using Fields = Fields<Mag_t>;
+   using Background = BackgroundDipole<Fields>;
 
-   SpatialData spdata;
+   Background background;
+   DataContainer container;
+   Fields fields;
    double t = 0.0;
    int i,j,k;
    GeoVector pos, mom = gv_ones;
 
-   spdata._mask = BACKGROUND_ALL;
-
-   DataContainer container;
    container.Clear();
 
 // Initial time
@@ -69,10 +71,10 @@ int main(int argc, char** argv)
       pos[0] = -corner + i * dx;
       for(j = 0; j < N; j++) {
          pos[2] = -corner + j * dz;
-         background.GetFields(t, pos, mom, spdata);
-         outfile_x << std::setw(16) << spdata.Bvec[0] * unit_magnetic_fluid;
-         outfile_y << std::setw(16) << spdata.Bvec[1] * unit_magnetic_fluid;
-         outfile_z << std::setw(16) << spdata.Bvec[2] * unit_magnetic_fluid;
+         background.GetFields(t, pos, mom, fields);
+         outfile_x << std::setw(16) << fields.Mag()[0] * unit_magnetic_fluid;
+         outfile_y << std::setw(16) << fields.Mag()[1] * unit_magnetic_fluid;
+         outfile_z << std::setw(16) << fields.Mag()[2] * unit_magnetic_fluid;
       };
       outfile_x << std::endl;
       outfile_y << std::endl;

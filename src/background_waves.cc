@@ -200,7 +200,7 @@ void BackgroundWaves<Fields>::EvaluateBackground(void)
          };
       };
    };
-   if constexpr (Fields::Elc_found()) _fields.Elc() = 0.0;
+   if constexpr (Fields::Elc_found()) _fields.Elc() = gv_zeros;
    if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);

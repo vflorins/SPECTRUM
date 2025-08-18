@@ -32,6 +32,18 @@ public:
    using Fields = Trajectory::Fields;
    using DistributionBase = DistributionBase<Trajectory>;
 
+protected:
+
+   using DistributionBase::_t;
+   using DistributionBase::_t2;
+   using DistributionBase::_pos;
+   using DistributionBase::_pos2;
+   using DistributionBase::_mom;
+   using DistributionBase::_mom2;
+   using DistributionBase::_fields;
+   using DistributionBase::_fields2;
+   using DistributionBase::_edata;
+   using DistributionBase::_edata2;
    using DistributionBase::container;
    using DistributionBase::unit_val;
    using DistributionBase::_status;

@@ -238,7 +238,7 @@ This should not occur in fluid or MHD applications.
       if constexpr (std::is_same<T, T_found>::value)
          return true;
       else
-         return Fields<Ts...>::found();
+         return Fields<Ts...>::template found<T_found>();
    }
 
 
