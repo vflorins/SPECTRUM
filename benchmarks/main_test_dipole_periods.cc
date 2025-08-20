@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t>;
+   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DdtHatMag_t, DdtAbsMag_t>;
    using Trajectory = TrajectoryGuiding<Fields>;
    using Background = BackgroundDipole<Fields>;
 
@@ -242,7 +242,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "fields_main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "DIPOLE FIELD DRIFT PERIODS" << std::endl;
    std::cout << "=========================================================" << std::endl;

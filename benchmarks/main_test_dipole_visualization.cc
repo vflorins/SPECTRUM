@@ -53,7 +53,7 @@ int main(int argc, char** argv)
    std::ofstream outfile_x;
    std::ofstream outfile_y;
    std::ofstream outfile_z;
-   std::string background_file = "main_test_dipole_visualization_B";
+   std::string background_file = "fields_main_test_dipole_visualization_B";
    outfile_x.open(background_file + "x.dat");
    outfile_y.open(background_file + "y.dat");
    outfile_z.open(background_file + "z.dat");

@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t>;
+   using Fields = Fields<Elc_t, Mag_t, HatMag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DdtMag_t, DdtAbsMag_t, DdtHatMag_t>;
    using Trajectory = TrajectoryGuidingScatt<Fields>;
    using Background = BackgroundUniform<Fields>;
 
@@ -477,7 +477,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "main_test_pa_distro_isotrop_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "fields_main_test_pa_distro_isotrop_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();

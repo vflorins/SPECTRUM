@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Vel_t, Mag_t, AbsMag_t, HatMag_t, DelAbsMag_t, DelMag_t, DelVel_t, DdtVel_t>;
+   using Fields = Fields<Vel_t, Mag_t, AbsMag_t, HatMag_t, DelAbsMag_t, DelMag_t, DelVel_t, DdtVel_t, DdtMag_t>;
    using Trajectory = TrajectoryFocused<Fields>;
    using Background = BackgroundUniform<Fields>;
 
@@ -272,7 +272,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "main_test_init_cond_records_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "fields_main_test_init_cond_records_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
