@@ -25,8 +25,8 @@ constexpr unsigned int n_max_calls = -1;
 \author Vladimir Florinski
 \date 11/24/2020
 */
-template <typename Trajectory, typename Fields>
-TrajectoryBase<Trajectory, Fields>::TrajectoryBase(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+TrajectoryBase<Trajectory, Fields, params>::TrajectoryBase(void)
               : Params("", 0, STATE_NONE)
 {
 };
@@ -39,8 +39,8 @@ TrajectoryBase<Trajectory, Fields>::TrajectoryBase(void)
 \param[in] specie_in  Particle's specie
 \param[in] presize_in Initial lengths of the containers
 */
-template <typename Trajectory, typename Fields>
-TrajectoryBase<Trajectory, Fields>::TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+TrajectoryBase<Trajectory, Fields, params>::TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
               : Params(name_in, specie_in, status_in)
 {
    PreSize(presize_in);
@@ -51,8 +51,8 @@ TrajectoryBase<Trajectory, Fields>::TrajectoryBase(const std::string& name_in, u
 \date 04/15/2022
 \param[in] init_cap Initial array capacity
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::PreSize(int init_cap)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::PreSize(int init_cap)
 {
    traj_t.clear();
    traj_pos.clear();
@@ -67,8 +67,8 @@ void TrajectoryBase<Trajectory, Fields>::PreSize(int init_cap)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::ResetAllBoundaries(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::ResetAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -90,8 +90,8 @@ void TrajectoryBase<Trajectory, Fields>::ResetAllBoundaries(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::ComputeAllBoundaries(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -104,8 +104,8 @@ void TrajectoryBase<Trajectory, Fields>::ComputeAllBoundaries(void)
 \author Vladimir Florinski
 \date 02/06/2021
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::UpdateAllBoundaries(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -121,8 +121,8 @@ void TrajectoryBase<Trajectory, Fields>::UpdateAllBoundaries(void)
 \param[out] pt     Nearest index on the small side
 \param[out] weight Weight of the nearest point
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::GetIdx(double t_in, int& pt, double& weight) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::GetIdx(double t_in, int& pt, double& weight) const
 {
 // For a negative "t_in", return an index of "-1" and weight of 0. The calling program must check for this to avoid a memory access error.
    if (t_in < 0.0) {
@@ -148,8 +148,8 @@ void TrajectoryBase<Trajectory, Fields>::GetIdx(double t_in, int& pt, double& we
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::ReverseMomentum(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::ReverseMomentum(void)
 {
    _mom *= -1.0;
 };
@@ -161,35 +161,38 @@ void TrajectoryBase<Trajectory, Fields>::ReverseMomentum(void)
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::TimeBoundaryProximityCheck(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::TimeBoundaryProximityCheck(void)
 {
    unsigned int bnd;
    double delta, delta_next;
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   delta_next = -sp_large * _dmax / c_code;
-#else
-   delta_next = sp_large * _dmax / c_code;
-#endif
+   if constexpr (params.timeflow == TimeFlow::forward) {
+      delta_next = -sp_large * _dmax / c_code;
+   }
+   else {
+      delta_next = sp_large * _dmax / c_code;
+   }
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
    for (bnd = 0; bnd < bcond_t.size(); bnd++) {
       delta = bcond_t[bnd]->GetDelta();
 
 // This gives the smallest delta in magnitude. Note that if two boundaries share a time stamp, only the first one will be processed. The first check is done to skip the event boundaries for which the crossing has already happened.
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-      if ((delta <= 0.0) && (delta > delta_next)) delta_next = delta;
-#else
-      if ((delta >= 0.0) && (delta < delta_next)) delta_next = delta;
-#endif
+      if constexpr (params.timeflow == TimeFlow::forward) {
+         if ((delta <= 0.0) && (delta > delta_next)) delta_next = delta;
+      }
+      else {
+         if ((delta >= 0.0) && (delta < delta_next)) delta_next = delta;
+      }
    };
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
-#else
-   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
-#endif
+   if constexpr (params.timeflow == TimeFlow::forward) {
+      if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
+   }
+   else {
+      if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _dmax / c_code);
+   }
 };
 
 /*!
@@ -199,8 +202,8 @@ void TrajectoryBase<Trajectory, Fields>::TimeBoundaryProximityCheck(void)
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryBase<Trajectory, Fields>::SpaceTerminateCheck(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+bool TrajectoryBase<Trajectory, Fields, params>::SpaceTerminateCheck(void)
 try {
    uint16_t bnd_status;
    unsigned int bnd = 0, distro;
@@ -225,7 +228,7 @@ try {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
          // todo modify signature of ProcessTrajectory
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, _t, _pos, _mom, _fields, magedata, action);
       };
    };
 
@@ -258,8 +261,8 @@ catch (ExBoundaryError& exception) {
 \author Lucius Schoenbaum
 \date 08/14/2025
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::CommonFields(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::CommonFields(void)
 try {
 // Compute fields and reset derivative data
    background->GetFields(_t, _pos, ConvertMomentum(), _fields);
@@ -298,8 +301,8 @@ catch (ExFieldError& exception) {
 \param[in]  mom_in Momentum (p,mu,phi) coordinates
 \param[out] spdata Spatial data at t_in and pos_in for output
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
 try {
    background->GetFields(t_in, pos_in, mom_in, fields);
 }
@@ -334,8 +337,8 @@ catch (ExFieldError& exception) {
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryBase<Trajectory, Fields>::RKSlopes(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+bool TrajectoryBase<Trajectory, Fields, params>::RKSlopes(void)
 {
    unsigned int istage, islope;
 
@@ -343,15 +346,16 @@ bool TrajectoryBase<Trajectory, Fields>::RKSlopes(void)
 
 // Advance to the current stage.
       for (islope = 0; islope < istage; islope++) {
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-         _t += RK_Table.a[istage] * dt;
-         _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
-         _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
-#else
-         _t -= RK_Table.a[istage] * dt;
-         _pos -= dt * RK_Table.b[istage][islope] * slope_pos[islope];
-         _mom -= dt * RK_Table.b[istage][islope] * slope_mom[islope];
-#endif
+         if constexpr (params.timeflow == TimeFlow::forward) {
+            _t += RK_Table.a[istage] * dt;
+            _pos += dt * RK_Table.b[istage][islope] * slope_pos[islope];
+            _mom += dt * RK_Table.b[istage][islope] * slope_mom[islope];
+         }
+         else {
+            _t -= RK_Table.a[istage] * dt;
+            _pos -= dt * RK_Table.b[istage][islope] * slope_pos[islope];
+            _mom -= dt * RK_Table.b[istage][islope] * slope_mom[islope];
+         }
       };
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the full RK step cannot be completed. In that case the function should return immediately and the last recorded position and momentum will be saved as if the step has completed. A check for momentum boundary is not needed; if one was crossed it will be recorded at the end of the step.
@@ -382,37 +386,37 @@ bool TrajectoryBase<Trajectory, Fields>::RKSlopes(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryBase<Trajectory, Fields>::RKStep(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+bool TrajectoryBase<Trajectory, Fields, params>::RKStep(void)
 {
    unsigned int islope;
    double error = 1.0;
    GeoVector pos_lo;
 
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   _t += dt;
-#else
-   _t -= dt;
-#endif
+   if constexpr (params.timeflow == TimeFlow::forward) {
+      _t += dt;
+   }
+   else {
+      _t -= dt;
+   }
 // For adaptive schemes "pos_lo" is computed with a lower order version (we only use position to test for accuracy).
-   if (RK_Table.adaptive) pos_lo = _pos;
+   if constexpr (RK_Table.adaptive) pos_lo = _pos;
    for (islope = 0; islope < RK_Table.stages; islope++) {
-
-#if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-      _pos += dt * RK_Table.v[islope] * slope_pos[islope];
-      _mom += dt * RK_Table.v[islope] * slope_mom[islope];
-      if (RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
-#else
-      _pos -= dt * RK_Table.v[islope] * slope_pos[islope];
-      _mom -= dt * RK_Table.v[islope] * slope_mom[islope];
-      if (RK_Table.adaptive) pos_lo -= dt * RK_Table.w[islope] * slope_pos[islope];
-#endif
-
+      if constexpr (params.timeflow == TimeFlow::forward) {
+         _pos += dt * RK_Table.v[islope] * slope_pos[islope];
+         _mom += dt * RK_Table.v[islope] * slope_mom[islope];
+         if (RK_Table.adaptive) pos_lo += dt * RK_Table.w[islope] * slope_pos[islope];
+      }
+      else {
+         _pos -= dt * RK_Table.v[islope] * slope_pos[islope];
+         _mom -= dt * RK_Table.v[islope] * slope_mom[islope];
+         if (RK_Table.adaptive) pos_lo -= dt * RK_Table.w[islope] * slope_pos[islope];
+      }
    };
    _vel = Vel(_mom, specie);
 
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
-   if (RK_Table.adaptive) {
+   if constexpr (RK_Table.adaptive) {
       error = sqrt((_pos - pos_lo).Norm2() / Sqr(rk_tol_abs + rk_tol_rel * (_pos.Norm() + pos_lo.Norm())));
       dt_adaptive = dt * rk_adjust * pow(error, -1.0 / RK_Table.order);
       dt_adaptive = fmin(dt * rk_safety, dt_adaptive);
@@ -433,10 +437,11 @@ bool TrajectoryBase<Trajectory, Fields>::RKStep(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::HandleBoundaries(void)
 {
-   unsigned int bnd, bnd_status, distro;
+   int bnd;
+   unsigned int bnd_status, distro;
 
 // Check _all_ boundary crossings. More than one may be crossed at any time.
    ComputeAllBoundaries();
@@ -468,7 +473,7 @@ void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
    if (bactive_m >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_m[bactive_m]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, _t, _pos, _mom, _fields, magedata, action);
       };
       bactive_m = -1;
    };
@@ -522,7 +527,7 @@ void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0,  _t, _pos, _mom, _fields, magedata, action);
       };
       bactive_s = -1;
    };
@@ -549,7 +554,7 @@ void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
    if (bactive_t >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_t[bactive_t]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, edata0, _t, _pos, _mom, _fields, _edata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], fields0, _t, _pos, _mom, _fields, magedata, action);
       };
       bactive_t = -1;
    };
@@ -566,8 +571,8 @@ void TrajectoryBase<Trajectory, Fields>::HandleBoundaries(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryBase<Trajectory, Fields>::RKAdvance(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+bool TrajectoryBase<Trajectory, Fields, params>::RKAdvance(void)
 {
 // Retrieve latest point of the trajectory and store locally
    Load();
@@ -603,28 +608,12 @@ bool TrajectoryBase<Trajectory, Fields>::RKAdvance(void)
    return true;
 };
 
-#ifdef RECORD_BMAG_EXTREMA
-/*!
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 08/11/2025
-*/
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::UpdateBmagExtrema(void)
-{
-   if constexpr (Fields::Mag_found()) {
-      _edata.Bmag_min = fmin(_edata.Bmag_min, _fields.Mag());
-      _edata.Bmag_max = fmax(_edata.Bmag_max, _fields.Mag());
-   }
-};
-#endif
-
 /*!
 \author Vladimir Florinski
 \date 09/30/2022
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::MomentumCorrection(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::MomentumCorrection(void)
 {
 };
 
@@ -633,8 +622,8 @@ void TrajectoryBase<Trajectory, Fields>::MomentumCorrection(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryBase<Trajectory, Fields>::IsSimmulationReady(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+bool TrajectoryBase<Trajectory, Fields, params>::IsSimmulationReady(void) const
 {
 // Particle specie must be known
    if ((specie < 0) || (specie >= MAX_PARTICLE_SPECIES)) return false;
@@ -673,11 +662,9 @@ bool TrajectoryBase<Trajectory, Fields>::IsSimmulationReady(void) const
 \date 10/08/2024
 \param[in] specie_in Index of the particle species defined in physics.hh
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::SetSpecie(unsigned int specie_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::SetSpecie(unsigned int specie_in)
 {
-   int bnd;
-
    Params::SetSpecie(specie_in);
 // The factor multiplying "SpeciesCharges[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
    q = charge_mass_particle * SpeciesCharges[specie];
@@ -699,8 +686,8 @@ void TrajectoryBase<Trajectory, Fields>::SetSpecie(unsigned int specie_in)
 \param[in] background_in Background object for type recognition
 \param[in] container_in  Data container for initializating the background object
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
 {
    background = background_in.Clone();
    background->SetSpecie(specie);
@@ -716,8 +703,8 @@ void TrajectoryBase<Trajectory, Fields>::AddBackground(const BackgroundBase& bac
 \param[in] diffusion_in Diffusion object for type recognitions
 \param[in] container_in Data container for initializating the diffusion object
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    diffusion = diffusion_in.Clone();
    diffusion->SetSpecie(specie);
@@ -732,8 +719,8 @@ void TrajectoryBase<Trajectory, Fields>::AddDiffusion(const DiffusionBase& diffu
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
 // Time boundary
    if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
@@ -766,8 +753,8 @@ void TrajectoryBase<Trajectory, Fields>::AddBoundary(const BoundaryBase& boundar
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
 // Time condition
    if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
@@ -796,16 +783,16 @@ void TrajectoryBase<Trajectory, Fields>::AddInitial(const InitialBase& initial_i
    if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
-#ifdef RECORD_BMAG_EXTREMA
 /*!
 \author Juan G Alonso Guzman
 \date 06/22/2023
 \return Minimum |B| along trajectory
 */
-template <typename Trajectory, typename Fields>
-double TrajectoryBase<Trajectory, Fields>::GetBmagMin(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+double TrajectoryBase<Trajectory, Fields, params>::GetBmagMin(void) const
 {
-   return _edata.Bmag_min;
+   if constexpr (params.record_bmag_extrema)
+      return magedata.Bmag_min;
 };
 
 /*!
@@ -813,12 +800,12 @@ double TrajectoryBase<Trajectory, Fields>::GetBmagMin(void) const
 \date 06/22/2023
 \return Maximum |B| along trajectory
 */
-template <typename Trajectory, typename Fields>
-double TrajectoryBase<Trajectory, Fields>::GetBmagMax(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+double TrajectoryBase<Trajectory, Fields, params>::GetBmagMax(void) const
 {
-   return _edata.Bmag_max;
+   if constexpr (params.record_bmag_extrema)
+      return magedata.Bmag_max;
 };
-#endif
 
 /*!
 \author Vladimir Florinski
@@ -826,20 +813,21 @@ double TrajectoryBase<Trajectory, Fields>::GetBmagMax(void) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Position
 */
-template <typename Trajectory, typename Fields>
-GeoVector TrajectoryBase<Trajectory, Fields>::GetPosition(double t_in) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+GeoVector TrajectoryBase<Trajectory, Fields, params>::GetPosition(double t_in) const
 {
    int pt;
    double weight;
 
-#ifdef RECORD_TRAJECTORY
-   GetIdx(t_in, pt, weight);
-   if (pt < 0) return traj_pos[0];
-   else return weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
-#else
-   std::cerr << "Cannot get position with respect to time because it is not being recorded." << std::endl;
-   return gv_zeros;
-#endif
+   if constexpr (params.record_trajectory) {
+      GetIdx(t_in, pt, weight);
+      if (pt < 0) return traj_pos[0];
+      else return weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
+   }
+   else {
+      std::cerr << "Cannot get position with respect to time because it is not being recorded." << std::endl;
+      return gv_zeros;
+   }
 };
 
 /*!
@@ -848,32 +836,33 @@ GeoVector TrajectoryBase<Trajectory, Fields>::GetPosition(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Velocity
 */
-template <typename Trajectory, typename Fields>
-GeoVector TrajectoryBase<Trajectory, Fields>::GetVelocity(double t_in) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+GeoVector TrajectoryBase<Trajectory, Fields, params>::GetVelocity(double t_in) const
 {
    int pt;
    double weight, mom1, vel1, mom2, vel2;
 
-#ifdef RECORD_TRAJECTORY
-   GetIdx(t_in, pt, weight);
-   if (pt < 0) {
-      mom1 = traj_mom[0].Norm();
-      vel1 = Vel(mom1, specie);
-      return (vel1 / mom1) * traj_mom[0];
-   }
+   if constexpr (params.record_trajectory) {
+      GetIdx(t_in, pt, weight);
+      if (pt < 0) {
+         mom1 = traj_mom[0].Norm();
+         vel1 = Vel(mom1, specie);
+         return (vel1 / mom1) * traj_mom[0];
+      }
 
 // Linear interpolation between nearest frames
+      else {
+         mom1 = traj_mom[pt].Norm();
+         vel1 = Vel(mom1, specie);
+         mom2 = traj_mom[pt + 1].Norm();
+         vel2 = Vel(mom2, specie);
+         return weight * (vel1 / mom1) * traj_mom[pt] + (1.0 - weight) * (vel2 / mom2) * traj_mom[pt + 1];
+      };
+   }
    else {
-      mom1 = traj_mom[pt].Norm();
-      vel1 = Vel(mom1, specie);
-      mom2 = traj_mom[pt + 1].Norm();
-      vel2 = Vel(mom2, specie);
-      return weight * (vel1 / mom1) * traj_mom[pt] + (1.0 - weight) * (vel2 / mom2) * traj_mom[pt + 1];
-   };
-#else
-   std::cerr << "Cannot get velocity with respect to time because it is not being recorded." << std::endl;
-   return gv_zeros;
-#endif
+      std::cerr << "Cannot get velocity with respect to time because it is not being recorded." << std::endl;
+      return gv_zeros;
+   }
 };
 
 /*!
@@ -882,20 +871,21 @@ GeoVector TrajectoryBase<Trajectory, Fields>::GetVelocity(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Kinetic energy
 */
-template <typename Trajectory, typename Fields>
-double TrajectoryBase<Trajectory, Fields>::GetEnergy(double t_in) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+double TrajectoryBase<Trajectory, Fields, params>::GetEnergy(double t_in) const
 {
    int pt;
    double weight;
 
-#ifdef RECORD_TRAJECTORY
-   GetIdx(t_in, pt, weight);
-   if (pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
-   else return weight * EnrKin(traj_mom[pt].Norm(), specie) + (1.0 - weight) * EnrKin(traj_mom[pt + 1].Norm(), specie);
-#else
-   std::cerr << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
-   return 0.0;
-#endif
+   if constexpr (params.record_trajectory) {
+      GetIdx(t_in, pt, weight);
+      if (pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
+      else return weight * EnrKin(traj_mom[pt].Norm(), specie) + (1.0 - weight) * EnrKin(traj_mom[pt + 1].Norm(), specie);
+   }
+   else {
+      std::cerr << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
+      return 0.0;
+   }
 };
 
 /*!
@@ -904,26 +894,26 @@ double TrajectoryBase<Trajectory, Fields>::GetEnergy(double t_in) const
 \param[in] t_in Time point (use a negative value for trajectory end)
 \return Integral along trajectory
 */
-template <typename Trajectory, typename Fields>
-double TrajectoryBase<Trajectory, Fields>::GetDistance(double t_in) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+double TrajectoryBase<Trajectory, Fields, params>::GetDistance(double t_in) const
 {
    int pt, ipt;
    double weight, length = 0.0;
    GeoVector pos_final;
 
-#ifdef RECORD_TRAJECTORY
-   GetIdx(t_in, pt, weight);
-   if (pt >= 0) {
-      for (ipt = 0; ipt < pt; ipt++) length += (traj_pos[ipt + 1] - traj_pos[ipt]).Norm();
-      pos_final = weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
-      length += (pos_final - traj_pos[pt]).Norm();
-   };
-
-   return length;
-#else
-   std::cerr << "Cannot get distance along trajectory because it is not being recorded." << std::endl;
-   return 0.0;
-#endif
+   if constexpr (params.record_trajectory) {
+      GetIdx(t_in, pt, weight);
+      if (pt >= 0) {
+         for (ipt = 0; ipt < pt; ipt++) length += (traj_pos[ipt + 1] - traj_pos[ipt]).Norm();
+         pos_final = weight * traj_pos[pt] + (1.0 - weight) * traj_pos[pt + 1];
+         length += (pos_final - traj_pos[pt]).Norm();
+      };
+      return length;
+   }
+   else {
+      std::cerr << "Cannot get distance along trajectory because it is not being recorded." << std::endl;
+      return 0.0;
+   }
 };
 
 /*!
@@ -933,8 +923,8 @@ double TrajectoryBase<Trajectory, Fields>::GetDistance(double t_in) const
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done in"Advance()" at the beginning of each step.
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::SetStart(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::SetStart(void)
 try {
 
 // Get the starting time from the initial time distribution
@@ -949,12 +939,12 @@ try {
 
 // Record the initial spatial data for distribution purposes.
    fields0 = _fields;
-#ifdef RECORD_BMAG_EXTREMA
-// Initialize field extrema.
-   _edata.Bmag_min = _fields.Mag();
-   _edata.Bmag_max = _fields.Mag();
-   edata0 = _edata;
-#endif
+   if constexpr (params.record_bmag_extrema) {
+      magedata.Bmag_min = _fields.AbsMag();
+      magedata.Bmag_max = _fields.AbsMag();
+      magedata.Bmag_min_initial = _fields.AbsMag();
+      magedata.Bmag_max_initial = _fields.AbsMag();
+   }
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
    if constexpr (Fields::HatMag_found()) {
@@ -970,12 +960,12 @@ try {
    dt_adaptive = sp_large * _dmax / c_code;
 
 // Re-initialize the trajectory arrays
-#ifdef RECORD_TRAJECTORY
-   PreSize(presize);
-#else
-   PreSize(1);
-   n_segs = 0;
-#endif
+   if constexpr (params.record_trajectory) {
+      PreSize(presize);
+   }
+   else {
+      PreSize(1);
+   }
 
 // The first element of traj_* arrays is necessary even if trajectories are not being recorded because it is used by the distributions in "ProcessTrajectory"
    traj_t.push_back(_t);
@@ -1014,13 +1004,13 @@ catch (ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 12/17/2020
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::Integrate(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::Integrate(void)
 {
    bool was_advanced;
-#if TRAJ_ADV_SAFETY_LEVEL == 2
-   int time_step_adaptations = 0;
-#endif
+   if constexpr (params.traj_adv_safety_level == TrajectorySafetyLevel::high) {
+      traj_safety.time_step_adaptations = 0;
+   }
 
 // Time loop is very simple - a single call to "Advance()" followed by a global boundary update. It is the responsibility of Advance() to record the distribution on boundary crossing events.
    while (BITS_LOWERED(_status, TRAJ_FINISH) && BITS_LOWERED(_status, TRAJ_DISCARD)) {
@@ -1028,41 +1018,42 @@ void TrajectoryBase<Trajectory, Fields>::Integrate(void)
 // Attempt to advance trajectory by one segment
       was_advanced = Advance();
 
-#ifdef RECORD_BMAG_EXTREMA
 // Update |B| extrema
-      if (was_advanced) UpdateBmagExtrema();
-#endif
+      if constexpr (params.record_bmag_extrema)
+         if (was_advanced) {
+            magedata.Bmag_min = fmin(magedata.Bmag_min, _fields.AbsMag());
+            magedata.Bmag_max = fmax(magedata.Bmag_max, _fields.AbsMag());
+         }
 
-#if TRAJ_ADV_SAFETY_LEVEL > 1
+      if constexpr (params.traj_adv_safety_level > 1) {
 // Too many steps were taken - terminate
-      if (Segments() > max_trajectory_steps) {
-         RAISE_BITS(_status, TRAJ_DISCARD);
-         throw ExMaxStepsReached();
-      };
+         if (Segments() > traj_safety.max_trajectory_steps) {
+            RAISE_BITS(_status, TRAJ_DISCARD);
+            throw ExMaxStepsReached();
+         };
 
 // Too many time adaptations were performed - terminate
-      if (was_advanced) time_step_adaptations = 0;
-      else {
-         time_step_adaptations++;
-         if (time_step_adaptations > max_time_adaptations) {
-            RAISE_BITS(_status, TRAJ_DISCARD);
-            throw ExMaxTimeAdaptsReached();
+         if (was_advanced) traj_safety.time_step_adaptations = 0;
+         else {
+            traj_safety.time_step_adaptations++;
+            if (traj_safety.time_step_adaptations > traj_safety.max_time_adaptations) {
+               RAISE_BITS(_status, TRAJ_DISCARD);
+               throw ExMaxTimeAdaptsReached();
+            };
          };
       };
-#endif
 
-#if TRAJ_ADV_SAFETY_LEVEL > 0
+      if constexpr (params.traj_adv_safety_level > 0) {
 // Time step is too small - terminate
-      if (dt < sp_tiny * _dmax / c_code) {
-         RAISE_BITS(_status, TRAJ_DISCARD);
-         throw ExTimeStepTooSmall();
-      }
-      else if (!std::isnormal(dt)) {
-         RAISE_BITS(_status, TRAJ_DISCARD);
-         throw ExTimeStepNan();
+         if (dt < sp_tiny * _dmax / c_code) {
+            RAISE_BITS(_status, TRAJ_DISCARD);
+            throw ExTimeStepTooSmall();
+         }
+         else if (!std::isnormal(dt)) {
+            RAISE_BITS(_status, TRAJ_DISCARD);
+            throw ExTimeStepNan();
+         };
       };
-#endif
-
    };
 };
 
@@ -1071,8 +1062,8 @@ void TrajectoryBase<Trajectory, Fields>::Integrate(void)
 \author Vladimir Florinski
 \date 02/17/2023
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::StopBackground(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::StopBackground(void)
 {
    background->StopServerFront();
 };
@@ -1085,8 +1076,8 @@ void TrajectoryBase<Trajectory, Fields>::StopBackground(void)
 \param[in] bnd    Which boundary condition to use
 \return int number of crossings
 */
-template <typename Trajectory, typename Fields>
-int TrajectoryBase<Trajectory, Fields>::Crossings(unsigned int output, unsigned int bnd) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+int TrajectoryBase<Trajectory, Fields, params>::Crossings(unsigned int output, unsigned int bnd) const
 {
    if (bnd < 0) return 0;
 
@@ -1105,8 +1096,8 @@ int TrajectoryBase<Trajectory, Fields>::Crossings(unsigned int output, unsigned 
 \param[in] stride     Distance between points in the output (optional). If stride = 0, output based on dt_out.
 \param[in] dt_out     Time increment at which to output quantities when stride = 0
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output,
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output,
                                      unsigned int stride, double dt_out) const
 {
    unsigned int pt, iter_out = 0, max_out = 1000000;
@@ -1114,54 +1105,55 @@ void TrajectoryBase<Trajectory, Fields>::PrintTrajectory(const std::string traj_
    GeoVector pos_t, vel_t;
    std::ofstream trajfile;
 
-#ifdef RECORD_TRAJECTORY
-   trajfile.open(traj_name.c_str());
+   if constexpr (params.record_trajectory) {
+      trajfile.open(traj_name.c_str());
 
 // Generate multiple column output
-   trajfile << std::setprecision(12);
+      trajfile << std::setprecision(12);
 
-   if (stride) {
-      for (pt = 0; pt < traj_t.size(); pt += stride) {
+      if (stride) {
+         for (pt = 0; pt < traj_t.size(); pt += stride) {
 //FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_mom[0]) >> pitch angle cosine (_mom[1]).
-         mom_mag = traj_mom[pt].Norm();
-         vm_ratio = Vel(mom_mag, specie) / mom_mag;
+            mom_mag = traj_mom[pt].Norm();
+            vm_ratio = Vel(mom_mag, specie) / mom_mag;
 
-         if (output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
-         if (output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
-         trajfile << std::endl;
+            if (output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
+            if (output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
+            trajfile << std::endl;
+         };
+      }
+      else {
+         while (t_out < traj_t.back() && iter_out < max_out) {
+            pos_t = GetPosition(t_out);
+            vel_t = GetVelocity(t_out);
+            engkin_t = GetEnergy(t_out);
+
+            if (output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
+            if (output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
+            if (output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
+            if (output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
+            trajfile << std::endl;
+
+            t_out += dt_out;
+         };
       };
+
+      trajfile.close();
    }
    else {
-      while (t_out < traj_t.back() && iter_out < max_out) {
-         pos_t = GetPosition(t_out);
-         vel_t = GetVelocity(t_out);
-         engkin_t = GetEnergy(t_out);
-
-         if (output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
-         if (output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
-         trajfile << std::endl;
-
-         t_out += dt_out;
-      };
-   };
-
-   trajfile.close();
-#else
-   std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
-   return;
-#endif
+      std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
+      return;
+   }
 };
 
 /*!
@@ -1171,39 +1163,40 @@ void TrajectoryBase<Trajectory, Fields>::PrintTrajectory(const std::string traj_
 \param[in] phys_units Use physical units for output
 \param[in] stride     Distance between points in the output (optional)
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride) const
 {
    unsigned int pt;
    std::ofstream trajfile;
 
-#ifdef RECORD_TRAJECTORY
-   trajfile.open(traj_name.c_str());
+   if constexpr (params.record_trajectory) {
+      trajfile.open(traj_name.c_str());
 
 // Generate CSV output
-   trajfile << std::setprecision(12);
-   for (pt = 0; pt < traj_t.size(); pt += stride) {
-      trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
-      trajfile << ",";
-      trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
-      trajfile << ",";
-      trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
-      trajfile << std::endl;
-   };
+      trajfile << std::setprecision(12);
+      for (pt = 0; pt < traj_t.size(); pt += stride) {
+         trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
+         trajfile << ",";
+         trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
+         trajfile << ",";
+         trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
+         trajfile << std::endl;
+      };
 
-   trajfile.close();
-#else
-   std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
-   return;
-#endif
+      trajfile.close();
+   }
+   else {
+      std::cerr << "Cannot print trajectory because it is not being recorded." << std::endl;
+      return;
+   }
 };
 
 /*!
 \author Vladimir Florinski
 \date 12/27/2021
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::InterpretStatus(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::InterpretStatus(void) const
 {
    std::cerr << "Trajectory status: ";
    if (BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
@@ -1221,8 +1214,8 @@ void TrajectoryBase<Trajectory, Fields>::InterpretStatus(void) const
 \author Vladimir Florinski
 \date 02/22/2023
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryBase<Trajectory, Fields>::PrintInfo(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+void TrajectoryBase<Trajectory, Fields, params>::PrintInfo(void) const
 {
    int obj;
    std::cerr << std::endl;

@@ -67,6 +67,7 @@ public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
+   using Trajectory::params;
 
 protected:
 
@@ -117,9 +118,6 @@ protected:
 //! Fields (transient)
    Fields _fields;
 
-//! Extrema data (transient)
-   ExtremaData _edata;
-
 //! Second time value (transient)
    double _t2;
 
@@ -132,11 +130,11 @@ protected:
 //! Second fields instance (transient)
    Fields _fields2;
 
-//! Second extrema data instance (transient)
-   ExtremaData _edata2;
-
 //! Internal value to be binned (transient)
    GeoVector _value;
+
+//! Extrema data (transient)
+   MagExtremaData<params.record_bmag_extrema> _magedata;
 
 //! Record of values (transient)
    std::vector <GeoVector> values_record;
@@ -233,8 +231,8 @@ public:
    GeoVector* GetValuesRecordAddress(void);
 
 //! Analyze the trajectory outcome and record it in the distribution (generic)
-   void ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1, const ExtremaData& edata1,
-                          double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const ExtremaData& edata2,
+   void ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1,
+                          double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const MagExtremaData<params.record_bmag_extrema>& magedata,
                           int action_in);
 
 //! Dump the complete distribution to a file (stub)

@@ -18,8 +18,8 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t, Elc_t>;
-   using Trajectory = TrajectoryFieldline<Fields, Elc_t>;
+   using Fields = Fields<Mag_t>;
+   using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
    using Background = BackgroundWaves<Fields>;
 
    using InitialTime = InitialTimeFixed<Trajectory>;

@@ -14,15 +14,33 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 
-struct ExtremaData {
+// todo deprecated in this branch
 
-//! Maximum magnetic field magnitude along a trajectory
+//struct ExtremaData {
+//
+////! Maximum magnetic field magnitude along a trajectory
+//   double Bmag_max;
+//
+////! Minimum magnetic field magnitude along a trajectory
+//   double Bmag_min;
+//
+//};
+
+
+template <bool record_bmag_extrema>
+struct MagExtremaData;
+template<>
+struct MagExtremaData<true> {
+//! Extrema data for magnetic field magnitude along a trajectory (transient)
    double Bmag_max;
-
-//! Minimum magnetic field magnitude along a trajectory
    double Bmag_min;
-
+//! Extrema data at the start of the trajectory (transient)
+   double Bmag_max_initial;
+   double Bmag_min_initial;
 };
+template<>
+struct MagExtremaData<false> {};
+
 
 
 };

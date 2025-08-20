@@ -187,8 +187,8 @@ void* DistributionBase<Trajectory>::GetWeightsRecordAddress(size_t& size)
 \param[in] action_in Action to calculate the weight
 */
 template <typename Trajectory>
-void DistributionBase<Trajectory>::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1, const ExtremaData& edata1,
-                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const ExtremaData& edata2,
+void DistributionBase<Trajectory>::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1,
+                                         double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const MagExtremaData<params.record_bmag_extrema>& magedata,
                                          int action_in)
 {
    SetState(t1, pos1, mom1);
@@ -197,8 +197,10 @@ void DistributionBase<Trajectory>::ProcessTrajectory(double t1, const GeoVector&
    _pos2 = pos2;
    _mom2 = mom2;
    _fields2 = fields2;
-   _edata2.Bmag_min = edata2.Bmag_min;
-   _edata2.Bmag_max = edata2.Bmag_max;
+   if constexpr (params.record_bmag_extrema) {
+      _magedata.Bmag_min = magedata.Bmag_min;
+      _magedata.Bmag_max = magedata.Bmag_max;
+   }
    EvaluateValue();
    EvaluateWeight(action_in);
    AddEvent();

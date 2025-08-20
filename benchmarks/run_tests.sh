@@ -22,7 +22,7 @@ pa_distro_iso_test=false
 pa_scatt_test=false
 perp_diff_test=false
 full_diff_test=false
-modulation_cartesian_parker_spiral=false
+modulation_cartesian_parker_spiral=true
 
 # Function to go up one directory and configure code
 function configure {
@@ -151,10 +151,12 @@ report_if_failed $? "FULL (PERP+PARA) DIFFUSION"
 if $modulation_cartesian_parker_spiral
 then
 	configure PARALLEL PARKER BACKWARD 25 CARTESIAN 1 0
-	make_and_run cartesian_backgrounds main_generate_cartesian_solarwind_background 1
-	report_if_failed $? "CARTESIAN PARKER SPIRAL BACKGROUND GENERATION"
-	make_and_run output_data main_test_modulation_cartesian_parker $n_cpus $long_sim $long_batch_size
-	report_if_failed $? "MODULATION CARTESIAN PARKER SPIRAL"
-	make_and_run output_data main_postprocess_modulation_cartesian_parker 1
-	report_if_failed $? "POST-PROCESSING MODULATION CARTESIAN PARKER SPIRAL"
+#	make_and_run cartesian_backgrounds main_generate_cartesian_solarwind_background 1
+#	report_if_failed $? "CARTESIAN PARKER SPIRAL BACKGROUND GENERATION"
+#	make_and_run output_data main_test_modulation_cartesian_parker $n_cpus $long_sim $long_batch_size
+#	report_if_failed $? "MODULATION CARTESIAN PARKER SPIRAL"
+#	make_and_run output_data main_postprocess_modulation_cartesian_parker 1
+#	report_if_failed $? "POST-PROCESSING MODULATION CARTESIAN PARKER SPIRAL"
 fi
+
+

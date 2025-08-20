@@ -34,6 +34,7 @@ public:
 
 protected:
 
+   using DistributionBase::params;
    using DistributionBase::_t;
    using DistributionBase::_t2;
    using DistributionBase::_pos;
@@ -42,8 +43,7 @@ protected:
    using DistributionBase::_mom2;
    using DistributionBase::_fields;
    using DistributionBase::_fields2;
-   using DistributionBase::_edata;
-   using DistributionBase::_edata2;
+   using DistributionBase::_magedata;
    using DistributionBase::container;
    using DistributionBase::unit_val;
    using DistributionBase::_status;

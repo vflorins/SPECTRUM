@@ -920,8 +920,16 @@ void DistributionLossCone<Trajectory>::EvaluateValue(void)
 template <typename Trajectory>
 void DistributionLossCone<Trajectory>::RecordLossCone(void)
 {
-   if (val_time == 0) _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields.Mag() / _edata2.Bmag_max)));
-   else _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields2.Mag() / _edata2.Bmag_max)));
+   if constexpr (params.record_bmag_extrema) {
+      GeoVector B = _fields.Mag();
+      auto Bmin = _magedata.Bmag_min;
+      auto Bmax = _magedata.Bmag_max;
+      if (val_time == 0) _weight = GeoVector(Bmin, Bmax, asin(sqrt(B / Bmax)));
+      else _weight = GeoVector(Bmin, Bmax, asin(sqrt(B / Bmax)));
+   }
+   else {
+      // todo - this probably isn't what you want - print an error message
+   }
 };
 
 };

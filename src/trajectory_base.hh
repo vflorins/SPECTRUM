@@ -17,7 +17,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "boundary_base.hh"
 #include "initial_base.hh"
 #include <common/rk_config.hh>
-
+#include "trajectory_params.hh"
 
 namespace Spectrum {
 
@@ -30,13 +30,13 @@ namespace Spectrum {
 //! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
 #define TRAJ_ADV_SAFETY_LEVEL 2
 
-#if TRAJ_ADV_SAFETY_LEVEL == 2
-//! Largest length for single trajectory
-constexpr int max_trajectory_steps = 10000000;
-
-//! Largest number of time step adaptations for a single time step
-constexpr int max_time_adaptations = 100;
-#endif
+//#if TRAJ_ADV_SAFETY_LEVEL == 2
+////! Largest length for single trajectory
+//constexpr int max_trajectory_steps = 10000000;
+//
+////! Largest number of time step adaptations for a single time step
+//constexpr int max_time_adaptations = 100;
+//#endif
 
 //! The trajecory will end after the step is completed
 constexpr uint16_t TRAJ_FINISH = 0x0010;
@@ -160,18 +160,18 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-// todo an abstract Trajectory - templated over Trajectory and Fields
-// TODO change the names of template arg #1 to Trajectory!!!
-template <typename Trajectory_, typename Fields_>
+template <typename Trajectory_, typename Fields_, TrajectoryParams params_ = TrajectoryParams()>
 class TrajectoryBase : public Params {
 
 public:
+
+   static constexpr TrajectoryParams params = params_;
 
    using Trajectory = Trajectory_;
    using Fields = Fields_;
    using BackgroundBase = BackgroundBase<Fields>;
 
-   // Trajectory-dependent classes
+//! Trajectory-dependent classes
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using BoundaryBase = BoundaryBase<Trajectory>;
@@ -187,9 +187,6 @@ protected:
 
    //! Background object (persistent)
    std::unique_ptr<BackgroundBase> background = nullptr;
-
-
-   // todo decide visibility - public for now
 
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
@@ -227,10 +224,14 @@ protected:
 //! Momentum along trajectory (transient)
    std::vector<GeoVector> traj_mom;
 
-#ifndef RECORD_TRAJECTORY
-//! Number of trajectory segments (transient)
-   int n_segs;
-#endif
+//! Data to record during integration (transient)
+   TrajectoryRecords<params.record_trajectory> traj_records;
+
+//! Extrema data (transient)
+   MagExtremaData<params.record_bmag_extrema> magedata;
+
+//! Trajectory safety information (persistent)
+   TrajectorySafety<params.traj_adv_safety_level> traj_safety;
 
 //! Number of reflections (transient)
    int n_refl;
@@ -265,15 +266,8 @@ protected:
 //! Background-dependent dmax (transient)
    double _dmax;
 
-//! Extrema data (transient)
-   ExtremaData _edata;
-
 //! Spatial data (transient)
    Fields _fields;
-
-//! Extrema data at the start of the trajectory (transient)
-// todo review use in distribution::ProcessTrajectory
-   ExtremaData edata0;
 
 //! Spatial data at the start of the trajectory (transient)
    Fields fields0;
@@ -364,11 +358,6 @@ protected:
 //! Advance trajectory using RK method
    bool RKAdvance(void);
 
-#ifdef RECORD_BMAG_EXTREMA
-//! Update |B| maximum and minimum values along trajectory
-   void UpdateBmagExtrema(void);
-#endif
-
 //! Advance trajectory
    virtual bool Advance(void) = 0;
 
@@ -413,13 +402,11 @@ public:
 //! Add an initial condition
    void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
 
-#ifdef RECORD_BMAG_EXTREMA
 //! Get |B| minimum
    double GetBmagMin(void) const;
 
 //! Get |B| maximum
    double GetBmagMax(void) const;
-#endif
 
 //! Return the position at a given time
    GeoVector GetPosition(double t_in) const;
@@ -479,8 +466,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -491,8 +478,8 @@ inline void TrajectoryBase<Trajectory, Fields>::ConnectDistribution(const std::s
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -502,8 +489,8 @@ inline void TrajectoryBase<Trajectory, Fields>::ReplaceDistribution(int distro, 
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::DisconnectDistribution(int distro)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
@@ -512,31 +499,33 @@ inline void TrajectoryBase<Trajectory, Fields>::DisconnectDistribution(int distr
 \author Vladimir Florinski
 \date 09/25/2020
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::Load(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::Load(void)
 {
-#ifdef RECORD_TRAJECTORY
-   _t = traj_t.back();
-   _pos = traj_pos.back();
-   _mom = traj_mom.back();
-#endif
+   if constexpr (params.record_trajectory) {
+      _t = traj_t.back();
+      _pos = traj_pos.back();
+      _mom = traj_mom.back();
+   }
    _vel = Vel(_mom, specie);
 };
 
 /*!
 \author Vladimir Florinski
-\date 09/25/2020
+\author Lucius Schoenbaum
+\date 08/20/2025
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::Store(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::Store(void)
 {
-#ifdef RECORD_TRAJECTORY
-   traj_t.push_back(_t);
-   traj_pos.push_back(_pos);
-   traj_mom.push_back(_mom);
-#else
-   n_segs++;
-#endif
+   if constexpr (params.record_trajectory) {
+      traj_t.push_back(_t);
+      traj_pos.push_back(_pos);
+      traj_mom.push_back(_mom);
+   }
+   else {
+      traj_records.n_segs++;
+   }
 };
 
 /*!
@@ -544,8 +533,8 @@ inline void TrajectoryBase<Trajectory, Fields>::Store(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::LoadLocal(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::LoadLocal(void)
 {
    _t = local_t;
    _pos = local_pos;
@@ -558,8 +547,8 @@ inline void TrajectoryBase<Trajectory, Fields>::LoadLocal(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::StoreLocal(void)
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline void TrajectoryBase<Trajectory, Fields, params>::StoreLocal(void)
 {
    local_t = _t;
    local_pos = _pos;
@@ -571,8 +560,8 @@ inline void TrajectoryBase<Trajectory, Fields>::StoreLocal(void)
 \date 06/12/2024
 \return Momentum in (p,mu,phi) coordinates
 */
-template <typename Trajectory, typename Fields>
-inline GeoVector TrajectoryBase<Trajectory, Fields>::ConvertMomentum(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline GeoVector TrajectoryBase<Trajectory, Fields, params>::ConvertMomentum(void) const
 {
    return _mom;
 };
@@ -582,14 +571,15 @@ inline GeoVector TrajectoryBase<Trajectory, Fields>::ConvertMomentum(void) const
 \date 12/03/2020
 \return Largest index in the trajectory arrays
 */
-template <typename Trajectory, typename Fields>
-inline int TrajectoryBase<Trajectory, Fields>::Segments(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline int TrajectoryBase<Trajectory, Fields, params>::Segments(void) const
 {
-#ifdef RECORD_TRAJECTORY
-   return traj_t.size() - 1;
-#else
-   return n_segs;
-#endif
+   if constexpr (params.record_trajectory) {
+      return traj_t.size() - 1;
+   }
+   else {
+      return traj_records.n_segs;
+   }
 };
 
 /*!
@@ -597,14 +587,15 @@ inline int TrajectoryBase<Trajectory, Fields>::Segments(void) const
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-template <typename Trajectory, typename Fields>
-inline double TrajectoryBase<Trajectory, Fields>::ElapsedTime(void) const
+template <typename Trajectory, typename Fields, TrajectoryParams params>
+inline double TrajectoryBase<Trajectory, Fields, params>::ElapsedTime(void) const
 {
-#ifdef RECORD_TRAJECTORY
-   return traj_t.back() - traj_t.front();
-#else
-   return _t - traj_t[0];
-#endif
+   if constexpr (params.record_trajectory) {
+      return traj_t.back() - traj_t.front();
+   }
+   else {
+      return _t - traj_t[0];
+   }
 };
 
 };

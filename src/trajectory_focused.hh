@@ -41,8 +41,8 @@ const int mirror_thresh_focused = 10;
 
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
-template <typename Fields_>
-class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<Fields_>, Fields_> {
+template <typename Fields_, TimeFlow timeflow = forward>
+class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<Fields_>, Fields_, timeflow> {
 
 public:
 

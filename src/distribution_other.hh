@@ -40,6 +40,8 @@ public:
 
 protected:
 
+   using DistributionTemplated::params;
+   using DistributionTemplated::_magedata;
    using DistributionTemplated::_status;
    using DistributionTemplated::container;
    using DistributionTemplated::ActionTable;
