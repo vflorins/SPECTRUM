@@ -13,7 +13,9 @@ This file is part of the SPECTRUM suite of scientific nThis file is part of the 
 #include <iomanip>
 #endif
 
+#ifdef USE_GSL
 #include <gsl/gsl_sf_lambert.h>
+#endif
 
 namespace Spectrum {
 

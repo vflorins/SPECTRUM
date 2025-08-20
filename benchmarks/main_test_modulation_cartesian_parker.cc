@@ -296,7 +296,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "fields_main_test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();

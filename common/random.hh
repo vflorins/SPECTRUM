@@ -9,8 +9,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_RANDOM_HH
 #define SPECTRUM_RANDOM_HH
 
+#ifdef USE_GSL
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+#endif
 
 namespace Spectrum {
 

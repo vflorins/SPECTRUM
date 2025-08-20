@@ -3,7 +3,9 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-#include "src/trajectory.hh"
+// todo:
+//#include "src/trajectory.hh"
+#include "src/trajectory_fieldline.hh"
 #include <gsl/gsl_const.h>
 #include <iostream>
 #include <iomanip>
@@ -18,8 +20,8 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t, Elc_t>;
-   using Trajectory = TrajectoryFieldline<Fields, Elc_t>;
+   using Fields = Fields<Mag_t>;
+   using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
    using Background = BackgroundWaves<Fields>;
 
    using InitialTime = InitialTimeFixed<Trajectory>;
@@ -190,7 +192,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
    
-   std::string trajectory_file = "main_test_turb_waves_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "fields_main_test_turb_waves_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "TURBULENCE VIA SUPERPOSITION OF WAVES" << std::endl;
    std::cout << "=========================================================" << std::endl;
