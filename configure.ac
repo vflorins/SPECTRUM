@@ -64,7 +64,7 @@ full_path=$(pkg-config --variable=prefix "$MODULE_NAME")
 AS_IF([test "x$full_path" == "x"], [
    AC_MSG_ERROR([Path to GSL pkgconfig was not found])
 ])
-PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
+PKG_CHECK_MODULES([GSL], [$MODULE_NAME], [AC_DEFINE([USE_GSL], [1], [Using GSL])])
 
 # SILO option
 AC_ARG_ENABLE([silo], [AS_HELP_STRING([--enable-silo], [enable SILO [default=no]])], [], [])

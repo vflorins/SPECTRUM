@@ -14,6 +14,7 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
+
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -46,7 +47,6 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
    int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
    container.Insert(actions);
    
 // Duration of the trajectory
-   double maxtime = 100.0 / unit_time_fluid;
+   double maxtime = 1000.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTime(), container);

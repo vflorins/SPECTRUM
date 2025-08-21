@@ -46,38 +46,38 @@ SPBL_COMMON_SOURCES = \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
-main_test_dipole_visualization_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc $(SPBL_COMMON_SOURCES)
 main_test_dipole_visualization_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_turb_waves_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_turb_waves_SOURCES = main_test_turb_waves.cc $(SPBL_COMMON_SOURCES)
 main_test_turb_waves_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_parker_spiral_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_parker_spiral_SOURCES = main_test_parker_spiral.cc $(SPBL_COMMON_SOURCES)
 main_test_parker_spiral_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_init_cond_records_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_init_cond_records_SOURCES = main_test_init_cond_records.cc $(SPBL_COMMON_SOURCES)
 main_test_init_cond_records_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_dipole_periods_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_dipole_periods_SOURCES = main_test_dipole_periods.cc $(SPBL_COMMON_SOURCES)
 main_test_dipole_periods_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_pa_distro_isotrop_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_pa_distro_isotrop_SOURCES = main_test_pa_distro_isotrop.cc $(SPBL_COMMON_SOURCES)
 main_test_pa_distro_isotrop_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_pa_scatt_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_pa_scatt_SOURCES = main_test_pa_scatt.cc $(SPBL_COMMON_SOURCES)
 main_test_pa_scatt_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_perp_diff_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_perp_diff_SOURCES = main_test_perp_diff.cc $(SPBL_COMMON_SOURCES)
 main_test_perp_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_full_diff_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_full_diff_SOURCES = main_test_full_diff.cc $(SPBL_COMMON_SOURCES)
 main_test_full_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_modulation_cartesian_parker_SOURCES = $(SPBL_COMMON_SOURCES)
+main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_parker.cc $(SPBL_COMMON_SOURCES)
 main_test_modulation_cartesian_parker_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_postprocess_modulation_cartesian_parker_SOURCES = $(SPBL_COMMON_SOURCES)
+main_postprocess_modulation_cartesian_parker_SOURCES = main_postprocess_modulation_cartesian_parker.cc $(SPBL_COMMON_SOURCES)
 main_postprocess_modulation_cartesian_parker_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_generate_cartesian_solarwind_background_SOURCES = $(SPBL_COMMON_SOURCES)
+main_generate_cartesian_solarwind_background_SOURCES = main_generate_cartesian_solarwind_background.cc $(SPBL_COMMON_SOURCES)
 main_generate_cartesian_solarwind_background_LDADD = $(MPI_LIBS) $(GSL_LIBS)

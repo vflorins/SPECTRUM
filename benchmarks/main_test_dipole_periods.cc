@@ -56,7 +56,6 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
    int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
