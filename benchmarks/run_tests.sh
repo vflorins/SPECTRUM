@@ -13,7 +13,7 @@ short_batch_size=100
 # Flags to select which tests to run
 # VISUAL TESTS
 dipole_visual_test=false
-turb_waves_test=true
+turb_waves_test=false
 parker_spiral_test=false
 init_cond_record_test=false
 # QUANTITATIVE TESTS
