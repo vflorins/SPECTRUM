@@ -87,6 +87,7 @@ const std::string bg_name_solarwind = "BackgroundSolarWind";
 /*!
 \brief Plasma background calculator for a radially expanding solar wind
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 
 Parameters: (BackgroundBase), GeoVector Omega, double r_ref, double dmax_fraction
 */

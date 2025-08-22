@@ -22,7 +22,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
-                   : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
+                           : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
 {
 };
 
@@ -32,7 +32,7 @@ BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                   : BackgroundBase(name_in, specie_in, status_in)
+                           : BackgroundBase(name_in, specie_in, status_in)
 {
 };
 
@@ -45,7 +45,7 @@ A copy constructor should first first call the Params' version to copy the data 
 */
 template <typename Fields>
 BackgroundSolarWind<Fields>::BackgroundSolarWind(const BackgroundSolarWind& other)
-                   : BackgroundBase(other)
+                           : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);

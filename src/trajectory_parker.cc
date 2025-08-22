@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 TrajectoryParker<Fields>::TrajectoryParker(void)
-                : TrajectoryBase(traj_name_parker, 0, STATE_NONE, defsize_parker)
+                        : TrajectoryBase(traj_name_parker, 0, STATE_NONE, defsize_parker)
 {
 };
 
@@ -35,7 +35,7 @@ TrajectoryParker<Fields>::TrajectoryParker(void)
 */
 template <typename Fields>
 TrajectoryParker<Fields>::TrajectoryParker(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                : TrajectoryBase(name_in, specie_in, status_in, presize_in)
+                        : TrajectoryBase(name_in, specie_in, status_in, presize_in)
 {
 };
 
@@ -140,12 +140,6 @@ try {
    divK = gradKperp + bhatbhat * (gradKpara - gradKperp)
         + (Kpara - Kperp) * (_fields.divbhat() * bhat + bhat * _fields.DelAbsMag());
 #endif
-
-// Scale magnitude to an upper limit of v/2 if necessary.
-   // if (divK.Norm() > 0.5 * _vel[0]) {
-   //    divK.Normalize();
-   //    divK *= 0.5 * _vel[0];
-   // };
 }
 
 catch(ExFieldError& exception) {
@@ -194,9 +188,9 @@ void TrajectoryParker<Fields>::DriftCoeff(void)
 {
 #ifdef TRAJ_PARKER_USE_B_DRIFTS
 // Compute |B|*curl(b/|B|)
-   drift_vel = (_fields.curlB() - 2.0 * (_fields.DelAbsMag() ^ _fields.AbsMag())) / _fields.Mag();
+   drift_vel = (_fields.curlB() - 2.0 * (_fields.DelAbsMag() ^ _fields.HatMag())) / _fields.AbsMag();
 // Scale by pvc/3q|B| = r_L*v/3
-   drift_vel *= LarmorRadius(_mom[0], _fields.Mag(), specie) * _vel[0] / 3.0;
+   drift_vel *= LarmorRadius(_mom[0], _fields.AbsMag(), specie) * _vel[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
    if (drift_vel.Norm() > 0.5 * _vel[0]) {
       drift_vel.Normalize();

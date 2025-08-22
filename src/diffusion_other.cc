@@ -838,7 +838,7 @@ template <typename Trajectory>
 void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_fields.Mag() / B0, pow_law_B);
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -854,8 +854,8 @@ template <typename Trajectory>
 double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelMag()[xyz] / _fields.Mag().Norm();
-   else return Kappa[comp_eval] * pow_law_B * _fields.DdtMag() / _fields.Mag().Norm();
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelAbsMag()[xyz] / _fields.AbsMag();
+   else return Kappa[comp_eval] * pow_law_B * _fields.DdtAbsMag() / _fields.AbsMag();
 };
 
 /*!
