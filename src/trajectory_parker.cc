@@ -138,7 +138,7 @@ try {
    GeoVector bhat = _fields.HatMag();
    bhatbhat.Dyadic(bhat);
    divK = gradKperp + bhatbhat * (gradKpara - gradKperp)
-        + (Kpara - Kperp) * (_fields.divbhat() * bhat + bhat * _fields.DelAbsMag());
+        + (Kpara - Kperp) * (_fields.divbhat() * bhat + bhat * _fields.DelHatMag());
 #endif
 }
 
