@@ -16,11 +16,11 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 
-//! Flag to indicate spatial derivatives were not computed
-const uint16_t BACKGROUND_grad_FAIL = 0x1000;
-
-//! Flag to indicate time derivatives were not computed
-const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
+////! Flag to indicate spatial derivatives were not computed
+//const uint16_t BACKGROUND_grad_FAIL = 0x1000;
+//
+////! Flag to indicate time derivatives were not computed
+//const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
 
 
 
