@@ -8,6 +8,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_base.hh"
+#include <iostream>
+using std::cout; using std::endl;
 
 namespace Spectrum {
 
@@ -69,6 +71,8 @@ double BackgroundBase::GetDmax(void) const
 */
 void BackgroundBase::DirectionalDerivative(int xyz)
 {
+   static int counter = 0;
+   cout << "[DirectionalDerivatives] " << ++counter << endl;
    double _t_saved;
    GeoVector _pos_saved;
 
@@ -227,6 +231,9 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 */
 void BackgroundBase::NumericalDerivatives(void)
 {
+
+   static int counter = 0;
+   cout << "[NumericalDerivatives] " << ++counter << endl;
 // Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
 // Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivatives will be wrong
    _spdata_tmp._mask = _spdata._mask;
@@ -422,6 +429,8 @@ double BackgroundBase::GetSafeIncr(const GeoVector& dir)
 */
 void BackgroundBase::GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, SpatialData& spdata)
 {
+   static int counter = 0;
+   cout << "[GetFields] " << ++counter << endl;
 // Check that state setup is complete
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);

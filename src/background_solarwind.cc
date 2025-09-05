@@ -8,6 +8,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "background_solarwind.hh"
+#include <iostream>
+using std::cout; using std::endl;
 
 namespace Spectrum {
 
@@ -110,6 +112,8 @@ double BackgroundSolarWind::TimeLag(const double r)
 */
 void BackgroundSolarWind::EvaluateBackground(void)
 {
+   static int counter = 0;
+   cout << "[EvaluateBackground] " << ++counter << endl;
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
    double tilt_amp, t_lag, ur, Br, Bt, Bp, arg;
