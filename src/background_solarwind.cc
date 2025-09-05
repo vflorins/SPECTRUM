@@ -117,6 +117,8 @@ double BackgroundSolarWind<Fields>::TimeLag(const double r)
 template <typename Fields>
 void BackgroundSolarWind<Fields>::EvaluateBackground(void)
 {
+   static int counter = 0;
+   cout << "[EvaluateBackground] " << ++counter << endl;
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
    double tilt_amp, t_lag, ur, Br, Bt, Bp, arg;

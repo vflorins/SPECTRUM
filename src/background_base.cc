@@ -9,6 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "background_base.hh"
 #include <stdexcept>
+#include <iostream>
+using std::cout; using std::endl;
 
 namespace Spectrum {
 
@@ -90,6 +92,8 @@ DerivativeData BackgroundBase<Fields>::GetDerivativeData(void) const
 template <typename Fields>
 void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp)
 {
+   static int counter = 0;
+   cout << "[DirectionalDerivative] " << ++counter << endl;
    double _t_saved;
    GeoVector _pos_saved;
 // temporaries for forward- and backward-stepped evaluation
@@ -224,7 +228,8 @@ void BackgroundBase<Fields>::DirectionalDerivative(int xyz, Fields& fields_tmp)
 template <typename Fields>
 void BackgroundBase<Fields>::NumericalDerivatives(void)
 {
-
+   static int counter = 0;
+   cout << "[NumericalDerivatives] " << ++counter << endl;
 // copy _fields into temporary in case of averaging.
    Fields fields_tmp = _fields;
    double AbsMag;
@@ -440,6 +445,8 @@ double BackgroundBase<Fields>::GetSafeIncr(const GeoVector& dir)
 template <typename Fields>
 void BackgroundBase<Fields>::GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields)
 {
+   static int counter = 0;
+   cout << "[GetFields] " << ++counter << endl;
 // When the call is finished, the `fields` member will be updated for the caller's state, and the `fields` argument will be equal to that member.
 
 // Check that state setup is complete
