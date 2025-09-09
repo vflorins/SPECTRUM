@@ -14,15 +14,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: numerical)
-#define MAGNETIZED_CYLINDER_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundMagnetizedCylinder class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the class
-const std::string bg_name_magnetized_cylinder = "BackgroundMagnetizedCylinder";
 
 /*!
 \brief Magnetic field of a uniformly magnmetized cylinder, inside and outside
@@ -31,13 +25,18 @@ const std::string bg_name_magnetized_cylinder = "BackgroundMagnetizedCylinder";
 
 Parameters: (BackgroundCylindricalObstacle)
 */
-template <typename Fields_>
-class BackgroundMagnetizedCylinder : public BackgroundCylindricalObstacle<Fields_> {
+template <typename HyperParams_>
+class BackgroundMagnetizedCylinder : public BackgroundCylindricalObstacle<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundMagnetizedCylinder";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -52,17 +51,19 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
 
 //! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -77,6 +78,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundMagnetizedCylinder);
+
 };
 
 };

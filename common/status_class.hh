@@ -1,13 +1,14 @@
 /*!
-\file params.hh
+\file statusclass.hh
 \brief Declares a simple class for entering parameters
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_PARAMS_HH
-#define SPECTRUM_PARAMS_HH
+#ifndef SPECTRUM_STATUSCLASS_HH
+#define SPECTRUM_STATUSCLASS_HH
 
 // This includes (algorithm, cmath, cstdint, cstring, fstream, vector), definitions, multi_index
 #include "vectors.hh"
@@ -17,16 +18,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <memory>
 
 namespace Spectrum {
-
-/*!
-\author Lucius Schoenbaum
-\date 08/16/2025
-The flow direction (temporal) for particle trace simulations.
- */
-enum class FlowType {
-   forward,
-   backward
-};
 
 //! Zero state (for initialization)
 const uint16_t STATE_NONE = 0x0000;
@@ -98,19 +89,18 @@ inline const char* ExCoordinates::what(void) const noexcept
 /*!
 \brief Base class for background, trajectory, boundary, distribution, and initial classes
 \author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/08/2025
 */
-class Params {
+class StatusClass {
 
 protected:
 
 //! Readable name of the class (persistent)
    std::string class_name = "";
 
-//! Particle's specie (persistent)
-   unsigned int specie = 0;
-
-//! Random number generator object (persistent)
-   std::shared_ptr<RNG> rng = nullptr;
+////! Random number generator object (persistent)
+//   std::shared_ptr<RNG> rng = nullptr;
 
 //! Parameter storage (persistent)
    DataContainer container;
@@ -118,37 +108,37 @@ protected:
 //! Status
    uint16_t _status = STATE_NONE;
 
-//! Time (transient)
-   double _t;
-
-//! Spatial position (transient)
-   GeoVector _pos;
-
-//! Velocity vector (transient)
-   GeoVector _vel;
-
-//! Momentum vector (transient)
-   GeoVector _mom;
+////! Time (transient)
+//   double _t;
+//
+////! Spatial position (transient)
+//   GeoVector _pos;
+//
+////! Velocity vector (transient)
+//   GeoVector _vel;
+//
+////! Momentum vector (transient)
+//   GeoVector _mom;
 
 //! Default constructor (protected, class not designed to be instantiated)
-   Params(void) = default;
+   StatusClass(void) = default;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   Params(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   StatusClass(const std::string_view& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
-   Params(const Params& other);
+   StatusClass(const StatusClass& other);
 
 public:
 
 //! Destructor
-   ~Params() = default;
+   ~StatusClass() = default;
 
 //! Return the name of the class
    std::string GetName(void) const {return class_name;};
 
-//! Connect to an existing RNG object
-   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
+////! Connect to an existing RNG object
+//   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
 
 //! Copy the user-supplied data container into "container"
    void SetContainer(const DataContainer& cont_in) {container = cont_in;};
@@ -156,17 +146,17 @@ public:
 //! Return a copy of the data container
    DataContainer GetContainer(void) const {return container;};
 
-//! Set the particle specie
-   void SetSpecie(unsigned int specie_in) {specie = specie_in;};
+////! Set the particle specie
+//   void SetSpecie(unsigned int specie_in) {specie = specie_in;};
+//
+////! Return the particle specie
+//   unsigned int GetSpecie(void) const {return specie;};
 
-//! Return the particle specie
-   unsigned int GetSpecie(void) const {return specie;};
-
-//! Set the internal phase space position
-   void SetState(double t_in, const GeoVector& pos_in, const GeoVector& mom_in = gv_zeros);
-
-//! Return the internal phase space position
-   void GetState(double& t_out, GeoVector& pos_out, GeoVector& mom_out) const;
+////! Set the internal phase space position
+//   void SetState(double t_in, const GeoVector& pos_in, const GeoVector& mom_in = gv_zeros);
+//
+////! Return the internal phase space position
+//   void GetState(double& t_out, GeoVector& pos_out, GeoVector& mom_out) const;
 
 //! Return the status
    uint16_t GetStatus(void) const {return _status;};

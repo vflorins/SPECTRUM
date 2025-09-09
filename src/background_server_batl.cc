@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 10/05/2022
 */
-template <typename Fields>
-BackgroundServerBATL<Fields>::BackgroundServerBATL(void)
-                    : BackgroundServerCartesian(bg_name_server_batl, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundServerBATL<HyperParams>::BackgroundServerBATL(void)
+                    : BackgroundServerCartesian(bg_name, MODEL_STATIC)
 {
 };
 
@@ -32,8 +32,8 @@ BackgroundServerBATL<Fields>::BackgroundServerBATL(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundServerBATL<Fields>::BackgroundServerBATL(const BackgroundServerBATL& other)
+template <typename HyperParams>
+BackgroundServerBATL<HyperParams>::BackgroundServerBATL(const BackgroundServerBATL& other)
                     : BackgroundServerCartesian(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);

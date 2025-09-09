@@ -3,6 +3,7 @@
 \brief Declares a base class to compute the plasma background
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -13,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "config.h"
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
-#include "common/params.hh"
+#include "common/status_class.hh"
 #include "common/physics.hh"
 #include "common/matrix.hh"
 #include "common/derivativedata.hh"
@@ -26,29 +27,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Number of local coordinate systems in which to evaluate and average numerical derivatives
-#define BACKGROUND_NUM_GRAD_EVALS 1
-
-#ifdef USE_SILO
-
-//! Name of the 2D mesh
-const std::string mesh2d_name = "square_mesh";
-
-//! Name of the 3D mesh
-const std::string mesh3d_name = "cube_mesh";
-
-#endif
-
-//! What fraction of "_dmax" to use to calculate the field increment
-const double incr_dmax_ratio = 0.0001;
-
-//! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
-const double local_rot_ang = M_PI / BACKGROUND_NUM_GRAD_EVALS;
-
-//! Sine and cosine of local rotation angle
-const double sin_lra = sin(local_rot_ang);
-const double cos_lra = cos(local_rot_ang);
-
 //! Clone function pattern
 #define CloneFunctionBackground(T) std::unique_ptr<BackgroundBase> Clone(void) const override {return std::make_unique<T>();};
 
@@ -60,9 +38,7 @@ const double cos_lra = cos(local_rot_ang);
 \brief Exception if field evaluation failed
 \author Vladimir Florinski
 */
-class ExFieldError : public std::exception {
-
-public:
+struct ExFieldError : public std::exception {
 
 //! Return explanatory string
    const char* what(void) const noexcept override;
@@ -90,10 +66,39 @@ The BackgroundXXXXX" classes describe plasma condition (u, E, B, dB/dt, gradB) a
 
 Parameters: double t0, GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
 */
-template <typename Fields>
-class BackgroundBase : public Params {
+template <typename HyperParams_>
+class BackgroundBase : public StatusClass {
+public:
+
+   using HyperParams = HyperParams_;
+   using Coordinates = HyperParams::Coordinates;
+
+private:
+
+#ifdef USE_SILO
+
+//! Name of the 2D mesh
+   static constexpr std::string_view mesh2d_name = "square_mesh";
+
+//! Name of the 3D mesh
+   static constexpr std::string_view mesh3d_name = "cube_mesh";
+
+#endif
+
+//! What fraction of "_dmax" to use to calculate the field increment
+   static constexpr double incr_dmax_ratio = 0.0001;
+
+//! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
+   static constexpr double local_rot_ang = M_PI / HyperParams::num_numeric_grad_evals;
+
+//! Sine and cosine of local rotation angle
+   static constexpr double sin_lra = sin(local_rot_ang);
+   static constexpr double cos_lra = cos(local_rot_ang);
 
 protected:
+
+//! Coordinate state, used during evaluation
+   Coordinates _coords;
 
 //! Derivative data object (transient)
    DerivativeData _ddata;
@@ -112,9 +117,6 @@ protected:
 
 //! Distance reference value, how far the trajectory is allowed to move in one step (persistent)
    double dmax0;
-
-//! Fields data object (transient)
-   Fields _fields;
 
 //! Gyro-radius for derivative computations (transient)
    double r_g;
@@ -154,31 +156,36 @@ protected:
    BackgroundBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BackgroundBase(const BackgroundBase& other);
 
-//! Compute the fields at an incremented position or time
-   void DirectionalDerivative(int xyz, Fields&);
-
-//! Compute the field derivatives
-   void NumericalDerivatives(void);
-
 //! Set up the field evaluator based on "params"
    virtual void SetupBackground(bool construct);
 
-//! Compute the internal u, B, and E fields
-   virtual void EvaluateBackground(void);
-
-//! Compute the internal derivatives of the fields
-   virtual void EvaluateBackgroundDerivatives(void);
-
-//! Calculate the maximum distance allowed per time step
+   //! Calculate the maximum distance allowed per time step
    virtual void EvaluateDmax(void);
 
 //! Calculate magnetic field magnitude
-   virtual void EvaluateBmag(void);
+   template <typename Fields>
+   void EvaluateBmag(Fields&);
+
+//! Compute the fields at an incremented position or time
+   template <typename Fields>
+   void DirectionalDerivative(int xyz, Fields&);
+
+//! Compute the field derivatives
+   template <typename Fields>
+   void NumericalDerivatives(Fields&, Specie&);
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -200,11 +207,12 @@ public:
 //! Return maximum distance allowed per time step
    double GetDmax(void) const;
 
-//! Return the derivative data (a small struct)
+//! Return the derivative data (a struct)
    DerivativeData GetDerivativeData(void) const;
 
 //! Return fields at the internal position, evaluated or previously stored
-   void GetFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields);
+   template <typename Fields>
+   void GetFields(Coordinates&, Fields&);
 
 #ifdef USE_SILO
 

@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 08/29/2022
 */
-template <typename Fields>
-BackgroundWaves<Fields>::BackgroundWaves(void)
-               : BackgroundBase(bg_name_waves, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundWaves<HyperParams>::BackgroundWaves(void)
+               : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
 
@@ -31,8 +31,8 @@ BackgroundWaves<Fields>::BackgroundWaves(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundWaves<Fields>::BackgroundWaves(const BackgroundWaves& other)
+template <typename HyperParams>
+BackgroundWaves<HyperParams>::BackgroundWaves(const BackgroundWaves& other)
                : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -46,8 +46,8 @@ BackgroundWaves<Fields>::BackgroundWaves(const BackgroundWaves& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundWaves<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundWaves<HyperParams>::SetupBackground(bool construct)
 {
    int dim, wave;
    turb_type t_type;
@@ -168,8 +168,8 @@ void BackgroundWaves<Fields>::SetupBackground(bool construct)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundWaves<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundWaves<HyperParams>::EvaluateBackground(void)
 {
    int wave;
    double arg, z_rot;
@@ -211,8 +211,8 @@ void BackgroundWaves<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundWaves<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
    int wave, xyz;
    double arg, z_rot;
@@ -259,8 +259,8 @@ void BackgroundWaves<Fields>::EvaluateBackgroundDerivatives(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundWaves<Fields>::EvaluateDmax(void)
+template <typename HyperParams>
+void BackgroundWaves<HyperParams>::EvaluateDmax(void)
 {
    _ddata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);

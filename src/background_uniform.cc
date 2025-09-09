@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/27/2021
 */
-template <typename Fields>
-BackgroundUniform<Fields>::BackgroundUniform(void)
-                 : BackgroundBase(bg_name_uniform, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundUniform<HyperParams>::BackgroundUniform(void)
+                 : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
 
@@ -32,8 +32,8 @@ BackgroundUniform<Fields>::BackgroundUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundUniform<Fields>::BackgroundUniform(const BackgroundUniform& other)
+template <typename HyperParams>
+BackgroundUniform<HyperParams>::BackgroundUniform(const BackgroundUniform& other)
                  : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -48,8 +48,8 @@ BackgroundUniform<Fields>::BackgroundUniform(const BackgroundUniform& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundUniform<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundUniform<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -63,8 +63,8 @@ void BackgroundUniform<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Fields>
-void BackgroundUniform<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundUniform<HyperParams>::EvaluateBackground(void)
 {
    if constexpr (Fields::Vel_found()) {
       _fields.Vel() = u0;
@@ -86,8 +86,8 @@ void BackgroundUniform<Fields>::EvaluateBackground(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundUniform<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundUniform<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
    if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;

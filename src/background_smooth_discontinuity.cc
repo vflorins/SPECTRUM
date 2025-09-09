@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename Fields>
-BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(void)
-                             : BackgroundDiscontinuity(bg_name_smooth_discontinuity, 0, STATE_NONE)
+template <typename HyperParams>
+BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(void)
+                             : BackgroundDiscontinuity(bg_name, STATE_NONE)
 {
 };
 
@@ -31,8 +31,8 @@ BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
+template <typename HyperParams>
+BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
                              : BackgroundDiscontinuity(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -45,8 +45,8 @@ BackgroundSmoothDiscontinuity<Fields>::BackgroundSmoothDiscontinuity(const Backg
 \param [in] x Relative transition region location
 \return Relative value of discontinuous quantity
 */
-template <typename Fields>
-double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransition(double x)
+template <typename HyperParams>
+double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransition(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_DISCONT_ORDER == 0 // continous but not differentiable
@@ -76,8 +76,8 @@ double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransition(double x)
 \param [in] x Relative transition region location 
 \return Derivative of relative value of discontinuous quantity
 */
-template <typename Fields>
-double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransitionDerivative(double x)
+template <typename HyperParams>
+double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransitionDerivative(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_DISCONT_ORDER == 0
@@ -108,8 +108,8 @@ double BackgroundSmoothDiscontinuity<Fields>::DiscontinuityTransitionDerivative(
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundSmoothDiscontinuity<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundDiscontinuity::SetupBackground(false);
@@ -123,8 +123,8 @@ void BackgroundSmoothDiscontinuity<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackground(void)
 {
    double a1, a2;
    ds_discont = ((_pos - r0) * n_discont - v_discont * _t) / width_discont;
@@ -144,47 +144,48 @@ void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if SMOOTHDISCONT_DERIVATIVE_METHOD == 0
-   if constexpr (Fields::DelVel_found()) {
-      _fields.DelVel().Dyadic(n_discont, u0 - u1);
-      _fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
-   };
-   if constexpr (Fields::DelMag_found()) {
-      _fields.DelMag().Dyadic(n_discont, B0 - B1);
-      _fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      if constexpr (Fields::DelVel_found()) {
+         _fields.DelVel().Dyadic(n_discont, u0 - u1);
+         _fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+      };
+      if constexpr (Fields::DelMag_found()) {
+         _fields.DelMag().Dyadic(n_discont, B0 - B1);
+         _fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+      }
+      if constexpr (Fields::DelAbsMag_found()) {
+         GeoVector bhat;
+         if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
+         else bhat = _fields.Mag() / _fields.Mag().Norm();
+         _fields.DelAbsMag() = _fields.DelMag() * bhat;
+      };
+      if constexpr (Fields::DelElc_found()) {
+         _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+      };
+      if constexpr (Fields::DdtVel_found()) {
+         _fields.DdtVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+      };
+      if constexpr (Fields::DdtMag_found()) {
+         _fields.DdtMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
+      };
+      if constexpr (Fields::DdtElc_found()) {
+         _fields.DdtElc() = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
+      };
    }
-   if constexpr (Fields::DelAbsMag_found()) {
-      GeoVector bhat;
-      if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
-      else bhat = _fields.Mag() / _fields.Mag().Norm();
-      _fields.DelAbsMag() = _fields.DelMag() * bhat;
+   else {
+      NumericalDerivatives();
    };
-   if constexpr (Fields::DelElc_found()) {
-      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
-   };
-   if constexpr (Fields::DdtVel_found()) {
-      _fields.DdtVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
-   };
-   if constexpr (Fields::DdtMag_found()) {
-      _fields.DdtMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
-   };
-   if constexpr (Fields::DdtElc_found()) {
-      _fields.DdtElc() = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
-   };
-#else
-   NumericalDerivatives();
-#endif
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<Fields>::EvaluateDmax(void)
+template <typename HyperParams>
+void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateDmax(void)
 {
    _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

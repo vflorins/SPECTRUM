@@ -20,9 +20,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/28/2022
 */
-template <typename Fields>
-BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
-                           : BackgroundBase(bg_name_solarwind, 0, STATE_NONE)
+template <typename HyperParams>
+BackgroundSolarWind<HyperParams>::BackgroundSolarWind(void)
+                           : BackgroundBase(bg_name, STATE_NONE)
 {
 };
 
@@ -30,9 +30,9 @@ BackgroundSolarWind<Fields>::BackgroundSolarWind(void)
 \author Juan G Alonso Guzman
 \date 02/22/2024
 */
-template <typename Fields>
-BackgroundSolarWind<Fields>::BackgroundSolarWind(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                           : BackgroundBase(name_in, specie_in, status_in)
+template <typename HyperParams>
+BackgroundSolarWind<HyperParams>::BackgroundSolarWind(const std::string& name_in, uint16_t status_in)
+                           : BackgroundBase(name_in, status_in)
 {
 };
 
@@ -43,8 +43,8 @@ BackgroundSolarWind<Fields>::BackgroundSolarWind(const std::string& name_in, uns
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundSolarWind<Fields>::BackgroundSolarWind(const BackgroundSolarWind& other)
+template <typename HyperParams>
+BackgroundSolarWind<HyperParams>::BackgroundSolarWind(const BackgroundSolarWind& other)
                            : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -58,8 +58,8 @@ BackgroundSolarWind<Fields>::BackgroundSolarWind(const BackgroundSolarWind& othe
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundSolarWind<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundSolarWind<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -93,8 +93,8 @@ void BackgroundSolarWind<Fields>::SetupBackground(bool construct)
 \param[in]  r      radial distance
 \param[out] ur_mod modified radial flow
 */
-template <typename Fields>
-void BackgroundSolarWind<Fields>::ModifyUr(const double r, double &ur_mod)
+template <typename HyperParams>
+void BackgroundSolarWind<HyperParams>::ModifyUr(const double r, double &ur_mod)
 {
 };
 
@@ -104,8 +104,8 @@ void BackgroundSolarWind<Fields>::ModifyUr(const double r, double &ur_mod)
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
 */
-template <typename Fields>
-double BackgroundSolarWind<Fields>::TimeLag(const double r)
+template <typename HyperParams>
+double BackgroundSolarWind<HyperParams>::TimeLag(const double r)
 {
    return r / ur0;
 };
@@ -114,8 +114,8 @@ double BackgroundSolarWind<Fields>::TimeLag(const double r)
 \author Vladimir Florinski
 \date 06/21/2024
 */
-template <typename Fields>
-void BackgroundSolarWind<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundSolarWind<HyperParams>::EvaluateBackground(void)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
@@ -250,40 +250,40 @@ void BackgroundSolarWind<Fields>::EvaluateBackground(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundSolarWind<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundSolarWind<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if SOLARWIND_DERIVATIVE_METHOD == 0
-   GeoVector posprime;
-   GeoMatrix rr;
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      GeoVector posprime;
+      GeoMatrix rr;
 
-   if constexpr (Fields::DelVel_found()) {
+      if constexpr (Fields::DelVel_found()) {
 // Expression valid only for radial flow
-      posprime = _pos - r0;
-      rr.Dyadic(posprime);
-      _fields.DelVel() = (_fields.Vel().Norm() / posprime.Norm()) * (gm_unit - rr);
-   };
-   if constexpr (Fields::DelMag_found()) {
+         posprime = _pos - r0;
+         rr.Dyadic(posprime);
+         _fields.DelVel() = (_fields.Vel().Norm() / posprime.Norm()) * (gm_unit - rr);
+      };
+      if constexpr (Fields::DelMag_found()) {
 //TODO: complete
+      };
+      if constexpr (Fields::DelElc_found()) {
+         _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+      };
+      if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+      if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+      if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   }
+   else {
+      NumericalDerivatives();
    };
-   if constexpr (Fields::DelElc_found()) {
-      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
-   };
-   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
-
-#else
-   NumericalDerivatives();
-#endif
 };
 
 /*!
 \author Vladimir Florinski
 \date 03/10/2022
 */
-template <typename Fields>
-void BackgroundSolarWind<Fields>::EvaluateDmax(void)
+template <typename HyperParams>
+void BackgroundSolarWind<HyperParams>::EvaluateDmax(void)
 {
    _ddata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

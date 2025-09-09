@@ -23,7 +23,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 InitialBase<Trajectory>::InitialBase(void)
-           : Params("", 0, STATE_NONE)
+           : StatusClass("", STATE_NONE)
 {
 };
 
@@ -35,8 +35,8 @@ InitialBase<Trajectory>::InitialBase(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-InitialBase<Trajectory>::InitialBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-           : Params(name_in, specie_in, status_in)
+InitialBase<Trajectory>::InitialBase(const std::string& name_in, uint16_t status_in)
+           : StatusClass(name_in, status_in)
 {
 };
 

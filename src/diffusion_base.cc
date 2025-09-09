@@ -113,9 +113,9 @@ template <typename Trajectory>
 double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
 {
    SetState(t_in, pos_in, mom_in);
-   vmag = Vel(_mom[0], specie);
+   vmag = Vel(_mom[0], Trajectory::specie);
    _fields = fields_in;
-   Omega = CyclotronFrequency(vmag, _fields.AbsMag(), specie);
+   Omega = CyclotronFrequency(vmag, _fields.AbsMag(), Trajectory::specie);
 
    if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       mu = _mom[1];

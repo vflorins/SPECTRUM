@@ -14,15 +14,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Integer exponent of decrease of solar wind speed beyond the termination shock
-#define SOLARWIND_TERMSHOCK_SPEED_EXPONENT 2
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSolarWindTermShock class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the class
-const std::string bg_name_solarwind_termshock = "BackgroundSolarWindTermShock";
 
 /*!
 \brief Plasma background calculator for a radially expanding solar wind with a spherical termination shock
@@ -30,13 +24,18 @@ const std::string bg_name_solarwind_termshock = "BackgroundSolarWindTermShock";
 
 Parameters: (BackgroundSolarWind), double r_TS, double w_TS, double s_TS
 */
-template <typename Fields_>
-class BackgroundSolarWindTermShock : public BackgroundSolarWind<Fields_> {
+template <typename HyperParams_>
+class BackgroundSolarWindTermShock : public BackgroundSolarWind<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundSolarWindTermShock";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundSolarWind = BackgroundSolarWind<Fields>;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundSolarWind = BackgroundSolarWind<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -51,8 +50,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
    using BackgroundSolarWind::dmax_fraction;
@@ -87,11 +86,13 @@ protected:
 //! Get time lag for time dependent current sheet (if necessary)
    double TimeLag(const double r) override;
 
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
-//! Compute the maximum distance per time step
-   void EvaluateDmax(void) override;
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -106,6 +107,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundSolarWindTermShock);
+
 };
 
 };

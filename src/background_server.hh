@@ -13,7 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServer class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,12 +23,17 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase)
 */
-template <typename Fields_>
-class BackgroundServer : public BackgroundBase<Fields_> {
+template <typename HyperParams_>
+class BackgroundServer : public BackgroundBase<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundServer";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -44,8 +48,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -56,22 +60,22 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
+   //! Calculate magnetic field magnitude
+   void EvaluateBmag(void) override;
+
 //! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
 //! Compute the internal derivatives of the fields
-   void EvaluateBackgroundDerivatives(void) override;
-
-#if SERVER_INTERP_ORDER > 0
-//! Calculate magnetic field magnitude
-   void EvaluateBmag(void) override;
-#endif
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 //! Default constructor (protected, class not designed to be instantiated)
    BackgroundServer(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundServer(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundServer(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BackgroundServer(const BackgroundServer& other);

@@ -11,18 +11,27 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_BACKGROUND_VLISM_BOCHUM_HH
 
 #include "background_base.hh"
-#include <gsl/gsl_errno.h>
 
 namespace Spectrum {
 
-//! Readable name of the class
-const std::string bg_name_bochum = "BackgroundVLISMBochum";
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// BackgroundVLISMBochum class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! What function to use within 'get_ampfactor' (0 = none, 1 = zero, 2 = constant, 3 = scaled)
-#define MOD_TYPE 3
+/*!
+\brief Plasma background calculator for the Roken-Kleimann model of field draping around the heliopause
+\author Vladimir Florinski
 
-//! Whether to scale relative to s=0 (0) or s=+inf (1)
-#define MOD_RPOS 0
+This class calculates the velocity and magnetic fields around the heliopause, represented by a Rankine half-body (a product of an interaction between two potential flows, a point source and a uniform flow). The reference is: Roken, C., Kleimann, J., and Fichtner, H., An exact analytical solution for the interstellar magnetic field in the vicinity of the heliosphere, Astrophys. J., v. 805, p. 173 (2015).
+
+Parameters: (BackgroundBase), double z_nose
+*/
+template <typename HyperParams_>
+class BackgroundVLISMBochum : public BackgroundBase<HyperParams_> {
+private:
+
+   //! Readable name of the class
+   const std::string bg_name = "BackgroundVLISMBochum";
 
 #if (MOD_RPOS != 0) && (MOD_RPOS != 1)
 #error Invalid MOD_RPOS
@@ -37,40 +46,23 @@ const std::string bg_name_bochum = "BackgroundVLISMBochum";
 #endif
 
 #if MOD_TYPE == 1
-const double ztr = -5.0;
+   const double ztr = -5.0;
 #elif MOD_TYPE == 2
-const double ztr = 1.3;
+   const double ztr = 1.3;
 #elif MOD_TYPE == 3
-const double ztr = 1.3;
+   const double ztr = 1.3;
 #endif
+   static constexpr double ztr = finish_me;
 
-//const double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
-//const double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
-const double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
+//static constexpr double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
+//static constexpr double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
+   static constexpr double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
+//static constexpr double scB = 30.0 / 3.0;
 
-//const double scB = 30.0 / 3.0;
-
-// Turn gsl error handler off
-static gsl_error_handler_t* gsl_default_error_handler = gsl_set_error_handler_off();
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// BackgroundVLISMBochum class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief Plasma background calculator for the Roken-Kleimann model of field draping around the heliopause
-\author Vladimir Florinski
-
-This class calculates the velocity and magnetic fields around the heliopause, represented by a Rankine half-body (a product of an interaction between two potential flows, a point source and a uniform flow). The reference is: Roken, C., Kleimann, J., and Fichtner, H., An exact analytical solution for the interstellar magnetic field in the vicinity of the heliosphere, Astrophys. J., v. 805, p. 173 (2015).
-
-Parameters: (BackgroundBase), double z_nose
-*/
-template <typename Fields_>
-class BackgroundVLISMBochum : public BackgroundBase<Fields_> {
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -86,8 +78,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -114,10 +106,12 @@ protected:
    void SetupBackground(bool construct) override;
 
 //! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
 //! Compute the internal derivatives of the fields
-   void EvaluateBackgroundDerivatives(void) override;
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -132,6 +126,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundVLISMBochum);
+
 };
 
 };

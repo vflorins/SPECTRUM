@@ -13,10 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the class
-const std::string bg_name_server_cartesian = "BackgroundServerCartesian";
-
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServerCartesian class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -27,13 +23,18 @@ const std::string bg_name_server_cartesian = "BackgroundServerCartesian";
 
 Parameters: (BackgroundServer)
 */
-template <typename Fields_>
-class BackgroundServerCartesian : public BackgroundServer<Fields_> {
+template <typename HyperParams_>
+class BackgroundServerCartesian : public BackgroundServer<HyperParams_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundServerCartesian";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundServer = BackgroundServer<Fields>;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundServer = BackgroundServer<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -48,8 +49,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 public:
@@ -58,7 +59,7 @@ public:
    BackgroundServerCartesian(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundServerCartesian(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundServerCartesian(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundServerCartesian(const BackgroundServerCartesian& other);

@@ -18,7 +18,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "initial_base.hh"
 #include <common/rk_config.hh>
 
-
 namespace Spectrum {
 
 //! Record trajectory flag
@@ -160,15 +159,15 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-// todo an abstract Trajectory - templated over Trajectory and Fields
-// TODO change the names of template arg #1 to Trajectory!!!
 template <typename Trajectory_, typename Fields_>
-class TrajectoryBase : public Params {
+class TrajectoryBase : public StatusClass {
 
 public:
 
    using Trajectory = Trajectory_;
    using Fields = Fields_;
+   using Trajectory::specie;
+   // todo move to a HyperParams class
    using BackgroundBase = BackgroundBase<Fields>;
 
    // Trajectory-dependent classes

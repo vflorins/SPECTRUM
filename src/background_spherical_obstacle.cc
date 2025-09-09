@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 03/25/2022
 */
-template <typename Fields>
-BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(void)
-                           : BackgroundBase(bg_name_spherical_obstacle, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundSphericalObstacle<HyperParams>::BackgroundSphericalObstacle(void)
+                           : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
 
@@ -29,9 +29,9 @@ BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(void)
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-template <typename Fields>
-BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                           : BackgroundBase(name_in, specie_in, status_in)
+template <typename HyperParams>
+BackgroundSphericalObstacle<HyperParams>::BackgroundSphericalObstacle(const std::string& name_in, uint16_t status_in)
+                           : BackgroundBase(name_in, status_in)
 {
 };
 
@@ -42,8 +42,8 @@ BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(const std::stri
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other)
+template <typename HyperParams>
+BackgroundSphericalObstacle<HyperParams>::BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other)
                            : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -57,8 +57,8 @@ BackgroundSphericalObstacle<Fields>::BackgroundSphericalObstacle(const Backgroun
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundSphericalObstacle<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundSphericalObstacle<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -71,8 +71,8 @@ void BackgroundSphericalObstacle<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 03/25/2022
 */
-template <typename Fields>
-void BackgroundSphericalObstacle<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundSphericalObstacle<HyperParams>::EvaluateBackground(void)
 {
    GeoVector posprime = _pos - r0;
    double posprimenorm = posprime.Norm();
@@ -99,55 +99,55 @@ void BackgroundSphericalObstacle<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundSphericalObstacle<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundSphericalObstacle<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if SPHERICAL_OBSTACLE_DERIVATIVE_METHOD == 0
-   GeoVector posprime = _pos - r0;
-   double posprimenorm = posprime.Norm();
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      GeoVector posprime = _pos - r0;
+      double posprimenorm = posprime.Norm();
 
-   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
-      if (posprimenorm < r_sphere) {
-         if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
-         if constexpr (Fields::DelAbsMag_found()) _fields.DelAbsMag() = 0.0;
-      }
-      else {
-         double r2 = Sqr(posprimenorm);
-         double r5 = Cube(posprimenorm) * r2;
-         double mdotr = M * posprime;
-         GeoMatrix mr, rm, rr;
-         mr.Dyadic(M,posprime);
-         rm.Dyadic(posprime,M);
-         rr.Dyadic(posprime);
-
-         auto DelMag = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
-         if constexpr (Fields::DelMag_found())
-            _fields.DelMag() = DelMag;
-         if constexpr (Fields::DelAbsMag_found()) {
-            GeoVector bhat;
-            if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
-            else bhat = _fields.Mag() / _fields.Mag().Norm();
-            _fields.DelAbsMag() = DelMag * bhat;
+      if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
+      if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
+         if (posprimenorm < r_sphere) {
+            if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
+            if constexpr (Fields::DelAbsMag_found()) _fields.DelAbsMag() = 0.0;
          }
-      };
-   };
-   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
-   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+         else {
+            double r2 = Sqr(posprimenorm);
+            double r5 = Cube(posprimenorm) * r2;
+            double mdotr = M * posprime;
+            GeoMatrix mr, rm, rr;
+            mr.Dyadic(M,posprime);
+            rm.Dyadic(posprime,M);
+            rr.Dyadic(posprime);
 
-#else
-   NumericalDerivatives(); 
-#endif
+            auto DelMag = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
+            if constexpr (Fields::DelMag_found())
+               _fields.DelMag() = DelMag;
+            if constexpr (Fields::DelAbsMag_found()) {
+               GeoVector bhat;
+               if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
+               else bhat = _fields.Mag() / _fields.Mag().Norm();
+               _fields.DelAbsMag() = DelMag * bhat;
+            }
+         };
+      };
+      if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+      if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+      if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+      if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   }
+   else {
+      NumericalDerivatives();
+   };
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 03/25/2022
 */
-template <typename Fields>
-void BackgroundSphericalObstacle<Fields>::EvaluateDmax(void)
+template <typename HyperParams>
+void BackgroundSphericalObstacle<HyperParams>::EvaluateDmax(void)
 {
    _ddata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

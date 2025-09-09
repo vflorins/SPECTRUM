@@ -17,21 +17,23 @@ namespace Spectrum {
 // BackgroundDiscontinuity class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BackgroundDiscontinuity class
-const std::string bg_name_discontinuity = "BackgroundDiscontinuity";
-
 /*!
 \brief Planar MHD dicontinuity
 \author Juan G Alonso Guzman
 
 Parameters: (BackgroundBase), GeoVector n_discont, double v_discont, GeoVector u1, GeoVector B1
 */
-template <typename Fields_>
-class BackgroundDiscontinuity : public BackgroundBase<Fields_> {
+template <typename HyperParams_>
+class BackgroundDiscontinuity : public BackgroundBase<HyperParams_> {
+private:
+
+//! Readable name of the BackgroundDiscontinuity class
+   static constexpr std::string_view bg_name = "BackgroundDiscontinuity";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -48,8 +50,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -70,10 +72,12 @@ protected:
    void SetupBackground(bool construct) override;
 
 //! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -81,7 +85,7 @@ public:
    BackgroundDiscontinuity(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundDiscontinuity(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundDiscontinuity(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundDiscontinuity(const BackgroundDiscontinuity& other);
@@ -91,6 +95,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundDiscontinuity);
+
 };
 
 };

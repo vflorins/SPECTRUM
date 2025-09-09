@@ -14,15 +14,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: numerical)
-#define DIPOLE_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundDipole class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the class
-const std::string bg_name_dipole = "BackgroundDipole";
 
 /*!
 \brief Magnetic field of a dipole
@@ -30,12 +24,17 @@ const std::string bg_name_dipole = "BackgroundDipole";
 
 Parameters: (BackgroundBase), double r_ref, double dmax_fraction
 */
-template <typename Fields_>
-class BackgroundDipole : public BackgroundBase<Fields_> {
+template <typename HyperParams_>
+class BackgroundDipole : public BackgroundBase<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundDipole";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -65,14 +64,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
 //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -87,6 +88,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundDipole);
+
 };
 
 };

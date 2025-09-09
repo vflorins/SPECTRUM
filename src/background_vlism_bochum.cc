@@ -9,6 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "background_vlism_bochum.hh"
 #include <gsl/gsl_sf_ellint.h>
+#include <gsl/gsl_errno.h>
 
 namespace Spectrum {
 
@@ -20,10 +21,13 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/28/2021
 */
-template <typename Fields>
-BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(void)
-                     : BackgroundBase(bg_name_bochum, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(void)
+                     : BackgroundBase(bg_name, MODEL_STATIC)
 {
+// https://www.gnu.org/software/gsl/doc/html/err.html#c.gsl_set_error_handler
+// Turn gsl error handler off
+   gsl_error_handler_t* gsl_default_error_handler = gsl_set_error_handler_off();
 };
 
 /*!
@@ -32,8 +36,8 @@ BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(void)
 \param[in] z Normalized z-component of position
 \return Normalized transverse field
 */
-template <typename Fields>
-double BackgroundVLISMBochum<Fields>::RelBtrans(double z) const
+template <typename HyperParams>
+double BackgroundVLISMBochum<HyperParams>::RelBtrans(double z) const
 {
    return 1.0 / sqrt(1.0 - 1.0 / Sqr(z));
 };
@@ -45,8 +49,8 @@ double BackgroundVLISMBochum<Fields>::RelBtrans(double z) const
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
+template <typename HyperParams>
+BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
                      : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -61,8 +65,8 @@ BackgroundVLISMBochum<Fields>::BackgroundVLISMBochum(const BackgroundVLISMBochum
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundVLISMBochum<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundVLISMBochum<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -91,8 +95,8 @@ void BackgroundVLISMBochum<Fields>::SetupBackground(bool construct)
 \date 07/26/2022
 \return Field amplification factor
 */
-template <typename Fields>
-double BackgroundVLISMBochum<Fields>::GetAmpFactor(double zeta) const
+template <typename HyperParams>
+double BackgroundVLISMBochum<HyperParams>::GetAmpFactor(double zeta) const
 {
 #if MOD_TYPE == 0
    return 1.0;
@@ -153,8 +157,8 @@ double BackgroundVLISMBochum<Fields>::GetAmpFactor(double zeta) const
 \author Juan G Alonso Guzman
 \date 07/26/2022
 */
-template <typename Fields>
-void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
    GeoVector posprime = _pos - r0;
@@ -307,8 +311,8 @@ void BackgroundVLISMBochum<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/17/2022
 */
-template <typename Fields>
-void BackgroundVLISMBochum<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundVLISMBochum<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
    NumericalDerivatives();
 };

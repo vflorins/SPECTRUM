@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-template <typename Fields>
-BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(void)
-                          : BackgroundSphericalObstacle(bg_name_magnetized_sphere, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundMagnetizedSphere<HyperParams>::BackgroundMagnetizedSphere(void)
+                          : BackgroundSphericalObstacle(bg_name, MODEL_STATIC)
 {
 };
 
@@ -31,8 +31,8 @@ BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other)
+template <typename HyperParams>
+BackgroundMagnetizedSphere<HyperParams>::BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other)
                           : BackgroundSphericalObstacle(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -43,8 +43,8 @@ BackgroundMagnetizedSphere<Fields>::BackgroundMagnetizedSphere(const BackgroundM
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-template <typename Fields>
-void BackgroundMagnetizedSphere<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundMagnetizedSphere<HyperParams>::EvaluateBackground(void)
 {
    BackgroundSphericalObstacle::EvaluateBackground();
    if constexpr (Fields::Mag_found()) _fields.Mag() = B0 - _fields.Mag();
@@ -56,17 +56,16 @@ void BackgroundMagnetizedSphere<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 08/20/2024
 */
-template <typename Fields>
-void BackgroundMagnetizedSphere<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundMagnetizedSphere<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if MAGNETIZED_SPHERE_DERIVATIVE_METHOD == 0
-
-   BackgroundSphericalObstacle::EvaluateBackgroundDerivatives();
-   if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
-
-#else
-   NumericalDerivatives();
-#endif
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      BackgroundSphericalObstacle::EvaluateBackgroundDerivatives();
+      if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
+   }
+   else {
+      NumericalDerivatives();
+   };
 };
 
 };

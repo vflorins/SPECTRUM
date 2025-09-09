@@ -13,19 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Flag to control smoothness of shock
-#define SMOOTH_SHOCK_ORDER 4
-
-//! Method for computing derivatives (0: analytical, 1: numerical)
-#define SMOOTHSHOCK_DERIVATIVE_METHOD 0
-
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothShock class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the BackgroundSmoothShock class
-const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 /*!
 \brief Planar MHD shock with a smooth transition region
@@ -33,13 +23,18 @@ const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
-template <typename Fields_>
-class BackgroundSmoothShock : public BackgroundShock<Fields_> {
+template <typename HyperParams_>
+class BackgroundSmoothShock : public BackgroundShock<HyperParams_> {
+private:
+
+//! Readable name of the class
+   const std::string bg_name = "BackgroundSmoothShock";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundShock = BackgroundShock<Fields>;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundShock = BackgroundShock<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -56,8 +51,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
    using BackgroundShock::u1;
@@ -88,14 +83,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
-//! Compute the maximum distance per time step
+   //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 

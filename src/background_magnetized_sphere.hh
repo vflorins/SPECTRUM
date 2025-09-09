@@ -13,29 +13,28 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: numerical)
-#define MAGNETIZED_SPHERE_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundMagnetizedSphere class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the class
-const std::string bg_name_magnetized_sphere = "BackgroundMagnetizedSphere";
-
 /*!
-\brief Magnetic field of a uniformly magnmetized sphere, inside and outside
+\brief Magnetic field of a uniformly magnetized sphere, inside and outside
 \author Juan G Alonso Guzman
 
 Parameters: (BackgroundSphericalObstacle)
 */
-template <typename Fields_>
-class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<Fields_> {
+template <typename HyperParams_>
+class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundMagnetizedSphere";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using BackgroundSphericalObstacle = BackgroundSphericalObstacle<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HyperParams>;
    using BackgroundSphericalObstacle::_status;
    using BackgroundSphericalObstacle::_fields;
    using BackgroundSphericalObstacle::_ddata;
@@ -50,17 +49,19 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundSphericalObstacle::StopServerFront;
    using BackgroundSphericalObstacle::SetupBackground;
-   using BackgroundSphericalObstacle::EvaluateBackground;
-   using BackgroundSphericalObstacle::EvaluateBackgroundDerivatives;
+//   using BackgroundSphericalObstacle::EvaluateBackground;
+//   using BackgroundSphericalObstacle::EvaluateBackgroundDerivatives;
    using BackgroundSphericalObstacle::NumericalDerivatives;
 
 protected:
 
 //! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
 
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -75,6 +76,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundMagnetizedSphere);
+
 };
 
 };

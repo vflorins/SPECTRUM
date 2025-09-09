@@ -14,10 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the class
-const std::string bg_name_server_batl = "BackgroundServerBATL";
-
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServerBATL class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,13 +25,18 @@ const std::string bg_name_server_batl = "BackgroundServerBATL";
 
 Parameters: (BackgroundServerCartesian)
 */
-template <typename Fields_>
-class BackgroundServerBATL : public BackgroundServerCartesian<Fields_> {
+template <typename HyperParams_>
+class BackgroundServerBATL : public BackgroundServerCartesian<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundServerBATL";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using BackgroundServerCartesian = BackgroundServerCartesian<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundServerCartesian = BackgroundServerCartesian<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -50,8 +51,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 public:
@@ -67,6 +68,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundServerBATL);
+
 };
 
 };

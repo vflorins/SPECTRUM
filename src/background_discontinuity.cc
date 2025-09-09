@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 08/05/2025
 */
-template <typename Fields>
-BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(void)
-                       : BackgroundBase(bg_name_discontinuity, 0, STATE_NONE)
+template <typename HyperParams>
+BackgroundDiscontinuity<HyperParams>::BackgroundDiscontinuity(void)
+                       : BackgroundBase(bg_name, STATE_NONE)
 {
 };
 
@@ -32,8 +32,8 @@ BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const BackgroundDiscontinuity& other)
+template <typename HyperParams>
+BackgroundDiscontinuity<HyperParams>::BackgroundDiscontinuity(const BackgroundDiscontinuity& other)
                        : BackgroundBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -44,9 +44,9 @@ BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const BackgroundDiscont
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename Fields>
-BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-               : BackgroundBase(name_in, specie_in, status_in)
+template <typename HyperParams>
+BackgroundDiscontinuity<HyperParams>::BackgroundDiscontinuity(const std::string& name_in, uint16_t status_in)
+               : BackgroundBase(name_in, status_in)
 {
 };
 
@@ -57,8 +57,8 @@ BackgroundDiscontinuity<Fields>::BackgroundDiscontinuity(const std::string& name
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundDiscontinuity<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundDiscontinuity<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -77,8 +77,8 @@ void BackgroundDiscontinuity<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename Fields>
-void BackgroundDiscontinuity<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundDiscontinuity<HyperParams>::EvaluateBackground(void)
 {
 // Upstream
    if ((_pos - r0) * n_discont - v_discont * _t > 0) {
@@ -102,8 +102,8 @@ void BackgroundDiscontinuity<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-template <typename Fields>
-void BackgroundDiscontinuity<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundDiscontinuity<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
 // Spatial derivatives are zero
    if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;

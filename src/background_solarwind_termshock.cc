@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 02/22/2023
 */
-template <typename Fields>
-BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(void)
-                            : BackgroundSolarWind(bg_name_solarwind_termshock, 0, MODEL_STATIC)
+template <typename HyperParams>
+BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(void)
+                            : BackgroundSolarWind(bg_name, MODEL_STATIC)
 {
 };
 
@@ -32,8 +32,8 @@ BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
+template <typename HyperParams>
+BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
                             : BackgroundSolarWind(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -47,8 +47,8 @@ BackgroundSolarWindTermShock<Fields>::BackgroundSolarWindTermShock(const Backgro
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundSolarWindTermShock<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundSolarWindTermShock<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundSolarWind::SetupBackground(false);
@@ -66,8 +66,8 @@ void BackgroundSolarWindTermShock<Fields>::SetupBackground(bool construct)
 \param[in]  r      radial distance
 \param[out] ur_mod modified radial flow
 */
-template <typename Fields>
-void BackgroundSolarWindTermShock<Fields>::ModifyUr(const double r, double &ur_mod)
+template <typename HyperParams>
+void BackgroundSolarWindTermShock<HyperParams>::ModifyUr(const double r, double &ur_mod)
 {
    if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -86,8 +86,8 @@ void BackgroundSolarWindTermShock<Fields>::ModifyUr(const double r, double &ur_m
 \date 05/14/2025
 \param[in]  r      radial distance
 */
-template <typename Fields>
-double BackgroundSolarWindTermShock<Fields>::dUrdr(const double r)
+template <typename HyperParams>
+double BackgroundSolarWindTermShock<HyperParams>::dUrdr(const double r)
 {
    if (r > r_TS) {
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -108,8 +108,8 @@ double BackgroundSolarWindTermShock<Fields>::dUrdr(const double r)
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
 */
-template <typename Fields>
-double BackgroundSolarWindTermShock<Fields>::TimeLag(const double r)
+template <typename HyperParams>
+double BackgroundSolarWindTermShock<HyperParams>::TimeLag(const double r)
 {
    if (r < r_TS) return r / ur0;
 #if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
@@ -125,42 +125,42 @@ double BackgroundSolarWindTermShock<Fields>::TimeLag(const double r)
 \author Juan G Alonso Guzman
 \date 05/14/2023
 */
-template <typename Fields>
-void BackgroundSolarWindTermShock<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundSolarWindTermShock<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if SOLARWIND_DERIVATIVE_METHOD == 0
-   double r;
-   GeoVector posprime;
-   GeoMatrix rr;
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      double r;
+      GeoVector posprime;
+      GeoMatrix rr;
 
-   if constexpr (Fields::DelVel_found()) {
+      if constexpr (Fields::DelVel_found()) {
 // Expression valid only for radial flow
-      posprime = _pos - r0;
-      r = posprime.Norm();
-      rr.Dyadic(posprime / r);
-      _fields.DelVel() = dUrdr(r) * rr + (_fields.Vel().Norm() / r) * (gm_unit - rr);
-   };
-   if constexpr (Fields::DelMag_found()) {
+         posprime = _pos - r0;
+         r = posprime.Norm();
+         rr.Dyadic(posprime / r);
+         _fields.DelVel() = dUrdr(r) * rr + (_fields.Vel().Norm() / r) * (gm_unit - rr);
+      };
+      if constexpr (Fields::DelMag_found()) {
 //TODO: complete
+      };
+      if constexpr (Fields::DelElc_found()) {
+         _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+      };
+      if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
+      if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
+      if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   }
+   else {
+      NumericalDerivatives();
    };
-   if constexpr (Fields::DelElc_found()) {
-      _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
-   };
-   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
-
-#else
-   NumericalDerivatives();
-#endif
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 02/23/2024
 */
-template <typename Fields>
-void BackgroundSolarWindTermShock<Fields>::EvaluateDmax(void)
+template <typename HyperParams>
+void BackgroundSolarWindTermShock<HyperParams>::EvaluateDmax(void)
 {
    BackgroundSolarWind::EvaluateDmax();
 

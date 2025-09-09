@@ -13,15 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: numerical)
-#define SPHERICAL_OBSTACLE_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSphericalObstacle class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the class
-const std::string bg_name_spherical_obstacle = "BackgroundSphericalObstacle";
 
 /*!
 \brief Magnetic field around a spherical obstacle
@@ -29,12 +23,17 @@ const std::string bg_name_spherical_obstacle = "BackgroundSphericalObstacle";
 
 Parameters: (BackgroundBase), double r_sphere, double dmax_fraction
 */
-template <typename Fields_>
-class BackgroundSphericalObstacle : public BackgroundBase<Fields_>{
+template <typename HyperParams_>
+class BackgroundSphericalObstacle : public BackgroundBase<HyperParams_>{
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundSphericalObstacle";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -49,8 +48,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -67,14 +66,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
-//! Compute the maximum distance per time step
+   //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -82,7 +83,7 @@ public:
    BackgroundSphericalObstacle(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundSphericalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundSphericalObstacle(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other);
@@ -92,6 +93,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundSphericalObstacle);
+
 };
 
 };

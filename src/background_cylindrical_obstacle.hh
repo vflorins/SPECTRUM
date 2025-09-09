@@ -13,15 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Method for computing derivatives of B (0: analytical, 1: numerical)
-#define CYLINDRICAL_OBSTACLE_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundCylindricalObstacle class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the class
-const std::string bg_name_cylindrical_obstacle = "BackgroundCylindricalObstacle";
 
 /*!
 \brief Magnetic field around a cylindrical obstacle
@@ -29,13 +23,18 @@ const std::string bg_name_cylindrical_obstacle = "BackgroundCylindricalObstacle"
 
 Parameters: (BackgroundBase), GeoVector axis, double r_obstacle, double dmax_fraction
 */
-template <typename Fields_>
-class BackgroundCylindricalObstacle : public BackgroundBase<Fields_>
+template <typename HyperParams_>
+class BackgroundCylindricalObstacle : public BackgroundBase<HyperParams_>
 {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundCylindricalObstacle";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -50,8 +49,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -68,14 +67,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
 //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -83,7 +84,7 @@ public:
    BackgroundCylindricalObstacle(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundCylindricalObstacle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundCylindricalObstacle(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundCylindricalObstacle(const BackgroundCylindricalObstacle& other);

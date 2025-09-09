@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific nThis file is part of the 
 
 #include <memory>
 
-#include "common/params.hh"
+#include "common/status_class.hh"
 
 namespace Spectrum {
 

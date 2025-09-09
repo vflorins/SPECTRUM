@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename Fields>
-BackgroundSmoothShock<Fields>::BackgroundSmoothShock(void)
-                     : BackgroundShock(bg_name_smooth_shock, 0, STATE_NONE)
+template <typename HyperParams>
+BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(void)
+                     : BackgroundShock(bg_name, STATE_NONE)
 {
 };
 
@@ -31,8 +31,8 @@ BackgroundSmoothShock<Fields>::BackgroundSmoothShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundSmoothShock<Fields>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
+template <typename HyperParams>
+BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
                      : BackgroundShock(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -45,8 +45,8 @@ BackgroundSmoothShock<Fields>::BackgroundSmoothShock(const BackgroundSmoothShock
 \param [in] x Relative transition region location
 \return Relative value of shocked quantity
 */
-template <typename Fields>
-double BackgroundSmoothShock<Fields>::ShockTransition(double x)
+template <typename HyperParams>
+double BackgroundSmoothShock<HyperParams>::ShockTransition(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
@@ -76,8 +76,8 @@ double BackgroundSmoothShock<Fields>::ShockTransition(double x)
 \param [in] x Relative transition region location 
 \return Derivative of relative value of shocked quantity
 */
-template <typename Fields>
-double BackgroundSmoothShock<Fields>::ShockTransitionDerivative(double x)
+template <typename HyperParams>
+double BackgroundSmoothShock<HyperParams>::ShockTransitionDerivative(double x)
 {
    double y = x + 0.5;
 #if SMOOTH_SHOCK_ORDER == 0
@@ -108,8 +108,8 @@ double BackgroundSmoothShock<Fields>::ShockTransitionDerivative(double x)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundSmoothShock<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundSmoothShock<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundShock::SetupBackground(false);
@@ -123,8 +123,8 @@ void BackgroundSmoothShock<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename Fields>
-void BackgroundSmoothShock<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundSmoothShock<HyperParams>::EvaluateBackground(void)
 {
    double a1, a2;
    ds_shock = ((_pos - r0) * n_shock - v_shock * _t) / width_shock;
@@ -145,37 +145,38 @@ void BackgroundSmoothShock<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename Fields>
-void BackgroundSmoothShock<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundSmoothShock<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
-#if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
-   if constexpr (Fields::DelVel_found()) {
-      _fields.gradUvec.Dyadic(n_shock, u0 - u1);
-      _fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+      if constexpr (Fields::DelVel_found()) {
+         _fields.gradUvec.Dyadic(n_shock, u0 - u1);
+         _fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+      };
+      if constexpr (Fields::DelMag_found()) {
+         _fields.DelMag().Dyadic(n_shock, B0 - B1);
+         _fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
+         GeoVector bhat;
+         if constexpr (Fields::HatMag_found()) bhat = _fields.HatMag();
+         else bhat = _fields.Mag() / _fields.Mag().Norm();
+         _fields.DelMag() = _fields.DelMag() * bhat;
+      };
+      if constexpr (Fields::DelElc_found()) {
+         _fields.gradEvec = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+      };
+      if constexpr (Fields::DdtVel_found()) {
+         _fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+      };
+      if constexpr (Fields::DdtMag_found()) {
+         _fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
+      };
+      if constexpr (Fields::DdtElc_found()) {
+         _fields.dEvecdt = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
+      };
+   }
+   else {
+      NumericalDerivatives();
    };
-   if constexpr (Fields::DelMag_found()) {
-      _fields.DelMag().Dyadic(n_shock, B0 - B1);
-      _fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
-      GeoVector bhat;
-      if constexpr (Fields::HatMag_found()) bhat = _fields.HatMag();
-      else bhat = _fields.Mag() / _fields.Mag().Norm();
-      _fields.DelMag() = _fields.DelMag() * bhat;
-   };
-   if constexpr (Fields::DelElc_found()) {
-      _fields.gradEvec = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
-   };
-   if constexpr (Fields::DdtVel_found()) {
-      _fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
-   };
-   if constexpr (Fields::DdtMag_found()) {
-      _fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
-   };
-   if constexpr (Fields::DdtElc_found()) {
-      _fields.dEvecdt = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
-   };
-#else
-   NumericalDerivatives();
-#endif
 };
 
 /*!

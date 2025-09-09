@@ -17,21 +17,23 @@ namespace Spectrum {
 // BackgroundShock class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BackgroundShock class
-const std::string bg_name_shock = "BackgroundShock";
-
 /*!
 \brief Planar MHD shock
 \author Juan G Alonso Guzman
 
 Parameters: (BackgroundBase), GeoVector n_shock, double v_shock, double compression
 */
-template <typename Fields_>
-class BackgroundShock : public BackgroundBase<Fields_> {
+template <typename HyperParams_>
+class BackgroundShock : public BackgroundBase<HyperParams_> {
+private:
+
+//! Readable name of the BackgroundShock class
+   static constexpr std::string_view bg_name = "BackgroundShock";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -48,8 +50,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -84,7 +86,7 @@ public:
    BackgroundShock(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundShock(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BackgroundShock(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BackgroundShock(const BackgroundShock& other);
@@ -94,6 +96,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundShock);
+
 };
 
 };

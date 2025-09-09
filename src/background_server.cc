@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-template <typename Fields>
-BackgroundServer<Fields>::BackgroundServer(void)
+template <typename HyperParams>
+BackgroundServer<HyperParams>::BackgroundServer(void)
                 : BackgroundBase("", 0, STATE_NONE)
 {
 };
@@ -28,9 +28,9 @@ BackgroundServer<Fields>::BackgroundServer(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-template <typename Fields>
-BackgroundServer<Fields>::BackgroundServer(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                : BackgroundBase(name_in, specie_in, status_in)
+template <typename HyperParams>
+BackgroundServer<HyperParams>::BackgroundServer(const std::string& name_in, uint16_t status_in)
+                : BackgroundBase(name_in, status_in)
 {
 };
 
@@ -41,8 +41,8 @@ BackgroundServer<Fields>::BackgroundServer(const std::string& name_in, unsigned 
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename Fields>
-BackgroundServer<Fields>::BackgroundServer(const BackgroundServer& other)
+template <typename HyperParams>
+BackgroundServer<HyperParams>::BackgroundServer(const BackgroundServer& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -57,8 +57,8 @@ BackgroundServer<Fields>::BackgroundServer(const BackgroundServer& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Fields>
-void BackgroundServer<Fields>::SetupBackground(bool construct)
+template <typename HyperParams>
+void BackgroundServer<HyperParams>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -77,8 +77,8 @@ void BackgroundServer<Fields>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Fields>
-void BackgroundServer<Fields>::EvaluateBackground(void)
+template <typename HyperParams>
+void BackgroundServer<HyperParams>::EvaluateBackground(void)
 {
 #ifdef NEED_SERVER
    server_front->GetVariables(_t, _pos, _fields);
@@ -90,8 +90,8 @@ void BackgroundServer<Fields>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Fields>
-void BackgroundServer<Fields>::EvaluateBackgroundDerivatives(void)
+template <typename HyperParams>
+void BackgroundServer<HyperParams>::EvaluateBackgroundDerivatives(void)
 {
 #ifdef NEED_SERVER
    server_front->GetGradients(_fields, _ddata);
@@ -100,25 +100,29 @@ void BackgroundServer<Fields>::EvaluateBackgroundDerivatives(void)
    if (BITS_RAISED(_ddata._status, BACKGROUND_grad_FAIL)) NumericalDerivatives();
 };
 
-#if SERVER_INTERP_ORDER > 0
 /*!
 \author Juan G Alonso Guzman
 \date 06/17/2024
 */
-template <typename Fields>
-void BackgroundServer<Fields>::EvaluateBmag(void)
+template <typename HyperParams>
+void BackgroundServer<HyperParams>::EvaluateBmag(void)
 {
-// If variables are interpolated, override this function to be empty, and interpolation will happen within "GetVariables".
+   if constexpr (HyperParams::server_interpolation_order > 0) {
+      BackgroundBase::EvaluateBmag();
+   }
+   else {
+// If variables are interpolated, override this function to be empty, and interpolation will occur within "GetVariables".
+      ;
+   }
 };
-#endif
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Fields>
-void BackgroundServer<Fields>::StopServerFront(void)
+template <typename HyperParams>
+void BackgroundServer<HyperParams>::StopServerFront(void)
 {
 #ifdef GEO_DEBUG
    server_front->PrintStencilOutcomes();

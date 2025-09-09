@@ -196,7 +196,26 @@ namespace Spectrum {
 //! Helium atoms - core
 #define SPECIES_HELIUM_CORE 15
 
-//! Names of fluids
+//! Species (alternative impl)
+enum class Specie {
+   electron_core,
+   electron_halo,
+   electron_beam,
+   proton_core,
+   proton_beam,
+   proton_pickup,
+   alpha_core,
+   alpha_halo,
+   heliumII_core,
+   heliumII_pickup,
+   hydrogenII_core,
+   hydrogenI_core,
+   hydrogenI_halo,
+   hydrogenI_beam,
+   heliumI_core
+};
+
+//! Names of fluid species
 constexpr std::array<std::string_view, MAX_PARTICLE_SPECIES> SpeciesNames
 = {"Electrons (core)", "Electrons (halo)", "Electrons (beam)", "Proton (core)", "Proton (halo)", "Proton (beam)", "Proton (pickup)",
    "Alpha (core)", "Alpha (halo)", "Helium II (core)", "Helium II (pickup)", "Hydrogen II (core)", "Hydrogen I (core)", "Hydrogen I (halp)",

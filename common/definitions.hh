@@ -11,6 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <cmath>
 #include <complex>
+#include "rk_lists.hh"
 
 #include <common/gpu_config.hh>
 
@@ -63,6 +64,74 @@ struct EmptyStruct{};
 
 //! A very small number, according to the code
 #define sp_tiny 1.0E-15
+
+//! Build mode (debug build or production build)
+enum class BuildMode {
+   debug,
+   release
+};
+
+//! Derivative method (generally either analytic or numeric)
+enum class DerivativeMethod {
+   analytic,
+   numeric
+};
+
+//! Direction of trajectory integration (time flow direction)
+enum class TimeFlow {
+   forward,
+   backward
+};
+
+//! Heliospheric current sheet (0: disabled, 1: flat, 2: wavy (Jokipii-Thomas 1981) and static, 3: wavy and time-dependent).
+enum class SolarWindCurrentSheet {
+   disabled,
+   flat,
+   wavy_static,
+   wavy_time_dependent
+};
+
+//! Magnetic topology region (0: nowhere, 1: same as HCS)
+enum class SolarWindSectoredRegion {
+   nowhere,
+   HCS
+};
+
+//! Correction to Parker Spiral, mainly for polar regions (0: none, 1: Smith-Bieber 1991, 2: Zurbuchen et al. 1997, 3: Schwadron-McComas 2003)
+enum class SolarWindPolarCorrection {
+   none,
+   Smith_Bieber,
+   Zurbuchen_etal,
+   Schwadron_McComas
+};
+
+//! Latitudinal profile for bulk speed (0: constant, 1: linear step, 2: smooth step)
+enum class SolarWindSpeedLatitudeProfile {
+   constant,
+   linear_step,
+   smooth_step
+};
+
+//! Integer exponent of decrease of solar wind speed beyond the termination shock
+enum class SolarWindTermShockSpeedExponent {
+   one,
+   square,
+   cube
+};
+
+//! What function to use within 'get_ampfactor' (0 = none, 1 = zero, 2 = constant, 3 = scaled)
+enum class VLISMBochumModType {
+   none,
+   zero,
+   constant,
+   scaled
+};
+
+//! Whether to scale relative to s=0 (0) or s=+inf (1)
+enum class VLISMBochumModRPos {
+   scale_rel_zero,
+   scale_rel_inf
+};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Global floating point constants that are also available on the device

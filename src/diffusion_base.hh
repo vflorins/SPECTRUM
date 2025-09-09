@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "config.h"
-#include "common/params.hh"
+#include "common/status_class.hh"
 #include "common/physics.hh"
 #include "common/derivativedata.hh"
 #include <memory>
@@ -61,11 +61,12 @@ The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. 
 Parameters:
 */
 template <typename Trajectory_>
-class DiffusionBase : public Params {
+class DiffusionBase : public StatusClass {
 public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
+   using Trajectory::specie;
 
 protected:
 

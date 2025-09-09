@@ -27,7 +27,7 @@ constexpr unsigned int n_max_calls = -1;
 */
 template <typename Trajectory, typename Fields>
 TrajectoryBase<Trajectory, Fields>::TrajectoryBase(void)
-              : Params("", 0, STATE_NONE)
+              : StatusClass("", STATE_NONE)
 {
 };
 
@@ -40,8 +40,8 @@ TrajectoryBase<Trajectory, Fields>::TrajectoryBase(void)
 \param[in] presize_in Initial lengths of the containers
 */
 template <typename Trajectory, typename Fields>
-TrajectoryBase<Trajectory, Fields>::TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-              : Params(name_in, specie_in, status_in)
+TrajectoryBase<Trajectory, Fields>::TrajectoryBase(const std::string& name_in, uint16_t status_in, bool presize_in)
+              : StatusClass(name_in, status_in)
 {
    PreSize(presize_in);
 };

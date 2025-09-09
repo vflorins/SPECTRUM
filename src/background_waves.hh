@@ -19,21 +19,23 @@ namespace Spectrum {
 // BackgroundWaves class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the class
-const std::string bg_name_waves = "BackgroundWaves";
-
 /*!
 \brief Electromagnetic fields of an ensemble of waves
 \author Vladimir Florinski
 
 Parameters: (BackgroundBase), [double kmin, double kmax, int n_waves, double variance, double slope] x n_turb_types
 */
-template <typename Fields_>
-class BackgroundWaves : public BackgroundBase<Fields_> {
+template <typename HyperParams_>
+class BackgroundWaves : public BackgroundBase<HyperParams_> {
+private:
+
+//! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundWaves";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
    using BackgroundBase::_ddata;
@@ -49,8 +51,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -94,14 +96,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
-//! Compute the maximum distance per time step
+   //! Compute the maximum distance per time step
    void EvaluateDmax(void) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Fields&);
 
 public:
 
@@ -116,6 +120,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundWaves);
+
 };
 
 };

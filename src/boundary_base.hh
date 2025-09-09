@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "config.h"
-#include "common/params.hh"
+#include "common/status_class.hh"
 #include "common/physics.hh"
 #include <memory>
 
@@ -107,11 +107,12 @@ The "BoundaryXXXXX" classes describe generic boundary condisions in time, space,
 Parameters: int max_crossings, VEC_INT actions
 */
 template <typename Trajectory_>
-class BoundaryBase : public Params {
+class BoundaryBase : public StatusClass {
 public:
 
    using Trajectory = Trajectory_;
    using Fields = Trajectory::Fields;
+   using Trajectory::specie;
 
 protected:
 
@@ -146,7 +147,7 @@ protected:
    BoundaryBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryBase(const BoundaryBase& other);

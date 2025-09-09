@@ -13,18 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Flag to control smoothness of discontinuity
-#define SMOOTH_DISCONT_ORDER 4
-
-//! Method for computing derivatives (0: analytical, 1: numerical)
-#define SMOOTHDISCONT_DERIVATIVE_METHOD 0
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothDiscontinuity class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the BackgroundSmoothDiscontinuity class
-const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity";
 
 /*!
 \brief Planar MHD discontinuity with a smooth transition region
@@ -32,13 +23,18 @@ const std::string bg_name_smooth_discontinuity = "BackgroundSmoothDiscontinuity"
 
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
-template <typename Fields_>
-class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<Fields_> {
+template <typename HyperParams_>
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<HyperParams_> {
+private:
+
+//! Readable name of the BackgroundSmoothDiscontinuity class
+   static constexpr std::string_view bg_name = "BackgroundSmoothDiscontinuity";
+
 public:
 
-   using Fields = Fields_;
-   using BackgroundDiscontinuity = BackgroundDiscontinuity<Fields>;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HyperParams = HyperParams_;
+   using BackgroundBase = BackgroundBase<HyperParams>;
+   using BackgroundDiscontinuity = BackgroundDiscontinuity<HyperParams>;
 
    using BackgroundBase::_status;
    using BackgroundBase::_fields;
@@ -56,8 +52,8 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
+//   using BackgroundBase::EvaluateBackground;
+//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
    using BackgroundDiscontinuity::n_discont;
@@ -110,6 +106,7 @@ public:
 
 //! Clone function
    CloneFunctionBackground(BackgroundSmoothDiscontinuity);
+
 };
 
 };
