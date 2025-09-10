@@ -1,5 +1,5 @@
 #include <iostream>
-#include <geodesic/geodesic_sector.hh>
+#include "geodesic/geodesic_sector.hh"
 
 using namespace Spectrum;
 

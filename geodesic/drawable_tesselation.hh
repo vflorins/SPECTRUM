@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DRAWABLE_TESSELATION_HH
 #define SPECTRUM_DRAWABLE_TESSELATION_HH
 
-#include <geodesic/spherical_tesselation.hh>
+#include "geodesic/spherical_tesselation.hh"
 
 namespace Spectrum {
 

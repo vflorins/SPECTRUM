@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <eigen3/Eigen/Dense>
 
-#include <geodesic/grid_block.hh>
+#include "geodesic/grid_block.hh"
 
 namespace Spectrum {
 

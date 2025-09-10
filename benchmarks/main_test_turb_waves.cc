@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
    container.Insert(actions);
    
 // Duration of the trajectory
-   double maxtime = 100.0 / unit_time_fluid;
+   double maxtime = 1000.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTimeExpire(), container);

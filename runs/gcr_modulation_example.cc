@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,15 +53,16 @@ int main(int argc, char** argv)
    double RS = 6.957e10 / unit_length_fluid;
    double r_ref = 3.0 * RS;
    double BmagE = 5.0e-5 / unit_magnetic_fluid;
-   double Bmag_ref = BmagE * Sqr((GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid) / r_ref);
+   double one_au = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double Bmag_ref = BmagE * Sqr(one_au / r_ref);
    GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
 
 // Effective "mesh" resolution
-   double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double dmax = one_au;
    container.Insert(dmax);
 
-// solar rotation vector
+// Solar rotation vector
    double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
@@ -94,7 +95,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial position
-   GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
+   GeoVector init_pos(1.0 * one_au, 0.0, 0.0);
    container.Insert(init_pos);
 
    simulation->AddInitial(InitialSpaceFixed(), container);
@@ -139,7 +140,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double inner_boundary = 0.01 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double inner_boundary = 0.01 * one_au;
    container.Insert(inner_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -164,7 +165,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double outer_boundary = 80.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double outer_boundary = 80.0 * one_au;
    container.Insert(outer_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -175,7 +176,6 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-// Not needed because this class sets the value to -1
    int max_crossings_time = 1;
    container.Insert(max_crossings_time);
 
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
    container.Insert(actions_time);
    
 // Max duration of the trajectory
-   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
+   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 * 1.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);
@@ -198,11 +198,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Parallel mean free path
-   double lam0 = 0.1 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double lam0 = 0.1 * one_au;
    container.Insert(lam0);
 
 // Rigidity normalization factor
-   double R0 = 1.0e9 / unit_rigidity_particle;
+   double R0 = 3.33e6 / unit_rigidity_particle;
    container.Insert(R0);
 
 // Magnetic field normalization factor
@@ -234,11 +234,11 @@ int main(int argc, char** argv)
    container.Insert(n_bins1);
    
 // Smallest value
-   GeoVector minval1(EnrKin(momentum1), 0.0, 0.0);
+   GeoVector minval1(EnrKin(momentum1, specie), 0.0, 0.0);
    container.Insert(minval1);
 
 // Largest value
-   GeoVector maxval1(EnrKin(momentum2), 0.0, 0.0);
+   GeoVector maxval1(EnrKin(momentum2, specie), 0.0, 0.0);
    container.Insert(maxval1);
 
 // Linear or logarithmic bins

@@ -97,7 +97,7 @@ void TrajectoryFocused::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    GeoMatrix bhatbhat;
    GeoVector cdUvecdt;

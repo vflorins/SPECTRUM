@@ -210,6 +210,19 @@ void BackgroundSolarWind::EvaluateBackground(void)
       _spdata.Bvec[2] -= Bt * sintheta;
 #endif
 
+#if SOLARWIND_DERIVATIVE_METHOD == 0
+// Save transformation matrix from spherical to cartesian if derivatives are computed analytically
+      SphericalToCartesian[0][0] = sintheta * cosphi;
+      SphericalToCartesian[0][1] = costheta * cosphi;
+      SphericalToCartesian[0][2] = -sinphi;
+      SphericalToCartesian[1][0] = sintheta * sinphi;
+      SphericalToCartesian[1][1] = costheta * sinphi;
+      SphericalToCartesian[1][2] = cosphi;
+      SphericalToCartesian[2][0] = costheta;
+      SphericalToCartesian[2][1] = -sintheta;
+      SphericalToCartesian[2][2] = 0.0;
+#endif
+
 // Correct polarity based on current sheet
 #if SOLARWIND_CURRENT_SHEET == 1
 // Flat current sheet at the equator
@@ -242,17 +255,34 @@ void BackgroundSolarWind::EvaluateBackground(void)
 void BackgroundSolarWind::EvaluateBackgroundDerivatives(void)
 {
 #if SOLARWIND_DERIVATIVE_METHOD == 0
-   GeoVector posprime;
-   GeoMatrix rr;
+   double r;
+   GeoMatrix CartesianToSpherical;
+
+   r = (_pos - r0).Norm();
+   CartesianToSpherical.Transpose(SphericalToCartesian);
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
 // Expression valid only for radial flow
-      posprime = _pos - r0;
-      rr.Dyadic(posprime);
-      _spdata.gradUvec = (_spdata.Uvec.Norm() / posprime.Norm()) * (gm_unit - rr);
+      _spdata.gradUvec = gm_zeros;
+      _spdata.gradUvec[1][1] = _spdata.Uvec.Norm() / r;
+      _spdata.gradUvec[2][2] = _spdata.Uvec.Norm() / r;
+// Convert to Cartesian
+      _spdata.gradUvec = SphericalToCartesian * _spdata.gradUvec * CartesianToSpherical;
+      _spdata.gradUvec.ChangeFromBasis(eprime);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradB)) {
-//TODO: complete
+// Expressions valid only for radial field ~ 1/r^2
+      _spdata.gradBvec = gm_zeros;
+      _spdata.gradBvec[0][0] = -2.0 * _spdata.Bvec.Norm() / r;
+      _spdata.gradBvec[1][1] = _spdata.Bvec.Norm() / r;
+      _spdata.gradBvec[2][2] = _spdata.Bvec.Norm() / r;
+      _spdata.gradBmag = gv_zeros;
+      _spdata.gradBmag[0] = -2.0 * _spdata.Bvec.Norm() / r;
+// Convert to Cartesian
+      _spdata.gradBvec = SphericalToCartesian * _spdata.gradBvec * CartesianToSpherical;
+      _spdata.gradBvec.ChangeFromBasis(eprime);
+      _spdata.gradBmag = SphericalToCartesian * _spdata.gradBmag;
+      _spdata.gradBmag.ChangeFromBasis(eprime);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;

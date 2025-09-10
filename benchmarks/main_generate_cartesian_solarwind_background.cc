@@ -10,7 +10,7 @@ int main(void)
 {
    BackgroundSolarWind background;
    SpatialData spdata;
-   int Nb = 20;
+   int Nb = 25;
    std::string Nbs = std::to_string(Nb);
    std::string fname_pattern = "parker_" + Nbs + "_" + Nbs + "_" + Nbs;
 

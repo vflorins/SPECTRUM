@@ -68,7 +68,7 @@ protected:
    bool RK2PerpDiffSlopes(void);
 
 //! Compute the RK(?) slopes
-   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
+   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage) override;
 
 //! Compute the physical time step
    void PhysicalStep(void) override;

@@ -19,8 +19,11 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Whether to print the last trajectory
+//! Whether or not to print each worker's last trajectory
 const bool print_last_trajectory = false;
+
+//! Whether or not to print each failed trajectory
+const bool print_failed_trajectory = false;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // SimulationWorker (base) class
@@ -115,6 +118,9 @@ public:
 
 //! Add diffusion object (passthrough to trajectory)
    void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
+
+//! Add source object (passthrough to trajectory)
+   void AddSource(const SourceBase& source_in, const DataContainer& container_in);
 
 //! Restore distribution (stub)
    virtual void RestoreDistro(int distro);

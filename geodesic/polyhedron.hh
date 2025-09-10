@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <string>
 
-#include <common/definitions.hh>
+#include "common/definitions.hh"
 
 namespace Spectrum {
 

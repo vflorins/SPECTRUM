@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,9 +67,8 @@ int main(int argc, char** argv)
    double dmax = dmax_fraction * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-// solar rotation vector
-   // double w0 = 4.63e-7 * unit_time_fluid; // linear frequency
-   double w0 = 2.7e-6 * unit_time_fluid; // angular frequency
+// Solar rotation vector
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 

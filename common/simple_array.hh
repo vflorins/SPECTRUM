@@ -12,8 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <ostream>
 
-#include <common/definitions.hh>
-#include <common/arithmetic.hh>
+#include "common/definitions.hh"
+#include "common/arithmetic.hh"
 
 namespace Spectrum {
 

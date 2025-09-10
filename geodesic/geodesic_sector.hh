@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <cstdint>
 
-#include <geodesic/polygonal_addressing.hh>
+#include "geodesic/polygonal_addressing.hh"
 
 namespace Spectrum {
 

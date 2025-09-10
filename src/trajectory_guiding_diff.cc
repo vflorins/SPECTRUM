@@ -287,9 +287,9 @@ bool TrajectoryGuidingDiff::RK2PerpDiffSlopes(void)
 \param[out] position slopes
 \param[out] momentum slopes
 */
-void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryGuidingDiff::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
-   TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
+   TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage, slope_amp_istage, slope_wgt_istage);
    TrajectoryGuidingDiff::DiffusionCoeff();
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    slope_pos_istage += Vperp;
@@ -329,7 +329,7 @@ bool TrajectoryGuidingDiff::Advance(void)
 
 // The commomn fields and "dmax" have been computed at the end of Advance() or in SetStart() before the first step.
 // Compute the slopes. The first two components for momentum are always zero for GC (the perpendicular momentum is determined from conservation of magnetic moment).
-   Slopes(slope_pos[0], slope_mom[0]);
+   Slopes(slope_pos[0], slope_mom[0], slope_amp[0], slope_wgt[0]);
 
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);

@@ -78,7 +78,7 @@ struct GeoMatrix {
 //! Subtract another matrix from this
    SPECTRUM_DEVICE_FUNC GeoMatrix& operator -=(const GeoMatrix& matr_r);
 
-//! Multiply this matrix by a scalar from the left
+//! Multiply this matrix by a scalar from the right
    SPECTRUM_DEVICE_FUNC GeoMatrix& operator *=(double sclr_r);
 
 //! Divide this matrix by a scalar
@@ -101,11 +101,17 @@ struct GeoMatrix {
 //! Generate a basis with the z-axis along the given direction
    SPECTRUM_DEVICE_FUNC void AxisymmetricBasis(const GeoVector& ez);
 
-//! Convert components from the standard basis to a different basis
+//! Convert rows from the standard basis to a different basis
    SPECTRUM_DEVICE_FUNC void ChangeToBasis(const GeoMatrix& basis);
 
-//! Convert components to the standard basis from a different basis
+//! Convert components from the standard basis to a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeToBasis(const GeoVector* basis);
+
+//! Convert rows to the standard basis from a different basis
    SPECTRUM_DEVICE_FUNC void ChangeFromBasis(const GeoMatrix& basis);
+
+//! Convert components to the standard basis from a different basis
+   SPECTRUM_DEVICE_FUNC void ChangeFromBasis(const GeoVector* basis);
 
 //! Compute a minor
    SPECTRUM_DEVICE_FUNC double Minor(int i, int j) const;
@@ -362,6 +368,54 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator -(const GeoMatrix& matr_l, const 
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 07/14/2025
+\param[in] matr_l left operand \f$\mathbf{M}\f$
+\param[in] sclr_r right operand \f$a\f$
+\return \f$\mathbf{M} + a\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator +(const GeoMatrix& matr_l, double sclr_r)
+{
+   GeoMatrix matr_tmp(matr_l);
+   matr_tmp.row[0] += sclr_r;
+   matr_tmp.row[1] += sclr_r;
+   matr_tmp.row[2] += sclr_r;
+   return matr_tmp;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/14/2025
+\param[in] sclr_l left operand \f$a\f$
+\param[in] matr_r right operand \f$\mathbf{v}\f$
+\return \f$a + \mathbf{M}\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator +(double sclr_l, const GeoMatrix& matr_r)
+{
+   GeoMatrix matr_tmp(matr_r);
+   matr_tmp.row[0] += sclr_l;
+   matr_tmp.row[1] += sclr_l;
+   matr_tmp.row[2] += sclr_l;
+   return matr_tmp;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/14/2025
+\param[in] matr_l left operand \f$\mathbf{M}\f$
+\param[in] sclr_r right operand \f$a\f$
+\return \f$\mathbf{M} - a\f$
+*/
+SPECTRUM_DEVICE_FUNC inline GeoMatrix operator -(const GeoMatrix& matr_l, double sclr_r)
+{
+   GeoMatrix matr_tmp(matr_l);
+   matr_tmp.row[0] -= sclr_r;
+   matr_tmp.row[1] -= sclr_r;
+   matr_tmp.row[2] -= sclr_r;
+   return matr_tmp;
+};
+
+/*!
 \author Vladimir Florinski
 \date 11/02/2021
 \param[in] matr_l left operand \f$\mathbf{M}\f$
@@ -398,7 +452,7 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(double sclr_l, const GeoMatrix&
 \date 11/02/2021
 \param[in] matr_l left operand \f$\mathbf{M}\f$
 \param[in] sclr_r right operand \f$a\f$
-\return \f$a^{-1}\mathbf{v}\f$
+\return \f$a^{-1}\mathbf{M}\f$
 */
 SPECTRUM_DEVICE_FUNC inline GeoMatrix operator /(const GeoMatrix& matr_l, double sclr_r)
 {

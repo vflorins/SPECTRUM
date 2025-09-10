@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include <geodesic/buffered_block.hh>
+#include "geodesic/buffered_block.hh"
 
 namespace Spectrum {
 

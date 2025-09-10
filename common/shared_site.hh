@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SHARED_SITE_HH
 #define SPECTRUM_SHARED_SITE_HH
 
-#include <common/communication_site.hh>
+#include "common/communication_site.hh"
 
 #ifdef USE_MPI
 

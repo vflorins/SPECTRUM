@@ -40,6 +40,8 @@ gcr_modulation_example_SOURCES = gcr_modulation_example.cc \
    $(SPBL_SOURCE_DIR)/diffusion_other.hh \
    $(SPBL_SOURCE_DIR)/diffusion_base.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/distribution_other.cc \
    $(SPBL_SOURCE_DIR)/distribution_other.hh \
    $(SPBL_SOURCE_DIR)/distribution_templated.cc \

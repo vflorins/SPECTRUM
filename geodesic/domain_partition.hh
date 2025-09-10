@@ -11,12 +11,12 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <memory>
 
-#include <config.h>
+#include "config.h"
 
-#include <common/exchange_site.hh>
-#include <geodesic/stenciled_block.hh>
-#include <geodesic/traversable_tesselation.hh>
-#include <geodesic/neighbors.hh>
+#include "common/exchange_site.hh"
+#include "geodesic/stenciled_block.hh"
+#include "geodesic/traversable_tesselation.hh"
+#include "geodesic/neighbors.hh"
 
 namespace Spectrum {
 

@@ -13,6 +13,8 @@ bin_PROGRAMS = main_test_dipole_visualization \
                main_test_pa_distro_isotrop \
                main_test_pa_scatt \
                main_test_perp_diff main_test_full_diff \
+               main_test_diffusive_shock_acceleration \
+               main_postprocess_diffusive_shock_acceleration \
                main_test_modulation_cartesian_parker \
                main_postprocess_modulation_cartesian_parker \
                main_generate_cartesian_solarwind_background
@@ -48,6 +50,8 @@ main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
    $(SPBL_SOURCE_DIR)/distribution_base.cc \
    $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -103,6 +107,8 @@ main_test_turb_waves_SOURCES = main_test_turb_waves.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
    $(SPBL_SOURCE_DIR)/distribution_base.cc \
    $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -158,6 +164,8 @@ main_test_parker_spiral_SOURCES = main_test_parker_spiral.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
    $(SPBL_SOURCE_DIR)/distribution_base.cc \
    $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -216,6 +224,8 @@ main_test_init_cond_records_SOURCES = main_test_init_cond_records.cc \
    $(SPBL_SOURCE_DIR)/initial_base.cc \
    $(SPBL_SOURCE_DIR)/initial_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
    $(SPBL_COMMON_DIR)/mpi_config.cc \
@@ -270,6 +280,8 @@ main_test_dipole_periods_SOURCES = main_test_dipole_periods.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
    $(SPBL_SOURCE_DIR)/distribution_base.cc \
    $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -335,6 +347,8 @@ main_test_pa_distro_isotrop_SOURCES = main_test_pa_distro_isotrop.cc \
    $(SPBL_SOURCE_DIR)/diffusion_other.hh \
    $(SPBL_SOURCE_DIR)/diffusion_base.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -400,6 +414,8 @@ main_test_pa_scatt_SOURCES = main_test_pa_scatt.cc \
    $(SPBL_SOURCE_DIR)/diffusion_other.hh \
    $(SPBL_SOURCE_DIR)/diffusion_base.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -463,6 +479,8 @@ main_test_perp_diff_SOURCES = main_test_perp_diff.cc \
    $(SPBL_SOURCE_DIR)/diffusion_other.hh \
    $(SPBL_SOURCE_DIR)/diffusion_base.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -524,6 +542,8 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
    $(SPBL_SOURCE_DIR)/diffusion_other.hh \
    $(SPBL_SOURCE_DIR)/diffusion_base.cc \
    $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
@@ -548,6 +568,94 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
 main_test_full_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+
+main_test_diffusive_shock_acceleration_SOURCES = main_test_diffusive_shock_acceleration.cc \
+   $(SPBL_SOURCE_DIR)/simulation.cc \
+   $(SPBL_SOURCE_DIR)/simulation.hh \
+   $(SPBL_SOURCE_DIR)/distribution_other.cc \
+   $(SPBL_SOURCE_DIR)/distribution_other.hh \
+   $(SPBL_SOURCE_DIR)/distribution_templated.cc \
+   $(SPBL_SOURCE_DIR)/distribution_templated.hh \
+   $(SPBL_SOURCE_DIR)/distribution_base.cc \
+   $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/trajectory_parker_source.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_parker_source.hh \
+   $(SPBL_SOURCE_DIR)/trajectory_parker.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_parker.hh \
+   $(SPBL_SOURCE_DIR)/trajectory_base.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_base.hh \
+   $(SPBL_SOURCE_DIR)/background_smooth_shock.cc \
+   $(SPBL_SOURCE_DIR)/background_smooth_shock.hh \
+   $(SPBL_SOURCE_DIR)/background_shock.cc \
+   $(SPBL_SOURCE_DIR)/background_shock.hh \
+   $(SPBL_SOURCE_DIR)/background_base.cc \
+   $(SPBL_SOURCE_DIR)/background_base.hh \
+   $(SPBL_SOURCE_DIR)/background_base_visual.cc \
+   $(SPBL_SOURCE_DIR)/boundary_time.cc \
+   $(SPBL_SOURCE_DIR)/boundary_time.hh \
+   $(SPBL_SOURCE_DIR)/boundary_space.cc \
+   $(SPBL_SOURCE_DIR)/boundary_space.hh \
+   $(SPBL_SOURCE_DIR)/boundary_base.cc \
+   $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
+   $(SPBL_SOURCE_DIR)/initial_space.cc \
+   $(SPBL_SOURCE_DIR)/initial_space.hh \
+   $(SPBL_SOURCE_DIR)/initial_momentum.cc \
+   $(SPBL_SOURCE_DIR)/initial_momentum.hh \
+   $(SPBL_SOURCE_DIR)/initial_base.cc \
+   $(SPBL_SOURCE_DIR)/initial_base.hh \
+   $(SPBL_SOURCE_DIR)/diffusion_other.cc \
+   $(SPBL_SOURCE_DIR)/diffusion_other.hh \
+   $(SPBL_SOURCE_DIR)/diffusion_base.cc \
+   $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_other.cc \
+   $(SPBL_SOURCE_DIR)/source_other.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
+   $(SPBL_SOURCE_DIR)/traj_config.hh \
+   $(SPBL_SOURCE_DIR)/server_config.hh \
+   $(SPBL_COMMON_DIR)/workload_manager.hh \
+   $(SPBL_COMMON_DIR)/mpi_config.cc \
+   $(SPBL_COMMON_DIR)/mpi_config.hh \
+   $(SPBL_COMMON_DIR)/matrix.cc \
+   $(SPBL_COMMON_DIR)/matrix.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/random.hh \
+   $(SPBL_COMMON_DIR)/rk_config.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
+
+main_test_diffusive_shock_acceleration_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+
+main_postprocess_diffusive_shock_acceleration_SOURCES = main_postprocess_diffusive_shock_acceleration.cc \
+   $(SPBL_COMMON_DIR)/matrix.cc \
+   $(SPBL_COMMON_DIR)/matrix.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh
+
+main_postprocess_diffusive_shock_acceleration_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
 main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_parker.cc \
    $(SPBL_SOURCE_DIR)/simulation.cc \
@@ -602,6 +710,8 @@ main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_p
    $(SPBL_SOURCE_DIR)/distribution_base.cc \
    $(SPBL_SOURCE_DIR)/distribution_base.hh \
    $(SPBL_SOURCE_DIR)/server_config.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
    $(SPBL_SOURCE_DIR)/traj_config.hh \
    $(SPBL_COMMON_DIR)/workload_manager.hh \
    $(SPBL_COMMON_DIR)/mpi_config.cc \

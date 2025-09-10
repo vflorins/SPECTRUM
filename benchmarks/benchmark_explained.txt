@@ -11,7 +11,7 @@ This file contains benchmark tests for SPECTRUM.
    - Trajectory type: fieldline
    - Field type: waves
    - Expected result: Plot trajectories that are characteristic to each type of turbulence.
-   - Notes: The A modes should oscillate sharply around a constant magnetic field line (in the z-direction). The T modes should trace closed loops when collapsed to the xy-plane. The L modes should trace straight lines in the z direction. The I modes are similar to the A modes but they are more wobbly (instead of sharp turns) and potentially wonder off their initial magnetic field line.
+   - Notes: The A modes should oscillate sharply around a constant magnetic field line (in the z-direction). The T modes should create nearly closed loops when collapsed to the xy-plane. The L modes should trace straight lines in the z direction. The I modes are similar to the A modes but they are more wobbly (instead of sharp turns) and potentially wonder off their initial magnetic field line.
 
 - PARKER SPIRAL SOLAR WIND
    - File: main_test_parker_spiral.cc
@@ -60,6 +60,13 @@ This file contains benchmark tests for SPECTRUM.
    - Field type: Uniform
    - Expected result: E[x] = E[y] = 0, and E[x^2] = E[y^2] = E[z^2] = 2*K*t, with K = D0
    - Notes: Same note about relative magnitude of first and second moments as in "PITCH ANGLE SCATTERING" applies here.
+
+- DIFFUSIVE SHOCK ACCELERATION
+   - File: main_test_diffusive_shock_acceleration.cc
+   - Trajectory type: parker_source
+   - Field type: Smooth shock
+   - Expected result: A power law spectrum with (log-log) slope of -1 that matches the analytical result.
+   - Notes: At higher energies (>10 MeV), the numerically computed spectrum will be very noisy unless a very large number of trajectories are used.
 
 - MODULATION WITH CARTESIAN PARKER SPIRAL
    - File: main_test_modulation_cartesian_parker.cc

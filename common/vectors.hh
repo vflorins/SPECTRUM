@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_VECTORS_HH
 #define SPECTRUM_VECTORS_HH
 
-#include <common/multi_index.hh>
+#include "common/multi_index.hh"
 
 namespace Spectrum {
 

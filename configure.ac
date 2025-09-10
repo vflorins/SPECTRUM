@@ -64,7 +64,9 @@ full_path=$(pkg-config --variable=prefix "$MODULE_NAME")
 AS_IF([test "x$full_path" == "x"], [
    AC_MSG_ERROR([Path to GSL pkgconfig was not found])
 ])
-PKG_CHECK_MODULES([GSL], [$MODULE_NAME])
+PKG_CHECK_MODULES([GSL], [$MODULE_NAME], [
+   AC_DEFINE([USE_GSL], [1], [Using GSL])
+])
 
 # SILO option
 AC_ARG_ENABLE([silo], [AS_HELP_STRING([--enable-silo], [enable SILO [default=no]])], [], [])
@@ -81,7 +83,12 @@ AS_IF([test "x$enable_silo" == "xyes"], [
 ])
 
 # Check for SLURM (not required)
-#AC_SEARCH_LIBS([slurm_get_rem_time], [slurm slurmfull], [AC_DEFINE([USE_SLURM], [1], [Using SLURM])], [AC_MSG_WARN([SLURM library was not found.])])
+AC_SEARCH_LIBS([slurm_get_rem_time], [slurm slurmfull], [
+   AC_DEFINE([USE_SLURM], [1], [Using SLURM])
+],
+[
+   AC_MSG_WARN([SLURM library was not found.])
+])
 
 # Define simulation execution types
 AC_DEFINE([EXEC_SERIAL], [0], [Serial execution])
@@ -111,6 +118,7 @@ AC_DEFINE([TRAJ_GUIDING_DIFF], [203], [Guiding center model with perp. diffusion
 AC_DEFINE([TRAJ_GUIDING_DIFF_SCATT], [204], [Guiding center model with perp. diffusion and PA scattering (p_para,-,p_perp)])
 AC_DEFINE([TRAJ_FOCUSED], [205], [Focused transport model (p,mu,-)])
 AC_DEFINE([TRAJ_PARKER], [206], [Isotropic model (p,-,-)])
+AC_DEFINE([TRAJ_PARKER_SOURCE], [207], [Isotropic model with source (p,-,-)])
 
 # Set up the trajectory type
 AC_ARG_WITH([trajectory], [AS_HELP_STRING([--with-trajectory=TRAJECTORY], [use TRAJECTORY=FIELDLINE|LORENTZ|GUIDING|GUIDING_SCATT|GUIDING_DIFF|GUIDING_DIFF_SCATT|FOCUSED|PARKER])], [], [])
@@ -118,8 +126,11 @@ AS_IF([test "x$with_trajectory" == "x"], [
    AC_MSG_ERROR([A value of TRAJECTORY is required])
 ],
 [
-   AS_IF([test "$with_trajectory" == "FIELDLINE" -o "$with_trajectory" == "LORENTZ" -o "$with_trajectory" == "GUIDING" -o "$with_trajectory" == "GUIDING_SCATT" \
-            -o "$with_trajectory" == "GUIDING_DIFF" -o "$with_trajectory" == "GUIDING_DIFF_SCATT" -o "$with_trajectory" == "FOCUSED" -o "$with_trajectory" == "PARKER"], [
+   AS_IF([test "$with_trajectory" == "FIELDLINE" -o "$with_trajectory" == "LORENTZ" \
+            -o "$with_trajectory" == "GUIDING" -o "$with_trajectory" == "GUIDING_SCATT" \
+            -o "$with_trajectory" == "GUIDING_DIFF" -o "$with_trajectory" == "GUIDING_DIFF_SCATT" \
+            -o "$with_trajectory" == "FOCUSED" \
+            -o "$with_trajectory" == "PARKER" -o "$with_trajectory" == "PARKER_SOURCE"], [
       AC_DEFINE_UNQUOTED([TRAJ_TYPE], [TRAJ_$with_trajectory], [Choice of the trajectory physics])
    ],
    [

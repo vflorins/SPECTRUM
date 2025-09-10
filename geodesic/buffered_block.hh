@@ -9,9 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BUFFERED_BLOCK_HH
 #define SPECTRUM_BUFFERED_BLOCK_HH
 
-#include <common/exchange_site.hh>
-#include <geodesic/stenciled_block.hh>
-#include <geodesic/neighbors.hh>
+#include "common/exchange_site.hh"
+#include "geodesic/stenciled_block.hh"
+#include "geodesic/neighbors.hh"
 
 namespace Spectrum {
 

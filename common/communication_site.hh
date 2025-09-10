@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMMUNICATION_SITE_HH
 #define SPECTRUM_COMMUNICATION_SITE_HH
 
-#include <common/mpi_config.hh>
+#include "common/mpi_config.hh"
 
 #ifdef USE_MPI
 
@@ -19,7 +19,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <algorithm>
 
 #ifdef GEO_DEBUG
-#include <common/print_warn.hh>
+#include "common/print_warn.hh"
 #endif
 
 namespace Spectrum {

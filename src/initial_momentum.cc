@@ -99,7 +99,7 @@ void InitialMomentumFixed::EvaluateInitial(void)
 
 #endif
 
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumBeam methods
@@ -163,7 +163,7 @@ void InitialMomentumBeam::EvaluateInitial(void)
 
 #endif
 
-#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_FIELDLINE)
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE) && (TRAJ_TYPE != TRAJ_FIELDLINE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialMomentumRing methods
@@ -286,7 +286,7 @@ void InitialMomentumShell::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-#if TRAJ_TYPE == TRAJ_PARKER
+#if (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
    _mom = GeoVector(p0, 0.0, 0.0);
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
    _mom = GeoVector(0.0, 0.0, p0);
@@ -299,7 +299,7 @@ void InitialMomentumShell::SetupInitial(bool construct)
 */
 void InitialMomentumShell::EvaluateInitial(void)
 {
-#if (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_FIELDLINE)
+#if (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE) || (TRAJ_TYPE == TRAJ_FIELDLINE)
 // Nothing to do - the value of "_mom" was assigned in "SetupInitial()"
 #elif (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT) || (TRAJ_TYPE == TRAJ_FOCUSED)
 
@@ -385,7 +385,7 @@ void InitialMomentumThickShell::EvaluateInitial(void)
    if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
    
-#if TRAJ_TYPE == TRAJ_PARKER
+#if (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
    _mom = GeoVector(p, 0.0, 0.0);
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
    _mom = GeoVector(0.0, 0.0, p);
@@ -542,10 +542,10 @@ void InitialMomentumMaxwell::EvaluateInitial(void)
 
    double p = sqrt(Sqr(p_para) + Sqr(p_perp));
 
-#if (TRAJ_TYPE == TRAJ_FOCUSED)
+#if TRAJ_TYPE == TRAJ_FOCUSED
    double mu = p_para / p;
    _mom = GeoVector(p, mu, 0.0);
-#elif (TRAJ_TYPE == TRAJ_PARKER)
+#elif (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
    _mom = GeoVector(p, 0.0, 0.0);
 #endif
 
