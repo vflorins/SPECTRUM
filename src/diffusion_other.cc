@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant methods
@@ -78,7 +78,7 @@ double DiffusionIsotropicConstant::GetMuDerivative(void)
 
 #endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant methods
@@ -148,7 +148,7 @@ void DiffusionQLTConstant::EvaluateDiffusion(void)
 
 #endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant methods
@@ -675,7 +675,8 @@ DiffusionKineticEnergyRadialDistancePowerLaw::DiffusionKineticEnergyRadialDistan
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/18/2023
+\author Swati Sharma
+\date 06/25/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -690,16 +691,26 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct
    container.Read(pow_law_T);
    container.Read(pow_law_r);
    container.Read(kap_rat);
+   container.Read(stream_dep_idx);
+   container.Read(u_up);
+   container.Read(w_sh);
+   container.Read(s_sh);
+
+   dn_up_rat = Sqr(1.0 / s_sh);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/18/2023
+\author Swati Sharma
+\date 06/25/2025
 */
 void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 {
+   double r = _pos.Norm();
    if (comp_eval == 2) return;
-   Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
+   if (stream_dep_idx == 0 || r < r0) Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(r / r0, pow_law_r);
+   else if (r < r0 + w_sh) Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * Sqr(_spdata.Uvec.Norm() / u_up);
+   else Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * dn_up_rat;
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -712,9 +723,14 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 */
 double DiffusionKineticEnergyRadialDistancePowerLaw::GetDirectionalDerivative(int xyz)
 {
+   double r = _pos.Norm();
 // Note that this doesn't work near the origin where the radial distance is close to zero.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(_pos.Norm());
-   else return 0.0;
+   if ((0 <= xyz) && (xyz <= 2)) {
+      if (stream_dep_idx == 0 || r < r0) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(r);      
+      else if (r < r0 + w_sh) return Kappa[comp_eval] * 2.0 * (_spdata.gradUvec.row[xyz] * _spdata.Uvec) / Sqr(_spdata.Uvec.Norm());
+      else return 0.0;
+   };
+   return 0.0;
 };
 
 /*!
@@ -794,8 +810,8 @@ void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 double DiffusionRigidityMagneticFieldPowerLaw::GetDirectionalDerivative(int xyz)
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _spdata.gradBmag[xyz] / _spdata.Bvec.Norm();
-   else return Kappa[comp_eval] * pow_law_B * _spdata.dBmagdt / _spdata.Bvec.Norm();
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _spdata.gradBmag[xyz] / _spdata.Bmag;
+   else return Kappa[comp_eval] * pow_law_B * _spdata.dBmagdt / _spdata.Bmag;
 };
 
 /*!

@@ -14,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant class declaration
@@ -62,7 +62,7 @@ public:
 
 #endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant class declaration
@@ -122,7 +122,7 @@ public:
 
 #endif
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant class declaration
@@ -466,8 +466,9 @@ const std::string diff_name_kinetic_energy_radial_distance_power_law = "Diffusio
 \brief Full (perpendicular + parallel) diffusion, kinetic energy and radial distance power law
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
+\author Swati Sharma
 
-Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat
+Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T, double pow_law_r, double kap_rat, int stream_dep_idx, double u_up, double w_sh, double s_sh
 */
 class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase {
 
@@ -490,6 +491,21 @@ protected:
 
 //! Ratio of perpendicular to parallel diffusion (persistent)
    double kap_rat;
+
+//! Downstream dependance index (persistent)
+   int stream_dep_idx;
+
+//! Upstream flow (persistent)
+   double u_up;
+
+//! Width of shock (persistent)
+   double w_sh;
+   
+//! Shock strength (persistent)
+   double s_sh;
+
+//! Ratio of downstream to upstream value (persistent)
+   double dn_up_rat;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;

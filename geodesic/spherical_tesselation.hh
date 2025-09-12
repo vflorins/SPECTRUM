@@ -12,8 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <iostream>
 #include <cstdint>
 
-#include <common/vectors.hh>
-#include <geodesic/polyhedron.hh>
+#include "common/vectors.hh"
+#include "geodesic/polyhedron.hh"
 
 namespace Spectrum {
 

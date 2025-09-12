@@ -12,6 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
+#include "config.h"
+
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

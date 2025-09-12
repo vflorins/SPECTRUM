@@ -9,16 +9,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_GRID_BLOCK_HH
 #define SPECTRUM_GRID_BLOCK_HH
 
-#include <config.h>
+#include "config.h"
 
 #ifdef USE_SILO
 #include <silo.h>
 #endif
 
-#include <common/vectors.hh>
-#include <geometry/distance_map.hh>
-#include <geodesic/geodesic_sector.hh>
-#include <geodesic/spherical_slab.hh>
+#include "common/vectors.hh"
+#include "geometry/distance_map.hh"
+#include "geodesic/geodesic_sector.hh"
+#include "geodesic/spherical_slab.hh"
 
 namespace Spectrum {
 

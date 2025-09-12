@@ -173,7 +173,7 @@ void* DistributionBase::GetWeightsRecordAddress(size_t& size)
 */
 void DistributionBase::ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const SpatialData& spdata1,
                                          double t2, const GeoVector& pos2, const GeoVector& mom2, const SpatialData& spdata2,
-                                         int action_in)
+                                         double amp2, double logwgt2, int action_in)
 {
    SetState(t1, pos1, mom1);
    _spdata._mask = spdata1._mask;
@@ -185,6 +185,8 @@ void DistributionBase::ProcessTrajectory(double t1, const GeoVector& pos1, const
    _spdata2 = spdata2;
    _spdata2.Bmag_min = spdata2.Bmag_min;
    _spdata2.Bmag_max = spdata2.Bmag_max;
+   _amp = amp2;
+   _logwgt = logwgt2;
    EvaluateValue();
    EvaluateWeight(action_in);
    AddEvent();

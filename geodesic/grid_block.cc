@@ -9,8 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include <common/physics.hh>
-#include <geodesic/grid_block.hh>
+#include "common/physics.hh"
+#include "geodesic/grid_block.hh"
 
 namespace Spectrum {
 

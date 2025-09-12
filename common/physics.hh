@@ -12,13 +12,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <array>
 
-#include <config.h>
+#include "config.h"
 
 #ifdef USE_GSL
 #include <gsl/gsl_const_cgsm.h>
 #endif
 
-#include <common/vectors.hh>
+#include "common/vectors.hh"
 
 namespace Spectrum {
 

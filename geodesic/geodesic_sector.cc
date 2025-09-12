@@ -9,9 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include <common/definitions.hh>
-#include <common/print_warn.hh>
-#include <geodesic/geodesic_sector.hh>
+#include "common/definitions.hh"
+#include "common/print_warn.hh"
+#include "geodesic/geodesic_sector.hh"
 
 namespace Spectrum {
 

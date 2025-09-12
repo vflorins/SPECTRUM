@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins(1, 100, 1);
+   MultiIndex n_bins(1, 100, 0);
    container.Insert(n_bins);
    
 // Smallest value

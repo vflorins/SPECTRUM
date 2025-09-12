@@ -19,6 +19,9 @@ namespace Spectrum {
 //! Method for computing derivatives (0: analytical, 1: numerical)
 #define SMOOTHSHOCK_DERIVATIVE_METHOD 0
 
+//! Scaling factor to better match shock width when using smooth shock (tanh)
+const double tanh_width_factor = 8.0;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothShock class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,9 +47,6 @@ protected:
 
 //! Relative distance to shock (transient)
    double ds_shock;
-
-//! Scaling factor to better match shock width when using smooth shock (tanh)
-   const double tanh_width_factor = 4.0;
 
 //! Shock transition region function
    double ShockTransition(double x);

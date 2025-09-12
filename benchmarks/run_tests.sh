@@ -22,7 +22,8 @@ pa_distro_iso_test=false
 pa_scatt_test=false
 perp_diff_test=false
 full_diff_test=false
-modulation_cartesian_parker_spiral=false
+diff_shock_acc_test=true
+modulation_cartesian_parker_spiral=true
 
 # Function to go up one directory and configure code
 function configure {
@@ -146,6 +147,16 @@ then
 	make_and_run output_data main_test_full_diff $n_cpus $long_sim $long_batch_size
 fi
 report_if_failed $? "FULL (PERP+PARA) DIFFUSION"
+
+# DIFFUSIVE SHOCK ACCELERATION
+if $diff_shock_acc_test
+then	
+	configure PARALLEL PARKER_SOURCE BACKWARD 0 SELF
+	make_and_run output_data main_test_diffusive_shock_acceleration $n_cpus $long_sim $long_batch_size
+	report_if_failed $? "DIFFUSIVE SHOCK ACCELERATION"
+	make_and_run output_data main_postprocess_diffusive_shock_acceleration 1
+	report_if_failed $? "POST-PROCESSING DIFFUSIVE SHOCK ACCELERATION"
+fi
 
 # MODULATION WITH CARTESIAN PARKER SPIRAL
 if $modulation_cartesian_parker_spiral

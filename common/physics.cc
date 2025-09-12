@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <iostream>
 #include <iomanip>
 
-#include <common/physics.hh>
+#include "common/physics.hh"
 
 namespace Spectrum {
 

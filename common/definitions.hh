@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cmath>
 #include <complex>
 
-#include <common/gpu_config.hh>
+#include "common/gpu_config.hh"
 
 namespace Spectrum {
 

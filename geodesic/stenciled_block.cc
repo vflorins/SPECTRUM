@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include <geodesic/stenciled_block.hh>
+#include "geodesic/stenciled_block.hh"
 
 namespace Spectrum {
 

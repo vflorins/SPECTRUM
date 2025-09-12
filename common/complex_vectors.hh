@@ -9,9 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMPLEX_VECTORS_HH
 #define SPECTRUM_COMPLEX_VECTORS_HH
 
-#include <common/simple_array.hh>
-#include <common/vectors.hh>
-#include <common/print_warn.hh>
+#include "common/simple_array.hh"
+#include "common/vectors.hh"
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 

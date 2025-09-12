@@ -269,7 +269,7 @@ void DistributionMomentumUniform::EvaluateValue(void)
 
    if (val_coord == 0) this->_value = momentum;
    else {
-#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
 // Focused and Parker trajectories are already in locally spherical coordinates
    this->_value = momentum;
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
@@ -341,11 +341,11 @@ void DistributionPositionMomentumUniform::SetupDistribution(bool construct)
 void DistributionPositionMomentumUniform::EvaluateValue(void)
 {
    if (val_time == 0) {
-      this->_value[0] = this->_pos[pos_idx];
+      this->_value[0] = (pos_idx == 3 ? this->_pos.Norm() : this->_pos[pos_idx]);
       this->_value[1] = this->_mom[mom_idx];
    }
    else {
-      this->_value[0] = this->_pos2[pos_idx];
+      this->_value[0] = (pos_idx == 3 ? this->_pos2.Norm() : this->_pos2[pos_idx]);
       this->_value[1] = this->_mom2[mom_idx];
    };
 };
@@ -551,7 +551,7 @@ void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct
 */
 void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 {
-#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
    this->_value[0] = EnrKin(this->_mom[0], this->specie);
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
    this->_value[0] = EnrKin(this->_mom[2], this->specie);
@@ -568,7 +568,7 @@ void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot(void)
 {
    double mom2mag;
-#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER)
+#if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
    mom2mag = this->_mom2[0];
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
    mom2mag = this->_mom2[2];
@@ -858,6 +858,84 @@ void DistributionLossCone::RecordLossCone(void)
 {
    if (val_time == 0) this->_weight = GeoVector(_spdata2.Bmag_min, _spdata2.Bmag_max, asin(sqrt(_spdata.Bmag / _spdata2.Bmag_max)));
    else this->_weight = GeoVector(_spdata2.Bmag_min, _spdata2.Bmag_max, asin(sqrt(_spdata2.Bmag / _spdata2.Bmag_max)));
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionDivergenceFlowPowerLaw
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Juan G Alonso Guzman
+\date 06/18/2021
+*/
+
+DistributionDivergenceFlowPowerLaw::DistributionDivergenceFlowPowerLaw(void)
+                                 : DistributionTemplated<double>(dist_name_divergence_flow_power_law, 0, DISTRO_MOMENTUM)
+{
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2025
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
+*/
+DistributionDivergenceFlowPowerLaw::DistributionDivergenceFlowPowerLaw(const DistributionDivergenceFlowPowerLaw& other)
+                                  : DistributionTemplated<double>(other)
+{
+   RAISE_BITS(this->_status, DISTRO_MOMENTUM);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDistribution(true);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2025
+\param[in] construct Whether called from a copy constructor or separately
+*/
+void DistributionDivergenceFlowPowerLaw::SetupDistribution(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if (!construct) DistributionTemplated<double>::SetupDistribution(false);
+   if (BITS_LOWERED(this->_status, STATE_SETUP_COMPLETE)) return;
+
+   this->container.Read(A0);
+   this->container.Read(pow_law);
+   this->container.Read(val_cold);
+
+// Place the actions into the table
+   this->ActionTable.push_back([this]() {DivergenceFlowPowerLawHot();});
+   this->ActionTable.push_back([this]() {DivergenceFlowPowerLawCold();});
+
+// Check that ONLY the first dimension is active.
+   if (this->dims != 1) LOWER_BITS(this->_status, STATE_SETUP_COMPLETE);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2025
+*/
+void DistributionDivergenceFlowPowerLaw::EvaluateValue(void)
+{
+   this->_value = this->_mom;
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2025
+*/
+void DistributionDivergenceFlowPowerLaw::DivergenceFlowPowerLawHot(void)
+{
+   this->_weight = A0 * pow(fabs(_spdata2.divU()), pow_law);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/01/2025
+*/
+void DistributionDivergenceFlowPowerLaw::DivergenceFlowPowerLawCold(void)
+{
+   this->_weight = val_cold;
 };
 
 };

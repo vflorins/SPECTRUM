@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include <common/print_warn.hh>
-#include <src/trajectory_base.hh>
+#include "common/print_warn.hh"
+#include "src/trajectory_base.hh"
 
 namespace Spectrum {
 
@@ -185,7 +185,7 @@ void TrajectoryBase::TimeBoundaryProximityCheck(void)
 
 /*!
 \author Vladimir Florinski
-\date 04/01/2024
+\date 07/14/2025
 \return True if a spatial boundary was crossed, or False otherwise
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
@@ -214,7 +214,7 @@ try {
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, _amp, _wgt, action);
       };
    };
 
@@ -312,7 +312,7 @@ catch (ExFieldError& exception) {
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 10/08/2024
+\date 07/14/2025
 \return True if the domain was exited while computing the RK slopes, or False otherwise
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
@@ -347,7 +347,7 @@ bool TrajectoryBase::RKSlopes(void)
 
 // Find velocity and acceleration.
       _vel = Vel(_mom, specie);
-      Slopes(slope_pos[istage], slope_mom[istage]);
+      Slopes(slope_pos[istage], slope_mom[istage], slope_amp[istage], slope_wgt[istage]);
 
 // The slopes have been computed, so we can reset "_t", "_pos", and "_mom" to their values at the beginning of the step.
       LoadLocal();
@@ -359,7 +359,7 @@ bool TrajectoryBase::RKSlopes(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/08/2024
+\date 07/14/2025
 \return True if adaptive error is unacceptable (> 1), or False otherwise
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
@@ -388,7 +388,8 @@ bool TrajectoryBase::RKStep(void)
       _mom -= dt * RK_Table.v[islope] * slope_mom[islope];
       if (RK_Table.adaptive) pos_lo -= dt * RK_Table.w[islope] * slope_pos[islope];
 #endif
-
+      _amp += dt * RK_Table.v[islope] * slope_amp[islope] * exp(_wgt);
+      _wgt += dt * RK_Table.v[islope] * slope_wgt[islope];
    };
    _vel = Vel(_mom, specie);
 
@@ -412,7 +413,7 @@ bool TrajectoryBase::RKStep(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 04/01/2024
+\date 07/14/2025
 */
 void TrajectoryBase::HandleBoundaries(void)
 {
@@ -448,7 +449,7 @@ void TrajectoryBase::HandleBoundaries(void)
    if (bactive_m >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_m[bactive_m]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, _amp, _wgt, action);
       };
       bactive_m = -1;
    };
@@ -502,7 +503,7 @@ void TrajectoryBase::HandleBoundaries(void)
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, _amp, _wgt, action);
       };
       bactive_s = -1;
    };
@@ -529,7 +530,7 @@ void TrajectoryBase::HandleBoundaries(void)
    if (bactive_t >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_t[bactive_t]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(traj_t[0], traj_pos[0], traj_mom[0], spdata0, _t, _pos, _mom, _spdata, _amp, _wgt, action);
       };
       bactive_t = -1;
    };
@@ -541,7 +542,7 @@ void TrajectoryBase::HandleBoundaries(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 04/19/2022
+\date 07/14/2025
 \return True if a step was taken
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
@@ -554,7 +555,7 @@ bool TrajectoryBase::RKAdvance(void)
 
 // The common fields and "dmax" have been computed at the end of Advance() or in SetStart() before the first step.
 // Compute the slopes. The first two components for momentum are always zero for GC (the perpendicular momentum is determined from conservation of magnetic moment).
-   Slopes(slope_pos[0], slope_mom[0]);
+   Slopes(slope_pos[0], slope_mom[0], slope_amp[0], slope_wgt[0]);
 
 // Figure out the physical time step and take into account the adaptive step recommendation. Check if the time step is too to step over the end of the run and adjust if necessary.
    PhysicalStep();
@@ -657,6 +658,7 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
    q = charge_mass_particle * SpeciesCharges[specie];
    if (background != nullptr) background->SetSpecie(specie);
    if (diffusion != nullptr) diffusion->SetSpecie(specie);
+   if (source != nullptr) source->SetSpecie(specie);
 
    for (auto& bnd : bcond_t) bnd->SetSpecie(specie);
    for (auto& bnd : bcond_s) bnd->SetSpecie(specie);
@@ -694,6 +696,21 @@ void TrajectoryBase::AddDiffusion(const DiffusionBase& diffusion_in, const DataC
    diffusion = diffusion_in.Clone();
    diffusion->SetSpecie(specie);
    diffusion->SetupObject(container_in);
+   
+   if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/14/2025
+\param[in] source_in Source object for type recognitions
+\param[in] container_in Data container for initializating the source object
+*/
+void TrajectoryBase::AddSource(const SourceBase& source_in, const DataContainer& container_in)
+{
+   source = source_in.Clone();
+   source->SetSpecie(specie);
+   source->SetupObject(container_in);
    
    if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
@@ -893,7 +910,7 @@ double TrajectoryBase::GetDistance(double t_in) const
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/08/2024
+\date 07/14/2025
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done is "Advance()" at the beginning of each step.
 */
@@ -955,6 +972,10 @@ try {
 // Reset all boundary objects. From now on these objects will track and record boundary crossings automatically.
    bactive_t = bactive_s = bactive_m = -1;
    ResetAllBoundaries();
+
+// Reset trajectory amplitude and (logarithm of) weight
+   _amp = 0.0;
+   _wgt = 0.0;
 }
 
 catch (ExUninitialized& exception) {
@@ -1171,7 +1192,8 @@ void TrajectoryBase::InterpretStatus(void) const
 
 /*!
 \author Vladimir Florinski
-\date 02/22/2023
+\author Juan G Alonso Guzman
+\date 07/14/2025
 */
 void TrajectoryBase::PrintInfo(void) const
 {
@@ -1192,6 +1214,9 @@ void TrajectoryBase::PrintInfo(void) const
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Diffusion\n";
    if (diffusion) std::cerr << "   " << diffusion->GetName() << std::endl;
+   std::cerr << "--------------------------------------------------------------------------------\n";
+   std::cerr << "Source\n";
+   if (source) std::cerr << "   " << source->GetName() << std::endl;
    std::cerr << "--------------------------------------------------------------------------------\n";
    std::cerr << "Boundaries\n";
    for (obj = 0; obj < bcond_t.size(); obj++) {

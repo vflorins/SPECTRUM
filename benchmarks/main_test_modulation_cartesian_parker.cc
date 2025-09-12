@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
    double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-   std::string fname_pattern = "../cartesian_backgrounds/parker_20_20_20";
+   std::string fname_pattern = "../cartesian_backgrounds/parker_25_25_25";
    simulation->AddBackground(BackgroundServerCartesian(), container, fname_pattern);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -198,6 +198,22 @@ int main(int argc, char** argv)
 // Ratio of kappa_perp to kappa_para
    double kap_rat = 1.00;
    container.Insert(kap_rat);
+
+// Stream dependance index
+   int stream_dep_idx = 0;
+   container.Insert(stream_dep_idx);
+
+// Upstream flow speed (unused)
+   int u_up = 1.0;
+   container.Insert(u_up);
+
+// Shock width (unused)
+   int w_sh = 0.0;
+   container.Insert(w_sh);
+
+// Shock strength (unused)
+   int s_sh = 1.0;
+   container.Insert(s_sh);
 
 // Pass ownership of "diffusion" to simulation
    simulation->AddDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw(), container);

@@ -28,6 +28,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "trajectory_focused.hh"
 #elif TRAJ_TYPE == TRAJ_PARKER
 #include "trajectory_parker.hh"
+#elif TRAJ_TYPE == TRAJ_PARKER_SOURCE
+#include "trajectory_parker_source.hh"
 #else
 #error Unsupported Trajectory type
 #endif

@@ -64,7 +64,7 @@ void TrajectoryLorentz::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryLorentz::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryLorentz::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    slope_pos_istage = _vel;
    slope_mom_istage = q * (_spdata.Evec + (_vel ^ _spdata.Bvec) / c_code);

@@ -117,7 +117,12 @@ void BoundaryBase::ComputeBoundary(double t_in, const GeoVector& pos_in, const G
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
 
 // Change the "BOUNDARY_CROSSED" flag if needed
-   if (_delta * _delta_old < 0.0) RAISE_BITS(_status, BOUNDARY_CROSSED);
+   if (_delta * _delta_old <= 0.0) {
+      RAISE_BITS(_status, BOUNDARY_CROSSED);
+
+// If the current point is right on the boundary, we must avoid assigning it to "_delta_old". For this reason we make "_delta" to have the sign opposite to "_delta_old", which is guaranteed to be finite at this point.
+      if(_delta * _delta_old == 0.0) _delta = -_delta_old;
+   }
    else LOWER_BITS(_status, BOUNDARY_CROSSED);
 };
 
@@ -151,7 +156,7 @@ void BoundaryBase::ResetBoundary(double t_in, const GeoVector& pos_in, const Geo
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExBoundaryError();
    _delta_old = _delta;
 
-// The initial point may be right on the boundary, so the code will not be able to determine whether a crossing occurred. For this resaon "_delta_old" is set to a small negative value. This will work for an _external_ boundary, which is the most common case. TODO 
+// The initial point may be right on the boundary, so the code will not be able to determine whether a crossing occurred. For this reason "_delta_old" is set to a small negative value. This will work for an _external_ boundary, which is the most common case.
    if (_delta_old == 0.0) _delta_old = -sp_tiny * delta_scale;
    LOWER_BITS(_status, BOUNDARY_CROSSED);
 };
@@ -167,15 +172,17 @@ void BoundaryBase::RecordBoundary(void)
       throw ExUninitialized();
    };
 
-// This is the only place where crossings are recorded. The flag "BOUNDARY_CROSSED" is temporary, and must be now lowered (the event, if it occurred, is now considered to have passed).
-   LOWER_BITS(_status, BOUNDARY_CROSSED);
-   if (_delta * _delta_old < 0.0) {
+// This is the only place where crossings are recorded.
+   if (BITS_RAISED(_status, BOUNDARY_CROSSED)) {
       _crossings_left--;
       _cross_t.push_back(_t);
 
 // For a recurrent boundary, we want "_delta_old" to always be negative, so an update doesn't happen on a change of sign of "_delta"
       if (BITS_RAISED(_status, BOUNDARY_RECURRENT)) EvaluateBoundary();
       else _delta_old = _delta;
+
+// The crossing event was already processed, so the flag must lowered.
+      LOWER_BITS(_status, BOUNDARY_CROSSED);
    }
    else _delta_old = _delta;
 

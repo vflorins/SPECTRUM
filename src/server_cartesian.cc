@@ -709,6 +709,7 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
    spdata.n_dens *= unit_number_density_server / unit_number_density_fluid;
    spdata.Uvec *= unit_velocity_server / unit_velocity_fluid;
    spdata.Bvec *= unit_magnetic_server / unit_magnetic_fluid;
+   spdata.Bmag *= unit_magnetic_server / unit_magnetic_fluid;
    spdata.Evec *= unit_electric_server / unit_electric_fluid;
    spdata.p_ther *= unit_pressure_server / unit_pressure_fluid;
 };
@@ -858,6 +859,7 @@ void ServerCartesianFront::GetGradients(SpatialData& spdata)
 // Perform unit conversion for gradients
    spdata.gradUvec *= unit_velocity_server / unit_velocity_fluid;
    spdata.gradBvec *= unit_magnetic_server / unit_magnetic_fluid;
+   spdata.gradBmag *= unit_magnetic_server / unit_magnetic_fluid;
    spdata.gradEvec *= unit_electric_server / unit_electric_fluid;
 };
 

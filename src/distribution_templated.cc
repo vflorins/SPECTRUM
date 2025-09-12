@@ -107,7 +107,7 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
    container.Read(unit_val);
    container.Read(keep_records);
 
-// The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addresing possible. Active dimensions are flagged as bits in "dims".
+// The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addressing possible. Active dimensions are flagged as bits in "dims".
    dims = 0;
    for (ijk = 0; ijk < 3; ijk++) {
       if (n_bins[ijk] > 0) RAISE_BITS(dims, 1 << ijk);
@@ -175,7 +175,7 @@ void DistributionTemplated<distroClass>::AddEvent(void)
 
 // Update the counts
    lin_bin = n_bins.LinIdx(bin);
-   distro[lin_bin] += _weight;
+   distro[lin_bin] += _weight * exp(_logwgt) + _amp;
    counts[lin_bin]++;
    n_events++;
 };

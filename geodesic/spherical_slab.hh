@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SPHERICAL_SLAB_HH
 #define SPECTRUM_SPHERICAL_SLAB_HH
 
-#include <common/print_warn.hh>
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 
