@@ -15,9 +15,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the TrajectoryGuidingDiffScatt class
-const std::string traj_name_guidingdiffscatt = "TrajectoryGuidingDiffScatt";
-
 //! Default initial size
 const unsigned int defsize_guidingdiffscatt = 10000;
 
@@ -32,6 +29,10 @@ const unsigned int defsize_guidingdiffscatt = 10000;
 */
 template <typename Fields_>
 class TrajectoryGuidingDiffScatt : public TrajectoryGuidingBase<TrajectoryGuidingDiffScatt<Fields_>, Fields_>, TrajectoryGuidingDiff<Fields_>, TrajectoryGuidingScatt<Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryGuidingDiffScatt";
+
 public:
 
    using Fields = Fields_;
@@ -88,7 +89,7 @@ protected:
    bool Advance(void) override;
 
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
-   bool IsSimmulationReady(void) const override;
+   bool IsSimulationReady(void) const override;
 
 public:
 

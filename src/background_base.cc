@@ -21,9 +21,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 11/24/2020
 */
-template <typename HyperParams>
-BackgroundBase<HyperParams>::BackgroundBase(void)
-              : StatusClass("", STATE_NONE)
+template <typename HConfig>
+BackgroundBase<HConfig>::BackgroundBase(void)
+              : Params("", STATE_NONE)
 {
 };
 
@@ -34,9 +34,9 @@ BackgroundBase<HyperParams>::BackgroundBase(void)
 \param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename HyperParams>
-BackgroundBase<HyperParams>::BackgroundBase(const std::string& name_in, uint16_t status_in)
-              : StatusClass(name_in, status_in)
+template <typename HConfig>
+BackgroundBase<HConfig>::BackgroundBase(const std::string& name_in, uint16_t status_in)
+              : Params(name_in, status_in)
 {
 };
 
@@ -47,9 +47,9 @@ BackgroundBase<HyperParams>::BackgroundBase(const std::string& name_in, uint16_t
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundBase<HyperParams>::BackgroundBase(const BackgroundBase& other)
-              : StatusClass(other)
+template <typename HConfig>
+BackgroundBase<HConfig>::BackgroundBase(const BackgroundBase& other)
+              : Params(other)
 {
 // Params' constructor resets all flags
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
@@ -60,8 +60,8 @@ BackgroundBase<HyperParams>::BackgroundBase(const BackgroundBase& other)
 \date 12/14/2020
 \return Maximum distance based on the grid or other properties
 */
-template <typename HyperParams>
-double BackgroundBase<HyperParams>::GetDmax(void) const
+template <typename HConfig>
+double BackgroundBase<HConfig>::GetDmax(void) const
 {
    return _ddata.dmax;
 };
@@ -69,12 +69,12 @@ double BackgroundBase<HyperParams>::GetDmax(void) const
 /*!
 \author Lucius Schoenbaum
 \date 08/15/2025
-\return Derivative Data, a small struct containing information about the most recent derivative computed, and dmax
+\return DerivativeData, a small struct containing information about the most recent derivative computed, and dmax
 \note This information from the background is currently only needed by Diffusion classes
 when numerical directional derivatives are computed.
  */
-template <typename HyperParams>
-DerivativeData BackgroundBase<HyperParams>::GetDerivativeData(void) const
+template <typename HConfig>
+DerivativeData BackgroundBase<HConfig>::GetDerivativeData(void) const
 {
    return _ddata;
 }
@@ -85,19 +85,18 @@ DerivativeData BackgroundBase<HyperParams>::GetDerivativeData(void) const
 \author Lucius Schoenbaum
 \date 08/05/2025
 \param[in] int index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
-\param[in] Fields temporary fields for case of status failure.
+\param[in] coords coordinates requesting the computation (reference, but preserved by computation)
+\param[out] fields temporary fields for case of status failure.
 \note This is a common routine that the derived classes should not change.
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
+void BackgroundBase<HConfig>::DirectionalDerivative(const int xyz, Coordinates coords, Fields& fields)
 {
-   double _t_saved;
-   GeoVector _pos_saved;
 // temporaries for forward- and backward-stepped evaluation
    Fields fields_forw, fields_back;
 
-   if constexpr (HyperParams::debug) {
+   if constexpr (HConfig::debug) {
       if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
          RAISE_BITS(_status, STATE_INVALID);
          throw ExUninitialized();
@@ -107,11 +106,9 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial derivatives
    if ((0 <= xyz) && (xyz <= 2)) {
+
       _ddata._dr_forw_fail[xyz] = false;
       _ddata._dr_back_fail[xyz] = false;
-
-// Save position, compute increment      
-      _pos_saved = _coords.Pos();
 
 // Increment forward, then back.
 // In either case, if the attempted state is invalid,
@@ -119,8 +116,8 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 
 // Forward increment
       _ddata._dr[xyz] = r_g;
-      _coords.Pos() += _ddata._dr[xyz] * fa_basis.row[xyz];
-      EvaluateBackground(fields_forw);
+      coords.Pos() += _ddata._dr[xyz] * fa_basis.row[xyz];
+      EvaluateBackground(coords, fields_forw);
 
       if (BITS_RAISED(_status, STATE_INVALID)) {
          fields_forw = fields;
@@ -129,8 +126,8 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 
 // Backward increment
       _ddata._dr[xyz] *= 2.0;
-      _coords.Pos() -= _ddata._dr[xyz] * fa_basis.row[xyz];
-      EvaluateBackground(fields_back);
+      coords.Pos() -= _ddata._dr[xyz] * fa_basis.row[xyz];
+      EvaluateBackground(coords, fields_back);
 
       if (BITS_RAISED(_status, STATE_INVALID)) {
          fields_back = fields;
@@ -140,9 +137,6 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 // If at least one increment failed, half the increment. If both increments failed, throw an error.
       if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) _ddata._dr[xyz] *= 0.5;
       if (_ddata._dr_forw_fail[xyz] && _ddata._dr_back_fail[xyz]) throw ExFieldError();
-
-// Restore position
-      _coords.Pos() = _pos_saved;
 
 // Compute spatial derivatives. This calculation gives gradV[i][j] = dV_j / ds^i which is the transpose of the Jacobian.
       if constexpr (Fields::DelVel_found())
@@ -161,17 +155,14 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
       _ddata._dt_forw_fail = false;
       _ddata._dt_back_fail = false;
 
-// Save time, compute increment      
-      _t_saved = _coords.Time();
-
 // Increment forward, then back.
 // In either case, if the attempted state is invalid,
 // revert to first order differences, otherwise use second order differences.
 
 // Forward increment
       _ddata._dt = 1.0 / w_g;
-      _coords.Time() += _ddata._dt;
-      EvaluateBackground(fields_forw);
+      coords.Time() += _ddata._dt;
+      EvaluateBackground(coords, fields_forw);
 
       if (BITS_RAISED(_status, STATE_INVALID)) {
          fields_forw = fields;
@@ -180,8 +171,8 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 
 // Backward increment
       _ddata._dt *= 2.0;
-      _coords.Time() -= _ddata._dt;
-      EvaluateBackground(fields_back);
+      coords.Time() -= _ddata._dt;
+      EvaluateBackground(coords, fields_back);
 
       if (BITS_LOWERED(_status, STATE_INVALID)) {
          fields_back = fields;
@@ -192,18 +183,15 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
       if (_ddata._dt_forw_fail || _ddata._dt_back_fail) _ddata._dt *= 0.5;
       if (_ddata._dt_forw_fail && _ddata._dt_back_fail) throw ExFieldError();
 
-// Restore time
-      _coords.Time() = _t_saved;
-
 // Compute time derivatives
-      if constexpr (Fields::DdtVel_found())
-         fields.DdtVel() = (fields_forw.Vel() - fields_back.Vel()) / _ddata._dt;
-      if constexpr (Fields::DdtMag_found())
-         fields.DdtMag() = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dt;
-      if constexpr (Fields::DdtAbsMag_found())
-         fields.DdtAbsMag() = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dt;
-      if constexpr (Fields::DdtElc_found())
-         fields.DdtElc() = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dt;
+      if constexpr (Fields::DotVel_found())
+         fields.DotVel() = (fields_forw.Vel() - fields_back.Vel()) / _ddata._dt;
+      if constexpr (Fields::DotMag_found())
+         fields.DotMag() = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dt;
+      if constexpr (Fields::DotAbsMag_found())
+         fields.DotAbsMag() = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dt;
+      if constexpr (Fields::DotElc_found())
+         fields.DotElc() = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dt;
    };
 };
 
@@ -213,32 +201,32 @@ void BackgroundBase<HyperParams>::DirectionalDerivative(int xyz, Fields& fields)
 \author Lucius Schoenbaum
 \date 09/08/2025
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::NumericalDerivatives(Fields& fields_in, Specie& specie)
+void BackgroundBase<HConfig>::NumericalDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
    double AbsMag;
    GeoVector HatMag;
    constexpr bool gradients = Fields::DelVel_found() || Fields::DelMag_found() || Fields::DelAbsMag_found() || Fields::DelElc_found();
-   constexpr bool time_derivatives =  Fields::DdtVel_found() || Fields::DdtMag_found() || Fields::DdtAbsMag_found() || Fields::DdtElc_found();
+   constexpr bool time_derivatives =  Fields::DotVel_found() || Fields::DotMag_found() || Fields::DotAbsMag_found() || Fields::DotElc_found();
 
 // This method is only valid in the presence of a magnetic field.
 // Normally magnetic field magnitude+direction is tracked but we can make do with magnetic field only.
    if constexpr (gradients || time_derivatives) {
       if constexpr (!Fields::AbsMag_found())
-         AbsMag = fields_in.Mag().Norm();
+         AbsMag = fields.Mag().Norm();
       else
-         AbsMag = fields_in.AbsMag();
+         AbsMag = fields.AbsMag();
       if constexpr (!Fields::HatMag_found())
-         HatMag = fields_in.Mag()/AbsMag;
+         HatMag = fields.Mag()/AbsMag;
       else
-         HatMag = fields_in.HatMag();
+         HatMag = fields.HatMag();
    }
 
    if constexpr (gradients) {
 
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = fmin(LarmorRadius(_coords.Mom()[0], AbsMag, specie), _ddata.dmax);
+      r_g = fmin(LarmorRadius(coords.Mom()[0], AbsMag, specie), _ddata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
       fa_basis.row[2] = HatMag;
@@ -246,60 +234,60 @@ void BackgroundBase<HyperParams>::NumericalDerivatives(Fields& fields_in, Specie
       fa_basis.row[1] = fa_basis.row[2] ^ fa_basis.row[0];
 
 // Compute derivatives in field-aligned basis
-      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_in);
+      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, coords, fields);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
       if constexpr (Fields::DelVel_found())
-         fields_in.DelVel() = rot_mat * fields_in.DelVel();
+         fields.DelVel() = rot_mat * fields.DelVel();
       if constexpr (Fields::DelMag_found())
-         fields_in.DelMag() = rot_mat * fields_in.DelMag();
+         fields.DelMag() = rot_mat * fields.DelMag();
       if constexpr (Fields::DelAbsMag_found())
-         fields_in.DelAbsMag() = rot_mat * fields_in.DelAbsMag();
+         fields.DelAbsMag() = rot_mat * fields.DelAbsMag();
       if constexpr (Fields::DelElc_found())
-         fields_in.DelElc() = rot_mat * fields_in.DelElc();
+         fields.DelElc() = rot_mat * fields.DelElc();
 
-      if constexpr (HyperParams::num_numeric_grad_evals > 1) {
-         constexpr int num_evals = HyperParams::num_numeric_grad_evals;
-         // copy _fields into temporary
-         Fields fields_tmp = fields_in;
+      if constexpr (HConfig::num_numeric_grad_evals > 1) {
+         constexpr int num_evals = HConfig::num_numeric_grad_evals;
+         // copy fields into temporary
+         Fields fields_tmp = fields;
 
 // Repeat for each additional rotation
          for (auto n_rot = 1; n_rot < num_evals; ++n_rot) {
             fa_basis[0].Rotate(fa_basis.row[2], sin_lra, cos_lra);
             fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
-            for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, fields_tmp);
+            for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz, coords, fields_tmp);
 
             rot_mat.Transpose(fa_basis);
             if constexpr (Fields::DelVel_found())
-               fields_in.DelVel() += rot_mat * fields_tmp.DelVel();
+               fields.DelVel() += rot_mat * fields_tmp.DelVel();
             if constexpr (Fields::DelMag_found())
-               fields_in.DelMag() += rot_mat * fields_tmp.DelMag();
+               fields.DelMag() += rot_mat * fields_tmp.DelMag();
             if constexpr (Fields::DelAbsMag_found())
-               fields_in.DelAbsMag() += rot_mat * fields_tmp.DelAbsMag();
+               fields.DelAbsMag() += rot_mat * fields_tmp.DelAbsMag();
             if constexpr (Fields::DelElc_found())
-               fields_in.DelElc() += rot_mat * fields_tmp.DelElc();
+               fields.DelElc() += rot_mat * fields_tmp.DelElc();
 
          };
 
 // Average results
          if constexpr (Fields::DelVel_found())
-            fields_in.DelVel() /= num_evals;
+            fields.DelVel() /= num_evals;
          if constexpr (Fields::DelMag_found())
-            fields_in.DelMag() /= num_evals;
+            fields.DelMag() /= num_evals;
          if constexpr (Fields::DelAbsMag_found())
-            fields_in.DelAbsMag() /= num_evals;
+            fields.DelAbsMag() /= num_evals;
          if constexpr (Fields::DelElc_found())
-            fields_in.DelElc() /= num_evals;
+            fields.DelElc() /= num_evals;
       };
    };
 
 // Time derivatives.
    if constexpr (time_derivatives) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(_coords.Mom()[0]), AbsMag, specie), Vel(_coords.Mom()[0]) / _ddata.dmax);
-      DirectionalDerivative(3, fields_in);
+      w_g = fmin(CyclotronFrequency(Vel(coords.Mom()[0]), AbsMag, specie), Vel(coords.Mom()[0]) / _ddata.dmax);
+      DirectionalDerivative(3, coords, fields);
    };
 
 };
@@ -312,10 +300,10 @@ void BackgroundBase<HyperParams>::NumericalDerivatives(Fields& fields_in, Specie
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupBackground()" method.
 */
-template <typename HyperParams>
-void BackgroundBase<HyperParams>::SetupObject(const DataContainer& cont_in)
+template <typename HConfig>
+void BackgroundBase<HConfig>::SetupObject(const DataContainer& cont_in)
 {
-   StatusClass::SetContainer(cont_in);
+   Params::SetContainer(cont_in);
    SetupBackground(false);
 };
 
@@ -327,8 +315,8 @@ void BackgroundBase<HyperParams>::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundBase<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundBase<HConfig>::SetupBackground(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -354,9 +342,9 @@ void BackgroundBase<HyperParams>::SetupBackground(bool construct)
 \date 08/05/2025
 \note This is only a stub
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::EvaluateBackground(Fields& fields)
+void BackgroundBase<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -367,19 +355,20 @@ void BackgroundBase<HyperParams>::EvaluateBackground(Fields& fields)
 \date 08/05/2025
 \note This is only a stub
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::EvaluateBackgroundDerivatives(Fields& fields)
+void BackgroundBase<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
 };
 
 /*!
 \author Vladimir Florinski
-\date 09/15/2021
+\author Lucius Schoenbaum
+\date 09/09/2025
 \note The default method should be good enough for all grid-free backgrounds
 */
-template <typename HyperParams>
-void BackgroundBase<HyperParams>::EvaluateDmax(void)
+template <typename HConfig>
+void BackgroundBase<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = dmax0;
    LOWER_BITS(_status, STATE_INVALID);
@@ -391,9 +380,9 @@ void BackgroundBase<HyperParams>::EvaluateDmax(void)
 \date 08/08/2025
 \note The default method should be good enough for all grid-free backgrounds
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::EvaluateBmag(Fields& fields)
+void BackgroundBase<HConfig>::EvaluateBmag(Fields& fields)
 {
    if constexpr (Fields::AbsMag_found())
       fields.AbsMag() = fields.Mag().Norm();
@@ -404,8 +393,8 @@ void BackgroundBase<HyperParams>::EvaluateBmag(Fields& fields)
 \date 02/17/2023
 \note The default method should be good enough for all grid-free backgrounds
 */
-template <typename HyperParams>
-void BackgroundBase<HyperParams>::StopServerFront(void)
+template <typename HConfig>
+void BackgroundBase<HConfig>::StopServerFront(void)
 {
 };
 
@@ -415,8 +404,8 @@ void BackgroundBase<HyperParams>::StopServerFront(void)
 \param[in] dir Direction
 \return Safe increment in some direction (potential negative) to stay inside domain
 */
-template <typename HyperParams>
-double BackgroundBase<HyperParams>::GetSafeIncr(const GeoVector& dir)
+template <typename HConfig>
+double BackgroundBase<HConfig>::GetSafeIncr(const GeoVector& dir)
 {
 //FIXME: This is incomplete.
    return incr_dmax_ratio * _ddata.dmax;
@@ -434,24 +423,25 @@ double BackgroundBase<HyperParams>::GetSafeIncr(const GeoVector& dir)
 \param[out] dmax The caller's dmax
 \note This is a common routine that the derived classes should not change.
 */
-template <typename HyperParams>
+template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HyperParams>::GetFields(Coordinates& coords, Fields& fields)
+void BackgroundBase<HConfig>::GetFields(Coordinates& coords, Fields& fields)
 {
 
 // Check that state setup is complete
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
-      RAISE_BITS(_status, STATE_INVALID);
-      throw ExUninitialized();
-   };
+   if (HConfig::build_mode == BuildMode::debug) {
+      if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
+         RAISE_BITS(_status, STATE_INVALID);
+         throw ExUninitialized();
+      };
+   }
 
-   _coords = coords;
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
-   EvaluateDmax();
+   EvaluateDmax(coords);
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExCoordinates();
 
 // Compute fields
-   EvaluateBackground(fields);
+   EvaluateBackground(coords, fields);
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // For magnetized backgrounds, compute Bmag, bhat (the same regardless of the background)
    if constexpr (Fields::Mag_found()) {
@@ -469,7 +459,7 @@ void BackgroundBase<HyperParams>::GetFields(Coordinates& coords, Fields& fields)
    }
    if (BITS_RAISED(_status, STATE_INVALID)) throw ExFieldError();
 // Compute derivatives of fields
-   EvaluateBackgroundDerivatives(fields);
+   EvaluateBackgroundDerivatives(coords, fields);
 
 };
 

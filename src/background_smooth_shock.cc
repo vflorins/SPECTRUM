@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(void)
+template <typename HConfig>
+BackgroundSmoothShock<HConfig>::BackgroundSmoothShock(void)
                      : BackgroundShock(bg_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
+template <typename HConfig>
+BackgroundSmoothShock<HConfig>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
                      : BackgroundShock(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -45,29 +45,38 @@ BackgroundSmoothShock<HyperParams>::BackgroundSmoothShock(const BackgroundSmooth
 \param [in] x Relative transition region location
 \return Relative value of shocked quantity
 */
-template <typename HyperParams>
-double BackgroundSmoothShock<HyperParams>::ShockTransition(double x)
+template <typename HConfig>
+double BackgroundSmoothShock<HConfig>::ShockTransition(double x)
 {
    double y = x + 0.5;
-#if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return y;
-#elif SMOOTH_SHOCK_ORDER == 1 // differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Sqr(y) * (3.0 - 2.0 * y);
-#elif SMOOTH_SHOCK_ORDER == 2 // twice differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
-#elif SMOOTH_SHOCK_ORDER == 3 // thrice differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
-#else // smooth
-   return 0.5 * (1.0 + tanh(tanh_width_factor * x));
-#endif
+   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+      // not continous
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return y;
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+      // differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Sqr(y) * (3.0 - 2.0 * y);
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+      // twice differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+      // thrice differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
+   }
+   else {
+      // smooth
+      return 0.5 * (1.0 + tanh(tanh_width_factor * x));
+   }
 };
 
 /*!
@@ -76,29 +85,33 @@ double BackgroundSmoothShock<HyperParams>::ShockTransition(double x)
 \param [in] x Relative transition region location 
 \return Derivative of relative value of shocked quantity
 */
-template <typename HyperParams>
-double BackgroundSmoothShock<HyperParams>::ShockTransitionDerivative(double x)
+template <typename HConfig>
+double BackgroundSmoothShock<HConfig>::ShockTransitionDerivative(double x)
 {
    double y = x + 0.5;
-#if SMOOTH_SHOCK_ORDER == 0
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 1.0;
-#elif SMOOTH_SHOCK_ORDER == 1
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 6.0 * y * (1.0 - y);
-#elif SMOOTH_SHOCK_ORDER == 2
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
-#elif SMOOTH_SHOCK_ORDER == 3
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
-#else
-   return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
-#endif
+   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 1.0;
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 6.0 * y * (1.0 - y);
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
+   }
+   else {
+      return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
+   }
 };
 
 /*!
@@ -108,8 +121,8 @@ double BackgroundSmoothShock<HyperParams>::ShockTransitionDerivative(double x)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundSmoothShock<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundSmoothShock<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundShock::SetupBackground(false);
@@ -123,20 +136,21 @@ void BackgroundSmoothShock<HyperParams>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename HyperParams>
-void BackgroundSmoothShock<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
-   ds_shock = ((_pos - r0) * n_shock - v_shock * _t) / width_shock;
+   ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
 
    a1 = ShockTransition(ds_shock);
    a2 = 1.0 - a1;
 
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
-   if constexpr (Fields::Vel_found()) _fields.Vel() = u0 * a1 + u1 * a2;
-   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 * a1 + B1 * a2;
-   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
-   if constexpr (Fields::Iv0_found()) _fields.Ev0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (Fields::Vel_found()) fields.Vel() = u0 * a1 + u1 * a2;
+   if constexpr (Fields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
+   if constexpr (Fields::Iv0_found()) fields.Ev0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -145,33 +159,34 @@ void BackgroundSmoothShock<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-void BackgroundSmoothShock<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
-   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found()) {
-         _fields.gradUvec.Dyadic(n_shock, u0 - u1);
-         _fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+         fields.gradUvec.Dyadic(n_shock, u0 - u1);
+         fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
       };
       if constexpr (Fields::DelMag_found()) {
-         _fields.DelMag().Dyadic(n_shock, B0 - B1);
-         _fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
+         fields.DelMag().Dyadic(n_shock, B0 - B1);
+         fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
          GeoVector bhat;
-         if constexpr (Fields::HatMag_found()) bhat = _fields.HatMag();
-         else bhat = _fields.Mag() / _fields.Mag().Norm();
-         _fields.DelMag() = _fields.DelMag() * bhat;
+         if constexpr (Fields::HatMag_found()) bhat = fields.HatMag();
+         else bhat = fields.Mag() / fields.Mag().Norm();
+         fields.DelMag() = fields.DelMag() * bhat;
       };
       if constexpr (Fields::DelElc_found()) {
-         _fields.gradEvec = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+         fields.gradEvec = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (Fields::DdtVel_found()) {
-         _fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+      if constexpr (Fields::DotVel_found()) {
+         fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
       };
-      if constexpr (Fields::DdtMag_found()) {
-         _fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
+      if constexpr (Fields::DotMag_found()) {
+         fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
       };
-      if constexpr (Fields::DdtElc_found()) {
-         _fields.dEvecdt = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
+      if constexpr (Fields::DotElc_found()) {
+         fields.dEvecdt = -((fields.DotVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DotMag())) / c_code;
       };
    }
    else {
@@ -184,7 +199,7 @@ void BackgroundSmoothShock<HyperParams>::EvaluateBackgroundDerivatives(void)
 \date 02/28/2025
 */
 template <typename Fields>
-void BackgroundSmoothShock<Fields>::EvaluateDmax(void)
+void BackgroundSmoothShock<Fields>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

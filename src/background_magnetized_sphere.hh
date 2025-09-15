@@ -23,8 +23,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundSphericalObstacle)
 */
-template <typename HyperParams_>
-class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<HyperParams_> {
+template <typename HConfig_>
+class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<HConfig_> {
 private:
 
 //! Readable name of the class
@@ -32,36 +32,34 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
-   using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HyperParams>;
-   using BackgroundSphericalObstacle::_status;
-   using BackgroundSphericalObstacle::_fields;
-   using BackgroundSphericalObstacle::_ddata;
-   using BackgroundSphericalObstacle::_pos;
-   using BackgroundSphericalObstacle::container;
-   using BackgroundSphericalObstacle::r0;
-   using BackgroundSphericalObstacle::B0;
-   using BackgroundSphericalObstacle::dmax0;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
+   using BackgroundBase::_status;
+   using BackgroundBase::container;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::dmax0;
+   using BackgroundBase::r0;
+   using BackgroundBase::u0;
+   using BackgroundBase::B0;
    // methods
+   using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HConfig>;
    using BackgroundSphericalObstacle::EvaluateBmag;
    using BackgroundSphericalObstacle::EvaluateDmax;
-   using BackgroundBase::GetDmax;
+   using BackgroundSphericalObstacle::GetDmax;
+   using BackgroundSphericalObstacle::NumericalDerivatives;
    using BackgroundSphericalObstacle::StopServerFront;
    using BackgroundSphericalObstacle::SetupBackground;
-//   using BackgroundSphericalObstacle::EvaluateBackground;
-//   using BackgroundSphericalObstacle::EvaluateBackgroundDerivatives;
-   using BackgroundSphericalObstacle::NumericalDerivatives;
 
 protected:
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

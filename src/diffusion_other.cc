@@ -678,7 +678,7 @@ double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int x
 {
 // Note that this doesn't work in regions were the flow is nearly zero.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_fields.DelVel().row[xyz] * _fields.Vel()) / Sqr(_fields.Vel().Norm());
-   else return Kappa[comp_eval] * pow_law_U * (_fields.DdtVel() * _fields.Vel()) / Sqr(_fields.Vel().Norm());
+   else return Kappa[comp_eval] * pow_law_U * (_fields.DotVel() * _fields.Vel()) / Sqr(_fields.Vel().Norm());
 };
 
 /*!
@@ -855,7 +855,7 @@ double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivat
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
    if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelAbsMag()[xyz] / _fields.AbsMag();
-   else return Kappa[comp_eval] * pow_law_B * _fields.DdtAbsMag() / _fields.AbsMag();
+   else return Kappa[comp_eval] * pow_law_B * _fields.DotAbsMag() / _fields.AbsMag();
 };
 
 /*!

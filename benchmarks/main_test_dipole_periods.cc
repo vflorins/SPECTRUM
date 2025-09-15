@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DdtHatMag_t, DdtAbsMag_t>;
+   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
    using Trajectory = TrajectoryGuiding<Fields>;
    using Background = BackgroundDipole<Fields>;
 

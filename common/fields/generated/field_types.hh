@@ -178,35 +178,35 @@ using DelHatMag_t = MatrixField<Field::Id::DelHatMag, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DdtVel_t = VectorField<Field::Id::DdtVel, 1, 0>;
+using DotVel_t = VectorField<Field::Id::DotVel, 1, 0>;
 
 /*!
 \brief Time derivative of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DdtElc_t = VectorField<Field::Id::DdtElc, 1, 0>;
+using DotElc_t = VectorField<Field::Id::DotElc, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DdtMag_t = VectorField<Field::Id::DdtMag, 1, 0>;
+using DotMag_t = VectorField<Field::Id::DotMag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DdtAbsMag_t = ScalarField<Field::Id::DdtAbsMag, 1, 0>;
+using DotAbsMag_t = ScalarField<Field::Id::DotAbsMag, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DdtHatMag_t = VectorField<Field::Id::DdtHatMag, 1, 0>;
+using DotHatMag_t = VectorField<Field::Id::DotHatMag, 1, 0>;
 
 /*!
 \brief Zeroth (general purpose) Indicator variable type with a formatted name

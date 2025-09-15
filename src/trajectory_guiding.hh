@@ -14,11 +14,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the TrajectoryGuiding class
-const std::string traj_name_guiding = "TrajectoryGuiding";
-
 //! Default initial size
-const unsigned int defsize_guiding = 10000;
+//const unsigned int defsize_guiding = 10000;
 
 /*!
 \brief Trajectory tracer for the relativistic guiding center equations
@@ -29,6 +26,9 @@ Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
 template <typename Fields_>
 class TrajectoryGuiding : public TrajectoryGuidingBase<TrajectoryGuiding<Fields_>, Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryGuiding";
 
 public:
 

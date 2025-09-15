@@ -16,28 +16,12 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "diffusion_base.hh"
 #include "boundary_base.hh"
 #include "initial_base.hh"
-#include <common/rk_config.hh>
+#include "common/rk_lists.hh"
+#include "trajectory_records.hh"
 
 namespace Spectrum {
 
-//! Record trajectory flag
-#define RECORD_TRAJECTORY
-
-//! Record |B| extrema flag
-//#define RECORD_BMAG_EXTREMA
-
-//! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
-#define TRAJ_ADV_SAFETY_LEVEL 2
-
-#if TRAJ_ADV_SAFETY_LEVEL == 2
-//! Largest length for single trajectory
-constexpr int max_trajectory_steps = 10000000;
-
-//! Largest number of time step adaptations for a single time step
-constexpr int max_time_adaptations = 100;
-#endif
-
-//! The trajecory will end after the step is completed
+//! The trajectory will end after the step is completed
 constexpr uint16_t TRAJ_FINISH = 0x0010;
 
 //! Time boundary was crossed
@@ -154,23 +138,27 @@ inline const char* ExTimeStepNan::what(void) const noexcept
 /*!
 \brief A base class to integrate a trajectory
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 
 A trajectory should be thought of as a self-contained simulation. There are four ingredients to a trajectory: (a) the transport physics that is built into the class itself, (b) the background u, E, B fields provided through "background", (c) the boundary conditions contained in "bcond_t", "bcond_s", and "bcond_m", and (d) the initial conditions provided by "icond_s" and "icond_m". The trajectory is responsible for computing the derived transport coefficients. This is done for efficiency purposes because a separate transport class hierarchy would have to interact with the other components and exchanging different kinds of transport parameters must be done through a container, hence require extra load/store operations.
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-template <typename Trajectory_, typename Fields_>
-class TrajectoryBase : public StatusClass {
+template <typename Trajectory_, typename HConfig_>
+class TrajectoryBase : public Params {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Fields_;
-   using Trajectory::specie;
-   // todo move to a HyperParams class
-   using BackgroundBase = BackgroundBase<Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using NewF_ields = HConfig::TrajectoryFields;
+   using HConfig::specie;
+   using ButcherTable = ButcherTable<HConfig::rk_integrator>;
+   using Records = Records<Coordinates, specie, HConfig::record_mag_extrema, HConfig::record_trajectory>;
+   using BackgroundBase = BackgroundBase<HConfig>;
 
    // Trajectory-dependent classes
+   using Trajectory = Trajectory_;
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using BoundaryBase = BoundaryBase<Trajectory>;
@@ -178,17 +166,8 @@ public:
 
 protected:
 
-//! Initial length of trajectory containers (persistent)
-   unsigned int presize = 1;
-
-//! Particle's charge to mass ratio (persistent)
-   double q;
-
    //! Background object (persistent)
    std::unique_ptr<BackgroundBase> background = nullptr;
-
-
-   // todo decide visibility - public for now
 
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
@@ -214,22 +193,36 @@ protected:
 //! Initial condition in momentum (persistent)
    std::unique_ptr<InitialBase> icond_m = nullptr;
 
+   Coordinates _coords;
+
+   ButcherTable the_new_butcher_table;
+
+   Records records;
+
+   Coordinates local_coords;
+
+//! Background-dependent dmax (transient)
+   double _dmax;
+
+//! Spatial data (transient)
+   NewF_ields _fields;
+
+   //! Slopes for position in RK step (transient)
+   GeoVector slope_pos[ButcherTable::data.rk_stages];
+
+//! Slopes for momentum in RK step (transient)
+   GeoVector slope_mom[ButcherTable::data.rk_stages];
+
+//! Actual time step (transient)
+   double dt;
+
+//! Physics based time step (transient)
+   double dt_physical;
+
+//! Time step from the adaptive scheme (transient)
+   double dt_adaptive;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Time along trajectory, includes segment counter (transient)
-   std::vector<double> traj_t;
-
-//! Position along trajectory (transient)
-   std::vector<GeoVector> traj_pos;
-
-//! Momentum along trajectory (transient)
-   std::vector<GeoVector> traj_mom;
-
-#ifndef RECORD_TRAJECTORY
-//! Number of trajectory segments (transient)
-   int n_segs;
-#endif
 
 //! Number of reflections (transient)
    int n_refl;
@@ -252,45 +245,11 @@ protected:
 //! Distance to the nearest boundary (transient)
    double nearest_bnd_dist;
 
-//! Local time for Advance function (transient)
-   double local_t;
+//! Coordinates at the start of the trajectory (needed for distributions)
+   Coordinates coords0;
 
-//! Local position for Advance function (transient)
-   GeoVector local_pos;
-
-//! Local momentum for Advance function (transient)
-   GeoVector local_mom;
-
-//! Background-dependent dmax (transient)
-   double _dmax;
-
-//! Extrema data (transient)
-   ExtremaData _edata;
-
-//! Spatial data (transient)
-   Fields _fields;
-
-//! Extrema data at the start of the trajectory (transient)
-// todo review use in distribution::ProcessTrajectory
-   ExtremaData edata0;
-
-//! Spatial data at the start of the trajectory (transient)
-   Fields fields0;
-
-//! Slopes for position in RK step (transient)
-   GeoVector slope_pos[MAX_RK_STAGES];
-
-//! Slopes for momentum in RK step (transient)
-   GeoVector slope_mom[MAX_RK_STAGES];
-
-//! Actual time step (transient)
-   double dt;
-
-//! Physics based time step (transient)
-   double dt_physical;
-
-//! Time step from the adaptive scheme (transient)
-   double dt_adaptive;
+//! Field values at the start of the trajectory (needed for distributions)
+   NewF_ields fields0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -298,13 +257,7 @@ protected:
    TrajectoryBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
-
-//! Clear the content and set the initial container capacity to improve performance
-   void PreSize(int init_cap);
-
-//! Find the nearest time point
-   void GetIdx(double t_in, int& pt, double& weight) const;
+   TrajectoryBase(const std::string& name_in, uint16_t status_in);
 
 //! Reset all boundary objects
    void ResetAllBoundaries(void);
@@ -343,7 +296,7 @@ protected:
    void CommonFields(void);
 
 //! Overloaded CommonFields for custom time and position, and output field
-   void CommonFields(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, Fields& fields);
+   void CommonFields(Coordinates& coords, NewF_ields& fields);
 
 //! Compute the RK slopes
    virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) = 0;
@@ -363,11 +316,6 @@ protected:
 //! Advance trajectory using RK method
    bool RKAdvance(void);
 
-#ifdef RECORD_BMAG_EXTREMA
-//! Update |B| maximum and minimum values along trajectory
-   void UpdateBmagExtrema(void);
-#endif
-
 //! Advance trajectory
    virtual bool Advance(void) = 0;
 
@@ -375,7 +323,7 @@ protected:
    virtual void MomentumCorrection(void);
 
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
-   virtual bool IsSimmulationReady(void) const;
+   virtual bool IsSimulationReady(void) const;
 
 public:
 
@@ -387,9 +335,6 @@ public:
 
 //! Clone function (stub)
    virtual std::unique_ptr<TrajectoryBase> Clone(void) const = 0;
-
-//! Set the particle specie
-   void SetSpecie(unsigned int specie_in);
 
    //! Add a background object
    void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in);
@@ -412,29 +357,6 @@ public:
 //! Add an initial condition
    void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
 
-#ifdef RECORD_BMAG_EXTREMA
-//! Get |B| minimum
-   double GetBmagMin(void) const;
-
-//! Get |B| maximum
-   double GetBmagMax(void) const;
-#endif
-
-//! Return the position at a given time
-   GeoVector GetPosition(double t_in) const;
-
-//! Return the velocity at a given time
-   GeoVector GetVelocity(double t_in) const;
-
-//! Return the kinetic energy at a given time
-   double GetEnergy(double t_in) const;
-
-//! Return the distance along the trajectory at a given time
-   double GetDistance(double t_in) const;
-
-//! Return the number of segments in the trajectory
-   int Segments(void) const;
-
 //! Return the number of reflections (at boundaries)
    int Reflections(void) const {return n_refl;};
 
@@ -456,11 +378,11 @@ public:
 //! Return number of boundary crossing for a single boundary
    int Crossings(unsigned int output, unsigned int bnd) const;
 
-//! Print various quantities along the trajectory
-   void PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, unsigned int stride = 1, double dt_out = 0.0) const;
-
-//! Print a trajectory as CSV
-   void PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride = 1) const;
+////! Print various quantities along the trajectory
+//   void PrintTrajectory(const std::string traj_name, bool phys_units, unsigned int output, unsigned int stride = 1, double dt_out = 0.0) const;
+//
+////! Print a trajectory as CSV
+//   void PrintCSV(const std::string traj_name, bool phys_units, unsigned int stride = 1) const;
 
 //! Print the human-readable status
    void InterpretStatus(void) const;
@@ -478,8 +400,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -490,8 +412,8 @@ inline void TrajectoryBase<Trajectory, Fields>::ConnectDistribution(const std::s
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -501,8 +423,8 @@ inline void TrajectoryBase<Trajectory, Fields>::ReplaceDistribution(int distro, 
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::DisconnectDistribution(int distro)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
@@ -511,31 +433,20 @@ inline void TrajectoryBase<Trajectory, Fields>::DisconnectDistribution(int distr
 \author Vladimir Florinski
 \date 09/25/2020
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::Load(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::Load(void)
 {
-#ifdef RECORD_TRAJECTORY
-   _t = traj_t.back();
-   _pos = traj_pos.back();
-   _mom = traj_mom.back();
-#endif
-   _vel = Vel(_mom, specie);
+   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
 \author Vladimir Florinski
 \date 09/25/2020
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::Store(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::Store(void)
 {
-#ifdef RECORD_TRAJECTORY
-   traj_t.push_back(_t);
-   traj_pos.push_back(_pos);
-   traj_mom.push_back(_mom);
-#else
-   n_segs++;
-#endif
+   records.Store(_coords);
 };
 
 /*!
@@ -543,13 +454,10 @@ inline void TrajectoryBase<Trajectory, Fields>::Store(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::LoadLocal(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::LoadLocal(void)
 {
-   _t = local_t;
-   _pos = local_pos;
-   _mom = local_mom;
-   _vel = Vel(_mom, specie);
+   _coords = local_coords;
 };
 
 /*!
@@ -557,12 +465,10 @@ inline void TrajectoryBase<Trajectory, Fields>::LoadLocal(void)
 \author Juan G Alonso Guzman
 \date 05/10/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryBase<Trajectory, Fields>::StoreLocal(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryBase<Trajectory, HConfig>::StoreLocal(void)
 {
-   local_t = _t;
-   local_pos = _pos;
-   local_mom = _mom;
+   local_coords = _coords;
 };
 
 /*!
@@ -570,25 +476,10 @@ inline void TrajectoryBase<Trajectory, Fields>::StoreLocal(void)
 \date 06/12/2024
 \return Momentum in (p,mu,phi) coordinates
 */
-template <typename Trajectory, typename Fields>
-inline GeoVector TrajectoryBase<Trajectory, Fields>::ConvertMomentum(void) const
+template <typename Trajectory, typename HConfig>
+inline GeoVector TrajectoryBase<Trajectory, HConfig>::ConvertMomentum(void) const
 {
-   return _mom;
-};
-
-/*!
-\author Vladimir Florinski
-\date 12/03/2020
-\return Largest index in the trajectory arrays
-*/
-template <typename Trajectory, typename Fields>
-inline int TrajectoryBase<Trajectory, Fields>::Segments(void) const
-{
-#ifdef RECORD_TRAJECTORY
-   return traj_t.size() - 1;
-#else
-   return n_segs;
-#endif
+   return _coords.Mom();
 };
 
 /*!
@@ -596,14 +487,10 @@ inline int TrajectoryBase<Trajectory, Fields>::Segments(void) const
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-template <typename Trajectory, typename Fields>
-inline double TrajectoryBase<Trajectory, Fields>::ElapsedTime(void) const
+template <typename Trajectory, typename HConfig>
+inline double TrajectoryBase<Trajectory, HConfig>::ElapsedTime(void) const
 {
-#ifdef RECORD_TRAJECTORY
-   return traj_t.back() - traj_t.front();
-#else
-   return _t - traj_t[0];
-#endif
+   return _coords.Time() - coords0.Time();
 };
 
 };

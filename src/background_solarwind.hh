@@ -25,9 +25,32 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase), GeoVector Omega, double r_ref, double dmax_fraction
 */
-template <typename HyperParams_>
-class BackgroundSolarWind : public BackgroundBase<HyperParams_> {
-private:
+template <typename HConfig_>
+class BackgroundSolarWind : public BackgroundBase<HConfig_> {
+public:
+
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
+   using BackgroundBase::_status;
+   using BackgroundBase::container;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::dmax0;
+   using BackgroundBase::r0;
+   using BackgroundBase::u0;
+   using BackgroundBase::B0;
+   //
+   // todo review (solar wind is the only background using this)
+   using BackgroundBase::t0;
+   // methods
+   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateDmax;
+   using BackgroundBase::GetDmax;
+   using BackgroundBase::StopServerFront;
+   using BackgroundBase::SetupBackground;
+   using BackgroundBase::NumericalDerivatives;
+
+protected:
 
 //! Readable name of the class
    static constexpr std::string_view bg_name = "BackgroundSolarWind";
@@ -57,12 +80,6 @@ private:
 //! [solarwind_polar_correction == 2] Polar correction angle
    static constexpr double polar_offset_sw = 30.0 * M_PI / 180.0;
 
-//! [solarwind_polar_correction == 2] Ratio of polar differential rotation to angular frequency of rotation
-   static constexpr double dwt_sw = delta_omega_sw * sin(polar_offset_sw);
-
-//! [solarwind_polar_correction == 2] Ratio of azimuthal differential rotation to angular frequency of rotation
-   static constexpr double dwp_sw = delta_omega_sw * cos(polar_offset_sw);
-
 //! [solarwind_speed_latitude_profile > 0] Ratio of fast to slow wind speed
    static constexpr double fast_slow_ratio_sw = 2.0;
 
@@ -86,34 +103,15 @@ private:
       return t * ((1.0 - stilt_ang_sw) * t_pi * (t_pi - 3.0) + 3.0 - 2.0 * stilt_ang_sw);
    };
 
-public:
-
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
-   using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_pos;
-   using BackgroundBase::_t;
-   using BackgroundBase::container;
-   using BackgroundBase::t0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   using BackgroundBase::dmax0;
-   // methods
-   using BackgroundBase::EvaluateBmag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
-
 protected:
 
-//! Angular velocity vector of a rotating star (persistent)
+   //! [solarwind_polar_correction == 2] Ratio of polar differential rotation to angular frequency of rotation
+   const double dwt_sw = delta_omega_sw * sin(polar_offset_sw);
+
+//! [solarwind_polar_correction == 2] Ratio of azimuthal differential rotation to angular frequency of rotation
+   const double dwp_sw = delta_omega_sw * cos(polar_offset_sw);
+
+   //! Angular velocity vector of a rotating star (persistent)
    GeoVector Omega;
 
 //! Reference radius (persistent)
@@ -155,15 +153,15 @@ protected:
    virtual double TimeLag(const double r);
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(void) override;
+   void EvaluateDmax(Coordinates&) override;
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

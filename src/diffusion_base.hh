@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "config.h"
-#include "common/status_class.hh"
+#include "common/params.hh"
 #include "common/physics.hh"
 #include "common/derivativedata.hh"
 #include <memory>
@@ -61,17 +61,19 @@ The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. 
 Parameters:
 */
 template <typename Trajectory_>
-class DiffusionBase : public StatusClass {
+class DiffusionBase : public Params {
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using DiffusionFields = Trajectory::DiffusionFields;
+//   using Fields = Trajectory::Fields;
    using Trajectory::specie;
 
 protected:
 
 //! Fields data (transient)
-   Fields _fields;
+// todo review, do we need??
+   DiffusionFields _fields;
 
 //! Derivative data (transient)
    DerivativeData _ddata;
@@ -98,7 +100,7 @@ protected:
    DiffusionBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DiffusionBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DiffusionBase(const DiffusionBase& other);
@@ -121,7 +123,7 @@ public:
    void SetupObject(const DataContainer& cont_in);
 
 //! Evaluate and return one diffusion component
-   double GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in);
+   double GetComponent(int comp, Coordinates& coords, DiffusionFields& fields);
 
 //! Compute derivative of diffusion coefficient in position or time. By default, it is computed numerically, but specific classes can override with analytic expressions.
    virtual double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in);

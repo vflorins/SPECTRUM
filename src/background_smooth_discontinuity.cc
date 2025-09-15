@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(void)
+template <typename HConfig>
+BackgroundSmoothDiscontinuity<HConfig>::BackgroundSmoothDiscontinuity(void)
                              : BackgroundDiscontinuity(bg_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
+template <typename HConfig>
+BackgroundSmoothDiscontinuity<HConfig>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
                              : BackgroundDiscontinuity(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -45,29 +45,38 @@ BackgroundSmoothDiscontinuity<HyperParams>::BackgroundSmoothDiscontinuity(const 
 \param [in] x Relative transition region location
 \return Relative value of discontinuous quantity
 */
-template <typename HyperParams>
-double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransition(double x)
+template <typename HConfig>
+double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
 {
    double y = x + 0.5;
-#if SMOOTH_DISCONT_ORDER == 0 // continous but not differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return y;
-#elif SMOOTH_DISCONT_ORDER == 1 // differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Sqr(y) * (3.0 - 2.0 * y);
-#elif SMOOTH_DISCONT_ORDER == 2 // twice differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
-#elif SMOOTH_DISCONT_ORDER == 3 // thrice differentiable
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 1.0;
-   else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
-#else // smooth
-   return 0.5 * (1.0 + tanh(tanh_width_factor * x));
-#endif
+   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+      // not continous
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return y;
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+      // differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Sqr(y) * (3.0 - 2.0 * y);
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+      // twice differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+      // thrice differentiable
+      if (x < -0.5) return 0.0;
+      else if (x > 0.5) return 1.0;
+      else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
+   }
+   else {
+      // smooth
+      return 0.5 * (1.0 + tanh(tanh_width_factor * x));
+   }
 };
 
 /*!
@@ -76,29 +85,33 @@ double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransition(doubl
 \param [in] x Relative transition region location 
 \return Derivative of relative value of discontinuous quantity
 */
-template <typename HyperParams>
-double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransitionDerivative(double x)
+template <typename HConfig>
+double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransitionDerivative(double x)
 {
    double y = x + 0.5;
-#if SMOOTH_DISCONT_ORDER == 0
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 1.0;
-#elif SMOOTH_DISCONT_ORDER == 1
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 6.0 * y * (1.0 - y);
-#elif SMOOTH_DISCONT_ORDER == 2
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
-#elif SMOOTH_DISCONT_ORDER == 3
-   if (x < -0.5) return 0.0;
-   else if (x > 0.5) return 0.0;
-   else return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
-#else
-   return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
-#endif
+   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 1.0;
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 6.0 * y * (1.0 - y);
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
+   }
+   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+      if (x < -0.5) return 0.0;
+      if (x > 0.5) return 0.0;
+      return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
+   }
+   else {
+      return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
+   }
 };
 
 /*!
@@ -108,8 +121,8 @@ double BackgroundSmoothDiscontinuity<HyperParams>::DiscontinuityTransitionDeriva
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundSmoothDiscontinuity<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundSmoothDiscontinuity<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundDiscontinuity::SetupBackground(false);
@@ -123,19 +136,20 @@ void BackgroundSmoothDiscontinuity<HyperParams>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename HyperParams>
-void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
-   ds_discont = ((_pos - r0) * n_discont - v_discont * _t) / width_discont;
+   ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
 
    a1 = DiscontinuityTransition(ds_discont);
    a2 = 1.0 - a1;
 
-   if constexpr (Fields::Vel_found()) _fields.Vel() = u0 * a1 + u1 * a2;
-   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 * a1 + B1 * a2;
-   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
-   if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (Fields::Vel_found()) fields.Vel() = u0 * a1 + u1 * a2;
+   if constexpr (Fields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
+   if constexpr (Fields::Iv0_found()) fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -144,35 +158,36 @@ void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
-   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found()) {
-         _fields.DelVel().Dyadic(n_discont, u0 - u1);
-         _fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+         fields.DelVel().Dyadic(n_discont, u0 - u1);
+         fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
       };
       if constexpr (Fields::DelMag_found()) {
-         _fields.DelMag().Dyadic(n_discont, B0 - B1);
-         _fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+         fields.DelMag().Dyadic(n_discont, B0 - B1);
+         fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
       }
       if constexpr (Fields::DelAbsMag_found()) {
          GeoVector bhat;
-         if constexpr (Fields::HatMag_found) bhat = _fields.HatMag();
-         else bhat = _fields.Mag() / _fields.Mag().Norm();
-         _fields.DelAbsMag() = _fields.DelMag() * bhat;
+         if constexpr (Fields::HatMag_found) bhat = fields.HatMag();
+         else bhat = fields.Mag() / fields.Mag().Norm();
+         fields.DelAbsMag() = fields.DelMag() * bhat;
       };
       if constexpr (Fields::DelElc_found()) {
-         _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+         fields.DelElc() = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (Fields::DdtVel_found()) {
-         _fields.DdtVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+      if constexpr (Fields::DotVel_found()) {
+         fields.DotVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
       };
-      if constexpr (Fields::DdtMag_found()) {
-         _fields.DdtMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
+      if constexpr (Fields::DotMag_found()) {
+         fields.DotMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
       };
-      if constexpr (Fields::DdtElc_found()) {
-         _fields.DdtElc() = -((_fields.DdtVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DdtMag())) / c_code;
+      if constexpr (Fields::DotElc_found()) {
+         fields.DotElc() = -((fields.DotVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DotMag())) / c_code;
       };
    }
    else {
@@ -184,8 +199,8 @@ void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateBackgroundDerivatives(v
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-template <typename HyperParams>
-void BackgroundSmoothDiscontinuity<HyperParams>::EvaluateDmax(void)
+template <typename HConfig>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

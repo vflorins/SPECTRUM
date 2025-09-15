@@ -25,8 +25,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase), [double kmin, double kmax, int n_waves, double variance, double slope] x n_turb_types
 */
-template <typename HyperParams_>
-class BackgroundWaves : public BackgroundBase<HyperParams_> {
+template <typename HConfig_>
+class BackgroundWaves : public BackgroundBase<HConfig_> {
 private:
 
 //! Readable name of the class
@@ -34,16 +34,17 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_pos;
    using BackgroundBase::container;
-   using BackgroundBase::r0;
-   using BackgroundBase::B0;
+   using BackgroundBase::_ddata;
    using BackgroundBase::dmax0;
+   using BackgroundBase::r0;
+   using BackgroundBase::u0;
+   using BackgroundBase::B0;
+   // this background uses rng
    using BackgroundBase::rng;
    // methods
    using BackgroundBase::EvaluateBmag;
@@ -51,8 +52,6 @@ public:
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -97,15 +96,15 @@ protected:
    void SetupBackground(bool construct) override;
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(void) override;
+   void EvaluateDmax(Coordinates&) override;
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

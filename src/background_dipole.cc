@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 03/25/2022
 */
-template <typename HyperParams>
-BackgroundDipole<HyperParams>::BackgroundDipole(void)
+template <typename HConfig>
+BackgroundDipole<HConfig>::BackgroundDipole(void)
                 : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
@@ -32,8 +32,8 @@ BackgroundDipole<HyperParams>::BackgroundDipole(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundDipole<HyperParams>::BackgroundDipole(const BackgroundDipole& other)
+template <typename HConfig>
+BackgroundDipole<HConfig>::BackgroundDipole(const BackgroundDipole& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -47,8 +47,8 @@ BackgroundDipole<HyperParams>::BackgroundDipole(const BackgroundDipole& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundDipole<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundDipole<HConfig>::SetupBackground(bool construct)
 {
    double r_ref;
 
@@ -63,27 +63,26 @@ void BackgroundDipole<HyperParams>::SetupBackground(bool construct)
 \author Vladimir Florinski
 \date 03/25/2022
 */
-template <typename HyperParams>
-void BackgroundDipole<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundDipole<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    if constexpr (Fields::Vel_found()) {
-      _fields.Vel() = gv_zeros;
+      fields.Vel() = gv_zeros;
    }
    if constexpr (Fields::Mag_found()) {
-      GeoVector posprime = _pos - r0;
+      GeoVector posprime = coords.Pos() - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
       r2 *= r2;
       r5 *= r2;
-      _fields.Mag() = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
+      fields.Mag() = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
    }
-   // todo bhat, Bmag?
    if constexpr (Fields::Elc_found()) {
-      _fields.Elc() = gv_zeros;
+      fields.Elc() = gv_zeros;
    }
    if constexpr (Fields::Iv0_found()) {
-      // todo originally region is 3 variables. Is this one variable or two or three?
-      _fields.Iv0() = 1.0;
+      fields.Iv0() = 1.0;
    }
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -94,14 +93,15 @@ void BackgroundDipole<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-template <typename HyperParams>
-void BackgroundDipole<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
-   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found())
-         _fields.DelVel() = gm_zeros;
+         fields.DelVel() = gm_zeros;
       if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
-         GeoVector posprime = _pos - r0;
+         GeoVector posprime = coords.Pos() - r0;
          double r2 = posprime.Norm();
          double r5 = Cube(r2);
          r2 *= r2;
@@ -114,26 +114,25 @@ void BackgroundDipole<HyperParams>::EvaluateBackgroundDerivatives(void)
          auto DelMag = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
 
          if constexpr (Fields::DelMag_found())
-            _fields.DelMag() = DelMag;
+            fields.DelMag() = DelMag;
          if constexpr (Fields::DelAbsMag_found()) {
-            // todo how to finesse this?
-            auto bhat = _fields.Mag() / _fields.Mag().Norm();
-            _fields.DelAbsMag() = DelMag * bhat;
+            auto bhat = fields.Mag() / fields.Mag().Norm();
+            fields.DelAbsMag() = DelMag * bhat;
          }
       };
       if constexpr (Fields::DelElc_found())
-         _fields.DelElc() = gm_zeros;
-      if constexpr (Fields::DdtVel_found())
-         _fields.DdtVel() = gv_zeros;
-      if constexpr (Fields::DdtMag_found())
-         _fields.DdtMag() = gv_zeros;
-      if constexpr (Fields::DdtAbsMag_found())
-         _fields.DdtAbsMag() = 0.0;
-      if constexpr (Fields::DdtElc_found())
-         _fields.DdtElc() = gv_zeros;
+         fields.DelElc() = gm_zeros;
+      if constexpr (Fields::DotVel_found())
+         fields.DotVel() = gv_zeros;
+      if constexpr (Fields::DotMag_found())
+         fields.DotMag() = gv_zeros;
+      if constexpr (Fields::DotAbsMag_found())
+         fields.DotAbsMag() = 0.0;
+      if constexpr (Fields::DotElc_found())
+         fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, specie, fields);
    };
 };
 
@@ -141,10 +140,10 @@ void BackgroundDipole<HyperParams>::EvaluateBackgroundDerivatives(void)
 \author Vladimir Florinski
 \date 03/25/2022
 */
-template <typename HyperParams>
-void BackgroundDipole<HyperParams>::EvaluateDmax(void)
+template <typename HConfig>
+void BackgroundDipole<HConfig>::EvaluateDmax(Coordinates& coords)
 {
-   _ddata.dmax = fmin(dmax_fraction * (_pos - r0).Norm(), dmax0);
+   _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);
 };
 

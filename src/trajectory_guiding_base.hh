@@ -17,9 +17,6 @@ namespace Spectrum {
 // Switch controlling how to calculate p_perp. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
 #define PPERP_METHOD 1
 
-//! Readable name of the TrajectoryGuiding class
-const std::string traj_name_guiding_base = "TrajectoryGuidingBase";
-
 //! Default initial size
 const unsigned int defsize_guiding_base = 10000;
 
@@ -40,6 +37,9 @@ Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
 template <typename Trajectory_, typename Fields_>
 class TrajectoryGuidingBase : public TrajectoryBase<Trajectory_, Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryGuidingBase";
 
 public:
 

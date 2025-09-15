@@ -1053,192 +1053,192 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get DdtVel (Time derivative of velocity field) from the data type, as lvalue.
+\brief Get DotVel (Time derivative of velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DdtVel_t& DdtVel(void) {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
+   DotVel_t& DotVel(void) {
+      if constexpr (std::is_same<T, DotVel_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtVel();
+         return Species<nameid, Ts...>::DotVel();
    };
 
 /*!
-\brief Get DdtVel (Time derivative of velocity field) from the data type, as const rvalue.
+\brief Get DotVel (Time derivative of velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DdtVel_t& DdtVel(void) const {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
+   const DotVel_t& DotVel(void) const {
+      if constexpr (std::is_same<T, DotVel_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtVel();
+         return Species<nameid, Ts...>::DotVel();
    };
 
 
 /*!
-\brief Whether DdtVel (Time derivative of velocity field) is in the data type.
+\brief Whether DotVel (Time derivative of velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtVel_found(void) {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
+   static constexpr bool DotVel_found(void) {
+      if constexpr (std::is_same<T, DotVel_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DdtVel_found();
+         return Species<nameid, Ts...>::DotVel_found();
    };
    
 
 /*!
-\brief Get DdtElc (Time derivative of electric field) from the data type, as lvalue.
+\brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DdtElc_t& DdtElc(void) {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
+   DotElc_t& DotElc(void) {
+      if constexpr (std::is_same<T, DotElc_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtElc();
+         return Species<nameid, Ts...>::DotElc();
    };
 
 /*!
-\brief Get DdtElc (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get DotElc (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DdtElc_t& DdtElc(void) const {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
+   const DotElc_t& DotElc(void) const {
+      if constexpr (std::is_same<T, DotElc_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtElc();
+         return Species<nameid, Ts...>::DotElc();
    };
 
 
 /*!
-\brief Whether DdtElc (Time derivative of electric field) is in the data type.
+\brief Whether DotElc (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtElc_found(void) {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
+   static constexpr bool DotElc_found(void) {
+      if constexpr (std::is_same<T, DotElc_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DdtElc_found();
+         return Species<nameid, Ts...>::DotElc_found();
    };
    
 
 /*!
-\brief Get DdtMag (Time derivative of magnetic field) from the data type, as lvalue.
+\brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DdtMag_t& DdtMag(void) {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
+   DotMag_t& DotMag(void) {
+      if constexpr (std::is_same<T, DotMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtMag();
+         return Species<nameid, Ts...>::DotMag();
    };
 
 /*!
-\brief Get DdtMag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get DotMag (Time derivative of magnetic field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DdtMag_t& DdtMag(void) const {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
+   const DotMag_t& DotMag(void) const {
+      if constexpr (std::is_same<T, DotMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtMag();
+         return Species<nameid, Ts...>::DotMag();
    };
 
 
 /*!
-\brief Whether DdtMag (Time derivative of magnetic field) is in the data type.
+\brief Whether DotMag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtMag_found(void) {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
+   static constexpr bool DotMag_found(void) {
+      if constexpr (std::is_same<T, DotMag_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DdtMag_found();
+         return Species<nameid, Ts...>::DotMag_found();
    };
    
 
 /*!
-\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DdtAbsMag_t& DdtAbsMag(void) {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+   DotAbsMag_t& DotAbsMag(void) {
+      if constexpr (std::is_same<T, DotAbsMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtAbsMag();
+         return Species<nameid, Ts...>::DotAbsMag();
    };
 
 /*!
-\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DdtAbsMag_t& DdtAbsMag(void) const {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+   const DotAbsMag_t& DotAbsMag(void) const {
+      if constexpr (std::is_same<T, DotAbsMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtAbsMag();
+         return Species<nameid, Ts...>::DotAbsMag();
    };
 
 
 /*!
-\brief Whether DdtAbsMag (Time derivative of magnetic field magnitude) is in the data type.
+\brief Whether DotAbsMag (Time derivative of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtAbsMag_found(void) {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+   static constexpr bool DotAbsMag_found(void) {
+      if constexpr (std::is_same<T, DotAbsMag_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DdtAbsMag_found();
+         return Species<nameid, Ts...>::DotAbsMag_found();
    };
    
 
 /*!
-\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DdtHatMag_t& DdtHatMag(void) {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+   DotHatMag_t& DotHatMag(void) {
+      if constexpr (std::is_same<T, DotHatMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtHatMag();
+         return Species<nameid, Ts...>::DotHatMag();
    };
 
 /*!
-\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DdtHatMag_t& DdtHatMag(void) const {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+   const DotHatMag_t& DotHatMag(void) const {
+      if constexpr (std::is_same<T, DotHatMag_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DdtHatMag();
+         return Species<nameid, Ts...>::DotHatMag();
    };
 
 
 /*!
-\brief Whether DdtHatMag (Time derivative of magnetic field direction) is in the data type.
+\brief Whether DotHatMag (Time derivative of magnetic field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtHatMag_found(void) {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+   static constexpr bool DotHatMag_found(void) {
+      if constexpr (std::is_same<T, DotHatMag_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DdtHatMag_found();
+         return Species<nameid, Ts...>::DotHatMag_found();
    };
    
 
@@ -2298,136 +2298,136 @@ public:
          return false;
    };
 
-   DdtVel_t& DdtVel(void) {
+   DotVel_t& DotVel(void) {
       try {
-        if constexpr (std::is_same<T, DdtVel_t>::value)
+        if constexpr (std::is_same<T, DotVel_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DdtVel_t& DdtVel(void) const {
+  const DotVel_t& DotVel(void) const {
     try {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
+      if constexpr (std::is_same<T, DotVel_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DdtVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DdtVel_found(void) {
-      if constexpr (std::is_same<T, DdtVel_t>::value)
+   static constexpr bool DotVel_found(void) {
+      if constexpr (std::is_same<T, DotVel_t>::value)
          return true;
       else
          return false;
    };
 
-   DdtElc_t& DdtElc(void) {
+   DotElc_t& DotElc(void) {
       try {
-        if constexpr (std::is_same<T, DdtElc_t>::value)
+        if constexpr (std::is_same<T, DotElc_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DdtElc_t& DdtElc(void) const {
+  const DotElc_t& DotElc(void) const {
     try {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
+      if constexpr (std::is_same<T, DotElc_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DdtElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DdtElc_found(void) {
-      if constexpr (std::is_same<T, DdtElc_t>::value)
+   static constexpr bool DotElc_found(void) {
+      if constexpr (std::is_same<T, DotElc_t>::value)
          return true;
       else
          return false;
    };
 
-   DdtMag_t& DdtMag(void) {
+   DotMag_t& DotMag(void) {
       try {
-        if constexpr (std::is_same<T, DdtMag_t>::value)
+        if constexpr (std::is_same<T, DotMag_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DdtMag_t& DdtMag(void) const {
+  const DotMag_t& DotMag(void) const {
     try {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
+      if constexpr (std::is_same<T, DotMag_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DdtMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DdtMag_found(void) {
-      if constexpr (std::is_same<T, DdtMag_t>::value)
+   static constexpr bool DotMag_found(void) {
+      if constexpr (std::is_same<T, DotMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DdtAbsMag_t& DdtAbsMag(void) {
+   DotAbsMag_t& DotAbsMag(void) {
       try {
-        if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+        if constexpr (std::is_same<T, DotAbsMag_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DdtAbsMag_t& DdtAbsMag(void) const {
+  const DotAbsMag_t& DotAbsMag(void) const {
     try {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+      if constexpr (std::is_same<T, DotAbsMag_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DdtAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DdtAbsMag_found(void) {
-      if constexpr (std::is_same<T, DdtAbsMag_t>::value)
+   static constexpr bool DotAbsMag_found(void) {
+      if constexpr (std::is_same<T, DotAbsMag_t>::value)
          return true;
       else
          return false;
    };
 
-   DdtHatMag_t& DdtHatMag(void) {
+   DotHatMag_t& DotHatMag(void) {
       try {
-        if constexpr (std::is_same<T, DdtHatMag_t>::value)
+        if constexpr (std::is_same<T, DotHatMag_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DdtHatMag_t& DdtHatMag(void) const {
+  const DotHatMag_t& DotHatMag(void) const {
     try {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+      if constexpr (std::is_same<T, DotHatMag_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DdtHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DdtHatMag_found(void) {
-      if constexpr (std::is_same<T, DdtHatMag_t>::value)
+   static constexpr bool DotHatMag_found(void) {
+      if constexpr (std::is_same<T, DotHatMag_t>::value)
          return true;
       else
          return false;
@@ -2763,7 +2763,7 @@ public:
 */
    double divbhat()
    {
-      auto bhat = DdtMag();
+      auto bhat = DotMag();
       auto Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
       auto Bdiv = divB();
@@ -2813,8 +2813,8 @@ public:
 */
    GeoVector dbhatdt()
    {
-      auto dBvecdt = DdtMag();
-      auto dBmagdt = DdtAbsMag();
+      auto dBvecdt = DotMag();
+      auto dBmagdt = DotAbsMag();
       auto bhat = HatMag();
       double Bmag = AbsMag();
       return (dBvecdt - (dBmagdt * bhat)) / Bmag;

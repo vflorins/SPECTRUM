@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Fields>
 TrajectoryFocused<Fields>::TrajectoryFocused(void)
-                 : TrajectoryBase(traj_name_focused, 0, STATE_NONE, defsize_focused)
+                 : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
 
@@ -120,13 +120,13 @@ void TrajectoryFocused<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& s
    GeoVector U = _fields.Vel();
    GeoVector bhat = static_cast<GeoVector>(_fields.HatMag());
    GeoMatrix gradU = _fields.DelVel();
-   GeoVector DdtU = _fields.DdtVel();
+   GeoVector DotU = _fields.DotVel();
    bhatbhat.Dyadic(bhat);
    bhatbhat_gradUvec = bhatbhat % gradU;
 // Compute 2.0 * b * (convective)dU/dt / v. Note that (Uvec * grad)Uvec = [Uvec]^T * [gradUvec].
 // TODO: improve Field types for these algebraic procedures
    GeoVector tmp = U * gradU;
-   cdUvecdt = DdtU + tmp;
+   cdUvecdt = DotU + tmp;
    bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _vel[0];
 
    slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 

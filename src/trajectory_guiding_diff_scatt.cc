@@ -32,9 +32,9 @@ TrajectoryGuidingDiffScatt<Fields>::TrajectoryGuidingDiffScatt(void)
 \date 05/27/2022
 */
 template <typename Fields>
-bool TrajectoryGuidingDiffScatt<Fields>::IsSimmulationReady(void) const
+bool TrajectoryGuidingDiffScatt<Fields>::IsSimulationReady(void) const
 {
-   return TrajectoryGuidingDiff::IsSimmulationReady();
+   return TrajectoryGuidingDiff::IsSimulationReady();
 };
 
 /*!

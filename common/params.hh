@@ -1,5 +1,5 @@
 /*!
-\file statusclass.hh
+\file params.hh
 \brief Declares a simple class for entering parameters
 \author Vladimir Florinski
 \author Lucius Schoenbaum
@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_STATUSCLASS_HH
-#define SPECTRUM_STATUSCLASS_HH
+#ifndef SPECTRUM_PARAMS_HH
+#define SPECTRUM_PARAMS_HH
 
 // This includes (algorithm, cmath, cstdint, cstring, fstream, vector), definitions, multi_index
 #include "vectors.hh"
@@ -92,71 +92,46 @@ inline const char* ExCoordinates::what(void) const noexcept
 \author Lucius Schoenbaum
 \date 09/08/2025
 */
-class StatusClass {
-
+class Params {
 protected:
 
 //! Readable name of the class (persistent)
    std::string class_name = "";
 
-////! Random number generator object (persistent)
-//   std::shared_ptr<RNG> rng = nullptr;
-
 //! Parameter storage (persistent)
    DataContainer container;
+
+//! Random number generator object (persistent)
+   std::shared_ptr<RNG> rng = nullptr;
 
 //! Status
    uint16_t _status = STATE_NONE;
 
-////! Time (transient)
-//   double _t;
-//
-////! Spatial position (transient)
-//   GeoVector _pos;
-//
-////! Velocity vector (transient)
-//   GeoVector _vel;
-//
-////! Momentum vector (transient)
-//   GeoVector _mom;
-
 //! Default constructor (protected, class not designed to be instantiated)
-   StatusClass(void) = default;
+   Params(void) = default;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   StatusClass(const std::string_view& name_in, uint16_t status_in);
+   Params(const std::string_view& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
-   StatusClass(const StatusClass& other);
+   Params(const Params& other);
 
 public:
 
 //! Destructor
-   ~StatusClass() = default;
+   ~Params() = default;
 
 //! Return the name of the class
    std::string GetName(void) const {return class_name;};
 
-////! Connect to an existing RNG object
-//   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
-
 //! Copy the user-supplied data container into "container"
    void SetContainer(const DataContainer& cont_in) {container = cont_in;};
 
+   //! Connect to an existing RNG object
+   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
+
 //! Return a copy of the data container
    DataContainer GetContainer(void) const {return container;};
-
-////! Set the particle specie
-//   void SetSpecie(unsigned int specie_in) {specie = specie_in;};
-//
-////! Return the particle specie
-//   unsigned int GetSpecie(void) const {return specie;};
-
-////! Set the internal phase space position
-//   void SetState(double t_in, const GeoVector& pos_in, const GeoVector& mom_in = gv_zeros);
-//
-////! Return the internal phase space position
-//   void GetState(double& t_out, GeoVector& pos_out, GeoVector& mom_out) const;
 
 //! Return the status
    uint16_t GetStatus(void) const {return _status;};

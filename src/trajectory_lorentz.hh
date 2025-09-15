@@ -14,20 +14,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the TrajectoryLorentz class
-const std::string traj_name_lorentz = "TrajectoryLorentz";
-
-//! Default initial size
-const unsigned int defsize_lorentz = 100000;
-
-//! CFL condition for advection
-const double cfl_adv_tl = 0.1;
-
-//! Number of time steps per one orbit
-const unsigned int steps_per_orbit = 100;
-
-//! How many time steps to allow before recording a mirror event
-const unsigned int mirror_thresh_lorentz = 300;
+////! Default initial size
+//const unsigned int defsize_lorentz = 100000;
+//
+////! CFL condition for advection
+//const double cfl_adv_tl = 0.1;
+//
+////! Number of time steps per one orbit
+//const unsigned int steps_per_orbit = 100;
+//
+////! How many time steps to allow before recording a mirror event
+//const unsigned int mirror_thresh_lorentz = 300;
 
 /*!
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
@@ -35,6 +32,10 @@ const unsigned int mirror_thresh_lorentz = 300;
 */
 template <typename Fields_>
 class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<Fields_>, Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryLorentz";
+
 public:
 
    using Fields = Fields_;

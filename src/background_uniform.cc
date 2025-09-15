@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/27/2021
 */
-template <typename HyperParams>
-BackgroundUniform<HyperParams>::BackgroundUniform(void)
+template <typename HConfig>
+BackgroundUniform<HConfig>::BackgroundUniform(void)
                  : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
@@ -32,8 +32,8 @@ BackgroundUniform<HyperParams>::BackgroundUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundUniform<HyperParams>::BackgroundUniform(const BackgroundUniform& other)
+template <typename HConfig>
+BackgroundUniform<HConfig>::BackgroundUniform(const BackgroundUniform& other)
                  : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -48,8 +48,8 @@ BackgroundUniform<HyperParams>::BackgroundUniform(const BackgroundUniform& other
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundUniform<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundUniform<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -63,20 +63,21 @@ void BackgroundUniform<HyperParams>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HyperParams>
-void BackgroundUniform<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    if constexpr (Fields::Vel_found()) {
-      _fields.Vel() = u0;
+      fields.Vel() = u0;
    }
    if constexpr (Fields::Mag_found()) {
-      _fields.Mag() = B0;
+      fields.Mag() = B0;
    }
    if constexpr (Fields::Elc_found()) {
-      _fields.Elc() = E0;
+      fields.Elc() = E0;
    }
    if constexpr (Fields::Iv0_found()) {
-      _fields.Iv0() = 1.0;
+      fields.Iv0() = 1.0;
    }
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -86,18 +87,19 @@ void BackgroundUniform<HyperParams>::EvaluateBackground(void)
 \author Vladimir Florinski
 \date 10/14/2022
 */
-template <typename HyperParams>
-void BackgroundUniform<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
 // Spatial derivatives are zero
-   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
-   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) fields.DelMag() = gm_zeros;
+   if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
+   if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
+   if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
 };
 
 };

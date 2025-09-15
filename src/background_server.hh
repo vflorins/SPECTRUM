@@ -23,8 +23,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase)
 */
-template <typename HyperParams_>
-class BackgroundServer : public BackgroundBase<HyperParams_> {
+template <typename HConfig_>
+class BackgroundServer : public BackgroundBase<HConfig_> {
 private:
 
 //! Readable name of the class
@@ -32,24 +32,22 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_pos;
    using BackgroundBase::container;
-   using BackgroundBase::r0;
-   using BackgroundBase::B0;
+   using BackgroundBase::_ddata;
    using BackgroundBase::dmax0;
+   using BackgroundBase::r0;
+   using BackgroundBase::u0;
+   using BackgroundBase::B0;
    // methods
    using BackgroundBase::EvaluateBmag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
 protected:
@@ -65,11 +63,11 @@ protected:
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 //! Default constructor (protected, class not designed to be instantiated)
    BackgroundServer(void);
@@ -93,6 +91,7 @@ public:
 
 //! Return the vector to the corner opposite to that returned in "GetDomainMin()"
    GeoVector GetDomainMax(void) const;
+
 };
 
 /*!

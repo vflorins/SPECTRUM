@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 02/13/2024
 */
-template <typename HyperParams>
-BackgroundMagnetizedCylinder<HyperParams>::BackgroundMagnetizedCylinder(void)
+template <typename HConfig>
+BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(void)
                             : BackgroundCylindricalObstacle(bg_name, MODEL_STATIC)
 {
 };
@@ -31,8 +31,8 @@ BackgroundMagnetizedCylinder<HyperParams>::BackgroundMagnetizedCylinder(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundMagnetizedCylinder<HyperParams>::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
+template <typename HConfig>
+BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
                             : BackgroundCylindricalObstacle(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -43,11 +43,12 @@ BackgroundMagnetizedCylinder<HyperParams>::BackgroundMagnetizedCylinder(const Ba
 \author Vladimir Florinski
 \date 02/13/2024
 */
-template <typename HyperParams>
-void BackgroundMagnetizedCylinder<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
-   BackgroundCylindricalObstacle::EvaluateBackground();
-   if constexpr (Fields::Mag_found()) _fields.Mag() = B0 - _fields.Mag();
+   BackgroundCylindricalObstacle::EvaluateBackground(coords, fields);
+   if constexpr (Fields::Mag_found()) fields.Mag() = B0 - fields.Mag();
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -56,15 +57,16 @@ void BackgroundMagnetizedCylinder<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-template <typename HyperParams>
-void BackgroundMagnetizedCylinder<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
-   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
-      BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives();
-      if constexpr (Fields::DelMag_found()) _fields.DelMag() *= -1.0;
+   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
+      BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(coords, specie, fields);
+      if constexpr (Fields::DelMag_found()) fields.DelMag() *= -1.0;
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, specie, fields);
    };
 };
 

@@ -196,68 +196,6 @@ namespace Spectrum {
 //! Helium atoms - core
 #define SPECIES_HELIUM_CORE 15
 
-//! Species (alternative impl)
-enum class Specie {
-   electron_core,
-   electron_halo,
-   electron_beam,
-   proton_core,
-   proton_beam,
-   proton_pickup,
-   alpha_core,
-   alpha_halo,
-   heliumII_core,
-   heliumII_pickup,
-   hydrogenII_core,
-   hydrogenI_core,
-   hydrogenI_halo,
-   hydrogenI_beam,
-   heliumI_core
-};
-
-//! Names of fluid species
-constexpr std::array<std::string_view, MAX_PARTICLE_SPECIES> SpeciesNames
-= {"Electrons (core)", "Electrons (halo)", "Electrons (beam)", "Proton (core)", "Proton (halo)", "Proton (beam)", "Proton (pickup)",
-   "Alpha (core)", "Alpha (halo)", "Helium II (core)", "Helium II (pickup)", "Hydrogen II (core)", "Hydrogen I (core)", "Hydrogen I (halp)",
-   "Hydrogen I (beam)", "Helium I (core)"};
-
-//! Masses of particles comprising the fluids
-constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesMasses = {   SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                       SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                 2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
-                                 2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
-   (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-   (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                       (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-    2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON  + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle};
-
-//! Charges of particles comprising the fluids
-constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesCharges = {-SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                     -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                     -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                      0.0, 0.0, 0.0, 0.0, 0.0};
-
-//! Polytropic indices of fluids
-constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesPolytropicIndices
-= {5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0,
-  5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0};
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handy time conversion
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -288,6 +226,22 @@ SPECTRUM_DEVICE_FUNC inline double SoundSpeed(double den, double pre, unsigned i
 {
    return sqrt(SpeciesPolytropicIndices[ifl] * pre / den);
 };
+/*!
+\brief Compute sound speed
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] den Mass density
+\param[in] pre Pressure
+\return Sound speed
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double SoundSpeed(double den, double pre)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(SpeciesPolytropicIndices[isp] * pre / den);
+};
+
 
 /*!
 \brief Compute square of the sound speed
@@ -302,6 +256,22 @@ SPECTRUM_DEVICE_FUNC inline double Sound2(double den, double pre, unsigned int i
 {
    return SpeciesPolytropicIndices[ifl] * pre / den;
 };
+/*!
+\brief Compute square of the sound speed
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] den Mass density
+\param[in] pre Pressure
+\return Sound speed squared
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Sound2(double den, double pre)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return SpeciesPolytropicIndices[isp] * pre / den;
+};
+
 
 /*!
 \brief Compute Alfven speed
@@ -319,7 +289,8 @@ SPECTRUM_DEVICE_FUNC inline double AlfvenSpeed(double den, double B2)
 /*!
 \brief Compute square of the Alfven speed
 \author Vladimir Florinski
-\date 07/31/2019
+\author Lucius Schoenbaum
+\date 09/13/2025
 \param[in] den Mass density
 \param[in] B2  Square of the magnetic field
 \return Alfven speed squared
@@ -389,6 +360,24 @@ SPECTRUM_DEVICE_FUNC inline double Energy(double den, double u2, double B2, doub
 {
    return den * u2 / 2.0 + pre / (SpeciesPolytropicIndices[ifl] - 1.0) + B2 / M_8PI;
 };
+/*!
+\brief Calculate the MHD energy density
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] den Mass density
+\param[in] u2  Square of velocity
+\param[in] B2  Square of the magnetic field
+\param[in] pre Gas pressure
+\return Energy per unit volume
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Energy(double den, double u2, double B2, double pre)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return den * u2 / 2.0 + pre / (SpeciesPolytropicIndices[isp] - 1.0) + B2 / M_8PI;
+};
+
 
 /*!
 \brief Calculate gas pressure from temperature
@@ -418,6 +407,24 @@ SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, do
 {
    return (enr - den * u2 / 2.0 - B2 / M_8PI) * (SpeciesPolytropicIndices[ifl] - 1.0);
 };
+/*!
+\brief Calculate gas pressure from MHD energy density
+\author Vladimir Florinski
+\date 07/31/2019
+\param[in] den Mass density
+\param[in] u2  Square of velocity
+\param[in] B2  Square of the magnetic field
+\param[in] enr MHD energy density
+\param[in] ifl Index of the fluid
+\return gas pressure
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Pressure(double den, double u2, double B2, double enr)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return (enr - den * u2 / 2.0 - B2 / M_8PI) * (SpeciesPolytropicIndices[isp] - 1.0);
+};
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Kinetic/particle routines
@@ -440,12 +447,28 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor(double vel)
 \author Vladimir Florinski
 \date 12/29/2020
 \param[in] mom Momentum
+ \param[in] isp Index of the fluid
 \return Lorentz factor
 */
 SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = SPECIES_PROTON_CORE)
 {
    return sqrt(1.0 + Sqr(mom / (SpeciesMasses[isp] * c_code)));
 };
+/*!
+\brief Relativistic factor based on momentum
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Lorentz factor
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(1.0 + Sqr(mom / (SpeciesMasses[isp] * c_code)));
+};
+
 
 /*!
 \brief Relativistic factor based on parallel momentum and magnetic moment
@@ -459,6 +482,22 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor1(double mom, unsigned int isp = SPE
 */
 SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double B, unsigned int isp = SPECIES_PROTON_CORE)
 {
+   return sqrt(1.0 + (2.0 * SpeciesMasses[isp] * mag_mom * B + Sqr(mom)) / Sqr(SpeciesMasses[isp] * c_code));
+};
+/*!
+\brief Relativistic factor based on parallel momentum and magnetic moment
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom     Momentum (parallel)
+\param[in] mag_mom Magnetic moment
+\param[in] B       Magnetic field magnitude
+\return Lorentz factor
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double B)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
    return sqrt(1.0 + (2.0 * SpeciesMasses[isp] * mag_mom * B + Sqr(mom)) / Sqr(SpeciesMasses[isp] * c_code));
 };
 
@@ -475,6 +514,20 @@ SPECTRUM_DEVICE_FUNC inline double Mom(double enr, unsigned int isp = SPECIES_PR
 {
    return sqrt(enr * (enr + 2.0 * SpeciesMasses[isp] * c2_code)) / c_code;
 };
+/*!
+\brief Calculate particle momentum from its kinetic energy
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] enr Kinetic energy
+\return Relativistic momentum
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Mom(double enr)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(enr * (enr + 2.0 * SpeciesMasses[isp] * c2_code)) / c_code;
+};
 
 /*!
 \brief Calculate particle total energy from momentum magnitude
@@ -488,6 +541,21 @@ SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom, unsigned int isp = SPECIES
 {
    return c_code * sqrt(Sqr(mom) + Sqr(SpeciesMasses[isp] * c_code));
 };
+/*!
+\brief Calculate particle total energy from momentum magnitude
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Total relativistic energy
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return c_code * sqrt(Sqr(mom) + Sqr(SpeciesMasses[isp] * c_code));
+};
+
 
 /*!
 \brief Calculate particle kinetic energy from momentum magnitude
@@ -501,6 +569,21 @@ SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom, unsigned int isp = SPECIES
 {
    return EnrTot(mom, isp) - SpeciesMasses[isp] * c2_code;
 };
+/*!
+\brief Calculate particle kinetic energy from momentum magnitude
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Relativistic kinetic energy
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return EnrTot<specie>(mom) - SpeciesMasses[isp] * c2_code;
+};
+
 
 /*!
 \brief Calculate particle velocity magnitude from momentum magnitude
@@ -514,6 +597,21 @@ SPECTRUM_DEVICE_FUNC inline double Vel(double mom, unsigned int isp = SPECIES_PR
 {
    return mom * c2_code / EnrTot(mom, isp);
 };
+/*!
+\brief Calculate particle velocity magnitude from momentum magnitude
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Velocity
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Vel(double mom)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return mom * c2_code / EnrTot<specie>(mom);
+};
+
 
 /*!
 \brief Calculate particle velocity from momentum
@@ -529,6 +627,22 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom, unsigned int isp
    double vmag = Vel(mmag, isp);
    return (vmag / mmag) * mom;
 };
+/*!
+\brief Calculate particle velocity from momentum
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Velocity
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom)
+{
+   double mmag = mom.Norm();
+   double vmag = Vel<specie>(mmag);
+   return (vmag / mmag) * mom;
+};
+
 
 /*!
 \brief Calculate particle momentum from velocity
@@ -542,6 +656,21 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel, unsigned int isp
 {
    return (RelFactor(vel.Norm()) * SpeciesMasses[isp]) * vel;
 };
+/*!
+\brief Calculate particle momentum from velocity
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] vel Velocity
+\return Relativistic momentum
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return (RelFactor(vel.Norm()) * SpeciesMasses[isp]) * vel;
+};
+
 
 /*!
 \brief Calculate particle rigidity
@@ -555,6 +684,21 @@ SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom, unsigned int isp = SPECI
 {
    return mom * c_code / fabs(SpeciesCharges[isp]);
 };
+/*!
+\brief Calculate particle rigidity
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\return Rigidity
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double Rigidity(double mom)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return mom * c_code / fabs(SpeciesCharges[isp]);
+};
+
 
 
 /*!
@@ -569,6 +713,21 @@ SPECTRUM_DEVICE_FUNC inline double EffectiveTemperature(double v_th, unsigned in
 {
    return SpeciesMasses[isp] * Sqr(v_th) / (2.0 * kb_code);
 };
+/*!
+\brief Effective temperature (Maxwell) based on characteristic velocity
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] v_th Thermal speed
+\return Effective temperature
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double EffectiveTemperature(double v_th)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return SpeciesMasses[isp] * Sqr(v_th) / (2.0 * kb_code);
+};
+
 
 /*!
 \brief Thermal speed (Maxwell) based on temperature
@@ -582,6 +741,21 @@ SPECTRUM_DEVICE_FUNC inline double ThermalSpeed(double T, unsigned int isp = SPE
 {
    return sqrt(2.0 * kb_code * T / SpeciesMasses[isp]);
 };
+/*!
+\brief Thermal speed (Maxwell) based on temperature
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] T   Temperature
+\return Thermal speed
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double ThermalSpeed(double T)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(2.0 * kb_code * T / SpeciesMasses[isp]);
+};
+
 
 /*!
 \brief Cyclotron frequency
@@ -596,6 +770,22 @@ SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B, unsi
 {
    return charge_mass_particle * SpeciesCharges[isp] * B / (RelFactor(vel) * SpeciesMasses[isp] * c_code);
 };
+/*!
+\brief Cyclotron frequency
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] vel Velocity
+\param[in] B   Magnetic field magnitude
+\return Cyclotron frequency
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double CyclotronFrequency(double vel, double B)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return charge_mass_particle * SpeciesCharges[isp] * B / (RelFactor(vel) * SpeciesMasses[isp] * c_code);
+};
+
 
 /*!
 \brief Larmor radius
@@ -610,6 +800,22 @@ SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B, unsigned i
 {
    return mom * c_code / (charge_mass_particle * fabs(SpeciesCharges[isp]) * B);
 };
+/*!
+\brief Larmor radius
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum
+\param[in] B   Magnetic field magnitude
+\return Larmor radius
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double LarmorRadius(double mom, double B)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return mom * c_code / (charge_mass_particle * fabs(SpeciesCharges[isp]) * B);
+};
+
 
 /*!
 \brief Magnetic moment
@@ -624,6 +830,22 @@ SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B, unsigned
 {
    return Sqr(mom) / (2.0 * SpeciesMasses[isp] * B);
 };
+/*!
+\brief Magnetic moment
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mom Momentum (perp. component)
+\param[in] B   Magnetic field magnitude
+\return Magnetic moment
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double MagneticMoment(double mom, double B)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return Sqr(mom) / (2.0 * SpeciesMasses[isp] * B);
+};
+
 
 /*!
 \brief Perpendicular momentum from magnetic moment
@@ -638,6 +860,22 @@ SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B, unsign
 {
    return sqrt(2.0 * SpeciesMasses[isp] * mag_mom * B);
 };
+/*!
+\brief Perpendicular momentum from magnetic moment
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mag_mom Magnetic moment
+\param[in] B       Magnetic field magnitude
+\return Momentum (perp. component)
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double PerpMomentum(double mag_mom, double B)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(2.0 * SpeciesMasses[isp] * mag_mom * B);
+};
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Plasma physics routines
@@ -655,6 +893,21 @@ SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den, unsigned int isp 
 {
    return sqrt(M_4PI * den) * charge_mass_particle * fabs(SpeciesCharges[isp]) / SpeciesMasses[isp];
 };
+/*!
+\brief Plasma frequency
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] den Density
+\return Plasma frequency
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double PlasmaFrequency(double den)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return sqrt(M_4PI * den) * charge_mass_particle * fabs(SpeciesCharges[isp]) / SpeciesMasses[isp];
+};
+
 
 /*!
 \brief Collision frequency
@@ -672,6 +925,27 @@ SPECTRUM_DEVICE_FUNC inline double CollisionFrequency(double den, double T, doub
    return 2.0 / 3.0 * M_SQRT2 / M_SQRTPI * Lam * SpeciesMasses[isp] / Cube(ThermalSpeed(T, isp) * unit_length_fluid) / unit_density_fluid
           * unit_mass_particle * Sqr(PlasmaFrequency(den, isp) * charge_mass_particle * SpeciesCharges[isp] / SpeciesMasses[isp]);
 };
+/*!
+\brief Collision frequency
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] den Density
+\param[in] T   Temperature
+\param[in] Lam Coulomb logarithm
+\return Collision frequency
+\note Our system of units (MHD centric) requires a coefficient to relate the number density unit to the inverse cube of distance unit.
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline double CollisionFrequency(double den, double T, double Lam)
+{
+   constexpr auto isp = static_cast<size_t>(specie);
+   return 2.0 / 3.0 * M_SQRT2 / M_SQRTPI * Lam * SpeciesMasses[isp] / Cube(ThermalSpeed<specie>(T) * unit_length_fluid) / unit_density_fluid
+          * unit_mass_particle * Sqr(PlasmaFrequency<specie>(den) * charge_mass_particle * SpeciesCharges[isp] / SpeciesMasses[isp]);
+};
+
+
+
 
 //! Print all units and constants
 void PrintUnits(void);

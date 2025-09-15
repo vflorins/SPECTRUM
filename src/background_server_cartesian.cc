@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-template <typename HyperParams>
-BackgroundServerCartesian<HyperParams>::BackgroundServerCartesian(void)
+template <typename HConfig>
+BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(void)
                          : BackgroundServer(bg_name, MODEL_STATIC)
 {
 };
@@ -28,8 +28,8 @@ BackgroundServerCartesian<HyperParams>::BackgroundServerCartesian(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-template <typename HyperParams>
-BackgroundServerCartesian<HyperParams>::BackgroundServerCartesian(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(const std::string& name_in, uint16_t status_in)
                          : BackgroundServer(name_in, status_in)
 {
 };
@@ -41,8 +41,8 @@ BackgroundServerCartesian<HyperParams>::BackgroundServerCartesian(const std::str
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundServerCartesian<HyperParams>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
+template <typename HConfig>
+BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
                          : BackgroundServer(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);

@@ -24,8 +24,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundSolarWind), double r_TS, double w_TS, double s_TS
 */
-template <typename HyperParams_>
-class BackgroundSolarWindTermShock : public BackgroundSolarWind<HyperParams_> {
+template <typename HConfig_>
+class BackgroundSolarWindTermShock : public BackgroundSolarWind<HConfig_> {
 private:
 
 //! Readable name of the class
@@ -33,25 +33,22 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
-   using BackgroundSolarWind = BackgroundSolarWind<HyperParams>;
+   using BackgroundSolarWind = BackgroundSolarWind<HConfig>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_pos;
    using BackgroundBase::container;
-   using BackgroundBase::r0;
-   using BackgroundBase::B0;
+   using BackgroundBase::_ddata;
    using BackgroundBase::dmax0;
+   using BackgroundBase::r0;
+   using BackgroundBase::u0;
+   using BackgroundBase::B0;
    // methods
    using BackgroundBase::EvaluateBmag;
-   using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
 
    using BackgroundSolarWind::dmax_fraction;
@@ -77,22 +74,25 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
+//! Compute the maximum distance per time step
+   void EvaluateDmax(Coordinates&) override;
+
 //! Modify radial flow (if necessary)
-   void ModifyUr(const double r, double &ur_mod) override;
+   void ModifyUr(double r, double &ur_mod) override;
 
 //! Radial derivative of radial flow
-   double dUrdr(const double r);
+   double dUrdr(double r, double v_norm);
 
 //! Get time lag for time dependent current sheet (if necessary)
-   double TimeLag(const double r) override;
+   double TimeLag(double r) override;
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

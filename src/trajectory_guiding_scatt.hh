@@ -14,36 +14,33 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Whether to split the diffusive advance into two (one before and one after the advection).
-// #define SPLIT_SCATT
-
-//! Whether to use constant dmumax or constant dthetamax, 0 = constant dthetamax, 1 = constant dmumax
-#define CONST_DMUMAX 0
-
-//! Which stochastic method to use for PA scattering, 0 = Euler, 1 = Milstein, 2 = RK2
-#define STOCHASTIC_METHOD_MU 0
-
-//! Readable name of the TrajectoryGuidingScatt class
-const std::string traj_name_guidingscatt = "TrajectoryGuidingScatt";
-
-//! Default initial size
-const unsigned int defsize_guidingscatt = 10000;
-
-#ifdef SPLIT_SCATT
-//! Fraction of stochastic step to take before deterministic step
-const double alpha = 0.5;
-#endif
-
-#if CONST_DMUMAX == 1
-//! Desired accuracy in pitch angle cosine
-const double dmumax = 0.02;
-#else 
-//! Desired accuracy in pitch angle (deg x [deg to rad conversion factor])
-const double dthetamax = 2.0 * M_PI / 180.0;
-#endif
-
-//! CFL condition for pitch angle scattering
-const double cfl_pa_gs = 0.5;
+////! Whether to split the diffusive advance into two (one before and one after the advection).
+//// #define SPLIT_SCATT
+//
+////! Whether to use constant dmumax or constant dthetamax, 0 = constant dthetamax, 1 = constant dmumax
+//#define CONST_DMUMAX 0
+//
+////! Which stochastic method to use for PA scattering, 0 = Euler, 1 = Milstein, 2 = RK2
+//#define STOCHASTIC_METHOD_MU 0
+//
+////! Default initial size
+//const unsigned int defsize_guidingscatt = 10000;
+//
+//#ifdef SPLIT_SCATT
+////! Fraction of stochastic step to take before deterministic step
+//const double alpha = 0.5;
+//#endif
+//
+//#if CONST_DMUMAX == 1
+////! Desired accuracy in pitch angle cosine
+//const double dmumax = 0.02;
+//#else
+////! Desired accuracy in pitch angle (deg x [deg to rad conversion factor])
+//const double dthetamax = 2.0 * M_PI / 180.0;
+//#endif
+//
+////! CFL condition for pitch angle scattering
+//const double cfl_pa_gs = 0.5;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingScatt class declaration
@@ -56,6 +53,10 @@ const double cfl_pa_gs = 0.5;
 */
 template <typename Fields_>
 class TrajectoryGuidingScatt : public TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields_>, Fields_> {
+
+//! Readable name of the TrajectoryGuidingScatt class
+   static constexpr std::string_view traj_name = "TrajectoryGuidingScatt";
+
 public:
 
    using Fields = Fields_;
@@ -134,7 +135,7 @@ protected:
    bool Advance(void) override;
 
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
-   bool IsSimmulationReady(void) const override;
+   bool IsSimulationReady(void) const override;
 
 public:
 

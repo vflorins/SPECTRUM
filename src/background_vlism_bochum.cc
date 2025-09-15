@@ -21,8 +21,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 09/28/2021
 */
-template <typename HyperParams>
-BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(void)
+template <typename HConfig>
+BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(void)
                      : BackgroundBase(bg_name, MODEL_STATIC)
 {
 // https://www.gnu.org/software/gsl/doc/html/err.html#c.gsl_set_error_handler
@@ -36,8 +36,8 @@ BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(void)
 \param[in] z Normalized z-component of position
 \return Normalized transverse field
 */
-template <typename HyperParams>
-double BackgroundVLISMBochum<HyperParams>::RelBtrans(double z) const
+template <typename HConfig>
+double BackgroundVLISMBochum<HConfig>::RelBtrans(double z) const
 {
    return 1.0 / sqrt(1.0 - 1.0 / Sqr(z));
 };
@@ -49,8 +49,8 @@ double BackgroundVLISMBochum<HyperParams>::RelBtrans(double z) const
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
+template <typename HConfig>
+BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
                      : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -65,8 +65,8 @@ BackgroundVLISMBochum<HyperParams>::BackgroundVLISMBochum(const BackgroundVLISMB
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundVLISMBochum<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -95,8 +95,8 @@ void BackgroundVLISMBochum<HyperParams>::SetupBackground(bool construct)
 \date 07/26/2022
 \return Field amplification factor
 */
-template <typename HyperParams>
-double BackgroundVLISMBochum<HyperParams>::GetAmpFactor(double zeta) const
+template <typename HConfig>
+double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
 {
 #if MOD_TYPE == 0
    return 1.0;
@@ -157,11 +157,12 @@ double BackgroundVLISMBochum<HyperParams>::GetAmpFactor(double zeta) const
 \author Juan G Alonso Guzman
 \date 07/26/2022
 */
-template <typename HyperParams>
-void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
-   GeoVector posprime = _pos - r0;
+   GeoVector posprime = coords.Pos() - r0;
    posprime.ChangeToBasis(eprime);
    posprime /= z_nose;
 
@@ -178,19 +179,19 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
 
 // Test for inside of the HP
    if ((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
-      _fields.Mag() = gv_zeros;
+      fields.Mag() = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
-      _fields.Elc() = gv_zeros;
-      _fields.Iv0() = -1.0;
+      fields.Elc() = gv_zeros;
+      fields.Iv0() = -1.0;
 
       RAISE_BITS(_status, STATE_INVALID);
       return;
    }
-   else _fields.Iv0() = 1.0;
+   else fields.Iv0() = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
-   _fields.Vel() = (posprime / r3 - gv_nz) * u0.Norm();
-   _fields.Vel().ChangeFromBasis(eprime);
+   fields.Vel() = (posprime / r3 - gv_nz) * u0.Norm();
+   fields.Vel().ChangeFromBasis(eprime);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -205,8 +206,8 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
    if (s < sp_tiny) {
       if (z > 1.0 + sp_tiny) {
          wus = sqrt(1.0 - 1.0 / Sqr(z));
-         _fields.Mag()[0] = B0[0] / wus;
-         _fields.Mag()[1] = B0[1] / wus;
+         fields.Mag()[0] = B0[0] / wus;
+         fields.Mag()[1] = B0[1] / wus;
          zeta = z + 0.5 * log((z - 1.0) / (z + 1.0));
       }
       else {
@@ -216,8 +217,8 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
 
 // GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
          wus = 0.0;
-         _fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
-         _fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
+         fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
+         fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
          zeta = ztr + sp_small;
 
 #endif
@@ -271,24 +272,24 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
              - (2.0 * kappa - 1.0 / kappa) * ellintF + 2.0 * kappa * ellintE;
 
 // Transform components from cylindrical back to Cartesian.
-      _fields.Mag()[0] = Bs * cosphi - Bp * sinphi;
-      _fields.Mag()[1] = Bs * sinphi + Bp * cosphi;
-      _fields.Mag()[2] = Bz;
+      fields.Mag()[0] = Bs * cosphi - Bp * sinphi;
+      fields.Mag()[1] = Bs * sinphi + Bp * cosphi;
+      fields.Mag()[2] = Bz;
    };
 
 // Apply isochrone-based scaling.
-   _fields.Mag() *= GetAmpFactor(zeta);
+   fields.Mag() *= GetAmpFactor(zeta);
 
 // Add unmodified longitudinal (flow-parallel) part.
    if (!small_s_eval) {
-      _fields.Mag()[0] -= B0[2] * posprime[0] / r3;
-      _fields.Mag()[1] -= B0[2] * posprime[1] / r3;
-      _fields.Mag()[2] -= B0[2] * (z / r3 - 1.0);
+      fields.Mag()[0] -= B0[2] * posprime[0] / r3;
+      fields.Mag()[1] -= B0[2] * posprime[1] / r3;
+      fields.Mag()[2] -= B0[2] * (z / r3 - 1.0);
    }
-   else _fields.Mag()[2] = B0[2] * Sqr(wus);
+   else fields.Mag()[2] = B0[2] * Sqr(wus);
 
 // Convert back to global frame and compute the electric field.
-   _fields.Mag().ChangeFromBasis(eprime);
+   fields.Mag().ChangeFromBasis(eprime);
 
 
 // --------------------------------------------------------------------------------
@@ -301,7 +302,7 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+   fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -311,8 +312,9 @@ void BackgroundVLISMBochum<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/17/2022
 */
-template <typename HyperParams>
-void BackgroundVLISMBochum<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
    NumericalDerivatives();
 };

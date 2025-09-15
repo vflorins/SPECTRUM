@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 02/22/2023
 */
-template <typename HyperParams>
-BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(void)
+template <typename HConfig>
+BackgroundSolarWindTermShock<HConfig>::BackgroundSolarWindTermShock(void)
                             : BackgroundSolarWind(bg_name, MODEL_STATIC)
 {
 };
@@ -32,8 +32,8 @@ BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
+template <typename HConfig>
+BackgroundSolarWindTermShock<HConfig>::BackgroundSolarWindTermShock(const BackgroundSolarWindTermShock& other)
                             : BackgroundSolarWind(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -47,8 +47,8 @@ BackgroundSolarWindTermShock<HyperParams>::BackgroundSolarWindTermShock(const Ba
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundSolarWindTermShock<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundSolarWindTermShock<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundSolarWind::SetupBackground(false);
@@ -66,18 +66,28 @@ void BackgroundSolarWindTermShock<HyperParams>::SetupBackground(bool construct)
 \param[in]  r      radial distance
 \param[out] ur_mod modified radial flow
 */
-template <typename HyperParams>
-void BackgroundSolarWindTermShock<HyperParams>::ModifyUr(const double r, double &ur_mod)
+template <typename HConfig>
+void BackgroundSolarWindTermShock<HConfig>::ModifyUr(const double r, double &ur_mod)
 {
    if (r > r_TS) {
-#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
-      if (r > r_TS + w_TS) ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
-#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
-      if (r > r_TS + w_TS) ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
-#else
-      if (r > r_TS + w_TS) ur_mod *= s_TS_inv;
-#endif
-      else ur_mod *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
+      if (r > r_TS + w_TS) {
+         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+            ur_mod *= s_TS_inv;
+         }
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+            ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
+         }
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+            ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
+         }
+         else {
+// not implemented
+            ur_mod *= 1e30;
+         }
+      }
+      else {
+         ur_mod *= 1.0 + (s_TS_inv - 1.0) * (r - r_TS) / w_TS;
+      }
    };
 };
 
@@ -86,18 +96,28 @@ void BackgroundSolarWindTermShock<HyperParams>::ModifyUr(const double r, double 
 \date 05/14/2025
 \param[in]  r      radial distance
 */
-template <typename HyperParams>
-double BackgroundSolarWindTermShock<HyperParams>::dUrdr(const double r)
+template <typename HConfig>
+double BackgroundSolarWindTermShock<HConfig>::dUrdr(const double r, const double v_norm)
 {
    if (r > r_TS) {
-#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
-      if (r > r_TS + w_TS) return -_fields.Vel().Norm() / r;
-#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
-      if (r > r_TS + w_TS) return -2.0 * _fields.Vel().Norm() / r;
-#else
-      if (r > r_TS + w_TS) return 0.0;
-#endif
-      else return (s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
+      if (r > r_TS + w_TS) {
+         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+            return 0.0;
+         }
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+            return -v_norm / r;
+         }
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+            return -2.0 * v_norm / r;
+         }
+         else {
+// not implemented
+            return 1e30;
+         }
+      }
+      else {
+         return (s_TS_inv - 1.0) * (r_TS / w_TS) * ur0;
+      }
    }
    else return 0.0;
 };
@@ -108,47 +128,57 @@ double BackgroundSolarWindTermShock<HyperParams>::dUrdr(const double r)
 \param[in]  r radial distance
 \param[out] time lag of propagation from solar surface to current position
 */
-template <typename HyperParams>
-double BackgroundSolarWindTermShock<HyperParams>::TimeLag(const double r)
+template <typename HConfig>
+double BackgroundSolarWindTermShock<HConfig>::TimeLag(const double r)
 {
    if (r < r_TS) return r / ur0;
-#if SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 1
-   else return (r_TS + s_TS * (Sqr(r) - Sqr(r_TS)) / (2.0 * r_TS)) / ur0;
-#elif SOLARWIND_TERMSHOCK_SPEED_EXPONENT == 2
-   else return (r_TS + s_TS * (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
-#else
-   else return (r_TS + s_TS * (r - r_TS)) / ur0;
-#endif
+   else {
+      if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+         return (r_TS + s_TS * (r - r_TS)) / ur0;
+      }
+      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+         return (r_TS + s_TS * (Sqr(r) - Sqr(r_TS)) / (2.0 * r_TS)) / ur0;
+      }
+      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+         return (r_TS + s_TS * (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
+      }
+      else {
+// not implemented
+         return 1e30;
+      }
+   }
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 05/14/2023
 */
-template <typename HyperParams>
-void BackgroundSolarWindTermShock<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundSolarWindTermShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
-   if constexpr (HyperParams::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       double r;
       GeoVector posprime;
       GeoMatrix rr;
 
       if constexpr (Fields::DelVel_found()) {
 // Expression valid only for radial flow
-         posprime = _pos - r0;
+         posprime = coords.Pos() - r0;
          r = posprime.Norm();
+         double v_norm = fields.Vel().Norm();
          rr.Dyadic(posprime / r);
-         _fields.DelVel() = dUrdr(r) * rr + (_fields.Vel().Norm() / r) * (gm_unit - rr);
+         fields.DelVel() = dUrdr(r, v_norm) * rr + (v_norm / r) * (gm_unit - rr);
       };
       if constexpr (Fields::DelMag_found()) {
 //TODO: complete
       };
       if constexpr (Fields::DelElc_found()) {
-         _fields.DelElc() = -((_fields.DelVel() ^ _fields.Mag()) + (_fields.Vel() ^ _fields.DelMag())) / c_code;
+         fields.DelElc() = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-      if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-      if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+      if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
+      if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
+      if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
       NumericalDerivatives();
@@ -159,13 +189,13 @@ void BackgroundSolarWindTermShock<HyperParams>::EvaluateBackgroundDerivatives(vo
 \author Juan G Alonso Guzman
 \date 02/23/2024
 */
-template <typename HyperParams>
-void BackgroundSolarWindTermShock<HyperParams>::EvaluateDmax(void)
+template <typename HConfig>
+void BackgroundSolarWindTermShock<HConfig>::EvaluateDmax(Coordinates& coords)
 {
-   BackgroundSolarWind::EvaluateDmax();
+   BackgroundSolarWind::EvaluateDmax(coords);
 
 // Reduce "dmax" around the shock. This implemenation assumes that "dmax" = "dmax0" near "r_TS" by default.
-   double r = (_pos - r0).Norm();
+   double r = (coords.Pos() - r0).Norm();
    if (r_TS - dmax0 < r && r < r_TS + w_TS + dmax0) {
       if (r < r_TS) _ddata.dmax += (dmax_TS - dmax0) * (r - r_TS + dmax0) / dmax0;
       else if (r > r_TS + w_TS) _ddata.dmax -= (dmax_TS - dmax0) * (r - r_TS - w_TS - dmax0) / dmax0;

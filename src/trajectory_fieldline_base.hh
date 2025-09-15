@@ -14,9 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the TrajectoryFieldline class
-const std::string traj_name_fieldline_base = "TrajectoryFieldlineBase";
-
 //! Default initial size
 const unsigned int defsize_fieldline = 100000;
 
@@ -37,6 +34,9 @@ Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
 template <typename Trajectory_, typename Fields_>
 class TrajectoryFieldlineBase : public TrajectoryBase<Trajectory_, Fields_> {
+
+   static constexpr std::string_view  traj_name = "TrajectoryFieldlineBase";
+
 public:
 
    using Fields = Fields_;
@@ -47,7 +47,6 @@ public:
    using TrajectoryBase::_vel;
 //   using TrajectoryBase::_pos;
    using TrajectoryBase::_mom;
-   using TrajectoryBase::q;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
 //   using TrajectoryBase::traj_t;
@@ -59,6 +58,9 @@ public:
 //   using TrajectoryBase::local_mom;
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::RKAdvance;
+
+
+//   using TrajectoryBase::q;
 
 protected:
 

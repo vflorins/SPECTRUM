@@ -44,9 +44,9 @@ TrajectoryParker<Fields>::TrajectoryParker(const std::string& name_in, unsigned 
 \date 06/07/2023
 */
 template <typename Fields>
-bool TrajectoryParker<Fields>::IsSimmulationReady(void) const
+bool TrajectoryParker<Fields>::IsSimulationReady(void) const
 {
-   if (!TrajectoryBase::IsSimmulationReady()) return false;
+   if (!TrajectoryBase::IsSimulationReady()) return false;
 
 // A diffusion object is required
    if (diffusion == nullptr) return false;

@@ -14,32 +14,29 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Which stochastic method to use for diffusion: 0 = Euler, 1 = Milstein, 2 = RK2
-#define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
-
-//! Flag to use gradient and curvature drifts in drift velocity calculation
-//#define TRAJ_PARKER_USE_B_DRIFTS
-
-//! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
-#define TRAJ_PARKER_DIVK_METHOD 0
-
-//! Readable name of the TrajectoryParker class
-const std::string traj_name_parker = "TrajectoryParker";
-
-//! Default initial size
-const unsigned int defsize_parker = 100000;
-
-//! CFL condition for advection
-const double cfl_adv_tp = 0.5;
-
-//! CFL condition for diffusion
-const double cfl_dif_tp = 0.5;
-
-//! CFL condition for acceleration
-const double cfl_acc_tp = 0.5;
-
-//! Maximum allowed fraction of momentum change per step
-const double dlnpmax = 0.01;
+////! Which stochastic method to use for diffusion: 0 = Euler, 1 = Milstein, 2 = RK2
+////#define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
+//
+////! Flag to use gradient and curvature drifts in drift velocity calculation
+////#define TRAJ_PARKER_USE_B_DRIFTS
+//
+////! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
+////#define TRAJ_PARKER_DIVK_METHOD 0
+//
+////! Default initial size
+////const unsigned int defsize_parker = 100000;
+//
+////! CFL condition for advection
+//const double cfl_adv_tp = 0.5;
+//
+////! CFL condition for diffusion
+//const double cfl_dif_tp = 0.5;
+//
+////! CFL condition for acceleration
+//const double cfl_acc_tp = 0.5;
+//
+////! Maximum allowed fraction of momentum change per step
+//const double dlnpmax = 0.01;
 
 /*!
 \brief A derived class for Parker equation (diffusive simulation)
@@ -49,6 +46,10 @@ Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 template <typename Fields_>
 class TrajectoryParker : public TrajectoryBase<TrajectoryParker<Fields_>, Fields_> {
+
+   //! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryParker";
+
 public:
 
    using Fields = Fields_;
@@ -137,7 +138,7 @@ protected:
    bool Advance(void) override;
 
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
-   bool IsSimmulationReady(void) const override;
+   bool IsSimulationReady(void) const override;
 
 //! Momentum transformation on reflection at a boundary
    void ReverseMomentum(void) override;

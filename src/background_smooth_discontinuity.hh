@@ -23,8 +23,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
-template <typename HyperParams_>
-class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<HyperParams_> {
+template <typename HConfig_>
+class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<HConfig_> {
 private:
 
 //! Readable name of the BackgroundSmoothDiscontinuity class
@@ -32,20 +32,17 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
-   using BackgroundDiscontinuity = BackgroundDiscontinuity<HyperParams>;
-
+   using BackgroundDiscontinuity = BackgroundDiscontinuity<HConfig>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_pos;
-   using BackgroundBase::_t;
    using BackgroundBase::container;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::dmax0;
    using BackgroundBase::r0;
    using BackgroundBase::u0;
    using BackgroundBase::B0;
-   using BackgroundBase::dmax0;
    // methods
    using BackgroundBase::EvaluateBmag;
    using BackgroundBase::EvaluateDmax;
@@ -84,14 +81,16 @@ protected:
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 
-//! Compute the internal u, B, and E fields
-   void EvaluateBackground(void) override;
-
-//! Compute the internal u, B, and E derivatives
-   void EvaluateBackgroundDerivatives(void) override;
-
 //! Compute the maximum distance per time step
-   void EvaluateDmax(void) override;
+   void EvaluateDmax(Coordinates&) override;
+
+//! Compute the internal u, B, and E fields
+   template <typename Fields>
+   void EvaluateBackground(Coordinates&, Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Fields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

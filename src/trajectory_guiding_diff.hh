@@ -18,9 +18,6 @@ namespace Spectrum {
 //! Which stochastic method to use for perpendicular diffusion, 0 = Euler, 1 = Milstein, 2 = RK2
 #define STOCHASTIC_METHOD_PERP 0
 
-//! Readable name of the TrajectoryGuidingDiff class
-const std::string traj_name_guidingdiff = "TrajectoryGuidingDiff";
-
 //! Default initial size
 const unsigned int defsize_guidingdiff = 10000;
 
@@ -38,6 +35,9 @@ const double cfl_dif_gd = 0.5;
 */
 template <typename Fields_>
 class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields_>, Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryGuidingDiff";
 
 public:
 
@@ -122,7 +122,7 @@ protected:
    bool Advance(void) override;
 
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
-   bool IsSimmulationReady(void) const override;
+   bool IsSimulationReady(void) const override;
 
 public:
 

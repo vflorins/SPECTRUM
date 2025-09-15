@@ -46,9 +46,9 @@ TrajectoryGuidingDiff<Fields>::TrajectoryGuidingDiff(const std::string& name_in,
 \date 05/27/2022
 */
 template <typename Fields>
-bool TrajectoryGuidingDiff<Fields>::IsSimmulationReady(void) const
+bool TrajectoryGuidingDiff<Fields>::IsSimulationReady(void) const
 {
-   if(!TrajectoryBase::IsSimmulationReady()) return false;
+   if(!TrajectoryBase::IsSimulationReady()) return false;
 
 // A diffusion object is required
    if(diffusion == nullptr) return false;

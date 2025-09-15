@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 DiffusionBase<Trajectory>::DiffusionBase(void)
-             : Params("", 0, STATE_NONE)
+             : Params("", STATE_NONE)
 {
 };
 
@@ -33,8 +33,8 @@ DiffusionBase<Trajectory>::DiffusionBase(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-DiffusionBase<Trajectory>::DiffusionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-             : Params(name_in, specie_in, status_in)
+DiffusionBase<Trajectory>::DiffusionBase(const std::string& name_in,  uint16_t status_in)
+             : Params(name_in, status_in)
 {
 };
 
@@ -193,8 +193,8 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeDa
       _dt = 0.5 * _ddata._dt;
       if (_ddata._dt_forw_fail) {
          _t += _dt;
-         _fields.Mag() += _fields.DdtMag() * _dt;
-         _fields.AbsMag() += _fields.DdtAbsMag() * _dt;
+         _fields.Mag() += _fields.DotMag() * _dt;
+         _fields.AbsMag() += _fields.DotAbsMag() * _dt;
          EvaluateDiffusion();
          Kappa_forw[comp_eval] = Kappa[comp_eval];
       }
@@ -203,8 +203,8 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeDa
       _t += 2.0;
       if (_ddata._dt_back_fail) {
          _t -= _dt;
-         _fields.Mag() -= _fields.DdtMag() * _dt;
-         _fields.AbsMag() -= _fields.DdtAbsMag() * _dt;
+         _fields.Mag() -= _fields.DotMag() * _dt;
+         _fields.AbsMag() -= _fields.DotAbsMag() * _dt;
          EvaluateDiffusion();
          Kappa_back[comp_eval] = Kappa[comp_eval];
       }

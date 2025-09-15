@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-template <typename HyperParams>
-BackgroundServer<HyperParams>::BackgroundServer(void)
+template <typename HConfig>
+BackgroundServer<HConfig>::BackgroundServer(void)
                 : BackgroundBase("", 0, STATE_NONE)
 {
 };
@@ -28,8 +28,8 @@ BackgroundServer<HyperParams>::BackgroundServer(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-template <typename HyperParams>
-BackgroundServer<HyperParams>::BackgroundServer(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+BackgroundServer<HConfig>::BackgroundServer(const std::string& name_in, uint16_t status_in)
                 : BackgroundBase(name_in, status_in)
 {
 };
@@ -41,8 +41,8 @@ BackgroundServer<HyperParams>::BackgroundServer(const std::string& name_in, uint
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundServer<HyperParams>::BackgroundServer(const BackgroundServer& other)
+template <typename HConfig>
+BackgroundServer<HConfig>::BackgroundServer(const BackgroundServer& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -57,8 +57,8 @@ BackgroundServer<HyperParams>::BackgroundServer(const BackgroundServer& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundServer<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundServer<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -77,11 +77,12 @@ void BackgroundServer<HyperParams>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HyperParams>
-void BackgroundServer<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundServer<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 #ifdef NEED_SERVER
-   server_front->GetVariables(_t, _pos, _fields);
+   server_front->GetVariables(coords.Time(), coords.Pos(), fields);
 #endif
 };
 
@@ -90,24 +91,25 @@ void BackgroundServer<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HyperParams>
-void BackgroundServer<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundServer<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
 #ifdef NEED_SERVER
-   server_front->GetGradients(_fields, _ddata);
+   server_front->GetGradients(fields, _ddata);
 #endif
-   // todo review after moving BACKGROUND_grad_FAIL to _ddata._status from _spdata._mask
-   if (BITS_RAISED(_ddata._status, BACKGROUND_grad_FAIL)) NumericalDerivatives();
+   // todo review after moving BACKGROUND_grad_FAIL to _ddata from _spdata._mask
+   if (_ddata.BACKGROUND_grad_FAIL) NumericalDerivatives();
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 06/17/2024
 */
-template <typename HyperParams>
-void BackgroundServer<HyperParams>::EvaluateBmag(void)
+template <typename HConfig>
+void BackgroundServer<HConfig>::EvaluateBmag(void)
 {
-   if constexpr (HyperParams::server_interpolation_order > 0) {
+   if constexpr (HConfig::server_interpolation_order > 0) {
       BackgroundBase::EvaluateBmag();
    }
    else {
@@ -121,8 +123,8 @@ void BackgroundServer<HyperParams>::EvaluateBmag(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HyperParams>
-void BackgroundServer<HyperParams>::StopServerFront(void)
+template <typename HConfig>
+void BackgroundServer<HConfig>::StopServerFront(void)
 {
 #ifdef GEO_DEBUG
    server_front->PrintStencilOutcomes();

@@ -14,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "config.h"
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
-#include "common/status_class.hh"
+#include "common/params.hh"
 #include "common/physics.hh"
 #include "common/matrix.hh"
 #include "common/derivativedata.hh"
@@ -66,12 +66,12 @@ The BackgroundXXXXX" classes describe plasma condition (u, E, B, dB/dt, gradB) a
 
 Parameters: double t0, GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
 */
-template <typename HyperParams_>
-class BackgroundBase : public StatusClass {
+template <typename HConfig_>
+class BackgroundBase : public Params {
 public:
 
-   using HyperParams = HyperParams_;
-   using Coordinates = HyperParams::Coordinates;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
 
 private:
 
@@ -89,16 +89,13 @@ private:
    static constexpr double incr_dmax_ratio = 0.0001;
 
 //! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
-   static constexpr double local_rot_ang = M_PI / HyperParams::num_numeric_grad_evals;
+   static constexpr double local_rot_ang = M_PI / HConfig::num_numeric_grad_evals;
 
 //! Sine and cosine of local rotation angle
    static constexpr double sin_lra = sin(local_rot_ang);
    static constexpr double cos_lra = cos(local_rot_ang);
 
 protected:
-
-//! Coordinate state, used during evaluation
-   Coordinates _coords;
 
 //! Derivative data object (transient)
    DerivativeData _ddata;
@@ -165,7 +162,7 @@ protected:
    virtual void SetupBackground(bool construct);
 
    //! Calculate the maximum distance allowed per time step
-   virtual void EvaluateDmax(void);
+   virtual void EvaluateDmax(Coordinates&);
 
 //! Calculate magnetic field magnitude
    template <typename Fields>
@@ -173,19 +170,19 @@ protected:
 
 //! Compute the fields at an incremented position or time
    template <typename Fields>
-   void DirectionalDerivative(int xyz, Fields&);
+   void DirectionalDerivative(int xyz, Coordinates, Fields&);
 
 //! Compute the field derivatives
    template <typename Fields>
-   void NumericalDerivatives(Fields&, Specie&);
+   void NumericalDerivatives(Coordinates&, Specie&, Fields&);
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

@@ -15,9 +15,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Readable name of the TrajectoryFieldline class
-const std::string traj_name_fieldline = "TrajectoryFieldline";
-
 /*!
 \brief Field line tracer
 \author Juan G Alonso Guzman
@@ -28,11 +25,17 @@ The type Field_t is a field type that will be traced during the simulation,
 i.e., the "field" in Fieldline.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
-template <typename Fields_, typename Field_t_>
-class TrajectoryFieldline : public TrajectoryFieldlineBase<TrajectoryFieldline<Fields_, Field_t_>, Fields_> {
+template <typename HConfig_, typename Field_t_>
+class TrajectoryFieldline : public TrajectoryFieldlineBase<TrajectoryFieldline<HConfig_, Field_t_>, Fields_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryFieldline";
+
 public:
 
-   using Fields = Fields_;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using Fields = HConfig::TrajectoryFields;
    using Field_t = Field_t_;
    using TrajectoryBase = TrajectoryBase<TrajectoryFieldline<Fields, Field_t>, Fields>;
    using TrajectoryFieldlineBase = TrajectoryFieldlineBase<TrajectoryFieldline<Fields, Field_t>, Fields>;

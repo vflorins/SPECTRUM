@@ -132,7 +132,7 @@ const constexpr std::array<ButcherTableData, 33> RKData = {
       ButcherTableData{"Lobatto IIIC fourth order adaptive implicit", 3, 4, true, true,},
       ButcherTableData{"Runge-Kutta fourth order explicit", 4, 4, false, false,},
       ButcherTableData{"Kutta 3/8 fourth order explicit", 4, 4, false, false,},
-      /* Fifth/Sixth/Seventh Order */
+      /* Fifth or Higher Order */
       ButcherTableData{"Runge-Kutta-Fehlberg fifth order explicit", 6, 5, true, false,},
       ButcherTableData{"Cash-Karp fifth order explicit", 6, 5, true, false,},
       ButcherTableData{"Dormand-Prince fifth order explicit", 7, 5, true, false,},

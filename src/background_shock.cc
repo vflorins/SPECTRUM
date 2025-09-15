@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-BackgroundShock<HyperParams>::BackgroundShock(void)
+template <typename HConfig>
+BackgroundShock<HConfig>::BackgroundShock(void)
                : BackgroundBase(bg_name, STATE_NONE)
 {
 };
@@ -32,8 +32,8 @@ BackgroundShock<HyperParams>::BackgroundShock(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HyperParams>
-BackgroundShock<HyperParams>::BackgroundShock(const BackgroundShock& other)
+template <typename HConfig>
+BackgroundShock<HConfig>::BackgroundShock(const BackgroundShock& other)
                : BackgroundBase(other)
 {
    RAISE_BITS(_status, STATE_NONE);
@@ -44,8 +44,8 @@ BackgroundShock<HyperParams>::BackgroundShock(const BackgroundShock& other)
 \author Juan G Alonso Guzman
 \date 10/20/2023
 */
-template <typename HyperParams>
-BackgroundShock<HyperParams>::BackgroundShock(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+BackgroundShock<HConfig>::BackgroundShock(const std::string& name_in, uint16_t status_in)
                : BackgroundBase(name_in, status_in)
 {
 };
@@ -58,8 +58,8 @@ BackgroundShock<HyperParams>::BackgroundShock(const std::string& name_in, uint16
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HyperParams>
-void BackgroundShock<HyperParams>::SetupBackground(bool construct)
+template <typename HConfig>
+void BackgroundShock<HConfig>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -89,23 +89,24 @@ void BackgroundShock<HyperParams>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 05/14/2025
 */
-template <typename HyperParams>
-void BackgroundShock<HyperParams>::EvaluateBackground(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Upstream
-   if ((_pos - r0) * n_shock - v_shock * _t > 0) {
-      if constexpr (Fields::Vel_found()) _fields.Vel() = u0;
-      if constexpr (Fields::Mag_found()) _fields.Mag() = B0;
-      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 1.0;
+   if ((coords.Pos() - r0) * n_shock - v_shock * coords.Time() > 0) {
+      if constexpr (Fields::Vel_found()) fields.Vel() = u0;
+      if constexpr (Fields::Mag_found()) fields.Mag() = B0;
+      if constexpr (Fields::Iv0_found()) fields.Iv0() = 1.0;
    }
 // Downstream
    else {
-      if constexpr (Fields::Vel_found()) _fields.Vel() = u1;
-      if constexpr (Fields::Mag_found()) _fields.Mag() = B1;
-      if constexpr (Fields::Iv0_found()) _fields.Iv0() = 2.0;
+      if constexpr (Fields::Vel_found()) fields.Vel() = u1;
+      if constexpr (Fields::Mag_found()) fields.Mag() = B1;
+      if constexpr (Fields::Iv0_found()) fields.Iv0() = 2.0;
    };
 
-   if constexpr (Fields::Elc_found()) _fields.Elc() = -(_fields.Vel() ^ _fields.Mag()) / c_code;
+   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -114,18 +115,19 @@ void BackgroundShock<HyperParams>::EvaluateBackground(void)
 \author Juan G Alonso Guzman
 \date 10/14/2022
 */
-template <typename HyperParams>
-void BackgroundShock<HyperParams>::EvaluateBackgroundDerivatives(void)
+template <typename HConfig>
+template <typename Fields>
+void BackgroundShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
 {
 // Spatial derivatives are zero
-   if constexpr (Fields::DelVel_found()) _fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found()) _fields.DelMag() = gm_zeros;
-   if constexpr (Fields::DelElc_found()) _fields.DelElc() = gm_zeros;
+   if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
+   if constexpr (Fields::DelMag_found()) fields.DelMag() = gm_zeros;
+   if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if constexpr (Fields::DdtVel_found()) _fields.DdtVel() = gv_zeros;
-   if constexpr (Fields::DdtMag_found()) _fields.DdtMag() = gv_zeros;
-   if constexpr (Fields::DdtElc_found()) _fields.DdtElc() = gv_zeros;
+   if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
+   if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
+   if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
 };
 
 };

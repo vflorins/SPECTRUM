@@ -46,9 +46,9 @@ TrajectoryGuidingScatt<Fields>::TrajectoryGuidingScatt(const std::string& name_i
 \date 05/27/2022
 */
 template <typename Fields>
-bool TrajectoryGuidingScatt<Fields>::IsSimmulationReady(void) const
+bool TrajectoryGuidingScatt<Fields>::IsSimulationReady(void) const
 {
-   if (!TrajectoryBase::IsSimmulationReady()) return false;
+   if (!TrajectoryBase::IsSimulationReady()) return false;
 
 // A diffusion object is required
    if (diffusion == nullptr) return false;

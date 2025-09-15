@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "config.h"
-#include "common/status_class.hh"
+#include "common/params.hh"
 #include "common/physics.hh"
 #include "common/random.hh"
 #include <memory>
@@ -79,7 +79,7 @@ The InitialXXXXX" classes describe initial phase space coordinates for trajector
 Parameters:
 */
 template <typename Trajectory_>
-class InitialBase : public StatusClass {
+class InitialBase : public Params {
 public:
 
    using Trajectory = Trajectory_;

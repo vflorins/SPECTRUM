@@ -23,8 +23,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
-template <typename HyperParams_>
-class BackgroundSmoothShock : public BackgroundShock<HyperParams_> {
+template <typename HConfig_>
+class BackgroundSmoothShock : public BackgroundShock<HConfig_> {
 private:
 
 //! Readable name of the class
@@ -32,19 +32,17 @@ private:
 
 public:
 
-   using HyperParams = HyperParams_;
-   using BackgroundBase = BackgroundBase<HyperParams>;
-   using BackgroundShock = BackgroundShock<HyperParams>;
+   using BackgroundShock = BackgroundShock<HConfig>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
-   using BackgroundBase::_fields;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::_t;
-   using BackgroundBase::_pos;
    using BackgroundBase::container;
+   using BackgroundBase::_ddata;
+   using BackgroundBase::dmax0;
    using BackgroundBase::r0;
    using BackgroundBase::u0;
    using BackgroundBase::B0;
-   using BackgroundBase::dmax0;
    // methods
    using BackgroundBase::EvaluateBmag;
    using BackgroundBase::EvaluateDmax;
@@ -84,15 +82,15 @@ protected:
    void SetupBackground(bool construct) override;
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(void) override;
+   void EvaluateDmax(Coordinates&) override;
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Fields&);
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Fields&);
+   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
 
 public:
 

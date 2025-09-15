@@ -12,8 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include <config.h>
-#include <common/status_class.hh>
-#include <common/extremadata.hh>
+#include <common/params.hh>
+#include <src/trajectory_records.hh>
 #include <functional>
 
 

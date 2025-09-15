@@ -14,26 +14,23 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// Switch controlling how to calculate mu. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
-#define PPERP_METHOD 1
-
-//! Flag to use gradient and curvature drifts in drift velocity calculation
-#define TRAJ_FOCUSED_USE_B_DRIFTS
-
-//! Readable name of the TrajectoryFocused class
-const std::string traj_name_focused = "TrajectoryFocused";
-
-//! Default initial size
-const unsigned int defsize_focused = 10000;
-
-//! CFL condition for advection
-const double cfl_adv_tf = 0.5;
-
-//! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-const double drift_safety_tf = 0.5;
-
-//! How many time steps to allow before recording a mirror event
-const int mirror_thresh_focused = 10;
+//// Switch controlling how to calculate mu. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
+//#define PPERP_METHOD 1
+//
+////! Flag to use gradient and curvature drifts in drift velocity calculation
+//#define TRAJ_FOCUSED_USE_B_DRIFTS
+//
+////! Default initial size
+//const unsigned int defsize_focused = 10000;
+//
+////! CFL condition for advection
+//const double cfl_adv_tf = 0.5;
+//
+////! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+//const double drift_safety_tf = 0.5;
+//
+////! How many time steps to allow before recording a mirror event
+//const int mirror_thresh_focused = 10;
 
 /*!
 \brief Trajectory tracer for the focused transport equation
@@ -41,13 +38,17 @@ const int mirror_thresh_focused = 10;
 
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
-template <typename Fields_>
-class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<HConfig_>, HConfig_> {
+
+//! Readable name
+   static constexpr std::string_view traj_name = "TrajectoryFocused";
 
 public:
 
+   using HConfig = HConfig_;
    using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<Fields_>, Fields>;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>>;
 
    using TrajectoryBase::_t;
    using TrajectoryBase::_pos;
@@ -72,7 +73,7 @@ public:
    static_assert(Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
    static_assert(Fields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
    static_assert(Fields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DdtVel_t>(), "DdtVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<DotVel_t>(), "DotVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

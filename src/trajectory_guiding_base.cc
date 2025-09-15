@@ -71,7 +71,7 @@ try {
    rR = LarmorRadius(_mom[2], _fields.AbsMag(), specie);
    Evec_star = _fields.Elc();
 // todo FIXME, compiler evaluates operator* via arithmetic.hh
-   Evec_star = Evec_star - rR * _fields.AbsMag() * static_cast<GeoVector>(_fields.DdtHatMag()) / c_code;
+   Evec_star = Evec_star - rR * _fields.AbsMag() * static_cast<GeoVector>(_fields.DotHatMag()) / c_code;
    Evec_star = Evec_star - rL * _vel[0] * static_cast<GeoVector>(_fields.DelAbsMag()) / (2.0 * c_code);
    Bvec_star = _fields.Mag();
    Bvec_star = Bvec_star + rR * _fields.AbsMag() * _fields.curlbhat();
@@ -123,7 +123,7 @@ void TrajectoryGuidingBase<Trajectory, Fields>::Slopes(GeoVector& slope_pos_ista
    slope_pos_istage = drift_vel;
 
 #if PPERP_METHOD == 1
-   slope_mom_istage[0] = 0.5 * _mom[0] / _fields.AbsMag() * (_fields.DdtAbsMag() + drift_vel * _fields.DelAbsMag());
+   slope_mom_istage[0] = 0.5 * _mom[0] / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
 #else
    slope_mom_istage[0] = 0.0;
 #endif

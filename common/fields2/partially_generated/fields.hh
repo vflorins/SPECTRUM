@@ -109,11 +109,11 @@ public: // test
    static constexpr const std::size_t DelMag_offset = compute_offset<DelMag_t>();
    static constexpr const std::size_t DelAbsMag_offset = compute_offset<DelAbsMag_t>();
    static constexpr const std::size_t DelHatMag_offset = compute_offset<DelHatMag_t>();
-   static constexpr const std::size_t DdtVel_offset = compute_offset<DdtVel_t>();
-   static constexpr const std::size_t DdtElc_offset = compute_offset<DdtElc_t>();
-   static constexpr const std::size_t DdtMag_offset = compute_offset<DdtMag_t>();
-   static constexpr const std::size_t DdtAbsMag_offset = compute_offset<DdtAbsMag_t>();
-   static constexpr const std::size_t DdtHatMag_offset = compute_offset<DdtHatMag_t>();
+   static constexpr const std::size_t DotVel_offset = compute_offset<DotVel_t>();
+   static constexpr const std::size_t DotElc_offset = compute_offset<DotElc_t>();
+   static constexpr const std::size_t DotMag_offset = compute_offset<DotMag_t>();
+   static constexpr const std::size_t DotAbsMag_offset = compute_offset<DotAbsMag_t>();
+   static constexpr const std::size_t DotHatMag_offset = compute_offset<DotHatMag_t>();
    static constexpr const std::size_t Iv0_offset = compute_offset<Iv0_t>();
    static constexpr const std::size_t Iv1_offset = compute_offset<Iv1_t>();
    static constexpr const std::size_t Iv2_offset = compute_offset<Iv2_t>();
@@ -842,147 +842,147 @@ As an array of double, the size is given by the static member size().
    
 
 /*!
-\brief Get DdtVel (Time derivative of velocity field) from the data type, as lvalue.
+\brief Get DotVel (Time derivative of velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& DdtVel(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DdtVel_offset));
+   GeoVector& DotVel(void) {
+      return reinterpret_cast<GeoVector&>(*(data + DotVel_offset));
    };
 
 /*!
-\brief Get DdtVel (Time derivative of velocity field) from the data type, as const rvalue.
+\brief Get DotVel (Time derivative of velocity field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DdtVel(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DdtVel_offset));
-   };
-
-
-/*!
-\brief Whether DdtVel (Time derivative of velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DdtVel_found(void) {
-      return (DdtVel_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get DdtElc (Time derivative of electric field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   GeoVector& DdtElc(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DdtElc_offset));
-   };
-
-/*!
-\brief Get DdtElc (Time derivative of electric field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoVector& DdtElc(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DdtElc_offset));
+   const GeoVector& DotVel(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + DotVel_offset));
    };
 
 
 /*!
-\brief Whether DdtElc (Time derivative of electric field) is in the data type.
+\brief Whether DotVel (Time derivative of velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtElc_found(void) {
-      return (DdtElc_offset != Type_not_found);
+   static constexpr bool DotVel_found(void) {
+      return (DotVel_offset != Type_not_found);
    };
    
 
 /*!
-\brief Get DdtMag (Time derivative of magnetic field) from the data type, as lvalue.
+\brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& DdtMag(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DdtMag_offset));
+   GeoVector& DotElc(void) {
+      return reinterpret_cast<GeoVector&>(*(data + DotElc_offset));
    };
 
 /*!
-\brief Get DdtMag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get DotElc (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DdtMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DdtMag_offset));
-   };
-
-
-/*!
-\brief Whether DdtMag (Time derivative of magnetic field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DdtMag_found(void) {
-      return (DdtMag_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   double& DdtAbsMag(void) {
-      return reinterpret_cast<double&>(*(data + DdtAbsMag_offset));
-   };
-
-/*!
-\brief Get DdtAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const double& DdtAbsMag(void) const {
-      return reinterpret_cast<const double&>(*(data + DdtAbsMag_offset));
+   const GeoVector& DotElc(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + DotElc_offset));
    };
 
 
 /*!
-\brief Whether DdtAbsMag (Time derivative of magnetic field magnitude) is in the data type.
+\brief Whether DotElc (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtAbsMag_found(void) {
-      return (DdtAbsMag_offset != Type_not_found);
+   static constexpr bool DotElc_found(void) {
+      return (DotElc_offset != Type_not_found);
    };
    
 
 /*!
-\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& DdtHatMag(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DdtHatMag_offset));
+   GeoVector& DotMag(void) {
+      return reinterpret_cast<GeoVector&>(*(data + DotMag_offset));
    };
 
 /*!
-\brief Get DdtHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\brief Get DotMag (Time derivative of magnetic field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DdtHatMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DdtHatMag_offset));
+   const GeoVector& DotMag(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + DotMag_offset));
    };
 
 
 /*!
-\brief Whether DdtHatMag (Time derivative of magnetic field direction) is in the data type.
+\brief Whether DotMag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DdtHatMag_found(void) {
-      return (DdtHatMag_offset != Type_not_found);
+   static constexpr bool DotMag_found(void) {
+      return (DotMag_offset != Type_not_found);
+   };
+   
+
+/*!
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& DotAbsMag(void) {
+      return reinterpret_cast<double&>(*(data + DotAbsMag_offset));
+   };
+
+/*!
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& DotAbsMag(void) const {
+      return reinterpret_cast<const double&>(*(data + DotAbsMag_offset));
+   };
+
+
+/*!
+\brief Whether DotAbsMag (Time derivative of magnetic field magnitude) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool DotAbsMag_found(void) {
+      return (DotAbsMag_offset != Type_not_found);
+   };
+   
+
+/*!
+\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& DotHatMag(void) {
+      return reinterpret_cast<GeoVector&>(*(data + DotHatMag_offset));
+   };
+
+/*!
+\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& DotHatMag(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + DotHatMag_offset));
+   };
+
+
+/*!
+\brief Whether DotHatMag (Time derivative of magnetic field direction) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool DotHatMag_found(void) {
+      return (DotHatMag_offset != Type_not_found);
    };
    
 
@@ -1973,7 +1973,7 @@ As an array of double, the size is given by the static member size().
 */
    double divbhat()
    {
-      auto bhat = DdtMag();
+      auto bhat = DotMag();
       auto Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
       auto Bdiv = divB();
@@ -2022,8 +2022,8 @@ As an array of double, the size is given by the static member size().
 */
    GeoVector dbhatdt()
    {
-      auto dBvecdt = DdtMag();
-      auto dBmagdt = DdtAbsMag();
+      auto dBvecdt = DotMag();
+      auto dBmagdt = DotAbsMag();
       auto bhat = HatMag();
       double Bmag = AbsMag();
       return (dBvecdt - (dBmagdt * bhat)) / Bmag;

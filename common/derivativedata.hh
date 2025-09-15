@@ -12,16 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <common/vectors.hh>
 
-
 namespace Spectrum {
-
-
-////! Flag to indicate spatial derivatives were not computed
-//const uint16_t BACKGROUND_grad_FAIL = 0x1000;
-//
-////! Flag to indicate time derivatives were not computed
-//const uint16_t BACKGROUND_ddt_FAIL = 0x2000;
-
 
 
 struct DerivativeData {
@@ -35,9 +26,7 @@ struct DerivativeData {
 //! "Safe" time increment for computing time derivatives
    double _dt;
 
-//! Status information for derivative computations
-// todo: NOTE: this information is formerly stored in spdata._mask - review initialization
-   uint16_t _status;
+// todo consider implementing as a _status bitfield
 
 //! Flag for forward increment when computing directional derivatives
    bool _dr_forw_fail[3];
@@ -54,13 +43,8 @@ struct DerivativeData {
 //! Flag to indicate spatial derivatives were not computed
    bool BACKGROUND_grad_FAIL;
 
-//! Flag to indicate time derivatives were not computed
-   bool BACKGROUND_ddt_FAIL;
-
 };
 
-
 };
-
 
 #endif
