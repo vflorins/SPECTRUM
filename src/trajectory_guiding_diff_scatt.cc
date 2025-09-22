@@ -21,9 +21,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Fields>
-TrajectoryGuidingDiffScatt<Fields>::TrajectoryGuidingDiffScatt(void)
-                          : TrajectoryBase(traj_name_guidingdiffscatt, 0, STATE_NONE, defsize_guidingdiffscatt)
+template <typename HConfig>
+TrajectoryGuidingDiffScatt<HConfig>::TrajectoryGuidingDiffScatt(void)
+      : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
 
@@ -31,8 +31,8 @@ TrajectoryGuidingDiffScatt<Fields>::TrajectoryGuidingDiffScatt(void)
 \author Vladimir Florinski
 \date 05/27/2022
 */
-template <typename Fields>
-bool TrajectoryGuidingDiffScatt<Fields>::IsSimulationReady(void) const
+template <typename HConfig>
+bool TrajectoryGuidingDiffScatt<HConfig>::IsSimulationReady(void) const
 {
    return TrajectoryGuidingDiff::IsSimulationReady();
 };
@@ -42,28 +42,26 @@ bool TrajectoryGuidingDiffScatt<Fields>::IsSimulationReady(void) const
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Fields>
-void TrajectoryGuidingDiffScatt<Fields>::DiffusionCoeff(void)
-{
-   try {
-      TrajectoryGuidingDiff::DiffusionCoeff();
-      TrajectoryGuidingScatt::DiffusionCoeff();
-   }
-
-   catch (ExFieldError &exception) {
-//   PrintError(__FILE__, __LINE__, "Error in field increment evaluation", true);
-      RAISE_BITS(_status, TRAJ_DISCARD);
-      throw;
-   };
+template <typename HConfig>
+void TrajectoryGuidingDiffScatt<HConfig>::DiffusionCoeff(void)
+try {
+   TrajectoryGuidingDiff::DiffusionCoeff();
+   TrajectoryGuidingScatt::DiffusionCoeff();
 }
+
+catch (ExFieldError &exception) {
+//   PrintError(__FILE__, __LINE__, "Error in field increment evaluation", true);
+   RAISE_BITS(_status, TRAJ_DISCARD);
+   throw;
+};
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Fields>
-void TrajectoryGuidingDiffScatt<Fields>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryGuidingDiffScatt<HConfig>::PhysicalStep(void)
 {
    TrajectoryGuidingDiff::PhysicalStep();
    TrajectoryGuidingScatt::PhysicalStep();
@@ -77,8 +75,8 @@ void TrajectoryGuidingDiffScatt<Fields>::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Fields>
-bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
+template <typename HConfig>
+bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
 {
 // Retrieve latest point of the trajectory
    Load();
@@ -97,13 +95,15 @@ bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Perform first half of PA scattering
-#if STOCHASTIC_METHOD_MU == 0
-   TrajectoryGuidingScatt::EulerPitchAngleScatt(0);
-#elif STOCHASTIC_METHOD_MU == 1
-   TrajectoryGuidingScatt::MilsteinPitchAngleScatt(0);
-#elif STOCHASTIC_METHOD_MU == 2
-   TrajectoryGuidingScatt::RK2PitchAngleScatt(0);
-#endif
+   if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+      TrajectoryGuidingScatt::EulerPitchAngleScatt(0);
+   }
+   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+      TrajectoryGuidingScatt::MilsteinPitchAngleScatt(0);
+   }
+   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+      TrajectoryGuidingScatt::RK2PitchAngleScatt(0);
+   }
 
 // Store position and momentum locally
    StoreLocal();
@@ -117,13 +117,15 @@ bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
    Slopes(slope_pos[0], slope_mom[0]);
 
 // Stochastic RK slopes
-#if STOCHASTIC_METHOD_PERP == 0
-   TrajectoryGuidingDiff::EulerPerpDiffSlopes();
-#elif STOCHASTIC_METHOD_PERP == 1
-   TrajectoryGuidingDiff::MilsteinPerpDiffSlopes();
-#elif STOCHASTIC_METHOD_PERP == 2
-   if (TrajectoryGuidingDiff::RK2PerpDiffSlopes()) return true;
-#endif
+   if constexpr (HConfig::stochastic_method_perp == TrajectoryOptions::StochasticMethod::Euler) {
+      TrajectoryGuidingDiff::EulerPerpDiffSlopes();
+   }
+   else if constexpr (HConfig::stochastic_method_perp == TrajectoryOptions::StochasticMethod::Milstein) {
+      TrajectoryGuidingDiff::MilsteinPerpDiffSlopes();
+   }
+   else if constexpr (HConfig::stochastic_method_perp == TrajectoryOptions::StochasticMethod::RK2) {
+      if (TrajectoryGuidingDiff::RK2PerpDiffSlopes()) return true;
+   }
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
    if (RKSlopes()) return true;
@@ -136,31 +138,32 @@ bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
    if (RKStep()) return false;
 
 // Stochastic displacement
-   _pos += dr_perp;
+   _coords.Pos() += dr_perp;
 
-#ifdef SPLIT_SCATT
-
+   if constexpr (HConfig::split_scatt) {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Second half of stochastic pitch angle contribution and advection term
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // If an exit spatial boundary was crossed, the fields may no longer be available, so the second half of the scattering cannot be performed. In that case the function should return immediately and the current position will be saved.
-   if (SpaceTerminateCheck()) return true;
+      if (SpaceTerminateCheck()) return true;
 
 // Compute diffusion coefficients
-   CommonFields();
-   TrajectoryGuidingScatt::DiffusionCoeff();
+      CommonFields(_coords, _fields);
+      TrajectoryGuidingScatt::DiffusionCoeff();
 
 // Perform second half of PA scattering
-#if STOCHASTIC_METHOD_MU == 0
-   TrajectoryGuidingScatt::EulerPitchAngleScatt(1);
-#elif STOCHASTIC_METHOD_MU == 1
-   TrajectoryGuidingScatt::MilsteinPitchAngleScatt(1);
-#elif STOCHASTIC_METHOD_MU == 2
-   TrajectoryGuidingScatt::RK2PitchAngleScatt(1);
-#endif
+      if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+         TrajectoryGuidingScatt::EulerPitchAngleScatt(1);
+      }
+      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+         TrajectoryGuidingScatt::MilsteinPitchAngleScatt(1);
+      }
+      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+         TrajectoryGuidingScatt::RK2PitchAngleScatt(1);
+      }
+   }
 
-#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handle boundaries
@@ -169,8 +172,8 @@ bool TrajectoryGuidingDiffScatt<Fields>::Advance(void)
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
    if (BITS_LOWERED(_status, TRAJ_FINISH)) {
-      CommonFields();
-      MomentumCorrection();
+      CommonFields(_coords, _fields);
+      TrajectoryGuidingBase::MomentumCorrection();
    };
 
 // Add the new point to the trajectory.

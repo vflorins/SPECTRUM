@@ -32,9 +32,14 @@ const int max_neighbor_levels_cartesian = 27;
 
 This class is designed to facilitate the interaction with the Cartesian library. It corresponds to a single block in a simulation. Information stored include block dimensions, neighbor list, and data. 
 */
-class BlockCartesian : public BlockBase {
+template <typename HConfig_>
+class BlockCartesian : public BlockBase<HConfig_> {
+public:
+
+   using HConfig = HConfig_;
 
 protected:
+
 //! Allocate memory for variables and neighbors
    void AllocateMemory(void);
 
@@ -85,10 +90,10 @@ public:
 
 };
 
-//! Block type
-#if SERVER_TYPE == SERVER_CARTESIAN
-typedef BlockCartesian BlockType;
-#endif
+////! Block type
+//#if SERVER_TYPE == SERVER_CARTESIAN
+//typedef BlockCartesian BlockType;
+//#endif
 
 };
 

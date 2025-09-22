@@ -255,7 +255,7 @@ catch (ExFieldError& exception) {
 \param[out] fields Fields at t_in and pos_in for output
 */
 template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::CommonFields(Coordinates& coords, NewF_ields& fields)
+void TrajectoryBase<Trajectory, HConfig>::CommonFields(Coordinates& coords, TrajectoryFields& fields)
 try {
    background->GetFields(coords, fields);
 // Set field-dependent dmax, for use by trajectories while advancing
@@ -737,7 +737,7 @@ try {
    records.SetStart(_fields);
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   if constexpr (NewF_ields::HatMag_found()) {
+   if constexpr (TrajectoryFields::HatMag_found()) {
       _coords.Mom() = icond_m->GetMomSample(_fields.HatMag());
    }
    else {

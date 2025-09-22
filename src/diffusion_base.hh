@@ -20,32 +20,32 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! The diffusion model is independent of the background
-const uint16_t DIFF_NOBACKGROUND = 0x0010;
+constexpr uint16_t DIFF_NOBACKGROUND = 0x0010;
 
 //! Clone function pattern
 #define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
 
 //! Forward-declare Trajectory base types
-template <typename Trajectory, typename Fields>
+template <typename Trajectory, typename HConfig>
 class TrajectoryFieldlineBase;
-template <typename Trajectory, typename Fields>
+template <typename Trajectory, typename HConfig>
 class TrajectoryGuidingBase;
 //! Forward-declare Trajectory types
-template <typename Fields, typename Trace_t>
+template <typename HConfig, typename Trace_t>
 class TrajectoryFieldline;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryFocused;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryGuiding;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryGuidingDiff;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryGuidingDiffScatt;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryGuidingScatt;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryLorentz;
-template <typename Fields>
+template <typename HConfig>
 class TrajectoryParker;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -65,18 +65,23 @@ class DiffusionBase : public Params {
 public:
 
    using Trajectory = Trajectory_;
-   using DiffusionFields = Trajectory::DiffusionFields;
-//   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundFields = HConfig::BackgroundFields;
    using Trajectory::specie;
+
+   using TrajectoryParker = TrajectoryParker<HConfig>;
 
 protected:
 
-//! Fields data (transient)
-// todo review, do we need??
-   DiffusionFields _fields;
+// todo Time_t, Pos_t, Mom*_t <--- Mom* in field coords
+//! Coordinates (transient)
+   DiffusionCoordinates _coords;
 
-//! Derivative data (transient)
-   DerivativeData _ddata;
+//! Fields data (transient)
+   DiffusionFields _fields;
 
 //! Velocity magnitude (transient)
    double vmag;
@@ -93,9 +98,6 @@ protected:
 //! Diffusion coefficient packed as a vector (transient)
    GeoVector Kappa;
 
-//! Flag telling which component to evaluate (transient)
-   int comp_eval;
-
 //! Default constructor (protected, class not designed to be instantiated)
    DiffusionBase(void);
 
@@ -109,7 +111,7 @@ protected:
    virtual void SetupDiffusion(bool construct);
 
 //! Compute the diffusion coefficients
-   virtual void EvaluateDiffusion(void);
+   virtual void EvaluateDiffusion(int comp);
 
 public:
 
@@ -122,14 +124,17 @@ public:
 //! Set up the class parameters
    void SetupObject(const DataContainer& cont_in);
 
+//! Stage at target coordinates for any kind of diffusion evaluation
+   void Stage(const BackgroundCoordinates& coords, const BackgroundFields& fields);
+
 //! Evaluate and return one diffusion component
-   double GetComponent(int comp, Coordinates& coords, DiffusionFields& fields);
+   double GetComponent(int comp);
 
 //! Compute derivative of diffusion coefficient in position or time. By default, it is computed numerically, but specific classes can override with analytic expressions.
-   virtual double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in);
+   virtual double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata);
 
 //! Compute derivative of diffusion coefficient in mu. By default, it is computed numerically, but specific classes can override with analytic expressions.
-   virtual double GetMuDerivative(void);
+   virtual double GetMuDerivative(int comp);
 };
 
 };

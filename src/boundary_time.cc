@@ -20,7 +20,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 BoundaryTime<Trajectory>::BoundaryTime(void)
-            : BoundaryBase("", 0, BOUNDARY_TIME)
+            : BoundaryBase("", BOUNDARY_TIME)
 {
 };
 
@@ -32,8 +32,8 @@ BoundaryTime<Trajectory>::BoundaryTime(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryTime<Trajectory>::BoundaryTime(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-            : BoundaryBase(name_in, 0, status_in)
+BoundaryTime<Trajectory>::BoundaryTime(const std::string& name_in, uint16_t status_in)
+            : BoundaryBase(name_in, status_in)
 {
 };
 

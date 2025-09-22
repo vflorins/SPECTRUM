@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BLOCK_BASE_HH
 #define SPECTRUM_BLOCK_BASE_HH
 
-#include "config.h" // needed so that SERVER_TYPE is defined in order to typedef BlockType
+//#include "config.h" // needed so that SERVER_TYPE is defined in order to typedef BlockType
 #include "common/vectors.hh"
 
 namespace Spectrum {
@@ -25,7 +25,11 @@ namespace Spectrum {
 
 A topologically Cartesian three-dimensional hexahedral block identified by the "node" member. It uses linear storage model for compatibility with external solvers. A block stores its neighbor node indices and a set of physical variables at each interior zone.
 */
+template <typename HConfig_>
 class BlockBase {
+public:
+
+   using HConfig = HConfig_;
 
 protected:
 
@@ -229,10 +233,9 @@ public:
 //! Print variables in block
    virtual void PrintVariables(void) const = 0;
 
-#ifdef GEO_DEBUG
 //! Print the indices of all neighbor blocks
-   virtual void PrintNeighbors(void) = 0;
-#endif
+   void PrintNeighbors(void) requires (HConfig::build_type == BuildMode::debug) {};
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +247,8 @@ public:
 \date 06/08/2020
 \param[in] node_in Node of this block
 */
-inline void BlockBase::SetNode(int node_in)
+template <typename HConfig>
+inline void BlockBase<HConfig>::SetNode(int node_in)
 {
    node = node_in;
 };
@@ -254,7 +258,8 @@ inline void BlockBase::SetNode(int node_in)
 \date 06/08/2020
 \return The index (node) of the block
 */
-inline int BlockBase::GetNode(void) const
+template <typename HConfig>
+inline int BlockBase<HConfig>::GetNode(void) const
 {
    return node;
 };
@@ -264,7 +269,8 @@ inline int BlockBase::GetNode(void) const
 \date 01/25/2023
 \return The address of "node"
 */
-inline int* BlockBase::GetNodeAddress(void)
+template <typename HConfig>
+inline int* BlockBase<HConfig>::GetNodeAddress(void)
 {
    return &node;
 };
@@ -275,7 +281,8 @@ inline int* BlockBase::GetNodeAddress(void)
 \param[in] corner1 Coordinates of the "inner" corner of the block
 \param[in] corner2 Coordinates of the "outer" corner of the block
 */
-inline void BlockBase::SetDimensions(const GeoVector& corner1, const GeoVector& corner2)
+template <typename HConfig>
+inline void BlockBase<HConfig>::SetDimensions(const GeoVector& corner1, const GeoVector& corner2)
 {
    face_min = corner1;
    face_max = corner2;
@@ -286,7 +293,8 @@ inline void BlockBase::SetDimensions(const GeoVector& corner1, const GeoVector& 
 \date 01/25/2023
 \return Coordinates of the "inner" corner of the block
 */
-inline GeoVector BlockBase::GetFaceMin(void) const
+template <typename HConfig>
+inline GeoVector BlockBase<HConfig>::GetFaceMin(void) const
 {
    return face_min;
 };
@@ -296,7 +304,8 @@ inline GeoVector BlockBase::GetFaceMin(void) const
 \date 01/25/2023
 \return Coordinates of the "outer" corner of the block
 */
-inline GeoVector BlockBase::GetFaceMax(void) const
+template <typename HConfig>
+inline GeoVector BlockBase<HConfig>::GetFaceMax(void) const
 {
    return face_max;
 };
@@ -306,7 +315,8 @@ inline GeoVector BlockBase::GetFaceMax(void) const
 \date 01/25/2023
 \return The address of "face_min"
 */
-inline GeoVector* BlockBase::GetFaceMinAddress(void)
+template <typename HConfig>
+inline GeoVector* BlockBase<HConfig>::GetFaceMinAddress(void)
 {
    return &face_min;
 };
@@ -316,7 +326,8 @@ inline GeoVector* BlockBase::GetFaceMinAddress(void)
 \date 01/25/2023
 \return The address of "face_max"
 */
-inline GeoVector* BlockBase::GetFaceMaxAddress(void)
+template <typename HConfig>
+inline GeoVector* BlockBase<HConfig>::GetFaceMaxAddress(void)
 {
    return &face_max;
 };
@@ -326,7 +337,8 @@ inline GeoVector* BlockBase::GetFaceMaxAddress(void)
 \date 08/04/2023
 \return Coordinates of the physical "inner" corner of the block
 */
-inline GeoVector BlockBase::GetFaceMinPhys(void) const
+template <typename HConfig>
+inline GeoVector BlockBase<HConfig>::GetFaceMinPhys(void) const
 {
    return face_min_phys;
 };
@@ -336,7 +348,8 @@ inline GeoVector BlockBase::GetFaceMinPhys(void) const
 \date 08/04/2023
 \return Coordinates of the physical "outer" corner of the block
 */
-inline GeoVector BlockBase::GetFaceMaxPhys(void) const
+template <typename HConfig>
+inline GeoVector BlockBase<HConfig>::GetFaceMaxPhys(void) const
 {
    return face_max_phys;
 };
@@ -346,7 +359,8 @@ inline GeoVector BlockBase::GetFaceMaxPhys(void) const
 \date 08/04/2023
 \return The address of "face_min_phys"
 */
-inline GeoVector* BlockBase::GetFaceMinPhysAddress(void)
+template <typename HConfig>
+inline GeoVector* BlockBase<HConfig>::GetFaceMinPhysAddress(void)
 {
    return &face_min_phys;
 };
@@ -356,7 +370,8 @@ inline GeoVector* BlockBase::GetFaceMinPhysAddress(void)
 \date 08/04/2023
 \return The address of "face_max_phys"
 */
-inline GeoVector* BlockBase::GetFaceMaxPhysAddress(void)
+template <typename HConfig>
+inline GeoVector* BlockBase<HConfig>::GetFaceMaxPhysAddress(void)
 {
    return &face_max_phys;
 };
@@ -366,7 +381,8 @@ inline GeoVector* BlockBase::GetFaceMaxPhysAddress(void)
 \date 06/08/2020
 \return The size of a zone
 */
-inline GeoVector BlockBase::GetZoneLength(void) const
+template <typename HConfig>
+inline GeoVector BlockBase<HConfig>::GetZoneLength(void) const
 {
    return zone_length;
 };
@@ -376,7 +392,8 @@ inline GeoVector BlockBase::GetZoneLength(void) const
 \date 11/30/2022
 \return The number of zones in the block
 */
-inline int BlockBase::GetZoneCount(void) const
+template <typename HConfig>
+inline int BlockBase<HConfig>::GetZoneCount(void) const
 {
    return block_size.Prod();
 };
@@ -386,7 +403,8 @@ inline int BlockBase::GetZoneCount(void) const
 \date 10/28/2022
 \return The size of the block
 */
-inline MultiIndex BlockBase::GetBlockSize(void) const
+template <typename HConfig>
+inline MultiIndex BlockBase<HConfig>::GetBlockSize(void) const
 {
    return block_size;
 };
@@ -396,7 +414,8 @@ inline MultiIndex BlockBase::GetBlockSize(void) const
 \date 10/27/2022
 return Number of elements in "neighbor_nodes"
 */
-inline int BlockBase::GetNeighborCount(void) const
+template <typename HConfig>
+inline int BlockBase<HConfig>::GetNeighborCount(void) const
 {
    return max_neighbors;
 };
@@ -406,7 +425,8 @@ inline int BlockBase::GetNeighborCount(void) const
 \date 10/28/2022
 return Number of variables
 */
-inline int BlockBase::GetVariableCount(void) const
+template <typename HConfig>
+inline int BlockBase<HConfig>::GetVariableCount(void) const
 {
    return n_variables;
 };
@@ -416,7 +436,8 @@ inline int BlockBase::GetVariableCount(void) const
 \date 10/27/2022
 return Pointer to the neighbor block storage
 */
-inline int* BlockBase::GetNeighborNodesAddress(void)
+template <typename HConfig>
+inline int* BlockBase<HConfig>::GetNeighborNodesAddress(void)
 {
    return neighbor_nodes;
 };
@@ -426,7 +447,8 @@ inline int* BlockBase::GetNeighborNodesAddress(void)
 \date 10/28/2022
 return Number of elements in "neighbor_levels"
 */
-inline int BlockBase::GetNeighborLevelCount(void) const
+template <typename HConfig>
+inline int BlockBase<HConfig>::GetNeighborLevelCount(void) const
 {
    return max_neighbor_levels;
 };
@@ -436,7 +458,8 @@ inline int BlockBase::GetNeighborLevelCount(void) const
 \date 10/27/2022
 return Pointer to the neighbor block storage
 */
-inline int* BlockBase::GetNeighborLevelsAddress(void)
+template <typename HConfig>
+inline int* BlockBase<HConfig>::GetNeighborLevelsAddress(void)
 {
    return neighbor_levels;
 };
@@ -446,7 +469,8 @@ inline int* BlockBase::GetNeighborLevelsAddress(void)
 \date 10/27/2022
 return Pointer to the variables storage
 */
-inline double* BlockBase::GetVariablesAddress(void)
+template <typename HConfig>
+inline double* BlockBase<HConfig>::GetVariablesAddress(void)
 {
    return variables;
 };

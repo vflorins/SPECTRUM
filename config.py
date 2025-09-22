@@ -18,6 +18,11 @@ Lucius Schoenbaum
 
 """
 
+import argparse
+import sys
+from math import modf as math_modf
+
+
 # switch for debugging purposes
 # debug = False
 debug = True
@@ -30,106 +35,250 @@ else:
 
 
 
-# The following dicts define a reasonable set of defaults
-# for particular trajectory/background types.
-# These defaults are probably more useful
-# than the fallthrough defaults.
+# The following dict of dicts define a reasonable set of defaults
+# for particular trajectory/background/diffusion types.
+# These defaults are intended to be more useful
+# than the fallthrough defaults. This information makes this script
+# the location in the code where these default values are maintained.
+#
 # To aid both the maintainer/developer and user,
-# only the *relevant* values are included
-# in each list, and this information
-# is propagated into the configuration
-# via a comment. todo impl
+# only the *relevant* parameters are included
+# in each list.
+#
+# todo documentation for each parameter
 
 
-reasonable_defaults_per_background = {
-    'CylindricalObstacle': {
-        # todo
+reasonable_defaults = {
+    'background':{
+        'CylindricalObstacle': {
+        },
+        'Dipole': {
+        },
+        'Discontinuity': {
+        },
+        'MagnetizedCylinder': {
+        },
+        'MagnetizedSphere': {
+        },
+        'Server': {
+        },
+        'ServerBATL': {
+        },
+        'ServerCartesian': {
+        },
+        'Shock': {
+        },
+        'SmoothDiscontinuity': {
+        },
+        'SmoothShock': {
+        },
+        'SolarWind': {
+            'solarwind_current_sheet': 'disabled',
+            'solarwind_sectored_region': 'nowhere',
+            'solarwind_polar_correction': 'none',
+            'solarwind_speed_latitude_profile': 'constant',
+            'solarwind_termshock_speed_exponent': 'square',
+        },
+        'SolarWindTermShock': {
+        },
+        'SphericalObstacle': {
+        },
+        'Uniform': {
+        },
+        'VLISMBochum': {
+            'VLISMBochum_mod_type': 'scaled',
+            'VLISMBochum_mod_rpos': 'scale_rel_zero',
+        },
+        'Waves': {
+        },
     },
-    'Dipole': {
-        # todo
+    'trajectory': {
+        'Fieldline': {
+            # nothing at this time.
+        },
+        'Focused': {
+            'pperp_method': "scheme",
+            'use_B_drifts': "none",
+            'record_trajectory_segment_presize': 10000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+        },
+        'Guiding': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 10000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+        },
+        'GuidingDiff': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 10000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+        },
+        'GuidingScatt': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 10000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+            'split_scatt': False,
+            'split_scatt_fraction': 0.5,
+            'const_dmumax': "constant_dthetamax",
+            'stochastic_method': "Euler",
+            'cfl_pitchangle': 0.5,
+        },
+        'GuidingDiffScatt': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 10000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+            'split_scatt': False,
+            'split_scatt_fraction': 0.5,
+            'const_dmumax': "constant_dthetamax",
+            'stochastic_method_mu': "Euler",
+            'stochastic_method_perp': "Euler",
+            'cfl_pitchangle': 0.5,
+        },
+        'Lorentz': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 100000,
+            'cfl_advection': 0.1,
+            'drift_safety': 0.5,
+            'mirror_threshold': 300,
+            'steps_per_orbit': 100,
+        },
+        'Parker': {
+            'pperp_method': "scheme",
+            'record_trajectory_segment_presize': 100000,
+            'cfl_advection': 0.5,
+            'drift_safety': 0.5,
+            'mirror_threshold': 10,
+            'stochastic_method': "Euler",
+            'use_B_drifts': "none",
+            'divk_method': "direct",
+            'cfl_diffusion': 0.5,
+            'cfl_acceleration': 0.5,
+            'dlnp_max': 0.01,
+        },
     },
-    'MagnetizedCylinder': {
-        # todo
+    'diffusion': {
+        'IsotropicConstant': {
+            'D0': 1234,
+        },
+        'QLTConstant': {
+            'A2A': 1234,
+            'l_max': 1234,
+            'k_min': 1234,
+            'ps_index': 1234,
+            'ps_minus': 1234,
+        },
+        'WNLTConstant': {
+            'use_qlt_scatt': False,
+            'A2A': 1234,
+            'l_max': 1234,
+            'k_min': 1234,
+            'ps_index': 1234,
+            'ps_minus': 1234,
+            'A2T': 1234,
+            'A2L': 1234,
+            'ps_plus': 1234,
+        },
+        'WNLTRampVLISM': {
+            'A2A': 1234,
+            'l_max': 1234,
+            'k_min': 1234,
+            'ps_index': 1234,
+            'ps_minus': 1234,
+            'l_max_HP': 1234,
+            'dl_max': 1234,
+            'nose_z_nose': 1234,
+            'nose_z_sheath': 1234,
+            'nose_dz': 1234,
+            'kappa0': 1234,
+            'kappa_ratio': 1234,
+        },
+        'ParaConstant': {
+            'D0': 1234,
+        },
+        'PerpConstant': {
+            'D0': 1234,
+        },
+        'FullConstant': {
+            'Dperp': 1234,
+            'Dpara': 1234,
+        },
+        'FlowMomentumPowerLaw': {
+            'kappa0': 1234,
+            'kappa_ratio': 1234,
+            'U0': 1234,
+            'p0': 1234,
+            'pow_law_U': 1234,
+            'pow_law_p': 1234,
+        },
+        'KineticEnergyRadialDistancePowerLaw': {
+            'kappa0': 1234,
+            'kappa_ratio': 1234,
+            'T0': 1234,
+            'r0': 1234,
+            'pow_law_T': 1234,
+            'pow_law_r': 1234,
+        },
+        'RigidityMagneticFieldPowerLaw': {
+            'kappa_ratio': 1234,
+            'lam0': 1234,
+            'R0': 1234,
+            'B0': 1234,
+            'pow_law_R': 1234,
+            'pow_law_B': 1234,
+        },
+        'StraussEtAl2013': {
+            'R0': 1234,
+            'B0': 1234,
+            'LISM_idx': 1234,
+            'LISM_ind': 1234,
+            'kappa_ratio_inner': 1234,
+            'kappa_ratio_outer': 1234,
+            'lam_inner': 1234,
+            'lam_outer': 1234,
+        },
+        'GuoEtAl2014': {
+            'R0': 1234,
+            'B0': 1234,
+            'LISM_idx': 1234,
+            'LISM_ind': 1234,
+            'kappa_ratio_inner': 1234,
+            'kappa_ratio_outer': 1234,
+            'lam_inner': 1234,
+            'lam_outer': 1234,
+        },
+        'PotgieterEtAl2015': {
+            'R0': 1234,
+            'B0': 1234,
+            'LISM_idx': 1234,
+            'LISM_ind': 1234,
+            'kappa_ratio_inner': 1234,
+            'kappa_ratio_outer': 1234,
+            'kappa_inner': 1234,
+            'kappa_outer': 1234,
+        },
+        'EmpiricalSOQLTandUNLT': {
+            'R0': 1234,
+            'B0': 1234,
+            'lam_para': 1234,
+            'lam_perp': 1234,
+            'kappa_ratio_red': 1234,
+            'radial_limit_perp_red': 1234,
+            'solar_cycle_idx': 1234,
+            'solar_cycle_effect': 1234,
+            'Bmix_idx': 1234,
+            'Bmix_ind': 1234,
+        },
     },
-    # todo finish
 }
-
-
-
-reasonable_defaults_per_trajectory = {
-    'Fieldline': {
-        # nothing at this time.
-    },
-    'Focused': {
-        'pperp_method': "scheme",
-        'use_B_drifts': "none",
-        'record_trajectory_segment_presize': 10000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-    },
-    'Guiding': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 10000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-    },
-    'GuidingDiff': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 10000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-    },
-    'GuidingScatt': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 10000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-        'split_scatt': False,
-        'split_scatt_fraction': "{1,2}",
-        'const_dmumax': "constant_dthetamax",
-        'stochastic_method': "Euler",
-        'cfl_pitchangle': "{1,2}",
-    },
-    'GuidingDiffScatt': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 10000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-        'split_scatt': False,
-        'split_scatt_fraction': "{1,2}",
-        'const_dmumax': "constant_dthetamax",
-        'stochastic_method': "Euler",
-        'cfl_pitchangle': "{1,2}",
-    },
-    'Lorentz': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 100000,
-        'cfl_advection': 0.1,
-        'drift_safety': 0.5,
-        'mirror_threshold': 300,
-        'steps_per_orbit': 100,
-    },
-    'Parker': {
-        'pperp_method': "scheme",
-        'record_trajectory_segment_presize': 100000,
-        'cfl_advection': 0.5,
-        'drift_safety': 0.5,
-        'mirror_threshold': 10,
-        'stochastic_method': "Euler",
-        'use_B_drifts': "none",
-        'divk_method': "direct",
-        'cfl_diffusion': 0.5,
-        'cfl_acceleration': 0.5,
-        'dlnp_max': 0.01,
-    },
-}
-# todo DONE (from src)
-
 
 
 
@@ -148,56 +297,119 @@ reasonable_defaults_baseline = {
     'num_trajectories': 1,
     'batch_size': 1,
     # ----- Background ----- #
-    'num_numeric_grad_evals': 0,
+    'num_numeric_grad_evals': 1,
     'incr_dmax_ratio': "{1,10000}",
     'server_interpolation_order': 1,
     'smooth_discontinuity_order': 4,
     'server_num_ghost_cells': 2,
-    # todo
+    'solarwind_current_sheet': 'disabled',
+    'solarwind_sectored_region': 'nowhere',
+    'solarwind_polar_correction': 'none',
+    'solarwind_speed_latitude_profile': 'constant',
+    'solarwind_termshock_speed_exponent': 'square',
+    'VLISMBochum_mod_type': 'scaled',
+    'VLISMBochum_mod_rpos': 'scale_rel_zero',
     # ----- Trajectory ----- #
     'record_mag_extrema': False,
     'record_trajectory': False,
     'record_trajectory_segment_presize': 0,
     'trajectory_adv_safety_level': 2,
-    # todo
+    'max_trajectory_steps': 1324,
+    'max_time_adaptations': 1234,
+    'n_max_calls': 1234,
+    'cfl_advection': 1234,
+    'cfl_diffusion': 1234,
+    'cfl_acceleration': 1234,
+    'cfl_pitchangle': 1234,
+    'drift_safety': 1234,
+    'mirror_threshold': 1234,
+    'pperp_method': 1234,
+    'use_B_drifts': 1234,
+    'stochastic_method': 1234,
+    'stochastic_method_mu': 1234,
+    'stochastic_method_perp': 1234,
+    'split_scatt': 1234,
+    'split_scatt_fraction': 1234,
+    'const_dmumax': 1234,
+    'steps_per_orbit': 1234,
+    'divk_method': 1234,
+    'dlnp_max': 1234,
+    # ----- Diffusion ----- #
+    'use_qlt_scatt': False,
+    'D0': 1234,
+    'Dperp': 1234,
+    'Dpara': 1234,
+    'A2A': 1234,
+    'l_max': 1234,
+    'k_min': 1234,
+    'ps_index': 1234,
+    'ps_minus': 1234,
+    'A2T': 1234,
+    'A2L': 1234,
+    'ps_plus': 1234,
+    'l_max_HP': 1234,
+    'dl_max': 1234,
+    'nose_z_nose': 1234,
+    'nose_z_sheath': 1234,
+    'nose_z_dz': 1234,
+    'kappa0': 1234,
+    'kappa_ratio': 1234,
+    'U0': 1234,
+    'p0': 1234,
+    'T0': 1234,
+    'r0': 1234,
+    'lam0': 1234,
+    'R0': 1234,
+    'B0': 1234,
+    'pow_law_U': 1234,
+    'pow_law_p': 1234,
+    'pow_law_T': 1234,
+    'pow_law_r': 1234,
+    'pow_law_R': 1234,
+    'pow_law_B': 1234,
+    'LISM_idx': 1234,
+    'LISM_ind': 1234,
+    'kappa_ratio_inner': 1234,
+    'kappa_ratio_outer': 1234,
+    'lam_inner': 1234,
+    'lam_outer': 1234,
+    'kappa_inner': 1234,
+    'kappa_outer': 1234,
+    'lam_para': 1234,
+    'lam_perp': 1234,
+    'kappa_ratio_red': 1234,
+    'radial_limit_perp_red': 1234,
+    'solar_cycle_idx': 1234,
+    'solar_cycle_effect': 1234,
+    'Bmix_idx': 1234,
+    'Bmix_ind': 1234,
 }
 
 
 
-def get(key, args, trajectory = None, background = None):
+def get(key, args, special_name = None, special_value = None):
     """
     This function implements resolutions of values based on the default lists.
 
     :param key: string
     :param args: argparse structure
-    :param trajectory: optional string
-    :param background: optional string
+    :param special_name: optional string
+    :param special_value: optional string
     :return: value
     """
-    if trajectory is not None and background is not None:
-        print(f"[get_value] Warning: invalid inputs. Check implementation/inputs.")
     if not key in args:
         raise KeyError(f"The option {key} is undefined.")
     if args.__dict__[key] is not None:
         return args.__dict__[key]
-    elif trajectory is not None:
-        if trajectory in reasonable_defaults_per_trajectory:
-            if key in reasonable_defaults_per_trajectory[trajectory]:
-                return reasonable_defaults_per_trajectory[trajectory][key]
+    elif special_name is not None:
+        if special_name in reasonable_defaults[special_name]:
+            if key in reasonable_defaults[special_name][special_value]:
+                return reasonable_defaults[special_name][special_value][key]
             else:
-                # the value is not in the list. Idiomatically, this means the option is not used by the trajectory.
+                # the value is not in the list. Idiomatically, this means the option is not used by the special class.
                 pass
         else:
-            print(f"[get_value] Warning: trajectory {trajectory} not found in list. Using general default for key {key}.")
-    elif background is not None:
-        if background in reasonable_defaults_per_background:
-            if key in reasonable_defaults_per_background[background]:
-                return reasonable_defaults_per_background[background][key]
-            else:
-                # the value is not in the list. Idiomatically, this means the option is not used by the background.
-                pass
-        else:
-            print(f"[get_value] Warning: background {background} not found in list. Using general default for key {key}.")
+            print(f"[get_value] Warning: {special_name} {special_value} not found in list. Using general default for key {key}.")
     return reasonable_defaults_baseline[key]
 
 def check_defaults():
@@ -205,21 +417,37 @@ def check_defaults():
     Check that there is always a fallthrough default value for every default used.
     This helps ensure that developers keep the script up to date.
     """
-    for trajectory in reasonable_defaults_per_trajectory:
-        for key in reasonable_defaults_per_trajectory[trajectory]:
-            if not key in reasonable_defaults_baseline:
-                print(f"[check_defaults] Warning: key {key} found in the list of trajectory {trajectory } defaults, but not found in the list of baseline defaults.")
-    for background in reasonable_defaults_per_background:
-        for key in reasonable_defaults_per_background[background]:
-            if not key in reasonable_defaults_baseline:
-                print(f"[check_defaults] Warning: key {key} found in the list of background {background } defaults, but not found in the list of baseline defaults.")
+    for special_name in reasonable_defaults:
+        for special_value in reasonable_defaults[special_name]:
+            for key in reasonable_defaults[special_name][special_value]:
+                if not key in reasonable_defaults_baseline:
+                    print(f"[check_defaults] Warning: key {key} found in the list of {special_name} {special_value} defaults, but not found in the list of baseline defaults.")
+
+def ratio(dbl):
+    """
+    Parse a Python immediate floating point expression
+    to produce an initializer expression for a std::ratio.
+    This makes setting default values in the lists (above) more convenient.
+    A cost is incurred due to there occasionally being an
+    unrecognizable std::ratio generated, due to roundoff error.
+    For example, 2000.003 might become 20000030000000004/100000000000000
+    instead of 2000003/1000.
+    :param dbl: scalar
+    :return: string
+    """
+    denom = 1
+    numer = abs(dbl)
+    sgn = 1 if dbl >= 0 else -1
+    fp, ip = math_modf(numer)
+    while fp != 0:
+        denom *= 10
+        numer *= 10
+        fp, ip = math_modf(numer)
+    return f"{{{int(sgn*numer)},{int(denom)}}}"
 
 
 if __name__ == "__main__":
 
-    # argparse frontend
-    import argparse
-    import sys
     parser = argparse.ArgumentParser(
         description="Configuration file generator for SPECTRUM particle trajectory trace solver.",
     )
@@ -227,7 +455,7 @@ if __name__ == "__main__":
         parser.add_argument(
             f"--{key}",
             type=type(reasonable_defaults_baseline[key]),
-            help="todo",
+            help="(todo)",
             required=False,
         )
     args = parser.parse_args()
@@ -249,13 +477,13 @@ if __name__ == "__main__":
         print("[hconfig] NOT local hconfig")
 
 
-
-
-    # code template
+    # code template TODO
     content = f"""
 
 #ifndef SPECTRUM_HCONFIG
 #define SPECTRUM_HCONFIG
+
+
 
 using HConfig = HConfig<
     trajectory = {get('trajectory', args)},

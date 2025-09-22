@@ -18,30 +18,34 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Index of the mass density variable
-// #define SERVER_VAR_INDEX_RHO 0
+// todo conversion to Fields type could be straightforward.
+//  draft:
+//  using ServerFields = Fields<MassDen_t, Den_t, Mom_t, Mag_t, Ele_t, Iv0_t, Iv1_t, Prs_t>
 
-//! Index of the number density variable
-// #define SERVER_VAR_INDEX_DEN 0
-
-//! Index of the momentum variable
-//#define SERVER_VAR_INDEX_MOM 1
-
-//! Index of the bulk flow variable
-#define SERVER_VAR_INDEX_FLO 0
-
-//! Index of the magnetic field variable
-#define SERVER_VAR_INDEX_MAG 3
-
-//! Index of the electric field variable
-#define SERVER_VAR_INDEX_ELE 6
-
-//! Index and number of the regions variable
-// #define SERVER_VAR_INDEX_REG 7
-// #define SERVER_NUM_INDEX_REG 2
-
-//! Index of thermal pressure
-// #define SERVER_VAR_INDEX_PTH 9
+////! Index of the mass density variable
+//// #define SERVER_VAR_INDEX_RHO 0
+//
+////! Index of the number density variable
+//// #define SERVER_VAR_INDEX_DEN 0
+//
+////! Index of the momentum variable
+////#define SERVER_VAR_INDEX_MOM 1
+//
+////! Index of the bulk flow variable
+//#define SERVER_VAR_INDEX_FLO 0
+//
+////! Index of the magnetic field variable
+//#define SERVER_VAR_INDEX_MAG 3
+//
+////! Index of the electric field variable
+//#define SERVER_VAR_INDEX_ELE 6
+//
+////! Index and number of the regions variable
+//// #define SERVER_VAR_INDEX_REG 7
+//// #define SERVER_NUM_INDEX_REG 2
+//
+////! Index of thermal pressure
+//// #define SERVER_VAR_INDEX_PTH 9
 
 //! Unit of length
 const double unit_length_server = unit_length_fluid;
@@ -136,7 +140,7 @@ inline const char* ExServerError::what(void) const noexcept
 \brief Common functions of the server frontend and backend
 \author Vladimir Florinski
 
-The Trajectory objects on the worker processes request state variables at arbitrary locations. The Server object on the worker processes fulfills these requests from its cache. If the blocks needed are not cached, they are requested from the Server object on the Boss process, which obtains them from its external interface and sends them to requesting processes via MPI. Each worker proceess has its own cache line, except for the server process, which has no cache.
+The Trajectory objects on the worker processes request state variables at arbitrary locations. The Server object on the worker processes fulfills these requests from its cache. If the blocks needed are not cached, they are requested from the Server object on the Server process, which obtains them from its external interface and sends them to requesting processes via MPI. Each worker proceess has its own cache line, except for the server process, which has no cache.
 */
 class ServerBase {
 
@@ -332,13 +336,13 @@ public:
    int ServerFunctions(void) override;
 };
 
-// FIXME: perhaps there is a better way to treat this case
-//! Server types
-#if SERVER_TYPE == SERVER_SELF
-typedef ServerBase ServerType;
-typedef ServerBaseFront ServerFrontType;
-typedef ServerBaseBack ServerBackType;
-#endif
+//// FIXME: perhaps there is a better way to treat this case
+////! Server types
+//#if SERVER_TYPE == SERVER_SELF
+//typedef ServerBase ServerType;
+//typedef ServerBaseFront ServerFrontType;
+//typedef ServerBaseBack ServerBackType;
+//#endif
 
 };
 

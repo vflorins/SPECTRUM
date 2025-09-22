@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 BoundaryPlane<Trajectory>::BoundaryPlane(void)
-             : BoundaryBase("", 0, BOUNDARY_SPACE)
+             : BoundaryBase("", BOUNDARY_SPACE)
 {
 };
 
@@ -33,8 +33,8 @@ BoundaryPlane<Trajectory>::BoundaryPlane(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryPlane<Trajectory>::BoundaryPlane(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-             : BoundaryBase(name_in, specie_in, status_in)
+BoundaryPlane<Trajectory>::BoundaryPlane(const std::string& name_in, uint16_t status_in)
+             : BoundaryBase(name_in, status_in)
 {
 };
 
@@ -226,7 +226,7 @@ void BoundaryPlanePass<Trajectory>::SetupBoundary(bool construct)
 */
 template <typename Trajectory>
 BoundaryBox<Trajectory>::BoundaryBox(void)
-           : BoundaryBase("", 0, BOUNDARY_SPACE)
+           : BoundaryBase("", BOUNDARY_SPACE)
 {
 };
 
@@ -238,8 +238,8 @@ BoundaryBox<Trajectory>::BoundaryBox(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryBox<Trajectory>::BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-           : BoundaryBase(name_in, specie_in, status_in)
+BoundaryBox<Trajectory>::BoundaryBox(const std::string& name_in, uint16_t status_in)
+           : BoundaryBase(name_in, status_in)
 {
 };
 
@@ -545,8 +545,8 @@ BoundaryRankine<Trajectory>::BoundaryRankine(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryRankine<Trajectory>::BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-               : BoundaryBase(name_in, specie_in, status_in)
+BoundaryRankine<Trajectory>::BoundaryRankine(const std::string& name_in, uint16_t status_in)
+               : BoundaryBase(name_in, status_in)
 {
 };
 
@@ -661,8 +661,8 @@ BoundaryCylinder<Trajectory>::BoundaryCylinder(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryCylinder<Trajectory>::BoundaryCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                : BoundaryBase(name_in, specie_in, status_in)
+BoundaryCylinder<Trajectory>::BoundaryCylinder(const std::string& name_in, uint16_t status_in)
+                : BoundaryBase(name_in, status_in)
 {
 };
 
@@ -795,8 +795,8 @@ BoundaryRegion<Trajectory>::BoundaryRegion(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryRegion<Trajectory>::BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-              : BoundaryBase(name_in, specie_in, status_in)
+BoundaryRegion<Trajectory>::BoundaryRegion(const std::string& name_in, uint16_t status_in)
+              : BoundaryBase(name_in, status_in)
 {
 };
 

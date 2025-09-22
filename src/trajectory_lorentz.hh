@@ -14,53 +14,36 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-////! Default initial size
-//const unsigned int defsize_lorentz = 100000;
-//
-////! CFL condition for advection
-//const double cfl_adv_tl = 0.1;
-//
-////! Number of time steps per one orbit
-//const unsigned int steps_per_orbit = 100;
-//
-////! How many time steps to allow before recording a mirror event
-//const unsigned int mirror_thresh_lorentz = 300;
-
 /*!
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
 \author Vladimir Florinski
 */
-template <typename Fields_>
-class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<HConfig_>, HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryLorentz";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<TrajectoryLorentz<Fields_>, Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
 
-//   using TrajectoryBase::_t;
-//   using TrajectoryBase::_pos;
-   using TrajectoryBase::_vel;
-   using TrajectoryBase::_mom;
+   using TrajectoryBase::_status;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
-   using TrajectoryBase::specie;
-   using TrajectoryBase::q;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
-   // methods
+//   // methods
    using TrajectoryBase::RKAdvance;
 
-   static_assert(!Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!Fields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(!TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(!TrajectoryFields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 
@@ -112,7 +95,7 @@ public:
 template <typename Fields>
 inline GeoVector TrajectoryLorentz<Fields>::ConvertMomentum(void) const
 {
-   return GeoVector(_mom.Norm(), (_mom * _fields.HatMag()) / _mom.Norm(), 0.0);
+   return GeoVector(_coords.Mom().Norm(), (_coords.Mom() * _fields.HatMag()) / _coords.Mom().Norm(), 0.0);
 };
 
 

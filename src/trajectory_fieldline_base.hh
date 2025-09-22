@@ -14,12 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Default initial size
-const unsigned int defsize_fieldline = 100000;
-
-//! CFL condition for advection
-const double cfl_adv_tf = 0.5;
-
 /*!
 \brief Field line tracer base class
 \author Juan G Alonso Guzman
@@ -32,35 +26,29 @@ that any class except the Field line tracer class itself have any knowledge
 of which is the traced field.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
-template <typename Trajectory_, typename Fields_>
-class TrajectoryFieldlineBase : public TrajectoryBase<Trajectory_, Fields_> {
+template <typename Trajectory_, typename HConfig_>
+class TrajectoryFieldlineBase : public TrajectoryBase<Trajectory_, HConfig_> {
 
    static constexpr std::string_view  traj_name = "TrajectoryFieldlineBase";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Trajectory_, Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
+
+protected:
 
    using TrajectoryBase::_status;
-//   using TrajectoryBase::_t;
-   using TrajectoryBase::_vel;
-//   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::RKAdvance;
-
-
-//   using TrajectoryBase::q;
 
 protected:
 
@@ -82,7 +70,7 @@ public:
    TrajectoryFieldlineBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryFieldlineBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryFieldlineBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryFieldlineBase(const TrajectoryFieldlineBase& other) = delete;
@@ -107,10 +95,10 @@ public:
 \return A vector in the (p,mu,phi) format
 \note Not used, but needs to be "overriden" from virtual definition in TrajectoryBase
 */
-template <typename Trajectory, typename Fields>
-inline GeoVector TrajectoryFieldlineBase<Trajectory, Fields>::ConvertMomentum(void) const
+template <typename Trajectory, typename HConfig>
+inline GeoVector TrajectoryFieldlineBase<Trajectory, HConfig>::ConvertMomentum(void) const
 {
-   return GeoVector(fabs(_mom[2]), 0.0, 0.0);
+   return GeoVector(fabs(_coords.Mom()[2]), 0.0, 0.0);
 };
 
 

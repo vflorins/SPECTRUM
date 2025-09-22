@@ -14,57 +14,55 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// Switch controlling how to calculate p_perp. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
-#define PPERP_METHOD 1
-
-//! Default initial size
-const unsigned int defsize_guiding_base = 10000;
-
-//! CFL condition for advection
-const double cfl_adv_tg = 0.5;
-
-//! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-const double drift_safety_tg = 0.5;
-
-//! How many time steps to allow before recording a mirror event
-const int mirror_thresh_guiding = 10;
-
 /*!
 \brief Trajectory tracer for the relativistic guiding center equations
 \author Vladimir Florinski
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
-template <typename Trajectory_, typename Fields_>
-class TrajectoryGuidingBase : public TrajectoryBase<Trajectory_, Fields_> {
+template <typename Trajectory_, typename HConfig_>
+class TrajectoryGuidingBase : public TrajectoryBase<Trajectory_, HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingBase";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<Trajectory_, Fields_>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
 
 protected:
 
    using TrajectoryBase::_status;
-//   using TrajectoryBase::_t;
-   using TrajectoryBase::_vel;
-//   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
-   using TrajectoryBase::q;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::RKAdvance;
+
+   using HConfig::q;
+
+//   using TrajectoryBase::_status;
+////   using TrajectoryBase::_t;
+//   using TrajectoryBase::_vel;
+////   using TrajectoryBase::_pos;
+//   using TrajectoryBase::_mom;
+//   using TrajectoryBase::q;
+//   using TrajectoryBase::_fields;
+//   using TrajectoryBase::_dmax;
+////   using TrajectoryBase::traj_t;
+////   using TrajectoryBase::traj_pos;
+//   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::specie;
+////   using TrajectoryBase::local_t;
+////   using TrajectoryBase::local_pos;
+////   using TrajectoryBase::local_mom;
+//   using TrajectoryBase::dt_physical;
 
 protected:
 
@@ -110,7 +108,7 @@ public:
    TrajectoryGuidingBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryGuidingBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryGuidingBase(const TrajectoryGuidingBase& other) = delete;
@@ -134,10 +132,10 @@ public:
 \date 04/11/2022
 \return A vector in the (p,mu,0) format
 */
-template <typename Trajectory, typename Fields>
-inline GeoVector TrajectoryGuidingBase<Trajectory, Fields>::ConvertMomentum(void) const
+template <typename Trajectory, typename HConfig>
+inline GeoVector TrajectoryGuidingBase<Trajectory, HConfig>::ConvertMomentum(void) const
 {
-   return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
+   return GeoVector(sqrt(Sqr(_coords.Mom()[0])+Sqr(_coords.Mom()[2])), _coords.Mom()[2] / _coords.Mom().Norm(), 0.0);
 };
 
 
@@ -146,10 +144,10 @@ inline GeoVector TrajectoryGuidingBase<Trajectory, Fields>::ConvertMomentum(void
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryGuidingBase<Trajectory, Fields>::ReverseMomentum(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryGuidingBase<Trajectory, HConfig>::ReverseMomentum(void)
 {
-   _mom[2] = -_mom[2];
+   _coords.Mom()[2] = -_coords.Mom()[2];
 };
 
 

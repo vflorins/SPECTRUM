@@ -14,34 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-////! Whether to split the diffusive advance into two (one before and one after the advection).
-//// #define SPLIT_SCATT
-//
-////! Whether to use constant dmumax or constant dthetamax, 0 = constant dthetamax, 1 = constant dmumax
-//#define CONST_DMUMAX 0
-//
-////! Which stochastic method to use for PA scattering, 0 = Euler, 1 = Milstein, 2 = RK2
-//#define STOCHASTIC_METHOD_MU 0
-//
-////! Default initial size
-//const unsigned int defsize_guidingscatt = 10000;
-//
-//#ifdef SPLIT_SCATT
-////! Fraction of stochastic step to take before deterministic step
-//const double alpha = 0.5;
-//#endif
-//
-//#if CONST_DMUMAX == 1
-////! Desired accuracy in pitch angle cosine
-//const double dmumax = 0.02;
-//#else
-////! Desired accuracy in pitch angle (deg x [deg to rad conversion factor])
-//const double dthetamax = 2.0 * M_PI / 180.0;
-//#endif
-//
-////! CFL condition for pitch angle scattering
-//const double cfl_pa_gs = 0.5;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingScatt class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -51,43 +23,54 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Fields_>
-class TrajectoryGuidingScatt : public TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryGuidingScatt : public TrajectoryGuidingBase<TrajectoryGuidingScatt<HConfig_>, HConfig_> {
 
 //! Readable name of the TrajectoryGuidingScatt class
    static constexpr std::string_view traj_name = "TrajectoryGuidingScatt";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingScatt<Fields>, Fields>;
-   using TrajectoryBase = TrajectoryBase<TrajectoryGuidingScatt<Fields_>, Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
+
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingScatt<HConfig>, HConfig>;
 
 protected:
 
    using TrajectoryBase::_status;
-   using TrajectoryBase::_t;
-   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
-   using TrajectoryBase::_vel;
-   using TrajectoryBase::dt;
-   using TrajectoryBase::dt_physical;
-   using TrajectoryBase::dt_adaptive;
-   using TrajectoryBase::rng;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::dt_physical;
+
+//   using TrajectoryBase::_status;
+//   using TrajectoryBase::_t;
+//   using TrajectoryBase::_pos;
+//   using TrajectoryBase::_mom;
+//   using TrajectoryBase::_vel;
+//   using TrajectoryBase::dt;
+//   using TrajectoryBase::dt_physical;
+//   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::rng;
+//   using TrajectoryBase::_fields;
+//   using TrajectoryBase::_dmax;
+////   using TrajectoryBase::traj_t;
+////   using TrajectoryBase::traj_pos;
+////   using TrajectoryBase::traj_mom;
+//   using TrajectoryBase::specie;
+////   using TrajectoryBase::local_t;
+////   using TrajectoryBase::local_pos;
+////   using TrajectoryBase::local_mom;
    using TrajectoryBase::diffusion;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
-   // methods:
-   using TrajectoryBase::ConvertMomentum;
+//   // methods:
    using TrajectoryBase::Load;
    using TrajectoryBase::Store;
    using TrajectoryBase::TimeBoundaryProximityCheck;
@@ -101,6 +84,7 @@ protected:
 
    using TrajectoryGuidingBase::DriftCoeff;
    using TrajectoryGuidingBase::Slopes;
+   using TrajectoryGuidingBase::ConvertMomentum;
 
 
 protected:
@@ -143,7 +127,7 @@ public:
    TrajectoryGuidingScatt(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuidingScatt(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in);
 
 //! Destructor
    ~TrajectoryGuidingScatt() override = default;

@@ -50,7 +50,7 @@ DiffusionBase<Trajectory>::DiffusionBase(const DiffusionBase& other)
              : Params(other)
 {
 // Params' constructor resets all flags
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) DiffusionBase::SetupDiffusion(true);
 };
 
 /*!
@@ -92,38 +92,50 @@ void DiffusionBase<Trajectory>::SetupDiffusion(bool construct)
 \note This is only a stub.
 */
 template <typename Trajectory>
-void DiffusionBase<Trajectory>::EvaluateDiffusion(void)
+void DiffusionBase<Trajectory>::EvaluateDiffusion(int comp)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
 
+
 /*!
 \author Vladimir Florinski
 \author Lucius Schoenbaum
-\date 08/10/2025
-\param[in] comp      Which component to evaluate
-\param[in] t_in      Time
-\param[in] pos_in    Position
-\param[in] mom_in    Momentum (p,mu,phi) coordinates
-\param[in] fields_in Spatial fields at the required location
-\return One diffusion component
+\date 09/21/2025
+\param[in] coords     Coordinates (what is needed by diffusion)
+\param[in] fields       Coordinate-dependent fields (what is needed by diffusion)
 \note This is a common routine that the derived classes should not change.
+It must be called prior to all diffusion computations if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
+void DiffusionBase<Trajectory>::Stage(const BackgroundCoordinates& coords, const BackgroundFields& fields)
 {
-   SetState(t_in, pos_in, mom_in);
-   vmag = Vel(_mom[0], Trajectory::specie);
-   _fields = fields_in;
+   _coords = DiffusionCoordinates::Get(coords);
+   _fields = DiffusionFields::Get(fields);
+   vmag = Vel(_coords.Mom()[0], Trajectory::specie);
    Omega = CyclotronFrequency(vmag, _fields.AbsMag(), Trajectory::specie);
 
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
-      mu = _mom[1];
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
+      mu = _coords.Mom()[1];
       st2 = 1.0 - Sqr(mu);
    }
+};
 
-   comp_eval = comp;
-   EvaluateDiffusion();
+
+
+/*!
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/21/2025
+\param[in] comp      Which component to evaluate
+\return One diffusion component
+\note This is a common routine that the derived classes should not change.
+ \note This must be called after Stage() if the target coordinates have changed.
+*/
+template <typename Trajectory>
+double DiffusionBase<Trajectory>::GetComponent(int comp)
+{
+   EvaluateDiffusion(comp);
    return Kappa[comp];
 };
 
@@ -131,13 +143,14 @@ double DiffusionBase<Trajectory>::GetComponent(int comp, double t_in, const GeoV
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 07/12/2024
+\param[in] comp Which component to evaluate
 \param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
-\param[in] ddata_in Derivative data from computing background fields
+\param[in] ddata_in Derivative data from computing background fields (read only)
 \return Directional derivative
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
+\note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionBase<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
    double _t_saved, Bmag_saved, derivative, _dr, _dt;
    GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;
@@ -152,34 +165,34 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeDa
    if ((0 <= xyz) && (xyz <= 2)) {
 
 // Save position, compute increment
-      _pos_saved = _pos;
+      _pos_saved = _coords.Pos();
 
 // This computation of "Bvec" at a displaced position is exact if numerical derivatives are used, and a good estimate if "_dr" is small enough.
-      _dr = 0.5 * _ddata._dr[xyz];
-      if (_ddata._dr_forw_fail[xyz]) Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      _dr = 0.5 * ddata._dr[xyz];
+      if (ddata._dr_forw_fail[xyz]) Kappa_forw[comp] = Kappa_saved[comp];
       else {
-         _pos[xyz] += _dr;
+         _coords.Pos()[xyz] += _dr;
          _fields.Mag() += _fields.DelMag().row[xyz] * _dr;
          _fields.AbsMag() += _fields.DelAbsMag()[xyz] * _dr;
-         EvaluateDiffusion();
-         Kappa_forw[comp_eval] = Kappa[comp_eval];
+         EvaluateDiffusion(comp);
+         Kappa_forw[comp] = Kappa[comp];
       };
 
       _dr *= 2.0;
-      if (_ddata._dr_back_fail[xyz]) Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      if (ddata._dr_back_fail[xyz]) Kappa_back[comp] = Kappa_saved[comp];
       else {
-         _pos[xyz] -= _dr;
+         _coords.Pos()[xyz] -= _dr;
          _fields.Mag() -= _fields.DelMag().row[xyz] * _dr;
          _fields.AbsMag() -= _fields.DelAbsMag()[xyz] * _dr;
-         EvaluateDiffusion();
-         Kappa_back[comp_eval] = Kappa[comp_eval];
+         EvaluateDiffusion(comp);
+         Kappa_back[comp] = Kappa[comp];
       };
 
-      if (_ddata._dr_forw_fail[xyz] || _ddata._dr_back_fail[xyz]) _dr *= 0.5;
-      derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dr;
+      if (ddata._dr_forw_fail[xyz] || ddata._dr_back_fail[xyz]) _dr *= 0.5;
+      derivative = (Kappa_forw[comp] - Kappa_back[comp]) / _dr;
 
 // Restore position
-      _pos = _pos_saved;
+      _coords.Pos() = _pos_saved;
    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -187,34 +200,34 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeDa
    else {
 
 // Save time, compute increment
-      _t_saved = _t;
+      _t_saved = _coords.Time();
 
 //A similar comment as the one in the spatial derivatives applies here for "_dt".
-      _dt = 0.5 * _ddata._dt;
-      if (_ddata._dt_forw_fail) {
-         _t += _dt;
+      _dt = 0.5 * ddata._dt;
+      if (ddata._dt_forw_fail) {
+         _coords.Time() += _dt;
          _fields.Mag() += _fields.DotMag() * _dt;
          _fields.AbsMag() += _fields.DotAbsMag() * _dt;
-         EvaluateDiffusion();
-         Kappa_forw[comp_eval] = Kappa[comp_eval];
+         EvaluateDiffusion(comp);
+         Kappa_forw[comp] = Kappa[comp];
       }
-      else Kappa_forw[comp_eval] = Kappa_saved[comp_eval];
+      else Kappa_forw[comp] = Kappa_saved[comp];
 
-      _t += 2.0;
-      if (_ddata._dt_back_fail) {
-         _t -= _dt;
+      _coords.Time() += 2.0;
+      if (ddata._dt_back_fail) {
+         _coords.Time() -= _dt;
          _fields.Mag() -= _fields.DotMag() * _dt;
          _fields.AbsMag() -= _fields.DotAbsMag() * _dt;
-         EvaluateDiffusion();
-         Kappa_back[comp_eval] = Kappa[comp_eval];
+         EvaluateDiffusion(comp);
+         Kappa_back[comp] = Kappa[comp];
       }
-      else Kappa_back[comp_eval] = Kappa_saved[comp_eval];
+      else Kappa_back[comp] = Kappa_saved[comp];
 
-      if (_ddata._dt_forw_fail || _ddata._dt_back_fail) _dt *= 0.5;
-      derivative = (Kappa_forw[comp_eval] - Kappa_back[comp_eval]) / _dt;
+      if (ddata._dt_forw_fail || ddata._dt_back_fail) _dt *= 0.5;
+      derivative = (Kappa_forw[comp] - Kappa_back[comp]) / _dt;
 
 // Restore time
-      _t = _t_saved;
+      _coords.Time() = _t_saved;
    };
 
 // Restore diffusion and field values at "current" position
@@ -231,33 +244,31 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeDa
 \author Lucius Schoenbaum
 \date 08/10/2025
 \return Derivative in mu
-\note This is meant to be called after GetComponent() for the componenent for which the derivative is wanted
+\note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetMuDerivative(void)
+double DiffusionBase<Trajectory>::GetMuDerivative(int comp)
 {
-   double mu_saved, dmu, derivative;
-   GeoVector Kappa_saved;
-
 // Save diffusion and field values at "current" position
-   Kappa_saved = Kappa;
-   mu_saved = mu;
+   double mu_saved = mu;
+   GeoVector Kappa_saved = Kappa;
+   double dmu, derivative;
 
 // Mu derivative (momentum is in (p,mu,phi) coordinates)
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
 
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
       mu += dmu;
       st2 = 1.0 - Sqr(mu);
    }
 
-   EvaluateDiffusion();
-   derivative = (Kappa[comp_eval] - Kappa_saved[comp_eval]) / dmu;
+   EvaluateDiffusion(comp);
+   derivative = (Kappa[comp] - Kappa_saved[comp]) / dmu;
 
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
 
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
       mu = mu_saved;
       st2 = 1.0 - Sqr(mu);
    }

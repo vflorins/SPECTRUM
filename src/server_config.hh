@@ -10,17 +10,17 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SERVER_CONFIG_HH
 #define SPECTRUM_SERVER_CONFIG_HH
 
-#include "config.h"
-
-#if SERVER_TYPE == SERVER_SELF
-// This needs to be here for proper compilation (e.g. for ExServerError to be defined)
-#include "server_base.hh"
-#elif SERVER_TYPE == SERVER_CARTESIAN
-#include "server_cartesian.hh"
-#elif SERVER_TYPE == SERVER_BATL
-#include "server_batl.hh"
-#else
-#error Unsupported Server type
-#endif
+//#include "config.h"
+//
+//#if SERVER_TYPE == SERVER_SELF
+//// This needs to be here for proper compilation (e.g. for ExServerError to be defined)
+//#include "server_base.hh"
+//#elif SERVER_TYPE == SERVER_CARTESIAN
+//#include "server_cartesian.hh"
+//#elif SERVER_TYPE == SERVER_BATL
+//#include "server_batl.hh"
+//#else
+//#error Unsupported Server type
+//#endif
 
 #endif

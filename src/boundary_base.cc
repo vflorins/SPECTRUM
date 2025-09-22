@@ -21,7 +21,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 BoundaryBase<Trajectory>::BoundaryBase(void)
-            : Params("", 0, STATE_NONE)
+            : Params("", STATE_NONE)
 {
 };
 
@@ -33,8 +33,8 @@ BoundaryBase<Trajectory>::BoundaryBase(void)
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-BoundaryBase<Trajectory>::BoundaryBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-            : Params(name_in, specie_in, status_in)
+BoundaryBase<Trajectory>::BoundaryBase(const std::string& name_in, uint16_t status_in)
+            : Params(name_in, status_in)
 {
 };
 
@@ -110,7 +110,7 @@ void BoundaryBase<Trajectory>::EvaluateBoundary(void)
 \note This is a common routine that the derived classes should not change.
 */
 template <typename Trajectory>
-void BoundaryBase<Trajectory>::ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in)
+void BoundaryBase<Trajectory>::ComputeBoundary(Coordinates& coords_in, const Fields& fields_in)
 {
    if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) {
       RAISE_BITS(_status, STATE_INVALID);
@@ -118,7 +118,7 @@ void BoundaryBase<Trajectory>::ComputeBoundary(double t_in, const GeoVector& pos
    };
 
 // Set internal coordinates and evaluate boundary
-   SetState(t_in, pos_in, mom_in);
+   _coords = coords_in;
    if constexpr (Fields::AbsMag_found())
       _fields.AbsMag() = fields_in.AbsMag();
    if constexpr (Fields::Iv0_found())

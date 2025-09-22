@@ -378,7 +378,7 @@ void SimulationWorker<Trajectory>::PrintRecords(int distro, const std::string& f
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// SimulationBoss methods
+// SimulationServer methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -387,7 +387,7 @@ void SimulationWorker<Trajectory>::PrintRecords(int distro, const std::string& f
 \date 06/08/2022
 */
 template <typename Trajectory>
-SimulationBoss<Trajectory>::SimulationBoss(void)
+SimulationServer<Trajectory>::SimulationServer(void)
               : SimulationWorker()
 {
 };
@@ -401,14 +401,14 @@ SimulationBoss<Trajectory>::SimulationBoss(void)
 \param[in] fname_pattern_in File naming pattern for the server
 */
 template <typename Trajectory>
-void SimulationBoss<Trajectory>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
+void SimulationServer<Trajectory>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
 {
 // Create a unique server backend object based on the user preference stored in "server_config.hh".
 #ifdef NEED_SERVER
    server_back = std::make_unique<ServerBackType>(fname_pattern_in);
 #endif
 
-// This is required if the boss is also a worker
+// This is required if the server is also a worker
    SimulationWorker::AddBackground(background_in, container_in);
 };
 
@@ -418,14 +418,14 @@ void SimulationBoss<Trajectory>::AddBackground(const BackgroundBase& background_
 \date 10/26/2022
 */
 template <typename Trajectory>
-void SimulationBoss<Trajectory>::BossStart(void)
+void SimulationServer<Trajectory>::ServerStart(void)
 {
 // Set the number of workers that are initially active in our node and start the server backend
 #ifdef NEED_SERVER
    active_local_workers = MPI_Config::workers_in_node;
    server_back->ServerStart();
 #else
-// Signal the master that this CPU is available to do work if boss is worker
+// Signal the master that this CPU is available to do work if server is worker
    if (MPI_Config::is_worker) WorkerStart();
 #endif
 };
@@ -435,19 +435,19 @@ void SimulationBoss<Trajectory>::BossStart(void)
 \date 07/01/2022
 */
 template <typename Trajectory>
-void SimulationBoss<Trajectory>::BossFinish(void)
+void SimulationServer<Trajectory>::ServerFinish(void)
 {
 // Stop the server backend
 #ifdef NEED_SERVER
    server_back->ServerFinish();
 
-// Print status message that boss left simulation
+// Print status message that server left simulation
 #ifdef GEO_DEBUG
-   std::cerr << "Boss with rank " << MPI_Config::boss_comm_rank << " exited simulation." << std::endl;
+   std::cerr << "Server with rank " << MPI_Config::server_comm_rank << " exited simulation." << std::endl;
 #endif
 
 #else
-// Report partial cumulatives if boss is worker
+// Report partial cumulatives if server is worker
    if (MPI_Config::is_worker) WorkerFinish();
 #endif
 };
@@ -457,7 +457,7 @@ void SimulationBoss<Trajectory>::BossFinish(void)
 \date 04/28/2021
 */
 template <typename Trajectory>
-void SimulationBoss<Trajectory>::BossDuties(void)
+void SimulationServer<Trajectory>::ServerDuties(void)
 {
 #ifdef NEED_SERVER // This needs to be here to avoid a compilation error when NEED_SERVER is not defined
    int workers_stopped;
@@ -471,19 +471,19 @@ void SimulationBoss<Trajectory>::BossDuties(void)
 \date 10/25/2022
 */
 template <typename Trajectory>
-void SimulationBoss<Trajectory>::MainLoop(void)
+void SimulationServer<Trajectory>::MainLoop(void)
 {
-   BossStart();
+   ServerStart();
 
 #ifdef NEED_SERVER
-   while (active_local_workers) BossDuties();
+   while (active_local_workers) ServerDuties();
 #else
    if (MPI_Config::is_worker) {
       while (current_batch_size) WorkerDuties();
    };
 #endif
 
-   BossFinish();
+   ServerFinish();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -496,7 +496,7 @@ void SimulationBoss<Trajectory>::MainLoop(void)
 */
 template <typename Trajectory>
 SimulationMaster<Trajectory>::SimulationMaster(void)
-                : SimulationBoss()
+                : SimulationServer()
 {
 // If simulation is parallel, initialize batches assigned array and cpu available requests array
    if (is_parallel) {
@@ -572,7 +572,7 @@ void SimulationMaster<Trajectory>::PrintMPICommsInfo(void)
    std::cerr << "========== MPI Communicators Info ==========" << std::endl;
    std::cerr << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
    std::cerr << "Size of global communicator: " << MPI_Config::glob_comm_size << std::endl;
-   std::cerr << "Size of boss communicator: " << MPI_Config::boss_comm_size << std::endl;
+   std::cerr << "Size of server communicator: " << MPI_Config::server_comm_size << std::endl;
    std::cerr << "Size of worker communicator: " << MPI_Config::work_comm_size << std::endl;
    std::cerr << "Total number of workers: " << MPI_Config::n_workers << std::endl;
 };
@@ -913,7 +913,7 @@ std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** 
    static MPI_Config mpicfg(argc, argv);
 
    if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
-   else if (MPI_Config::is_boss) return std::make_unique<SimulationBoss<Trajectory>>();
+   else if (MPI_Config::is_server) return std::make_unique<SimulationServer<Trajectory>>();
    else return std::make_unique<SimulationWorker<Trajectory>>();
 };
 

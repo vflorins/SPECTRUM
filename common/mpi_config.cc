@@ -25,7 +25,7 @@ namespace Spectrum {
 //                |       |       |       |       |       |       |       |       |       |       |       |
 //                |_______|_______|_______|       |_______|_______|_______|       |_______|_______|_______|
 //
-// boss_comm:     0                               4                               8
+// server_comm:     0                               4                               8
 //                |                               |                               |
 //                |_______________________________|_______________________________|
 //
@@ -41,7 +41,7 @@ namespace Spectrum {
 //                |       |       |       |       |       |       |       |       |       |       |       |
 //                |_______|_______|_______|       |_______|_______|_______|       |_______|_______|_______|
 //
-// boss_comm:     0                               4                               8
+// server_comm:     0                               4                               8
 //                |                               |                               |
 //                |_______________________________|_______________________________|
 //
@@ -57,7 +57,7 @@ namespace Spectrum {
 //                        |       |       |       |       |       |       |       |       |       |       |
 //                        |_______|_______|       |_______|_______|_______|       |_______|_______|_______|
 //
-// boss_comm:     0       1                       4                               8
+// server_comm:     0       1                       4                               8
 //                |       |                       |                               |
 //                |_______|_______________________|_______________________________|
 //
@@ -73,7 +73,7 @@ namespace Spectrum {
 //                        |       |       |       |       |       |       |       |       |       |       |
 //                        |_______|_______|       |_______|_______|_______|       |_______|_______|_______|
 //
-// boss_comm:     0       1                       4                               8
+// server_comm:     0       1                       4                               8
 //                |       |                       |                               |
 //                |_______|_______________________|_______________________________|
 //
@@ -105,13 +105,13 @@ MPI_Config::MPI_Config(int argc, char** argv)
    MPI_Comm_size(node_comm, &node_comm_size);
    MPI_Comm_rank(node_comm, &node_comm_rank);
 
-// Adjust for multiple bosses per node
+// Adjust for multiple servers per node
 #ifdef N_BOSSES_PER_NODE
 #if N_BOSSES_PER_NODE > 1
    int sock_comm_size, sock_comm_rank;
    MPI_Comm sock_comm, sock_comm_tmp;
 
-// First split based on socket. This is done to ensure that bosses only communicate with workers within their physical socket. 
+// First split based on socket. This is done to ensure that servers only communicate with workers within their physical socket.
    MPI_Comm_split_type(node_comm, OMPI_COMM_TYPE_SOCKET, 0, MPI_INFO_NULL, &sock_comm);
    MPI_Comm_size(sock_comm, &sock_comm_size);
    MPI_Comm_rank(sock_comm, &sock_comm_rank);
@@ -120,17 +120,17 @@ MPI_Config::MPI_Config(int argc, char** argv)
    int sock_count_msg = (sock_comm_rank ? 0 : 1);
    MPI_Allreduce(&sock_count_msg, &n_sockets_per_node, 1, MPI_INT, MPI_SUM, node_comm);
 
-// Find number of bosses per socket. This number is forced to be at least 1 and rounded down to be an integer for simplicity.
-   n_bosses_per_socket = N_BOSSES_PER_NODE / n_sockets_per_node;
+// Find number of servers per socket. This number is forced to be at least 1 and rounded down to be an integer for simplicity.
+   n_servers_per_socket = N_BOSSES_PER_NODE / n_sockets_per_node;
 
-// If there are more sockets than bosses, just pretend N_BOSSES_PER_NODE = n_bosses_per_socket * n_sockets_per_node
-   if (n_bosses_per_socket < 1) {
-      n_bosses_per_socket = 1;
+// If there are more sockets than servers, just pretend N_BOSSES_PER_NODE = n_servers_per_socket * n_sockets_per_node
+   if (n_servers_per_socket < 1) {
+      n_servers_per_socket = 1;
    }
 
-// If necessary, further split sock_comm for as many bosses as
-   else if (n_bosses_per_socket > 1) {
-      MPI_Comm_split(sock_comm, (sock_comm_rank % n_bosses_per_socket), 0, &sock_comm_tmp);
+// If necessary, further split sock_comm for as many servers as
+   else if (n_servers_per_socket > 1) {
+      MPI_Comm_split(sock_comm, (sock_comm_rank % n_servers_per_socket), 0, &sock_comm_tmp);
       MPI_Comm_free(&sock_comm);
       sock_comm = sock_comm_tmp;
    };
@@ -163,7 +163,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
       };
    };
 
-// Process 0 on each node sends its global rank to the master (including master to self). At this time it is not known whether process 0 is a boss because a master-boss may not be allowed.
+// Process 0 on each node sends its global rank to the master (including master to self). At this time it is not known whether process 0 is a server because a master-server may not be allowed.
    if (!node_comm_rank) MPI_Send(&glob_comm_rank, 1, MPI_INT, 0, 0, glob_comm);
 
 // Sort the "glob_rank" array and broadcast the sorted array to all processes.
@@ -186,12 +186,12 @@ MPI_Config::MPI_Config(int argc, char** argv)
    delete[] glob_ranks;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Boss functions
+// Server functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef ALLOW_MASTER_BOSS
 
-// If the master cannot be a boss, remove the master from the respective node communicator. On the master "node_comm" will be set to MPI_COMM_NULL.
+// If the master cannot be a server, remove the master from the respective node communicator. On the master "node_comm" will be set to MPI_COMM_NULL.
    MPI_Comm node_comm_tmp;
    if (!my_node) {
       if (node_comm_size < 2) {
@@ -210,7 +210,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
          node_comm = node_comm_tmp;
       };
 
-// The size and rank of the node communicator have changed, so we need to update "node_comm_size" and "node_comm_rank". A non-boss master will set these to -1.
+// The size and rank of the node communicator have changed, so we need to update "node_comm_size" and "node_comm_rank". A non-server master will set these to -1.
       if (node_comm != MPI_COMM_NULL) {
          MPI_Comm_size(node_comm, &node_comm_size);
          MPI_Comm_rank(node_comm, &node_comm_rank);
@@ -224,25 +224,25 @@ MPI_Config::MPI_Config(int argc, char** argv)
 
 #endif
 
-   is_boss = (node_comm_rank ? false : true);
+   is_server = (node_comm_rank ? false : true);
 
-// Create a boss communicator. The order is the same as the node order, but if the master is separate, the boss ranks will be off by 1. The master is always rank 0 in "boss_comm" even if separate because it has a lower global rank than the boss on its node.
-   MPI_Comm_split(glob_comm, ((is_boss || is_master) ? 1 : MPI_UNDEFINED), my_node, &boss_comm);
-   if (boss_comm != MPI_COMM_NULL) {
-      MPI_Comm_size(boss_comm, &boss_comm_size);
-      MPI_Comm_rank(boss_comm, &boss_comm_rank);
+// Create a server communicator. The order is the same as the node order, but if the master is separate, the server ranks will be off by 1. The master is always rank 0 in "server_comm" even if separate because it has a lower global rank than the server on its node.
+   MPI_Comm_split(glob_comm, ((is_server || is_master) ? 1 : MPI_UNDEFINED), my_node, &server_comm);
+   if (server_comm != MPI_COMM_NULL) {
+      MPI_Comm_size(server_comm, &server_comm_size);
+      MPI_Comm_rank(server_comm, &server_comm_rank);
    }
    else {
-      boss_comm_size = -1;
-      boss_comm_rank = -1;
+      server_comm_size = -1;
+      server_comm_rank = -1;
    };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Worker functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Determine the number of workers and set the worker status. The number could be zero if there is only one process on the node and a boss-worker is not allowed.
-   if (is_boss) {
+// Determine the number of workers and set the worker status. The number could be zero if there is only one process on the node and a server-worker is not allowed.
+   if (is_server) {
 
 #ifdef ALLOW_BOSS_WORKER
       workers_in_node = node_comm_size;
@@ -264,7 +264,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
       };
    };
 
-// Create a worker communicator that includes the workers and the master. If boss-workers are not allowed, boss processes will be excluded.
+// Create a worker communicator that includes the workers and the master. If server-workers are not allowed, server processes will be excluded.
    MPI_Comm_split(glob_comm, ((is_master || is_worker) ? 1 : MPI_UNDEFINED), glob_comm_rank, &work_comm);
    if (work_comm != MPI_COMM_NULL) {
       MPI_Comm_size(work_comm, &work_comm_size);
@@ -281,12 +281,12 @@ MPI_Config::MPI_Config(int argc, char** argv)
       workers_per_node = new int[n_nodes];
       req_worker_count = new MPI_Request[n_nodes];
       for (proc = 0; proc < n_nodes; proc++) {
-         MPI_Irecv(workers_per_node + proc, 1, MPI_INT, (is_boss ? proc : proc + 1), MPI_ANY_TAG, boss_comm, req_worker_count + proc);
+         MPI_Irecv(workers_per_node + proc, 1, MPI_INT, (is_server ? proc : proc + 1), MPI_ANY_TAG, server_comm, req_worker_count + proc);
       };
    };
 
-// Each boss sends its number of workers to the master (including master to self if allowed)
-   if (is_boss) MPI_Send(&workers_in_node, 1, MPI_INT, 0, 0, boss_comm);
+// Each server sends its number of workers to the master (including master to self if allowed)
+   if (is_server) MPI_Send(&workers_in_node, 1, MPI_INT, 0, 0, server_comm);
 
 // Wait for worker count to be received, count the total
    if (is_master) {
@@ -308,7 +308,7 @@ MPI_Config::~MPI_Config()
 {
    if (is_master) delete[] workers_per_node;
    if (work_comm != MPI_COMM_NULL) MPI_Comm_free(&work_comm);
-   if (boss_comm != MPI_COMM_NULL) MPI_Comm_free(&boss_comm);
+   if (server_comm != MPI_COMM_NULL) MPI_Comm_free(&server_comm);
    if (node_comm != MPI_COMM_NULL) MPI_Comm_free(&node_comm);
    MPI_Comm_free(&glob_comm);
 
@@ -357,16 +357,16 @@ void TestMPIConfig(void)
    infofile << std::endl;
 
    infofile << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
-   infofile << "Size of boss communicator: " << MPI_Config::boss_comm_size << std::endl;
-   infofile << "Rank in boss communicator: " << MPI_Config::boss_comm_rank << std::endl;
-   infofile << "Boss status: " << (MPI_Config::is_boss ? "YES" : "NO") << std::endl;
+   infofile << "Size of server communicator: " << MPI_Config::server_comm_size << std::endl;
+   infofile << "Rank in server communicator: " << MPI_Config::server_comm_rank << std::endl;
+   infofile << "Server status: " << (MPI_Config::is_server ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
    infofile << "This is node: " << MPI_Config::my_node << std::endl;
    infofile << "Size of node communicator: " << MPI_Config::node_comm_size << std::endl;
    infofile << "Rank in node communicator: " << MPI_Config::node_comm_rank << std::endl;
    infofile << "Number of sockets per node: " << MPI_Config::n_sockets_per_node << std::endl;
-   infofile << "Number of bosses per socket: " << MPI_Config::n_bosses_per_socket << std::endl;
+   infofile << "Number of servers per socket: " << MPI_Config::n_servers_per_socket << std::endl;
    infofile << std::endl;
 
    infofile << "Total number of workers: " << MPI_Config::n_workers << std::endl;

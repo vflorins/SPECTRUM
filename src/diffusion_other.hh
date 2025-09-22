@@ -18,9 +18,6 @@ namespace Spectrum {
 // DiffusionIsotropicConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionIsotropicConstant class
-const std::string diff_name_isotropic_constant = "DiffusionIsotropicConstant";
-
 /*!
 \brief Isotropic scattering in pitch angle only, uniform in space
 \author Vladimir Florinski
@@ -29,19 +26,25 @@ Parameters: (DiffusionBase), double D0
 */
 template <typename Trajectory_>
 class DiffusionIsotropicConstant : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionIsotropicConstant class
+   static constexpr std::string_view diff_name = "DiffusionIsotropicConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
    using DiffusionBase::mu;
+   using DiffusionBase::Stage;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<HConfig>>, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -52,7 +55,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -69,15 +72,12 @@ public:
    CloneFunctionDiffusion(DiffusionIsotropicConstant);
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionQLTConstant class
-const std::string diff_name_qlt_constant = "DiffusionQLTConstant";
 
 /*!
 \brief Scattering in pitch angle according to quasi-linear theory for slab turbulence, uniform in space
@@ -87,22 +87,28 @@ Parameters: (DiffusionBase), double A2A, double l_max, double ps_index
 */
 template <typename Trajectory_>
 class DiffusionQLTConstant : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionQLTConstant class
+   static constexpr std::string_view diff_name = "DiffusionQLTConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
 //   using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
    using DiffusionBase::mu;
    using DiffusionBase::Omega;
    using DiffusionBase::st2;
    using DiffusionBase::vmag;
+   using DiffusionBase::Stage;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionQLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<HConfig>>, "DiffusionQLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -125,7 +131,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -133,7 +139,7 @@ public:
    DiffusionQLTConstant(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionQLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DiffusionQLTConstant(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    DiffusionQLTConstant(const DiffusionQLTConstant& other);
@@ -151,12 +157,6 @@ public:
 // DiffusionWNLTConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionWNLTConstant class
-const std::string diff_name_wnlt_constant = "DiffusionWNLTConstant";
-
-//! Flag to use QLT pitch angle scattering with WLNT perpendicular diffusion
-#define USE_QLT_SCATT_WITH_WNLT_DIFF
-
 /*!
 \brief A weakly nonlinear model with pitch angle scattering and perpendicular diffusion with constant turbulent ratios.
 \author Vladimir Florinski
@@ -165,27 +165,34 @@ Parameters: (DiffusionQLTConstant), double A2T, double A2L
 */
 template <typename Trajectory_>
 class DiffusionWNLTConstant : public DiffusionQLTConstant<Trajectory_> {
+
+//! Readable name of the DiffusionWNLTConstant class
+   static constexpr std::string_view diff_name = "DiffusionWNLTConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
+   using HConfig::specie;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using DiffusionQLTConstant = DiffusionQLTConstant<Trajectory>;
 
    //   using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
    using DiffusionBase::mu;
    using DiffusionBase::Omega;
    using DiffusionBase::st2;
    using DiffusionBase::vmag;
+   using DiffusionBase::Stage;
 
    using DiffusionQLTConstant::ps_index;
    using DiffusionQLTConstant::k_min;
    using DiffusionQLTConstant::ps_minus;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionWNLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<HConfig>>, "DiffusionWNLTConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -202,7 +209,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -210,7 +217,7 @@ public:
    DiffusionWNLTConstant(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DiffusionWNLTConstant(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    DiffusionWNLTConstant(const DiffusionWNLTConstant& other);
@@ -226,9 +233,6 @@ public:
 // DiffusionWNLTRampVLISM class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionWNLTRampVLISM class
-const std::string diff_name_wnlt_ramp_vlism = "DiffusionWNLTRampVLISM";
-
 /*!
 \brief WNLT diffusion in VLISM where the largest scale to turbulence increases linearly (ramp) between the HP (Rankine half body) and the sheath surface (also a Rankine half body) and is constant elsewhere.
 \author Juan G Alonso Guzman
@@ -238,16 +242,23 @@ Parameters: (DiffusionWNLTConstant)
 */
 template <typename Trajectory_>
 class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant<Trajectory_> {
+
+//! Readable name of the DiffusionWNLTRampVLISM class
+   static constexpr std::string_view diff_name = "DiffusionWNLTRampVLISM";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using DiffusionWNLTConstant = DiffusionWNLTConstant<Trajectory>;
 
-   using DiffusionBase::_pos;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
+   using DiffusionBase::_coords;
+   using DiffusionBase::_fields;
+   using DiffusionBase::Stage;
 
    using DiffusionWNLTConstant::k_min;
    using DiffusionWNLTConstant::ps_minus;
@@ -256,7 +267,7 @@ public:
    using DiffusionWNLTConstant::A2L;
    using DiffusionWNLTConstant::l_max;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>>, "DiffusionWNLTRampVLISM diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(!std::same_as<Trajectory, TrajectoryParker<HConfig>>, "DiffusionWNLTRampVLISM diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -291,7 +302,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -312,9 +323,6 @@ public:
 // DiffusionParaConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the DiffusionParaConstant class
-const std::string diff_name_para_constant = "DiffusionParaConstant";
-
 /*!
 \brief Parallel diffusion uniform in space
 \author Juan G Alonso Guzman
@@ -324,16 +332,22 @@ Parameters: (DiffusionBase), double D0
 */
 template <typename Trajectory_>
 class DiffusionParaConstant : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionParaConstant class
+   static constexpr std::string_view diff_name = "DiffusionParaConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -344,7 +358,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -361,18 +375,15 @@ public:
    CloneFunctionDiffusion(DiffusionParaConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionPerpConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionPerpConstant class
-const std::string diff_name_perp_constant = "DiffusionPerpConstant";
 
 /*!
 \brief Perpendicular diffusion uniform in space
@@ -383,16 +394,22 @@ Parameters: (DiffusionBase), double D0
 */
 template <typename Trajectory_>
 class DiffusionPerpConstant : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionPerpConstant class
+   static constexpr std::string_view diff_name = "DiffusionPerpConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -403,7 +420,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -420,18 +437,15 @@ public:
    CloneFunctionDiffusion(DiffusionPerpConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionFullConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionFullConstant class
-const std::string diff_name_full_constant = "DiffusionFullConstant";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion uniform in space
@@ -442,16 +456,22 @@ Parameters: (DiffusionBase), double Dperp, double Dpara
 */
 template <typename Trajectory_>
 class DiffusionFullConstant : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionFullConstant class
+   static constexpr std::string_view diff_name = "DiffusionFullConstant";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -465,7 +485,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -482,18 +502,15 @@ public:
    CloneFunctionDiffusion(DiffusionFullConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionFlowMomentumPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionFlowMomentumPowerLaw class
-const std::string diff_name_flow_momentum_power_law = "DiffusionFlowMomentumPowerLaw";
 
 /*!
 \brief Diffusion as a power law of flow velocity magnitude and momentum
@@ -504,18 +521,25 @@ Parameters: (DiffusionBase), double kap0, double u0, double power_law_U, double 
 */
 template <typename Trajectory_>
 class DiffusionFlowMomentumPowerLaw : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionFlowMomentumPowerLaw class
+   static constexpr std::string_view diff_name = "DiffusionFlowMomentumPowerLaw";
+
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
    using DiffusionBase::_mom;
    using DiffusionBase::_fields;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -541,7 +565,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -558,18 +582,15 @@ public:
    CloneFunctionDiffusion(DiffusionFlowMomentumPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionKineticEnergyRadialDistancePowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
-const std::string diff_name_kinetic_energy_radial_distance_power_law = "DiffusionKineticEnergyRadialDistancePowerLaw";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, kinetic energy and radial distance power law
@@ -580,19 +601,26 @@ Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T
 */
 template <typename Trajectory_>
 class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<Trajectory_> {
+
+
+//! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
+   static constexpr std::string_view diff_name = "DiffusionKineticEnergyRadialDistancePowerLaw";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
-   using DiffusionBase::_pos;
-   using DiffusionBase::_mom;
    using DiffusionBase::specie;
    using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
+   using DiffusionBase::_coords;
+   using DiffusionBase::_fields;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -618,7 +646,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -635,18 +663,15 @@ public:
    CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionRigidityMagneticFieldPowerLaw class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionRigidityMagneticFieldPowerLaw class
-const std::string diff_name_rigidity_magnetic_field_power_law = "DiffusionRigidityMagneticFieldPowerLaw";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law
@@ -657,20 +682,26 @@ Parameters: (DiffusionBase), double lam0, double R0, double B0, double pow_law_R
 */
 template <typename Trajectory_>
 class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionRigidityMagneticFieldPowerLaw class
+   static constexpr std::string_view diff_name = "DiffusionRigidityMagneticFieldPowerLaw";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
-   using DiffusionBase::_mom;
    using DiffusionBase::specie;
+   using DiffusionBase::container;
+   using DiffusionBase::_coords;
    using DiffusionBase::_fields;
    using DiffusionBase::vmag;
-   using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -696,7 +727,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -713,18 +744,15 @@ public:
    CloneFunctionDiffusion(DiffusionRigidityMagneticFieldPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
-   double GetDirectionalDerivative(int xyz, DerivativeData& ddata_in) override;
+   double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata) override;
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionStraussEtAl2013 class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionStraussEtAl2013 class
-const std::string diff_name_strauss_et_al_2013 = "DiffusionStraussEtAl2013";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Strauss et al 2013
@@ -735,20 +763,26 @@ Parameters: (DiffusionBase), int LISM_idx, double lam_in, double lam_out, double
 */
 template <typename Trajectory_>
 class DiffusionStraussEtAl2013 : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionStraussEtAl2013 class
+   static constexpr std::string_view diff_name = "DiffusionStraussEtAl2013";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
-   using DiffusionBase::_mom;
    using DiffusionBase::specie;
+   using DiffusionBase::container;
+   using DiffusionBase::_coords;
    using DiffusionBase::_fields;
    using DiffusionBase::vmag;
-   using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -780,7 +814,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -797,7 +831,7 @@ public:
    CloneFunctionDiffusion(DiffusionStraussEtAl2013);
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 template <typename Trajectory>
@@ -806,9 +840,6 @@ using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<Trajectory>;
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionPotgieterEtAl2015 class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionPotgieterEtAl2015 class
-const std::string diff_name_potgieter_et_al_2015 = "DiffusionPotgieterEtAl2015";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, rigidity and magnetic field power law according to Potgieter et al 2015
@@ -819,20 +850,26 @@ Parameters: (DiffusionBase), int LISM_idx, double kappa_in, double kappa_out, do
 */
 template <typename Trajectory_>
 class DiffusionPotgieterEtAl2015 : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionPotgieterEtAl2015 class
+   static constexpr std::string_view diff_name = "DiffusionPotgieterEtAl2015";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
-   using DiffusionBase::_mom;
    using DiffusionBase::specie;
+   using DiffusionBase::container;
+   using DiffusionBase::_coords;
    using DiffusionBase::_fields;
    using DiffusionBase::vmag;
-   using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -864,7 +901,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -881,15 +918,12 @@ public:
    CloneFunctionDiffusion(DiffusionPotgieterEtAl2015);
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionEmpiricalSOQLTandUNLT class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Readable name of the DiffusionEmpiricalSOQLTandUNLT class
-const std::string diff_name_empirical_soqlt_and_unlt = "DiffusionEmpiricalSOQLTandUNLT";
 
 /*!
 \brief Full (perpendicular + parallel) diffusion, parametrized empirical fit to SOQLT (parallel) and UNLT (perpendicular) using a bent power-law spectrum with change in perpendicular diffusion according to magnetic mixing and solar cycle indicator variables
@@ -898,21 +932,26 @@ Parameters: (DiffusionBase), double lam_para, double lam_perp, double R0, double
 */
 template <typename Trajectory_>
 class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<Trajectory_> {
+
+//! Readable name of the DiffusionEmpiricalSOQLTandUNLT class
+   static constexpr std::string_view diff_name = "DiffusionEmpiricalSOQLTandUNLT";
+
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = Trajectory::HConfig;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
    using DiffusionBase = DiffusionBase<Trajectory>;
 
    using DiffusionBase::_status;
-   using DiffusionBase::_pos;
-   using DiffusionBase::_mom;
    using DiffusionBase::specie;
+   using DiffusionBase::container;
+   using DiffusionBase::_coords;
    using DiffusionBase::_fields;
    using DiffusionBase::vmag;
-   using DiffusionBase::container;
-   using DiffusionBase::comp_eval;
    using DiffusionBase::Kappa;
+   using DiffusionBase::Stage;
 
 protected:
 
@@ -950,7 +989,7 @@ protected:
    void SetupDiffusion(bool construct) override;
 
 //! Compute the diffusion coefficients
-   void EvaluateDiffusion(void) override;
+   void EvaluateDiffusion(int comp) override;
 
 public:
 
@@ -967,7 +1006,7 @@ public:
    CloneFunctionDiffusion(DiffusionEmpiricalSOQLTandUNLT);
 
 //! Compute derivative of diffusion coefficient in mu
-   double GetMuDerivative(void) override;
+   double GetMuDerivative(int comp) override;
 };
 
 };

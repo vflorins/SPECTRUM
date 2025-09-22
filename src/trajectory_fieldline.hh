@@ -26,36 +26,40 @@ i.e., the "field" in Fieldline.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
 template <typename HConfig_, typename Field_t_>
-class TrajectoryFieldline : public TrajectoryFieldlineBase<TrajectoryFieldline<HConfig_, Field_t_>, Fields_> {
+class TrajectoryFieldline : public TrajectoryFieldlineBase<TrajectoryFieldline<HConfig_, Field_t_>, HConfig_> {
 
 //! Readable name
-   static constexpr std::string_view traj_name = "TrajectoryFieldline";
+   static constexpr std::string_view traj_name = std::string_view("TrajectoryFieldline" + std::string(Field_t_::name));
 
 public:
 
    using HConfig = HConfig_;
    using Coordinates = HConfig::Coordinates;
-   using Fields = HConfig::TrajectoryFields;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
+
    using Field_t = Field_t_;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFieldline<Fields, Field_t>, Fields>;
-   using TrajectoryFieldlineBase = TrajectoryFieldlineBase<TrajectoryFieldline<Fields, Field_t>, Fields>;
+   using TrajectoryFieldlineBase = TrajectoryFieldlineBase<TrajectoryFieldline<HConfig, Field_t>, HConfig>;
 
 protected:
 
-   using TrajectoryFieldlineBase::_mom;
+   using TrajectoryBase::_status;
+   using TrajectoryBase::_coords;
+   using TrajectoryBase::_fields;
+   using TrajectoryBase::_dmax;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::dt_physical;
+
+   using TrajectoryFieldlineBase::SetStart;
+   using TrajectoryFieldlineBase::Slopes;
    using TrajectoryFieldlineBase::ConvertMomentum;
    using TrajectoryFieldlineBase::PhysicalStep;
    using TrajectoryFieldlineBase::Advance;
-   using TrajectoryFieldlineBase::_vel;
-   using TrajectoryFieldlineBase::_fields;
-
-public:
-
-   using TrajectoryFieldlineBase::SetStart;
-   using TrajectoryFieldlineBase::ConnectRNG;
 
 // static assert(s) for Field_t
-   static_assert(Fields::template found<Field_t>(), "The trace field for TrajectoryFieldline is not a tracked field. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<Field_t>(), "The trace field for TrajectoryFieldline is not a tracked field. Add it to the Fields type defined during configuration.");
    static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Elc_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");
 
 protected:

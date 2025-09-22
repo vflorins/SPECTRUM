@@ -73,13 +73,13 @@ void BoundaryMomentum<Trajectory>::SetupBoundary(bool construct)
 template <typename Trajectory>
 void BoundaryMomentum<Trajectory>::EvaluateBoundary(void)
 {
-   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
+   if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, HConfig>>) {
       _delta = _mom.Norm() - momentum;
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
       _delta = _mom[0] - momentum;
    }
-   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, Fields>>){
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>){
 // TODO
       ;
    }
@@ -357,7 +357,7 @@ template <typename Trajectory>
 void BoundaryMirror<Trajectory>::EvaluateBoundary(void)
 {
 // Delta is the parallel momentum component
-   if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, Fields>>) {
+   if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, HConfig>>) {
       _delta = _mom[2];
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>>) {

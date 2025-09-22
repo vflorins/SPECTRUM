@@ -14,24 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//// Switch controlling how to calculate mu. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
-//#define PPERP_METHOD 1
-//
-////! Flag to use gradient and curvature drifts in drift velocity calculation
-//#define TRAJ_FOCUSED_USE_B_DRIFTS
-//
-////! Default initial size
-//const unsigned int defsize_focused = 10000;
-//
-////! CFL condition for advection
-//const double cfl_adv_tf = 0.5;
-//
-////! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-//const double drift_safety_tf = 0.5;
-//
-////! How many time steps to allow before recording a mirror event
-//const int mirror_thresh_focused = 10;
-
 /*!
 \brief Trajectory tracer for the focused transport equation
 \author Juan G Alonso Guzman
@@ -47,33 +29,31 @@ class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<HConfig_>, HCo
 public:
 
    using HConfig = HConfig_;
-   using Fields = Fields_;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>>;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
 
-   using TrajectoryBase::_t;
-   using TrajectoryBase::_pos;
-   using TrajectoryBase::_vel;
-   using TrajectoryBase::_mom;
+   using TrajectoryBase::_status;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
-   using TrajectoryBase::traj_t;
-   using TrajectoryBase::traj_pos;
-   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-   using TrajectoryBase::local_t;
-   using TrajectoryBase::local_pos;
-   using TrajectoryBase::local_mom;
+
    // methods:
    using TrajectoryBase::RKAdvance;
 
-   static_assert(Fields::template found<Vel_t>(), "Vel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DotVel_t>(), "DotVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   using TrajectoryBase::local_coords;
+
+   static_assert(TrajectoryFields::template found<Vel_t>(), "Vel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<DotVel_t>(), "DotVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 
@@ -120,7 +100,7 @@ public:
    TrajectoryFocused(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryFocused(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryFocused(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryFocused(const TrajectoryFocused& other) = delete;
@@ -147,14 +127,9 @@ public:
 template <typename Fields>
 inline void TrajectoryFocused<Fields>::Load(void)
 {
-#ifdef RECORD_TRAJECTORY
-   _t = traj_t.back();
-   _pos = traj_pos.back();
-   _mom = traj_mom.back();
-#endif
-   _vel[0] = Vel(_mom[0], specie);
-   _vel[1] = _mom[1];
-   _vel[2] = 0.0;
+   _coords.Vel()[0] = Vel(_coords.Mom()[0], specie);
+   _coords.Vel()[1] = _coords.Mom()[1];
+   _coords.Vel()[2] = 0.0;
 };
 /*!
 \author Juan G Alonso Guzman
@@ -164,12 +139,10 @@ inline void TrajectoryFocused<Fields>::Load(void)
 template <typename Fields>
 inline void TrajectoryFocused<Fields>::LoadLocal(void)
 {
-   _t = local_t;
-   _pos = local_pos;
-   _mom = local_mom;
-   _vel[0] = Vel(_mom[0], specie);
-   _vel[1] = _mom[1];
-   _vel[2] = 0.0;
+   _coords = local_coords;
+   _coords.Vel()[0] = Vel(_coords.Mom()[0], specie);
+   _coords.Vel()[1] = _coords.Mom()[1];
+   _coords.Vel()[2] = 0.0;
 };
 
 /*!
@@ -180,7 +153,7 @@ inline void TrajectoryFocused<Fields>::LoadLocal(void)
 template <typename Fields>
 inline void TrajectoryFocused<Fields>::ReverseMomentum(void)
 {
-   _mom[1] = -_mom[1];
+   _coords.Mom()[1] = -_coords.Mom()[1];
 };
 
 };

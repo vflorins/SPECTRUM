@@ -20,9 +20,9 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename Fields, typename Field_t>
-TrajectoryFieldline<Fields, Field_t>::TrajectoryFieldline(void)
-                   : TrajectoryFieldlineBase(traj_name_fieldline + std::string(Field_t::name), 0, STATE_NONE, defsize_fieldline)
+template <typename HConfig, typename Field_t>
+TrajectoryFieldline<HConfig, Field_t>::TrajectoryFieldline(void)
+                   : TrajectoryFieldlineBase(traj_name, STATE_NONE)
 {
 };
 
@@ -33,20 +33,20 @@ TrajectoryFieldline<Fields, Field_t>::TrajectoryFieldline(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Fields, typename Field_t>
-void TrajectoryFieldline<Fields, Field_t>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig, typename Field_t>
+void TrajectoryFieldline<HConfig, Field_t>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    if constexpr (std::same_as<Field_t, Vel_t>) {
-      slope_pos_istage = _vel[2] * UnitVec(_fields.Vel());
+      slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Vel());
    }
    else if constexpr (std::same_as<Field_t, Mag_t>) {
-      if constexpr(Fields::HatMag_found())
-         slope_pos_istage = _vel[2] * _fields.HatMag();
+      if constexpr(TrajectoryFields::HatMag_found())
+         slope_pos_istage = _coords.Vel()[2] * _fields.HatMag();
       else
-         slope_pos_istage = _vel[2] * UnitVec(_fields.Mag());
+         slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Mag());
    }
    else if constexpr (std::same_as<Field_t, Elc_t>) {
-      slope_pos_istage = _vel[2] * UnitVec(_fields.Elc());
+      slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Elc());
    }
    else {
       slope_pos_istage = gv_zeros;

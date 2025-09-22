@@ -144,30 +144,35 @@ else:
         Field("IvBmix", "Scalar", "magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
         Field("IvSolarCycle", "Scalar", "solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
     ]
-    speciess = [
-        Species("PrimitiveGasDyn", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for general gas dynamics"),
-        Species("ConservedGasDyn", "Den_t, Mom_t, Enr_t", "Fields of the conserved form for general gas dynamics"),
-        Species("PrimitiveMHD", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
-        Species("ConservedMHD", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
-        Species("PrimitiveMHDGLM", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
-        Species("ConservedMHDGLM", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
-        Species("ElectronCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
-        Species("ElectronHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("ElectronBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("ProtonCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
-        Species("ProtonHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("ProtonBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("ProtonPickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("AlphaCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("AlphaHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HeliumSingleCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HeliumSinglePickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HydrogenPlasmaCore", "Den_t, Vel_t, Prs_t, Mag_t, Glm_t, Iv0_t", "Fields of the primitive form for species"),
-        Species("HydrogenCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HydrogenHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HydrogenBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-        Species("HeliumCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
-    ]
+    speciess = []
+    # speciess = [
+    #     #####{ Deprecated
+    #
+    #     # Species("PrimitiveGasDyn", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for general gas dynamics"),
+    #     # Species("ConservedGasDyn", "Den_t, Mom_t, Enr_t", "Fields of the conserved form for general gas dynamics"),
+    #     # Species("PrimitiveMHD", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
+    #     # Species("ConservedMHD", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t", "Fields of the conserved form for general MHD"),
+    #     # Species("PrimitiveMHDGLM", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
+    #     # Species("ConservedMHDGLM", "Den_t, Mom_t, Enr_t, Mag_t, Elc_t, Glm_t", "Fields of the conserved form for general MHD-GLM"),
+    #     # Species("ElectronCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
+    #     # Species("ElectronHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("ElectronBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("ProtonCore", "Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t", "Fields of the primitive form for species"),
+    #     # Species("ProtonHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("ProtonBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("ProtonPickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("AlphaCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("AlphaHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HeliumSingleCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HeliumSinglePickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HydrogenPlasmaCore", "Den_t, Vel_t, Prs_t, Mag_t, Glm_t, Iv0_t", "Fields of the primitive form for species"),
+    #     # Species("HydrogenCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HydrogenHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HydrogenBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #     # Species("HeliumCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species"),
+    #
+    #     #####}
+    # ]
 
 generator = "generate.py"
 partially_generated_path = f"../partially_generated/"
@@ -287,40 +292,40 @@ namespace Spectrum {
 
 
 
-
-
-def generate_species_types():
-    """
-    Generate file `species.hh`.
-    This file contains types that depend on Species,
-    based on the list `species`. Species are accessible in Fields.
-    """
-    fname = "species_types.hh"
-    field_groups_parts = [
-f"""
-#ifndef SPECTRUM_SPECIES_TYPES_HH
-#define SPECTRUM_SPECIES_TYPES_HH
-
-#include "{not_generated_path}species.hh"
-
-namespace Spectrum {{
-
-""",
-"""};
-
-#endif
-""",
-    ]
-    x = file_header(fname) + field_groups_parts[0]
-    for grp in speciess:
-        x += f"/*!\n\\brief {grp.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {grp.name}_t = Species<Field::Id::{grp.name}, {grp.typelist}>;\n\n"
-    x += field_groups_parts[1]
-    with open(fname, 'w') as f:
-        f.write(x)
-
-
-
+# todo deprecated
+#
+# def generate_species_types():
+#     """
+#     Generate file `species.hh`.
+#     This file contains types that depend on Species,
+#     based on the list `species`. Species are accessible in Fields.
+#     """
+#     fname = "species_types.hh"
+#     field_groups_parts = [
+# f"""
+# #ifndef SPECTRUM_SPECIES_TYPES_HH
+# #define SPECTRUM_SPECIES_TYPES_HH
+#
+# #include "{not_generated_path}species.hh"
+#
+# namespace Spectrum {{
+#
+# """,
+# """};
+#
+# #endif
+# """,
+#     ]
+#     x = file_header(fname) + field_groups_parts[0]
+#     for grp in speciess:
+#         x += f"/*!\n\\brief {grp.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
+#         x += f"using {grp.name}_t = Species<Field::Id::{grp.name}, {grp.typelist}>;\n\n"
+#     x += field_groups_parts[1]
+#     with open(fname, 'w') as f:
+#         f.write(x)
+#
+#
+#
 
 
 
@@ -404,6 +409,26 @@ def get_injectee(injectee_label, named):
    }};
    
 """
+        x += """
+/*!
+\\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\\author Lucius Schoenbaum
+\\date 9/18/2025
+*/
+   template <typename ParentFields>
+   static inline Fields Get(ParentFields& fields) {
+      Fields out;
+"""
+        for field in fieldlist:
+            name = field.name
+            x += f"""      if constexpr (Fields::{name}_found()) {{
+         if constexpr (ParentFields::{name}_found())
+            out.{name}() = fields.{name}();
+         else
+            out.{name}() = {name}_t();
+      }}
+"""
+        x += "      return out;\n   }\n"
     elif injectee_label == 'base':
         for field in fieldlist:
             name = field.name
@@ -413,11 +438,16 @@ def get_injectee(injectee_label, named):
     return x
 
 
+def inject_getfields():
+    out = ""
+    return out
+
+
 if __name__ == '__main__':
 
     generate_field_lists()
     generate_field_types()
-    generate_species_types()
+    # generate_species_types()
     inject_fields()
 
 

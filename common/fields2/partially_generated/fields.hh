@@ -123,28 +123,6 @@ public: // test
    static constexpr const std::size_t IvLISM_offset = compute_offset<IvLISM_t>();
    static constexpr const std::size_t IvBmix_offset = compute_offset<IvBmix_t>();
    static constexpr const std::size_t IvSolarCycle_offset = compute_offset<IvSolarCycle_t>();
-   static constexpr const std::size_t PrimitiveGasDyn_offset = compute_offset<PrimitiveGasDyn_t>();
-   static constexpr const std::size_t ConservedGasDyn_offset = compute_offset<ConservedGasDyn_t>();
-   static constexpr const std::size_t PrimitiveMHD_offset = compute_offset<PrimitiveMHD_t>();
-   static constexpr const std::size_t ConservedMHD_offset = compute_offset<ConservedMHD_t>();
-   static constexpr const std::size_t PrimitiveMHDGLM_offset = compute_offset<PrimitiveMHDGLM_t>();
-   static constexpr const std::size_t ConservedMHDGLM_offset = compute_offset<ConservedMHDGLM_t>();
-   static constexpr const std::size_t ElectronCore_offset = compute_offset<ElectronCore_t>();
-   static constexpr const std::size_t ElectronHalo_offset = compute_offset<ElectronHalo_t>();
-   static constexpr const std::size_t ElectronBeam_offset = compute_offset<ElectronBeam_t>();
-   static constexpr const std::size_t ProtonCore_offset = compute_offset<ProtonCore_t>();
-   static constexpr const std::size_t ProtonHalo_offset = compute_offset<ProtonHalo_t>();
-   static constexpr const std::size_t ProtonBeam_offset = compute_offset<ProtonBeam_t>();
-   static constexpr const std::size_t ProtonPickup_offset = compute_offset<ProtonPickup_t>();
-   static constexpr const std::size_t AlphaCore_offset = compute_offset<AlphaCore_t>();
-   static constexpr const std::size_t AlphaHalo_offset = compute_offset<AlphaHalo_t>();
-   static constexpr const std::size_t HeliumSingleCore_offset = compute_offset<HeliumSingleCore_t>();
-   static constexpr const std::size_t HeliumSinglePickup_offset = compute_offset<HeliumSinglePickup_t>();
-   static constexpr const std::size_t HydrogenPlasmaCore_offset = compute_offset<HydrogenPlasmaCore_t>();
-   static constexpr const std::size_t HydrogenCore_offset = compute_offset<HydrogenCore_t>();
-   static constexpr const std::size_t HydrogenHalo_offset = compute_offset<HydrogenHalo_t>();
-   static constexpr const std::size_t HydrogenBeam_offset = compute_offset<HydrogenBeam_t>();
-   static constexpr const std::size_t HeliumCore_offset = compute_offset<HeliumCore_t>();
 
    // END(fields/generate, base)
 
@@ -1248,645 +1226,238 @@ As an array of double, the size is given by the static member size().
    
 
 /*!
-\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveGasDyn_t& PrimitiveGasDyn(void) {
-      return reinterpret_cast<PrimitiveGasDyn_t&>(*(data + PrimitiveGasDyn_offset));
-   };
-
-/*!
-\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveGasDyn_t& PrimitiveGasDyn(void) const {
-      return reinterpret_cast<const PrimitiveGasDyn_t&>(*(data + PrimitiveGasDyn_offset));
-   };
-
-
-/*!
-\brief Whether PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveGasDyn_found(void) {
-      return (PrimitiveGasDyn_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedGasDyn_t& ConservedGasDyn(void) {
-      return reinterpret_cast<ConservedGasDyn_t&>(*(data + ConservedGasDyn_offset));
-   };
-
-/*!
-\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedGasDyn_t& ConservedGasDyn(void) const {
-      return reinterpret_cast<const ConservedGasDyn_t&>(*(data + ConservedGasDyn_offset));
-   };
-
-
-/*!
-\brief Whether ConservedGasDyn (Fields of the conserved form for general gas dynamics) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedGasDyn_found(void) {
-      return (ConservedGasDyn_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveMHD_t& PrimitiveMHD(void) {
-      return reinterpret_cast<PrimitiveMHD_t&>(*(data + PrimitiveMHD_offset));
-   };
-
-/*!
-\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveMHD_t& PrimitiveMHD(void) const {
-      return reinterpret_cast<const PrimitiveMHD_t&>(*(data + PrimitiveMHD_offset));
-   };
-
-
-/*!
-\brief Whether PrimitiveMHD (Fields of the conserved form for general MHD) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveMHD_found(void) {
-      return (PrimitiveMHD_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedMHD_t& ConservedMHD(void) {
-      return reinterpret_cast<ConservedMHD_t&>(*(data + ConservedMHD_offset));
-   };
-
-/*!
-\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedMHD_t& ConservedMHD(void) const {
-      return reinterpret_cast<const ConservedMHD_t&>(*(data + ConservedMHD_offset));
-   };
-
-
-/*!
-\brief Whether ConservedMHD (Fields of the conserved form for general MHD) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedMHD_found(void) {
-      return (ConservedMHD_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) {
-      return reinterpret_cast<PrimitiveMHDGLM_t&>(*(data + PrimitiveMHDGLM_offset));
-   };
-
-/*!
-\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) const {
-      return reinterpret_cast<const PrimitiveMHDGLM_t&>(*(data + PrimitiveMHDGLM_offset));
-   };
-
-
-/*!
-\brief Whether PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveMHDGLM_found(void) {
-      return (PrimitiveMHDGLM_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedMHDGLM_t& ConservedMHDGLM(void) {
-      return reinterpret_cast<ConservedMHDGLM_t&>(*(data + ConservedMHDGLM_offset));
-   };
-
-/*!
-\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedMHDGLM_t& ConservedMHDGLM(void) const {
-      return reinterpret_cast<const ConservedMHDGLM_t&>(*(data + ConservedMHDGLM_offset));
-   };
-
-
-/*!
-\brief Whether ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedMHDGLM_found(void) {
-      return (ConservedMHDGLM_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronCore_t& ElectronCore(void) {
-      return reinterpret_cast<ElectronCore_t&>(*(data + ElectronCore_offset));
-   };
-
-/*!
-\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronCore_t& ElectronCore(void) const {
-      return reinterpret_cast<const ElectronCore_t&>(*(data + ElectronCore_offset));
-   };
-
-
-/*!
-\brief Whether ElectronCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronCore_found(void) {
-      return (ElectronCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronHalo_t& ElectronHalo(void) {
-      return reinterpret_cast<ElectronHalo_t&>(*(data + ElectronHalo_offset));
-   };
-
-/*!
-\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronHalo_t& ElectronHalo(void) const {
-      return reinterpret_cast<const ElectronHalo_t&>(*(data + ElectronHalo_offset));
-   };
-
-
-/*!
-\brief Whether ElectronHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronHalo_found(void) {
-      return (ElectronHalo_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronBeam_t& ElectronBeam(void) {
-      return reinterpret_cast<ElectronBeam_t&>(*(data + ElectronBeam_offset));
-   };
-
-/*!
-\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronBeam_t& ElectronBeam(void) const {
-      return reinterpret_cast<const ElectronBeam_t&>(*(data + ElectronBeam_offset));
-   };
-
-
-/*!
-\brief Whether ElectronBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronBeam_found(void) {
-      return (ElectronBeam_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonCore_t& ProtonCore(void) {
-      return reinterpret_cast<ProtonCore_t&>(*(data + ProtonCore_offset));
-   };
-
-/*!
-\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonCore_t& ProtonCore(void) const {
-      return reinterpret_cast<const ProtonCore_t&>(*(data + ProtonCore_offset));
-   };
-
-
-/*!
-\brief Whether ProtonCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonCore_found(void) {
-      return (ProtonCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonHalo_t& ProtonHalo(void) {
-      return reinterpret_cast<ProtonHalo_t&>(*(data + ProtonHalo_offset));
-   };
-
-/*!
-\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonHalo_t& ProtonHalo(void) const {
-      return reinterpret_cast<const ProtonHalo_t&>(*(data + ProtonHalo_offset));
-   };
-
-
-/*!
-\brief Whether ProtonHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonHalo_found(void) {
-      return (ProtonHalo_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonBeam_t& ProtonBeam(void) {
-      return reinterpret_cast<ProtonBeam_t&>(*(data + ProtonBeam_offset));
-   };
-
-/*!
-\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonBeam_t& ProtonBeam(void) const {
-      return reinterpret_cast<const ProtonBeam_t&>(*(data + ProtonBeam_offset));
-   };
-
-
-/*!
-\brief Whether ProtonBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonBeam_found(void) {
-      return (ProtonBeam_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonPickup_t& ProtonPickup(void) {
-      return reinterpret_cast<ProtonPickup_t&>(*(data + ProtonPickup_offset));
-   };
-
-/*!
-\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonPickup_t& ProtonPickup(void) const {
-      return reinterpret_cast<const ProtonPickup_t&>(*(data + ProtonPickup_offset));
-   };
-
-
-/*!
-\brief Whether ProtonPickup (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonPickup_found(void) {
-      return (ProtonPickup_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   AlphaCore_t& AlphaCore(void) {
-      return reinterpret_cast<AlphaCore_t&>(*(data + AlphaCore_offset));
-   };
-
-/*!
-\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const AlphaCore_t& AlphaCore(void) const {
-      return reinterpret_cast<const AlphaCore_t&>(*(data + AlphaCore_offset));
-   };
-
-
-/*!
-\brief Whether AlphaCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool AlphaCore_found(void) {
-      return (AlphaCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   AlphaHalo_t& AlphaHalo(void) {
-      return reinterpret_cast<AlphaHalo_t&>(*(data + AlphaHalo_offset));
-   };
-
-/*!
-\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const AlphaHalo_t& AlphaHalo(void) const {
-      return reinterpret_cast<const AlphaHalo_t&>(*(data + AlphaHalo_offset));
-   };
-
-
-/*!
-\brief Whether AlphaHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool AlphaHalo_found(void) {
-      return (AlphaHalo_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumSingleCore_t& HeliumSingleCore(void) {
-      return reinterpret_cast<HeliumSingleCore_t&>(*(data + HeliumSingleCore_offset));
-   };
-
-/*!
-\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumSingleCore_t& HeliumSingleCore(void) const {
-      return reinterpret_cast<const HeliumSingleCore_t&>(*(data + HeliumSingleCore_offset));
-   };
-
-
-/*!
-\brief Whether HeliumSingleCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumSingleCore_found(void) {
-      return (HeliumSingleCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumSinglePickup_t& HeliumSinglePickup(void) {
-      return reinterpret_cast<HeliumSinglePickup_t&>(*(data + HeliumSinglePickup_offset));
-   };
-
-/*!
-\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumSinglePickup_t& HeliumSinglePickup(void) const {
-      return reinterpret_cast<const HeliumSinglePickup_t&>(*(data + HeliumSinglePickup_offset));
-   };
-
-
-/*!
-\brief Whether HeliumSinglePickup (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumSinglePickup_found(void) {
-      return (HeliumSinglePickup_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) {
-      return reinterpret_cast<HydrogenPlasmaCore_t&>(*(data + HydrogenPlasmaCore_offset));
-   };
-
-/*!
-\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) const {
-      return reinterpret_cast<const HydrogenPlasmaCore_t&>(*(data + HydrogenPlasmaCore_offset));
-   };
-
-
-/*!
-\brief Whether HydrogenPlasmaCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenPlasmaCore_found(void) {
-      return (HydrogenPlasmaCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenCore_t& HydrogenCore(void) {
-      return reinterpret_cast<HydrogenCore_t&>(*(data + HydrogenCore_offset));
-   };
-
-/*!
-\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenCore_t& HydrogenCore(void) const {
-      return reinterpret_cast<const HydrogenCore_t&>(*(data + HydrogenCore_offset));
-   };
-
-
-/*!
-\brief Whether HydrogenCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenCore_found(void) {
-      return (HydrogenCore_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenHalo_t& HydrogenHalo(void) {
-      return reinterpret_cast<HydrogenHalo_t&>(*(data + HydrogenHalo_offset));
-   };
-
-/*!
-\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenHalo_t& HydrogenHalo(void) const {
-      return reinterpret_cast<const HydrogenHalo_t&>(*(data + HydrogenHalo_offset));
-   };
-
-
-/*!
-\brief Whether HydrogenHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenHalo_found(void) {
-      return (HydrogenHalo_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenBeam_t& HydrogenBeam(void) {
-      return reinterpret_cast<HydrogenBeam_t&>(*(data + HydrogenBeam_offset));
-   };
-
-/*!
-\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenBeam_t& HydrogenBeam(void) const {
-      return reinterpret_cast<const HydrogenBeam_t&>(*(data + HydrogenBeam_offset));
-   };
-
-
-/*!
-\brief Whether HydrogenBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenBeam_found(void) {
-      return (HydrogenBeam_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumCore_t& HeliumCore(void) {
-      return reinterpret_cast<HeliumCore_t&>(*(data + HeliumCore_offset));
-   };
-
-/*!
-\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumCore_t& HeliumCore(void) const {
-      return reinterpret_cast<const HeliumCore_t&>(*(data + HeliumCore_offset));
-   };
-
-
-/*!
-\brief Whether HeliumCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumCore_found(void) {
-      return (HeliumCore_offset != Type_not_found);
-   };
-   
+\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\author Lucius Schoenbaum
+\date 9/18/2025
+*/
+   template <typename ParentFields>
+   static inline Fields Get(ParentFields& fields) {
+      Fields out;
+      if constexpr (Fields::Pos_found()) {
+         if constexpr (ParentFields::Pos_found())
+            out.Pos() = fields.Pos();
+         else
+            out.Pos() = Pos_t();
+      }
+      if constexpr (Fields::Time_found()) {
+         if constexpr (ParentFields::Time_found())
+            out.Time() = fields.Time();
+         else
+            out.Time() = Time_t();
+      }
+      if constexpr (Fields::Den_found()) {
+         if constexpr (ParentFields::Den_found())
+            out.Den() = fields.Den();
+         else
+            out.Den() = Den_t();
+      }
+      if constexpr (Fields::Prs_found()) {
+         if constexpr (ParentFields::Prs_found())
+            out.Prs() = fields.Prs();
+         else
+            out.Prs() = Prs_t();
+      }
+      if constexpr (Fields::Enr_found()) {
+         if constexpr (ParentFields::Enr_found())
+            out.Enr() = fields.Enr();
+         else
+            out.Enr() = Enr_t();
+      }
+      if constexpr (Fields::Vel_found()) {
+         if constexpr (ParentFields::Vel_found())
+            out.Vel() = fields.Vel();
+         else
+            out.Vel() = Vel_t();
+      }
+      if constexpr (Fields::Mom_found()) {
+         if constexpr (ParentFields::Mom_found())
+            out.Mom() = fields.Mom();
+         else
+            out.Mom() = Mom_t();
+      }
+      if constexpr (Fields::FlxDen_found()) {
+         if constexpr (ParentFields::FlxDen_found())
+            out.FlxDen() = fields.FlxDen();
+         else
+            out.FlxDen() = FlxDen_t();
+      }
+      if constexpr (Fields::FlxMom_found()) {
+         if constexpr (ParentFields::FlxMom_found())
+            out.FlxMom() = fields.FlxMom();
+         else
+            out.FlxMom() = FlxMom_t();
+      }
+      if constexpr (Fields::FlxEnr_found()) {
+         if constexpr (ParentFields::FlxEnr_found())
+            out.FlxEnr() = fields.FlxEnr();
+         else
+            out.FlxEnr() = FlxEnr_t();
+      }
+      if constexpr (Fields::Mag_found()) {
+         if constexpr (ParentFields::Mag_found())
+            out.Mag() = fields.Mag();
+         else
+            out.Mag() = Mag_t();
+      }
+      if constexpr (Fields::FlxMag_found()) {
+         if constexpr (ParentFields::FlxMag_found())
+            out.FlxMag() = fields.FlxMag();
+         else
+            out.FlxMag() = FlxMag_t();
+      }
+      if constexpr (Fields::Glm_found()) {
+         if constexpr (ParentFields::Glm_found())
+            out.Glm() = fields.Glm();
+         else
+            out.Glm() = Glm_t();
+      }
+      if constexpr (Fields::FlxGlm_found()) {
+         if constexpr (ParentFields::FlxGlm_found())
+            out.FlxGlm() = fields.FlxGlm();
+         else
+            out.FlxGlm() = FlxGlm_t();
+      }
+      if constexpr (Fields::Elc_found()) {
+         if constexpr (ParentFields::Elc_found())
+            out.Elc() = fields.Elc();
+         else
+            out.Elc() = Elc_t();
+      }
+      if constexpr (Fields::AbsMag_found()) {
+         if constexpr (ParentFields::AbsMag_found())
+            out.AbsMag() = fields.AbsMag();
+         else
+            out.AbsMag() = AbsMag_t();
+      }
+      if constexpr (Fields::HatMag_found()) {
+         if constexpr (ParentFields::HatMag_found())
+            out.HatMag() = fields.HatMag();
+         else
+            out.HatMag() = HatMag_t();
+      }
+      if constexpr (Fields::DelVel_found()) {
+         if constexpr (ParentFields::DelVel_found())
+            out.DelVel() = fields.DelVel();
+         else
+            out.DelVel() = DelVel_t();
+      }
+      if constexpr (Fields::DelElc_found()) {
+         if constexpr (ParentFields::DelElc_found())
+            out.DelElc() = fields.DelElc();
+         else
+            out.DelElc() = DelElc_t();
+      }
+      if constexpr (Fields::DelMag_found()) {
+         if constexpr (ParentFields::DelMag_found())
+            out.DelMag() = fields.DelMag();
+         else
+            out.DelMag() = DelMag_t();
+      }
+      if constexpr (Fields::DelAbsMag_found()) {
+         if constexpr (ParentFields::DelAbsMag_found())
+            out.DelAbsMag() = fields.DelAbsMag();
+         else
+            out.DelAbsMag() = DelAbsMag_t();
+      }
+      if constexpr (Fields::DelHatMag_found()) {
+         if constexpr (ParentFields::DelHatMag_found())
+            out.DelHatMag() = fields.DelHatMag();
+         else
+            out.DelHatMag() = DelHatMag_t();
+      }
+      if constexpr (Fields::DotVel_found()) {
+         if constexpr (ParentFields::DotVel_found())
+            out.DotVel() = fields.DotVel();
+         else
+            out.DotVel() = DotVel_t();
+      }
+      if constexpr (Fields::DotElc_found()) {
+         if constexpr (ParentFields::DotElc_found())
+            out.DotElc() = fields.DotElc();
+         else
+            out.DotElc() = DotElc_t();
+      }
+      if constexpr (Fields::DotMag_found()) {
+         if constexpr (ParentFields::DotMag_found())
+            out.DotMag() = fields.DotMag();
+         else
+            out.DotMag() = DotMag_t();
+      }
+      if constexpr (Fields::DotAbsMag_found()) {
+         if constexpr (ParentFields::DotAbsMag_found())
+            out.DotAbsMag() = fields.DotAbsMag();
+         else
+            out.DotAbsMag() = DotAbsMag_t();
+      }
+      if constexpr (Fields::DotHatMag_found()) {
+         if constexpr (ParentFields::DotHatMag_found())
+            out.DotHatMag() = fields.DotHatMag();
+         else
+            out.DotHatMag() = DotHatMag_t();
+      }
+      if constexpr (Fields::Iv0_found()) {
+         if constexpr (ParentFields::Iv0_found())
+            out.Iv0() = fields.Iv0();
+         else
+            out.Iv0() = Iv0_t();
+      }
+      if constexpr (Fields::Iv1_found()) {
+         if constexpr (ParentFields::Iv1_found())
+            out.Iv1() = fields.Iv1();
+         else
+            out.Iv1() = Iv1_t();
+      }
+      if constexpr (Fields::Iv2_found()) {
+         if constexpr (ParentFields::Iv2_found())
+            out.Iv2() = fields.Iv2();
+         else
+            out.Iv2() = Iv2_t();
+      }
+      if constexpr (Fields::Iv3_found()) {
+         if constexpr (ParentFields::Iv3_found())
+            out.Iv3() = fields.Iv3();
+         else
+            out.Iv3() = Iv3_t();
+      }
+      if constexpr (Fields::Iv4_found()) {
+         if constexpr (ParentFields::Iv4_found())
+            out.Iv4() = fields.Iv4();
+         else
+            out.Iv4() = Iv4_t();
+      }
+      if constexpr (Fields::Iv5_found()) {
+         if constexpr (ParentFields::Iv5_found())
+            out.Iv5() = fields.Iv5();
+         else
+            out.Iv5() = Iv5_t();
+      }
+      if constexpr (Fields::IvLISM_found()) {
+         if constexpr (ParentFields::IvLISM_found())
+            out.IvLISM() = fields.IvLISM();
+         else
+            out.IvLISM() = IvLISM_t();
+      }
+      if constexpr (Fields::IvBmix_found()) {
+         if constexpr (ParentFields::IvBmix_found())
+            out.IvBmix() = fields.IvBmix();
+         else
+            out.IvBmix() = IvBmix_t();
+      }
+      if constexpr (Fields::IvSolarCycle_found()) {
+         if constexpr (ParentFields::IvSolarCycle_found())
+            out.IvSolarCycle() = fields.IvSolarCycle();
+         else
+            out.IvSolarCycle() = IvSolarCycle_t();
+      }
+      return out;
+   }
 
 
    // END(fields/generate, class)
+
+
+
+
 
    /*!
 \author Juan G Alonso Guzman

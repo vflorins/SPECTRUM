@@ -17,25 +17,37 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! The size of the cache.
-const int max_cache_size = 100;
+////! The size of the cache.
+//const int max_cache_size = 100;
 
-typedef std::shared_ptr<BlockBase> BlockPtrType;
-typedef std::unordered_map<int, BlockPtrType> BlockMapType;
-typedef std::list<int> QueueType;
-typedef QueueType::const_iterator QueueIterType;
-typedef std::unordered_map<int, QueueIterType> HelperMapType;
 
 /*!
 \brief Cache with Least Recently Used (LRU) deletion policy
 \author Vladimir Florinski
 */
+template <typename HConfig_>
 class BlockCache {
+public:
+
+   using HConfig = HConfig_;
+   using Block_t = HConfig::Block_t;
+   using BlockIdx = int;
+
+   using QueueType = std::list<BlockIdx>;
+   using QueueIterType = QueueType::const_iterator;
+   using HelperMapType = std::unordered_map<BlockIdx, QueueIterType>;
+
+//   typedef std::shared_ptr<Block_t> BlockPtrType;
+//   typedef std::unordered_map<int, BlockPtrType> BlockMapType;
+
+//   typedef std::list<int> QueueType;
+//   typedef QueueType::const_iterator QueueIterType;
+//   typedef std::unordered_map<int, QueueIterType> HelperMapType;
 
 protected:
 
 //! Shared pointers to blocks stored as an unordered map (hash access)
-   BlockMapType blocks;
+   std::unordered_map<BlockIdx, std::shared_ptr<Block_t>> blocks;
    
 //! List of block IDs sorted by access time
    QueueType queue;
@@ -70,10 +82,11 @@ public:
    int PosOwner(const GeoVector& pos);
 
 //! Access element
-   BlockPtrType& operator[](int bidx);
+   Block_t& operator[](int bidx);
 
 //! Print all block indices, newest first
    void PrintAllIndices(void) const;
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,7 +98,8 @@ public:
 \date 01/26/2023
 \return The number of blocks stored in cache
 */
-inline int BlockCache::size(void) const
+template <typename HConfig>
+inline int BlockCache<HConfig>::size(void) const
 {
    return blocks.size();
 };
@@ -95,7 +109,8 @@ inline int BlockCache::size(void) const
 \date 01/26/2023
 \param[in] bidx Block index
 */
-inline void BlockCache::Renew(int bidx)
+template <typename HConfig>
+inline void BlockCache<HConfig>::Renew(int bidx)
 {
 // Remove the block index from the middle of "queue" and reinsert it at the beginning. The "blocks" object is not affected at all. The iterators stored in "helper" are unchanged, but now point to the updated entries in "queue".
    queue.splice(queue.begin(), queue, helper[bidx]);
@@ -107,7 +122,8 @@ inline void BlockCache::Renew(int bidx)
 \param[in] bidx Block index
 \return Same block index or -1 if block was not found
 */
-inline int BlockCache::Present(int bidx)
+template <typename HConfig>
+inline int BlockCache<HConfig>::Present(int bidx)
 {
    if (blocks.find(bidx) != blocks.cend()) {
       Renew(bidx);
@@ -122,7 +138,8 @@ inline int BlockCache::Present(int bidx)
 \param[in] bidx Block index
 \return Shared pointer to the block
 */
-inline BlockPtrType& BlockCache::operator[](int bidx)
+template <typename HConfig>
+inline HConfig::Block_t& BlockCache<HConfig>::operator[](BlockIdx bidx)
 {
 // It is assumed the block is present; otherwise the result is indeterminate
    return blocks[bidx];

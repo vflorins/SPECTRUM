@@ -240,7 +240,7 @@ protected:
    BoundaryBox(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryBox(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryBox(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryBox(const BoundaryBox& other);
@@ -338,7 +338,7 @@ protected:
    BoundarySphere(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundarySphere(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundarySphere(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundarySphere(const BoundarySphere& other);
@@ -483,7 +483,7 @@ protected:
    BoundaryRankine(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryRankine(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryRankine(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryRankine(const BoundaryRankine& other);
@@ -584,7 +584,7 @@ protected:
    BoundaryCylinder(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryCylinder(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryCylinder(const BoundaryCylinder& other);
@@ -683,7 +683,7 @@ protected:
    BoundaryRegion(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryRegion(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryRegion(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryRegion(const BoundaryRegion& other);

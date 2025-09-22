@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 /*!
-\brief Obain the pointers to the neighbor arrays for a node
+\brief Obtain the pointers to the neighbor arrays for a node
 \param[in]  node            Node
 \param[out] neighbor_nodes  Entry into the BATL array of neighbor nodes
 \param[out] neighbor_levels Entry into the BATL array of neighbor levels
@@ -46,7 +46,7 @@ extern "C" {
 //void spectrum_get_all_neighbor_nodes(int node, int** neighbor_nodes, int** neighbor_levels);
 
 /*!
-\brief Obain copies of the neighbor arrays for a node
+\brief Obtain copies of the neighbor arrays for a node
 \param[in]  node            Node
 \param[out] neighbor_nodes  Array of neighbor nodes
 \param[out] neighbor_levels Array of neighbor levels
@@ -62,7 +62,7 @@ void spectrum_get_all_neighbor_copies(int node, int* neighbor_nodes, int* neighb
 void spectrum_get_block_corners(int node, double* face_min, double* face_max);
 
 /*!
-\brief Obain copies of the variables associated with a node
+\brief Obtain copies of the variables associated with a node
 \param[in]  node      Node
 \param[out] variables Array of variables
 */
@@ -129,10 +129,10 @@ public:
    virtual int GetNeighborLevel(int i, int j, int k) const override;
 };
 
-//! Block type
-#if SERVER_TYPE == SERVER_BATL
-typedef BlockBATL BlockType;
-#endif
+////! Block type
+//#if SERVER_TYPE == SERVER_BATL
+//typedef BlockBATL BlockType;
+//#endif
 
 };
 

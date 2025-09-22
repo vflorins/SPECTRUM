@@ -14,9 +14,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Default initial size
-//const unsigned int defsize_guiding = 10000;
-
 /*!
 \brief Trajectory tracer for the relativistic guiding center equations
 \author Vladimir Florinski
@@ -24,37 +21,31 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
-template <typename Fields_>
-class TrajectoryGuiding : public TrajectoryGuidingBase<TrajectoryGuiding<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryGuiding : public TrajectoryGuidingBase<TrajectoryGuiding<HConfig_>, HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuiding";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuiding<Fields>, Fields>;
-   using TrajectoryBase = TrajectoryBase<TrajectoryGuiding<Fields_>, Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
 
 protected:
 
    using TrajectoryBase::_status;
-//   using TrajectoryBase::_t;
-   using TrajectoryBase::_vel;
-//   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
-   using TrajectoryBase::q;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
-   using TrajectoryBase::RKAdvance;
+
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuiding<HConfig>, HConfig>;
 
    using TrajectoryGuidingBase::mag_mom;
    using TrajectoryGuidingBase::Evec_star;
@@ -80,7 +71,7 @@ public:
    TrajectoryGuiding(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuiding(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryGuiding(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryGuiding(const TrajectoryGuiding& other) = delete;

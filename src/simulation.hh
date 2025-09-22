@@ -170,15 +170,15 @@ public:
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// SimulationBoss (derived) class
+// SimulationServer (derived) class
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief A boss class
+\brief A server class
 \author Juan G Alonso Guzman
 */
 template <typename Trajectory_>
-class SimulationBoss : public SimulationWorker<Trajectory_> {
+class SimulationServer : public SimulationWorker<Trajectory_> {
 public:
 
    using Trajectory = Trajectory_;
@@ -208,19 +208,19 @@ protected:
 
 #endif
 
-//! Set up for boss prior to main loop
-   void BossStart(void);
+//! Set up for server prior to main loop
+   void ServerStart(void);
 
-//! Boss finish tasks
-   void BossFinish(void);
+//! Server finish tasks
+   void ServerFinish(void);
 
-//! Boss duties
-   void BossDuties(void);
+//! Server duties
+   void ServerDuties(void);
 
 public:
 
 //! Default constructor
-   SimulationBoss(void);
+   SimulationServer(void);
 
 //! Add a background object
    void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
@@ -238,18 +238,18 @@ public:
 \author Juan G Alonso Guzman
 */
 template <typename Trajectory_>
-class SimulationMaster : public SimulationBoss<Trajectory_> {
+class SimulationMaster : public SimulationServer<Trajectory_> {
 public:
 
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using TrajectoryBase = TrajectoryBase<Trajectory, Fields>;
+   using HConfig = Trajectory::HConfig;
+   using BackgroundBase = BackgroundBase<HConfig>;
+   using TrajectoryBase = TrajectoryBase<Trajectory, HConfig>;
 
    using DistributionBase = DistributionBase<Trajectory>;
    using DiffusionBase = DiffusionBase<Trajectory>;
    using SimulationWorker = SimulationWorker<Trajectory>;
-   using SimulationBoss = SimulationBoss<Trajectory>;
+   using SimulationServer = SimulationServer<Trajectory>;
    using SimulationWorker::current_batch_size;
    using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
@@ -370,7 +370,7 @@ public:
 
 
 //template <typename Trajectory>
-//using Simulation = std::variant<std::unique_ptr<SimulationWorker<Trajectory>>, std::unique_ptr<SimulationBoss<Trajectory>>, std::unique_ptr<SimulationMaster<Trajectory>>>;
+//using Simulation = std::variant<std::unique_ptr<SimulationWorker<Trajectory>>, std::unique_ptr<SimulationServer<Trajectory>>, std::unique_ptr<SimulationMaster<Trajectory>>>;
 
 ////! Generate a complete simulation object
 //template <typename Trajectory>

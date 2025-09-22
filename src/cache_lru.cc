@@ -20,10 +20,11 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 01/26/2023
 */
-void BlockCache::DeleteOldest(void)
+template <typename HConfig>
+void BlockCache<HConfig>::DeleteOldest(void)
 {
 // Nothing to do if the cache is empty
-   if (!blocks.size()) return;
+   if (blocks.empty()) return;
 
    int bidx = queue.back();
    blocks.erase(bidx);
@@ -37,7 +38,8 @@ void BlockCache::DeleteOldest(void)
 \param[in] block Shared pointer to a block
 \return Block index
 */
-int BlockCache::AddBlock(const BlockPtrType& block)
+template <typename HConfig>
+int BlockCache<HConfig>::AddBlock(const BlockPtrType& block)
 {
 // Check if the cache is full
    if (blocks.size() >= max_cache_size) DeleteOldest();
@@ -57,7 +59,8 @@ int BlockCache::AddBlock(const BlockPtrType& block)
 \author Vladimir Florinski
 \date 01/26/2023
 */
-void BlockCache::Empty(void)
+template <typename HConfig>
+void BlockCache<HConfig>::Empty(void)
 {
    helper.clear();
    queue.clear();
@@ -70,7 +73,8 @@ void BlockCache::Empty(void)
 \param[in] pos Position to test
 \return Block index or -1 if no cached block owns the position
 */
-int BlockCache::PosOwner(const GeoVector& pos)
+template <typename HConfig>
+int BlockCache<HConfig>::PosOwner(const GeoVector& pos)
 {
    int bidx;
 
@@ -80,7 +84,7 @@ int BlockCache::PosOwner(const GeoVector& pos)
       bidx = *iter;
       if (blocks[bidx]->PositionInside(pos)) break;
       iter++;
-   };         
+   };
 
 // If the interator is past the end, then the position is not in the cache. If the iterator is at the beginning, the newest block owns the position, so no renewal is needed.
    if (iter == queue.cend()) bidx = -1;
@@ -93,7 +97,8 @@ int BlockCache::PosOwner(const GeoVector& pos)
 \author Vladimir Florinski
 \date 01/26/2023
 */
-void BlockCache::PrintAllIndices(void) const
+template <typename HConfig>
+void BlockCache<HConfig>::PrintAllIndices(void) const
 {
    int count = 1;
    QueueIterType iter;

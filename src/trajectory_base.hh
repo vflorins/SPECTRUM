@@ -151,7 +151,7 @@ public:
 
    using HConfig = HConfig_;
    using Coordinates = HConfig::Coordinates;
-   using NewF_ields = HConfig::TrajectoryFields;
+   using TrajectoryFields = HConfig::TrajectoryFields;
    using HConfig::specie;
    using ButcherTable = ButcherTable<HConfig::rk_integrator>;
    using Records = Records<Coordinates, specie, HConfig::record_mag_extrema, HConfig::record_trajectory>;
@@ -205,7 +205,7 @@ protected:
    double _dmax;
 
 //! Spatial data (transient)
-   NewF_ields _fields;
+   TrajectoryFields _fields;
 
    //! Slopes for position in RK step (transient)
    GeoVector slope_pos[ButcherTable::data.rk_stages];
@@ -249,7 +249,7 @@ protected:
    Coordinates coords0;
 
 //! Field values at the start of the trajectory (needed for distributions)
-   NewF_ields fields0;
+   TrajectoryFields fields0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -296,7 +296,7 @@ protected:
    void CommonFields(void);
 
 //! Overloaded CommonFields for custom time and position, and output field
-   void CommonFields(Coordinates& coords, NewF_ields& fields);
+   void CommonFields(Coordinates& coords, TrajectoryFields& fields);
 
 //! Compute the RK slopes
    virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) = 0;

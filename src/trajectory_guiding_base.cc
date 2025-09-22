@@ -20,9 +20,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/17/2020
 */
-template <typename Trajectory, typename Fields>
-TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(void)
-                 : TrajectoryBase(traj_name_guiding_base, 0, STATE_NONE, defsize_guiding_base)
+template <typename Trajectory, typename HConfig>
+TrajectoryGuidingBase<Trajectory, HConfig>::TrajectoryGuidingBase(void)
+      : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
 
@@ -30,13 +30,11 @@ TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(void)
 \author Vladimir Florinski
 \date 01/28/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
-\param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-template <typename Trajectory, typename Fields>
-TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                 : TrajectoryBase(name_in, specie_in, status_in, presize_in)
+template <typename Trajectory, typename HConfig>
+TrajectoryGuidingBase<Trajectory, HConfig>::TrajectoryGuidingBase(const std::string& name_in, uint16_t status_in)
+      : TrajectoryBase(name_in, status_in)
 {
 };
 
@@ -44,14 +42,14 @@ TrajectoryGuidingBase<Trajectory, Fields>::TrajectoryGuidingBase(const std::stri
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryGuidingBase<Trajectory, Fields>::SetStart(void)
+template <typename Trajectory, typename HConfig>
+void TrajectoryGuidingBase<Trajectory, HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment(traj_mom[0][0], _fields.AbsMag(), specie);
+   mag_mom = MagneticMoment(_coords.Mom()[0], _fields.AbsMag(), specie);
 };
 
 /*!
@@ -61,18 +59,17 @@ void TrajectoryGuidingBase<Trajectory, Fields>::SetStart(void)
 
 Ref: Tao, X., Chan, A. A., and Brizard, A. J., Hamiltonian theory of adiabatic motion of relativistic charged particles, Phys. Plasmas, v. 14, p. 09107 (2007).
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryGuidingBase<Trajectory, Fields>::ModifiedFields(void)
+template <typename Trajectory, typename HConfig>
+void TrajectoryGuidingBase<Trajectory, HConfig>::ModifiedFields(void)
 try {
    double rL, rR;
 
 // Modified fields
-   rL = LarmorRadius(_mom[0], _fields.AbsMag(), specie);
-   rR = LarmorRadius(_mom[2], _fields.AbsMag(), specie);
+   rL = LarmorRadius(_coords.Mom()[0], _fields.AbsMag(), specie);
+   rR = LarmorRadius(_coords.Mom()[2], _fields.AbsMag(), specie);
    Evec_star = _fields.Elc();
-// todo FIXME, compiler evaluates operator* via arithmetic.hh
-   Evec_star = Evec_star - rR * _fields.AbsMag() * static_cast<GeoVector>(_fields.DotHatMag()) / c_code;
-   Evec_star = Evec_star - rL * _vel[0] * static_cast<GeoVector>(_fields.DelAbsMag()) / (2.0 * c_code);
+   Evec_star = Evec_star - rR * _fields.AbsMag() * _fields.DotHatMag() / c_code;
+   Evec_star = Evec_star - rL * _coords.Vel()[0] * _fields.DelAbsMag() / (2.0 * c_code);
    Bvec_star = _fields.Mag();
    Bvec_star = Bvec_star + rR * _fields.AbsMag() * _fields.curlbhat();
 }
@@ -87,26 +84,25 @@ catch(ExFieldError& exception) {
 \author Vladimir Florinski
 \date 02/11/2022
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryGuidingBase<Trajectory, Fields>::DriftCoeff(void)
+template <typename Trajectory, typename HConfig>
+void TrajectoryGuidingBase<Trajectory, HConfig>::DriftCoeff(void)
 {
    ModifiedFields();
-   drift_vel = (_vel[2] * Bvec_star + c_code * (Evec_star ^ _fields.HatMag())) / (Bvec_star * _fields.HatMag());
+   drift_vel = (_coords.Vel()[2] * Bvec_star + c_code * (Evec_star ^ _fields.HatMag())) / (Bvec_star * _fields.HatMag());
 };
 
 /*!
 \author Vladimir Florinski
 \date 02/10/2022
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryGuidingBase<Trajectory, Fields>::PhysicalStep(void)
+template <typename Trajectory, typename HConfig>
+void TrajectoryGuidingBase<Trajectory, HConfig>::PhysicalStep(void)
 {
 // If the pitch angle is at 90 degrees we only have the perpendicular component of "drift_vel", which may be too small, but can increase by a large (relative) factor during the integration step. For this reason a small fraction of the total speed is added to the characteristic speed.
-// TODO: experiment/debug
-   auto tmp1 = cfl_adv_tg * _dmax;
-   auto tmp2 = drift_vel.Norm() + drift_safety_tg * _vel.Norm();
-   dt_physical = tmp1/tmp2;
-//   dt_physical = cfl_adv_tg * _ddata.dmax / (drift_vel.Norm() + drift_safety_tg * _vel.Norm());
+   constexpr double cfl_adv = HConfig::cfl_advection;
+   constexpr double drift_safety = HConfig::drift_safety;
+   dt_physical = cfl_adv * _dmax/(drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
+//   dt_physical = cfl_adv * _dmax / (drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
 };
 
 /*!
@@ -116,17 +112,18 @@ void TrajectoryGuidingBase<Trajectory, Fields>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Trajectory, typename Fields>
-void TrajectoryGuidingBase<Trajectory, Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Trajectory, typename HConfig>
+void TrajectoryGuidingBase<Trajectory, HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    DriftCoeff();
    slope_pos_istage = drift_vel;
 
-#if PPERP_METHOD == 1
-   slope_mom_istage[0] = 0.5 * _mom[0] / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
-#else
-   slope_mom_istage[0] = 0.0;
-#endif
+   if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
+      slope_mom_istage[0] = 0.0;
+   }
+   else if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
+      slope_mom_istage[0] = 0.5 * _coords.Mom()[0] / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
+   }
 
    slope_mom_istage[1] = 0.0;
    slope_mom_istage[2] = q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
@@ -139,8 +136,8 @@ void TrajectoryGuidingBase<Trajectory, Fields>::Slopes(GeoVector& slope_pos_ista
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename Fields>
-bool TrajectoryGuidingBase<Trajectory, Fields>::Advance(void)
+template <typename Trajectory, typename HConfig>
+bool TrajectoryGuidingBase<Trajectory, HConfig>::Advance(void)
 {
    return RKAdvance();
 };
@@ -149,13 +146,13 @@ bool TrajectoryGuidingBase<Trajectory, Fields>::Advance(void)
 \author Juan G Alonso Guzman
 \date 04/19/2022
 */
-template <typename Trajectory, typename Fields>
-inline void TrajectoryGuidingBase<Trajectory, Fields>::MomentumCorrection(void)
+template <typename Trajectory, typename HConfig>
+inline void TrajectoryGuidingBase<Trajectory, HConfig>::MomentumCorrection(void)
 {
+   if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-#if PPERP_METHOD == 0
-   _mom[0] = PerpMomentum(mag_mom, _fields.AbsMag(), specie);
-#endif
+      _coords.Mom()[0] = PerpMomentum(mag_mom, _fields.AbsMag(), specie);
+   }
 };
 
 };

@@ -45,7 +45,7 @@ protected:
    BoundaryTime(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryTime(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryTime(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryTime(const BoundaryTime& other);

@@ -12,6 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 
 #include <vector>
+#include <fstream>
+#include <iostream>
 #include "vectors.hh"
 #include "definitions.hh" // LocateInArray
 #include "physics.hh" // Mom(), Vel()
@@ -301,7 +303,7 @@ public:
 
       if (stride) {
          for (pt = 0; pt < traj_coords.size(); pt += stride) {
-//FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_mom[0]) >> pitch angle cosine (_mom[1]).
+//FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_coords.Mom()[0]) >> pitch angle cosine (_coords.Mom()[1]).
             Coordinates coords = traj_coords[pt];
             mom_mag = coords.Mom().Norm();
             vm_ratio = Vel<specie>(mom_mag) / mom_mag;

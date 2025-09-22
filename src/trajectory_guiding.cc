@@ -20,9 +20,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/17/2020
 */
-template <typename Fields>
-TrajectoryGuiding<Fields>::TrajectoryGuiding(void)
-                 : TrajectoryGuidingBase(traj_name_guiding, 0, STATE_NONE, defsize_guiding)
+template <typename HConfig>
+TrajectoryGuiding<HConfig>::TrajectoryGuiding(void)
+      : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
 
@@ -30,13 +30,11 @@ TrajectoryGuiding<Fields>::TrajectoryGuiding(void)
 \author Vladimir Florinski
 \date 01/28/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
-\param[in] presize_in Whether to pre-allocate memory for trajectory arrays
 */
-template <typename Fields>
-TrajectoryGuiding<Fields>::TrajectoryGuiding(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in)
-                 : TrajectoryGuidingBase(name_in, specie_in, status_in, presize_in)
+template <typename HConfig>
+TrajectoryGuiding<HConfig>::TrajectoryGuiding(const std::string& name_in, uint16_t status_in)
+      : TrajectoryBase(name_in, status_in)
 {
 };
 

@@ -15,15 +15,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Which stochastic method to use for perpendicular diffusion, 0 = Euler, 1 = Milstein, 2 = RK2
-#define STOCHASTIC_METHOD_PERP 0
-
-//! Default initial size
-const unsigned int defsize_guidingdiff = 10000;
-
-//! CFL condition for perpendicular diffusion
-const double cfl_dif_gd = 0.5;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryGuidingDiff class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,51 +24,48 @@ const double cfl_dif_gd = 0.5;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Fields_>
-class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<HConfig_>, HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiff";
 
 public:
 
-   using Fields = Fields_;
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingDiff<Fields>, Fields>;
-   using TrajectoryBase = TrajectoryBase<TrajectoryGuidingDiff<Fields_>, Fields>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
+
+   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingDiff<HConfig>, HConfig>;
 
    using TrajectoryBase::_status;
-   using TrajectoryBase::_t;
-   using TrajectoryBase::_pos;
-   using TrajectoryBase::_mom;
-   using TrajectoryBase::_vel;
-   using TrajectoryBase::dt;
-   using TrajectoryBase::dt_physical;
-   using TrajectoryBase::dt_adaptive;
-   using TrajectoryBase::rng;
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-   using TrajectoryBase::background;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-//   using TrajectoryBase::local_t;
-   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
+   using TrajectoryBase::dt;
+   using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::dt_physical;
+
+
    using TrajectoryBase::diffusion;
+   using TrajectoryBase::background;
+   using TrajectoryBase::rng;
+   using TrajectoryBase::SpaceTerminateCheck;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
-   using TrajectoryGuidingBase::drift_vel;
-   // methods:
-   using TrajectoryBase::CommonFields;
-   using TrajectoryBase::SpaceTerminateCheck;
    using TrajectoryBase::Load;
    using TrajectoryBase::Store;
    using TrajectoryBase::StoreLocal;
+   using TrajectoryBase::CommonFields;
    using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::RKSlopes;
    using TrajectoryBase::RKStep;
    using TrajectoryBase::HandleBoundaries;
+
+   using TrajectoryBase::local_coords;
+   using TrajectoryGuidingBase::drift_vel;
 
    using TrajectoryGuidingBase::ConvertMomentum;
    using TrajectoryGuidingBase::MomentumCorrection;
@@ -130,7 +118,7 @@ public:
    TrajectoryGuidingDiff(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuidingDiff(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryGuidingDiff(const std::string& name_in, uint16_t status_in);
 
 //! Destructor
    ~TrajectoryGuidingDiff() override = default;

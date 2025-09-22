@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/17/2020
 */
-template <typename Fields>
-TrajectoryLorentz<Fields>::TrajectoryLorentz(void)
-                 : TrajectoryBase(traj_name_lorentz, 0, STATE_NONE, defsize_lorentz)
+template <typename HConfig>
+TrajectoryLorentz<HConfig>::TrajectoryLorentz(void)
+      : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
 
@@ -28,8 +28,8 @@ TrajectoryLorentz<Fields>::TrajectoryLorentz(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Fields>
-void TrajectoryLorentz<Fields>::SetStart(void)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
@@ -46,15 +46,18 @@ void TrajectoryLorentz<Fields>::SetStart(void)
 \author Juan G Alonso Guzman
 \date 12/15/2020
 */
-template <typename Fields>
-void TrajectoryLorentz<Fields>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::PhysicalStep(void)
 {
+   constexpr int steps_per_orbit = HConfig::steps_per_orbit;
+   constexpr double cfl_adv = HConfig::cfl_advection;
+
 // Obtain the time step based on the orbit resolution. If B is zero, use a small but finite value of "Omega".
-   double Omega = fmax(CyclotronFrequency(_vel.Norm(), _fields.AbsMag(), specie), sp_tiny);
+   double Omega = fmax(CyclotronFrequency(_coords.Vel().Norm(), _fields.AbsMag(), specie), sp_tiny);
    dt_physical = M_2PI / Omega / steps_per_orbit;
 
 // Obtain the grid based time step based on grid max distance.
-   dt_physical = fmin(dt_physical, cfl_adv_tl * _dmax / _vel.Norm());
+   dt_physical = fmin(dt_physical, cfl_adv * _dmax / _coords.Vel().Norm());
 };
 
 /*!
@@ -63,11 +66,11 @@ void TrajectoryLorentz<Fields>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Fields>
-void TrajectoryLorentz<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
-   slope_pos_istage = _vel;
-   slope_mom_istage = q * (_fields.Elc() + (_vel ^ _fields.Mag()) / c_code);
+   slope_pos_istage = _coords.Vel();
+   slope_mom_istage = HConfig::q * (_fields.Elc() + (_coords.Vel() ^ _fields.Mag()) / c_code);
 };
 
 /*!
@@ -77,8 +80,8 @@ void TrajectoryLorentz<Fields>::Slopes(GeoVector& slope_pos_istage, GeoVector& s
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Fields>
-bool TrajectoryLorentz<Fields>::Advance(void)
+template <typename HConfig>
+bool TrajectoryLorentz<HConfig>::Advance(void)
 {
    return RKAdvance();
 };

@@ -14,87 +14,56 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-////! Which stochastic method to use for diffusion: 0 = Euler, 1 = Milstein, 2 = RK2
-////#define TRAJ_PARKER_STOCHASTIC_METHOD_DIFF 0
-//
-////! Flag to use gradient and curvature drifts in drift velocity calculation
-////#define TRAJ_PARKER_USE_B_DRIFTS
-//
-////! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
-////#define TRAJ_PARKER_DIVK_METHOD 0
-//
-////! Default initial size
-////const unsigned int defsize_parker = 100000;
-//
-////! CFL condition for advection
-//const double cfl_adv_tp = 0.5;
-//
-////! CFL condition for diffusion
-//const double cfl_dif_tp = 0.5;
-//
-////! CFL condition for acceleration
-//const double cfl_acc_tp = 0.5;
-//
-////! Maximum allowed fraction of momentum change per step
-//const double dlnpmax = 0.01;
-
 /*!
 \brief A derived class for Parker equation (diffusive simulation)
 \author Juan G Alonso Guzman
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-template <typename Fields_>
-class TrajectoryParker : public TrajectoryBase<TrajectoryParker<Fields_>, Fields_> {
+template <typename HConfig_>
+class TrajectoryParker : public TrajectoryBase<TrajectoryParker<HConfig_>, HConfig_> {
 
    //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryParker";
 
 public:
 
-   using Fields = Fields_;
-   using BackgroundBase = BackgroundBase<Fields>;
-   using TrajectoryBase = TrajectoryBase<TrajectoryParker<Fields_>, Fields_>;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::Coordinates;
+   using TrajectoryFields = HConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using HConfig::specie;
 
-   using TrajectoryBase::_t;
-   using TrajectoryBase::_pos;
-   using TrajectoryBase::_vel;
-   using TrajectoryBase::_mom;
+   using DiffusionFields = HConfig::DiffusionFields;
+
    using TrajectoryBase::_status;
-   using TrajectoryBase::dt;
-   using TrajectoryBase::rng;
-//   using TrajectoryBase::traj_t;
-//   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
-   using TrajectoryBase::specie;
-
-//   using TrajectoryBase::local_t;
-//   using TrajectoryBase::local_pos;
-//   using TrajectoryBase::local_mom;
-   using TrajectoryBase::diffusion;
-   using TrajectoryBase::background;
-
+   using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
-   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::dt;
    using TrajectoryBase::dt_adaptive;
+   using TrajectoryBase::dt_physical;
+
+   using TrajectoryBase::diffusion;
+   using TrajectoryBase::background;
+   using TrajectoryBase::rng;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
-   // methods:
+
    using TrajectoryBase::Load;
    using TrajectoryBase::Store;
    using TrajectoryBase::StoreLocal;
-   using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::RKSlopes;
    using TrajectoryBase::RKStep;
    using TrajectoryBase::HandleBoundaries;
    using TrajectoryBase::CommonFields;
    using TrajectoryBase::ConnectRNG;
+   using TrajectoryBase::TimeBoundaryProximityCheck;
 
 // todo: the list of checks is not exhausive
-   static_assert(Fields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryFields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 
@@ -149,7 +118,7 @@ public:
    TrajectoryParker(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryParker(const std::string& name_in, unsigned int specie_in, uint16_t status_in, bool presize_in);
+   TrajectoryParker(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryParker(const TrajectoryParker& other) = delete;

@@ -46,9 +46,9 @@ const std::string boundary_type_names[3] = {"time", "space", "momentum"};
 #define CloneFunctionBoundary(T) std::unique_ptr<BoundaryBase> Clone(void) const override {return std::make_unique<T>();};
 
 //! Forward-declare Trajectory base types
-template <typename Trajectory, typename Fields>
+template <typename Trajectory, typename HConfig>
 class TrajectoryFieldlineBase;
-template <typename Trajectory, typename Fields>
+template <typename Trajectory, typename HConfig>
 class TrajectoryGuidingBase;
 //! Forward-declare Trajectory types
 template <typename Fields, typename Trace_t>

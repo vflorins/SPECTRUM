@@ -8,11 +8,11 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "diffusion_other.hh"
+#ifdef USE_GSL
 #include <gsl/gsl_sf_hyperg.h>
+#endif
 
 namespace Spectrum {
-
-//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant methods
@@ -24,7 +24,7 @@ namespace Spectrum {
 */
 template <typename Trajectory>
 DiffusionIsotropicConstant<Trajectory>::DiffusionIsotropicConstant(void)
-                          : DiffusionBase(diff_name_isotropic_constant, 0, DIFF_NOBACKGROUND)
+                          : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
 {
 };
 
@@ -63,9 +63,9 @@ void DiffusionIsotropicConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 05/06/2022
 */
 template <typename Trajectory>
-void DiffusionIsotropicConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionIsotropicConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if ((comp_eval == 0) || (comp_eval == 1)) return;
+   if ((comp == 0) || (comp == 1)) return;
    Kappa[2] = D0 * (1.0 - Sqr(mu));
 };
 
@@ -76,14 +76,10 @@ void DiffusionIsotropicConstant<Trajectory>::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionIsotropicConstant<Trajectory>::GetMuDerivative(void)
+double DiffusionIsotropicConstant<Trajectory>::GetMuDerivative(int comp)
 {
    return -2.0 * D0 * mu;
 };
-
-//#endif
-
-//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionQLTConstant methods
@@ -95,7 +91,7 @@ double DiffusionIsotropicConstant<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(void)
-                    : DiffusionBase(diff_name_qlt_constant, 0, STATE_NONE)
+                    : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -103,12 +99,11 @@ DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(void)
 \author Vladimir Florinski
 \date 05/27/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                    : DiffusionBase(name_in, specie_in, status_in)
+DiffusionQLTConstant<Trajectory>::DiffusionQLTConstant(const std::string& name_in, uint16_t status_in)
+                    : DiffusionBase(name_in, status_in)
 {
 };
 
@@ -150,15 +145,11 @@ void DiffusionQLTConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 05/09/2022
 */
 template <typename Trajectory>
-void DiffusionQLTConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionQLTConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if ((comp_eval == 0) || (comp_eval == 1)) return;
+   if ((comp == 0) || (comp == 1)) return;
    Kappa[2] = 0.25 * M_PI * ps_minus * fabs(Omega) * st2 * pow(vmag * k_min * fabs(mu / Omega), ps_minus) * A2A;
 };
-
-//#endif
-
-//#if TRAJ_TYPE != TRAJ_PARKER
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant methods
@@ -170,7 +161,7 @@ void DiffusionQLTConstant<Trajectory>::EvaluateDiffusion(void)
 */
 template <typename Trajectory>
 DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(void)
-                     : DiffusionQLTConstant(diff_name_wnlt_constant, 0, STATE_NONE)
+                     : DiffusionQLTConstant(diff_name, STATE_NONE)
 {
 };
 
@@ -178,12 +169,11 @@ DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(void)
 \author Vladimir Florinski
 \date 05/27/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
 template <typename Trajectory>
-DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                     : DiffusionQLTConstant(name_in, specie_in, status_in)
+DiffusionWNLTConstant<Trajectory>::DiffusionWNLTConstant(const std::string& name_in, uint16_t status_in)
+                     : DiffusionQLTConstant(name_in, status_in)
 {
 };
 
@@ -223,9 +213,9 @@ void DiffusionWNLTConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 05/09/2022
 */
 template <typename Trajectory>
-void DiffusionWNLTConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionWNLTConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 1) return;
+   if (comp == 1) return;
    double CT, CL, xi1, xi2, F21, DT1, DT2;
 
 // Kappa[0] is required for Kappa[2]
@@ -233,24 +223,25 @@ void DiffusionWNLTConstant<Trajectory>::EvaluateDiffusion(void)
    CL = 0.125 * Sqr(vmag * st2 / Omega) * A2L;
    Kappa[0] = vmag * sqrt(CT + CL);
 
-   if (comp_eval == 0) return;
+   if (comp == 0) return;
 
 // Hypergeometric function may crash if the last argument is close to 1
-   DiffusionQLTConstant::EvaluateDiffusion();
+   DiffusionQLTConstant::EvaluateDiffusion(comp);
 
-#ifdef USE_QLT_SCATT_WITH_WNLT_DIFF
-   return;
-#endif
-
-   if (A2T > sp_tiny) {
-      xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
-      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
-      DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
-      xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
-      F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi2)));
-      DT2 = 1.0 / (1.0 + Sqr(xi2)) * F21;
-      Kappa[2] += (ps_minus / ps_plus) * Omega * st2 * A2T * DT1 * DT2 / sqrt(Sqr(DT1) + Sqr(DT2));
-   };
+   if constexpr (HConfig::use_qlt_scatt) {
+      return;
+   }
+   else {
+      if (A2T > sp_tiny) {
+         xi1 = vmag * k_min * sqrt(st2) / M_SQRT2 / fabs(Omega);
+         F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi1)));
+         DT1 = 1.0 / (1.0 + Sqr(xi1)) * F21;
+         xi2 = Kappa[0] * k_min * k_min / fabs(Omega);
+         F21 = gsl_sf_hyperg_2F1(1.0, 1.0, (5.0 + ps_index) / 4.0, 1.0 / (1.0 + Sqr(xi2)));
+         DT2 = 1.0 / (1.0 + Sqr(xi2)) * F21;
+         Kappa[2] += (ps_minus / ps_plus) * Omega * st2 * A2T * DT1 * DT2 / sqrt(Sqr(DT1) + Sqr(DT2));
+      };
+   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -263,7 +254,7 @@ void DiffusionWNLTConstant<Trajectory>::EvaluateDiffusion(void)
 */
 template <typename Trajectory>
 DiffusionWNLTRampVLISM<Trajectory>::DiffusionWNLTRampVLISM(void)
-                      : DiffusionWNLTConstant(diff_name_wnlt_ramp_vlism, 0, STATE_NONE)
+                      : DiffusionWNLTConstant(diff_name, STATE_NONE)
 {
 };
 
@@ -311,14 +302,14 @@ void DiffusionWNLTRampVLISM<Trajectory>::SetupDiffusion(bool construct)
 \date 05/09/2022
 */
 template <typename Trajectory>
-void DiffusionWNLTRampVLISM<Trajectory>::EvaluateDiffusion(void)
+void DiffusionWNLTRampVLISM<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 1) return;
+   if (comp == 1) return;
    double z0, r0, k_ratio;
 
 // Find distance to nose for Rankine half body which the particle is presently on
-   r0 = _pos.Norm();
-   z0 = sqrt(0.5 * r0 * (r0 + _pos[2]));
+   r0 = _coords.Pos().Norm();
+   z0 = sqrt(0.5 * r0 * (r0 +_coords.Pos()[2]));
 
 // Constant k_min beyond z_sheath
    if (z0 > z_sheath) {
@@ -337,10 +328,8 @@ void DiffusionWNLTRampVLISM<Trajectory>::EvaluateDiffusion(void)
    };
 
 // Evaluate WLNT diffusion
-   DiffusionWNLTConstant::EvaluateDiffusion();
+   DiffusionWNLTConstant::EvaluateDiffusion(comp);
 };
-
-//#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionParaConstant methods
@@ -353,7 +342,7 @@ void DiffusionWNLTRampVLISM<Trajectory>::EvaluateDiffusion(void)
 */
 template <typename Trajectory>
 DiffusionParaConstant<Trajectory>::DiffusionParaConstant(void)
-                     : DiffusionBase(diff_name_para_constant, 0, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
 {
 };
 
@@ -395,9 +384,9 @@ void DiffusionParaConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 06/07/2023
 */
 template <typename Trajectory>
-void DiffusionParaConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionParaConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if ((comp_eval == 0) || (comp_eval == 2)) return;
+   if ((comp == 0) || (comp == 2)) return;
    Kappa[1] = D0;
 };
 
@@ -408,10 +397,10 @@ void DiffusionParaConstant<Trajectory>::EvaluateDiffusion(void)
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
    return 0.0;
 };
@@ -422,7 +411,7 @@ double DiffusionParaConstant<Trajectory>::GetDirectionalDerivative(int xyz, Deri
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionParaConstant<Trajectory>::GetMuDerivative(void)
+double DiffusionParaConstant<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -438,7 +427,7 @@ double DiffusionParaConstant<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionPerpConstant<Trajectory>::DiffusionPerpConstant(void)
-                     : DiffusionBase(diff_name_perp_constant, 0, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
 {
 };
 
@@ -480,9 +469,9 @@ void DiffusionPerpConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 05/06/2022
 */
 template <typename Trajectory>
-void DiffusionPerpConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionPerpConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if ((comp_eval == 1) || (comp_eval == 2)) return;
+   if ((comp == 1) || (comp == 2)) return;
    Kappa[0] = D0;
 };
 
@@ -493,10 +482,10 @@ void DiffusionPerpConstant<Trajectory>::EvaluateDiffusion(void)
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
    return 0.0;
 };
@@ -507,7 +496,7 @@ double DiffusionPerpConstant<Trajectory>::GetDirectionalDerivative(int xyz, Deri
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionPerpConstant<Trajectory>::GetMuDerivative(void)
+double DiffusionPerpConstant<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -523,7 +512,7 @@ double DiffusionPerpConstant<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionFullConstant<Trajectory>::DiffusionFullConstant(void)
-                     : DiffusionBase(diff_name_full_constant, 0, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
 {
 };
 
@@ -566,9 +555,9 @@ void DiffusionFullConstant<Trajectory>::SetupDiffusion(bool construct)
 \date 05/06/2022
 */
 template <typename Trajectory>
-void DiffusionFullConstant<Trajectory>::EvaluateDiffusion(void)
+void DiffusionFullConstant<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
+   if (comp == 2) return;
    Kappa[0] = Dperp;
    Kappa[1] = Dpara;
 };
@@ -580,10 +569,10 @@ void DiffusionFullConstant<Trajectory>::EvaluateDiffusion(void)
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
    return 0.0;
 };
@@ -594,7 +583,7 @@ double DiffusionFullConstant<Trajectory>::GetDirectionalDerivative(int xyz, Deri
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionFullConstant<Trajectory>::GetMuDerivative(void)
+double DiffusionFullConstant<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -610,7 +599,7 @@ double DiffusionFullConstant<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionFlowMomentumPowerLaw<Trajectory>::DiffusionFlowMomentumPowerLaw(void)
-                             : DiffusionBase(diff_name_flow_momentum_power_law, 0, STATE_NONE)
+                             : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -657,9 +646,9 @@ void DiffusionFlowMomentumPowerLaw<Trajectory>::SetupDiffusion(bool construct)
 \date 01/03/2025
 */
 template <typename Trajectory>
-void DiffusionFlowMomentumPowerLaw<Trajectory>::EvaluateDiffusion(void)
+void DiffusionFlowMomentumPowerLaw<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
+   if (comp == 2) return;
    Kappa[1] = kap0 * pow(_fields.Vel().Norm() / U0, pow_law_U) * pow(_mom[0] / p0, pow_law_p);
    Kappa[0] = kap_rat * Kappa[1];
 };
@@ -671,14 +660,14 @@ void DiffusionFlowMomentumPowerLaw<Trajectory>::EvaluateDiffusion(void)
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
 // Note that this doesn't work in regions were the flow is nearly zero.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_U * (_fields.DelVel().row[xyz] * _fields.Vel()) / Sqr(_fields.Vel().Norm());
-   else return Kappa[comp_eval] * pow_law_U * (_fields.DotVel() * _fields.Vel()) / Sqr(_fields.Vel().Norm());
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp] * pow_law_U * (_fields.DelVel().row[xyz] * _fields.Vel()) / Sqr(_fields.Vel().Norm());
+   else return Kappa[comp] * pow_law_U * (_fields.DotVel() * _fields.Vel()) / Sqr(_fields.Vel().Norm());
 };
 
 /*!
@@ -688,7 +677,7 @@ double DiffusionFlowMomentumPowerLaw<Trajectory>::GetDirectionalDerivative(int x
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionFlowMomentumPowerLaw<Trajectory>::GetMuDerivative(void)
+double DiffusionFlowMomentumPowerLaw<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -703,7 +692,7 @@ double DiffusionFlowMomentumPowerLaw<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::DiffusionKineticEnergyRadialDistancePowerLaw(void)
-                                            : DiffusionBase(diff_name_kinetic_energy_radial_distance_power_law, 0, DIFF_NOBACKGROUND)
+                                            : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
 {
 };
 
@@ -747,10 +736,10 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::SetupDiffusion(bo
 \date 08/18/2023
 */
 template <typename Trajectory>
-void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::EvaluateDiffusion(void)
+void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
-   Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(_pos.Norm() / r0, pow_law_r);
+   if (comp == 2) return;
+   Kappa[1] = kap0 * pow(EnrKin(_coords.Mom()[0], specie) / T0, pow_law_T) * pow(_coords.Pos().Norm() / r0, pow_law_r);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -760,13 +749,13 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::EvaluateDiffusion
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
 // Note that this doesn't work near the origin where the radial distance is close to zero.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_r * _pos[xyz] / Sqr(_pos.Norm());
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp] * pow_law_r * _coords.Pos()[xyz] / Sqr(_coords.Pos().Norm());
    else return 0.0;
 };
 
@@ -776,7 +765,7 @@ double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetDirectionalD
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetMuDerivative(void)
+double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -791,7 +780,7 @@ double DiffusionKineticEnergyRadialDistancePowerLaw<Trajectory>::GetMuDerivative
 */
 template <typename Trajectory>
 DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::DiffusionRigidityMagneticFieldPowerLaw(void)
-                                      : DiffusionBase(diff_name_rigidity_magnetic_field_power_law, 0, STATE_NONE)
+                                      : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -835,10 +824,10 @@ void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::SetupDiffusion(bool con
 \date 01/04/2024
 */
 template <typename Trajectory>
-void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(void)
+void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
-   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
+   if (comp == 2) return;
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_coords.Mom()[0], specie) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -848,14 +837,14 @@ void DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::EvaluateDiffusion(void)
 \param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields
 \return double       Directional derivative
-\note This is meant to be called after GetComponent() for the component for which the derivative is wanted
+ \note This must be called after Stage() if the target coordinates have changed.
 */
 template <typename Trajectory>
-double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int xyz, DerivativeData& ddata_in)
+double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
 {
 // Note that this doesn't work in regions were the field is nearly zero, although in that case an error would be thrown elsewhere in the code.
-   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp_eval] * pow_law_B * _fields.DelAbsMag()[xyz] / _fields.AbsMag();
-   else return Kappa[comp_eval] * pow_law_B * _fields.DotAbsMag() / _fields.AbsMag();
+   if ((0 <= xyz) && (xyz <= 2)) return Kappa[comp] * pow_law_B * _fields.DelAbsMag()[xyz] / _fields.AbsMag();
+   else return Kappa[comp] * pow_law_B * _fields.DotAbsMag() / _fields.AbsMag();
 };
 
 /*!
@@ -864,7 +853,7 @@ double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetDirectionalDerivat
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetMuDerivative(void)
+double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -879,7 +868,7 @@ double DiffusionRigidityMagneticFieldPowerLaw<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionStraussEtAl2013<Trajectory>::DiffusionStraussEtAl2013(void)
-                        : DiffusionBase(diff_name_strauss_et_al_2013, 0, STATE_NONE)
+                        : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -924,21 +913,21 @@ void DiffusionStraussEtAl2013<Trajectory>::SetupDiffusion(bool construct)
 \date 08/01/2024
 */
 template <typename Trajectory>
-void DiffusionStraussEtAl2013<Trajectory>::EvaluateDiffusion(void)
+void DiffusionStraussEtAl2013<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
+   if (comp == 2) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
    if (LISM_idx < 0) LISM_ind = 0.0;
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Rigidity(_coords.Mom()[0], specie);
    double kap_rat;
 
 // Find diffusion coefficients
    Kappa[1] = (lam_para * vmag / 3.0) * (rig < R0 ? cbrt(rig / R0) : rig / R0) * (B0_eff / _fields.Mag());
-   if (comp_eval == 0) {
+   if (comp == 0) {
       kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
       Kappa[0] = kap_rat * Kappa[1];
    };
@@ -950,7 +939,7 @@ void DiffusionStraussEtAl2013<Trajectory>::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionStraussEtAl2013<Trajectory>::GetMuDerivative(void)
+double DiffusionStraussEtAl2013<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -965,7 +954,7 @@ double DiffusionStraussEtAl2013<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionPotgieterEtAl2015<Trajectory>::DiffusionPotgieterEtAl2015(void)
-                          : DiffusionBase(diff_name_potgieter_et_al_2015, 0, STATE_NONE)
+                          : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -1010,21 +999,21 @@ void DiffusionPotgieterEtAl2015<Trajectory>::SetupDiffusion(bool construct)
 \date 01/09/2025
 */
 template <typename Trajectory>
-void DiffusionPotgieterEtAl2015<Trajectory>::EvaluateDiffusion(void)
+void DiffusionPotgieterEtAl2015<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
+   if (comp == 2) return;
 
 // Find LISM indicator variable (convert -1:1 to 1:0) and interpolate inner/outer quantities.
    if (LISM_idx < 0) LISM_ind = 0.0;
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Rigidity(_coords.Mom()[0], specie);
    double kap_rat;
 
 // Find diffusion coefficients
    Kappa[1] = kappa_para * (vmag / c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _fields.Mag());
-   if (comp_eval == 0) {
+   if (comp == 0) {
       kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
       Kappa[0] = kap_rat * Kappa[1];
    };
@@ -1036,7 +1025,7 @@ void DiffusionPotgieterEtAl2015<Trajectory>::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionPotgieterEtAl2015<Trajectory>::GetMuDerivative(void)
+double DiffusionPotgieterEtAl2015<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
@@ -1051,7 +1040,7 @@ double DiffusionPotgieterEtAl2015<Trajectory>::GetMuDerivative(void)
 */
 template <typename Trajectory>
 DiffusionEmpiricalSOQLTandUNLT<Trajectory>::DiffusionEmpiricalSOQLTandUNLT(void)
-                              : DiffusionBase(diff_name_empirical_soqlt_and_unlt, 0, STATE_NONE)
+                              : DiffusionBase(diff_name, STATE_NONE)
 {
 };
 
@@ -1096,29 +1085,29 @@ void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::SetupDiffusion(bool construct)
 \date 01/09/2025
 */
 template <typename Trajectory>
-void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::EvaluateDiffusion(void)
+void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::EvaluateDiffusion(int comp)
 {
-   if (comp_eval == 2) return;
+   if (comp == 2) return;
    double lam, rig_dep;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Rigidity(_coords.Mom()[0], specie);
 
-   if (comp_eval == 1) {
+   if (comp == 1) {
 // Compute mean free path and rigidity dependance with a bent power law
       rig_dep = cbrt((rig / R0) * (1.0 + Sqr(Sqr(rig / R0))));
       lam = lam_para;
    }
-   else if (comp_eval == 0) {
+   else if (comp == 0) {
 // Compute mean free path and rigidity dependance with a bent power law
       rig_dep = cbrt((rig / R0) * (1.0 + Sqr(rig / R0)));
 
 // Find magnetic mixing indicator variable (convert -1:1 to 0:1) and interpolate perp-to-para diffusion ratio.
       if (Bmix_idx < 0) Bmix_ind = 1.0;
       Bmix_ind = (_fields.IvBmix() < 0.0 ? 0.0 : 1.0);
-      if (_pos.Norm() < radial_limit_perp_red) lam = lam_perp * (Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red);
+      if (_coords.Pos().Norm() < radial_limit_perp_red) lam = lam_perp * (Bmix_ind + (1.0 - Bmix_ind) * kap_rat_red);
       else lam = lam_perp;
    };
-   Kappa[comp_eval] = (lam * vmag / 3.0) * rig_dep * (B0 / _fields.Mag());
-   Kappa[comp_eval] /= 1.0 + solar_cycle_effect * Sqr(cos(0.5 * _fields.IvSolarCycle()));
+   Kappa[comp] = (lam * vmag / 3.0) * rig_dep * (B0 / _fields.Mag());
+   Kappa[comp] /= 1.0 + solar_cycle_effect * Sqr(cos(0.5 * _fields.IvSolarCycle()));
 };
 
 /*!
@@ -1127,7 +1116,7 @@ void DiffusionEmpiricalSOQLTandUNLT<Trajectory>::EvaluateDiffusion(void)
 \return double       Derivative in mu
 */
 template <typename Trajectory>
-double DiffusionEmpiricalSOQLTandUNLT<Trajectory>::GetMuDerivative(void)
+double DiffusionEmpiricalSOQLTandUNLT<Trajectory>::GetMuDerivative(int comp)
 {
    return 0.0;
 };
