@@ -167,28 +167,46 @@ enum class BuildMode {
    release
 };
 
-//! Specie (alternative impl)
-enum class Specie {
-   electron_core,
-   electron_halo,
-   electron_beam,
-   //
-   proton_core,
-   proton_halo,
-   proton_beam,
-   //
-   proton_pickup,
-   alpha_core,
-   alpha_halo,
-   //
-   heliumII_core,
-   heliumII_pickup,
-   hydrogenII_core,
-   //
-   hydrogenI_core,
-   hydrogenI_halo,
-   hydrogenI_beam,
-   heliumI_core
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Specie options and definitions
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//! Specie identifiers for lookup (use of enum class is somewhat overkill)
+enum class SpecieId {
+//! Electrons - core
+electron_core,
+//! Electrons - energetic
+electron_halo,
+//! Electrons - energetic/anisotropic (e.g., strahl)
+electron_beam,
+//! Protons - core
+proton_core,
+//! Protons - energetic (e.g., suprathermal)
+proton_halo,
+//! Protons - energetic/anisotropic
+proton_beam,
+//! Protons - pickup (as proton_halo, but different origin)
+proton_pickup,
+//! Alpha particles - core
+alpha_core,
+//! Alpha particles - energetic
+alpha_halo,
+//! Singly ionized helium
+heliumII_core,
+//! Singly ionized helium - pickup
+heliumII_pickup,
+//! Proton-electron plasma - core
+hydrogenII_core,
+//! Hydrogen atoms - core
+hydrogenI_core,
+//! Hydrogen atoms - energetic (e.g., from heliosheath)
+hydrogenI_halo,
+//! Hydrogen atoms - energetic (e.g., from solar wind)
+hydrogenI_beam,
+//! Helium atoms - core
+heliumI_core
 };
 
 //! Names of fluid species
@@ -237,6 +255,34 @@ constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesCharges = {-SPC_CONST_
 constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesPolytropicIndices
       = {5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0,
          5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0};
+
+
+template <SpecieId specieid>
+struct Specie {
+   static constexpr SpecieId id = specieid;
+   static constexpr std::string_view name = SpeciesNames[static_cast<size_t>(specieid)];
+   static constexpr double mass = SpeciesMasses[static_cast<size_t>(specieid)];
+   static constexpr double charge = SpeciesCharges[static_cast<size_t>(specieid)];
+   static constexpr double pt_idx = SpeciesPolytropicIndices[static_cast<size_t>(specieid)];
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Fields options
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+enum class CoordinateSystem {
+   cartesian,
+   polar,
+   cylindrical,
+   spherical,
+   p_mu_phi,
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Trajectory Simulation options
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 //! Derivative method (generally either analytic or numeric)
@@ -316,10 +362,10 @@ enum class ModRPos {
 
 }
 
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Trajectory options
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 
 namespace TrajectoryOptions {
@@ -365,11 +411,41 @@ enum class DivkMethod {
    gradients
 };
 
-
-
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Fluid Specie / Convervation Law options
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+enum class Model {
+// GASDYN - compressible gas dynamics (5 vars)
+   GasDyn,
+// MHD - ideal MHD (8 vars)
+   MHD,
+// MHDE - two-fluid ideal MHD (9 vars)
+   MHDGLM,
+   MHDE,
+// CGL - anisotropic ideal MHD (9 vars)
+   CGL,
+// CGLE - anisotropic two-fluid ideal MHD (9 vars)
+   CGLE,
+};
+
+enum class TurbulenceModel {
+   Zank6eq,
+};
+
+enum class Form {
+   primitive,
+   conserved,
+   flux,
+};
+
+enum class Passivity {
+   active,
+   passive,
+};
 
 
 };

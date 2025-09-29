@@ -85,7 +85,7 @@ Compute the internal u, B, and E fields
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
 
    GeoVector posprime = coords.Pos() - r0;
@@ -119,7 +119,7 @@ void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(Coordinates& coo
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates&) coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       GeoVector posprime = coords.Pos() - r0;
@@ -141,7 +141,7 @@ void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coord
       if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives(coords, specie, fields);
+      NumericalDerivatives(coords, fields);
    }
 };
 

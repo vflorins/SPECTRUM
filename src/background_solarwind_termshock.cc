@@ -71,13 +71,13 @@ void BackgroundSolarWindTermShock<HConfig>::ModifyUr(const double r, double &ur_
 {
    if (r > r_TS) {
       if (r > r_TS + w_TS) {
-         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::zero) {
             ur_mod *= s_TS_inv;
          }
-         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::one) {
             ur_mod *= s_TS_inv * (r_TS + w_TS) / r;
          }
-         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::square) {
             ur_mod *= s_TS_inv * Sqr((r_TS + w_TS) / r);
          }
          else {
@@ -101,13 +101,13 @@ double BackgroundSolarWindTermShock<HConfig>::dUrdr(const double r, const double
 {
    if (r > r_TS) {
       if (r > r_TS + w_TS) {
-         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+         if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::zero) {
             return 0.0;
          }
-         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::one) {
             return -v_norm / r;
          }
-         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+         else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::square) {
             return -2.0 * v_norm / r;
          }
          else {
@@ -133,13 +133,13 @@ double BackgroundSolarWindTermShock<HConfig>::TimeLag(const double r)
 {
    if (r < r_TS) return r / ur0;
    else {
-      if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::zero) {
+      if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::zero) {
          return (r_TS + s_TS * (r - r_TS)) / ur0;
       }
-      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::one) {
+      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::one) {
          return (r_TS + s_TS * (Sqr(r) - Sqr(r_TS)) / (2.0 * r_TS)) / ur0;
       }
-      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindTermShockSpeedExponent::square) {
+      else if constexpr (HConfig::solarwind_termshock_speed_exponent == SolarWindOptions::TermShockSpeedExponent::square) {
          return (r_TS + s_TS * (Cube(r) - Cube(r_TS)) / (3.0 * Sqr(r_TS))) / ur0;
       }
       else {
@@ -155,7 +155,7 @@ double BackgroundSolarWindTermShock<HConfig>::TimeLag(const double r)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSolarWindTermShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundSolarWindTermShock<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       double r;
@@ -181,7 +181,7 @@ void BackgroundSolarWindTermShock<HConfig>::EvaluateBackgroundDerivatives(Coordi
       if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, fields);
    };
 };
 
@@ -190,7 +190,7 @@ void BackgroundSolarWindTermShock<HConfig>::EvaluateBackgroundDerivatives(Coordi
 \date 02/23/2024
 */
 template <typename HConfig>
-void BackgroundSolarWindTermShock<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundSolarWindTermShock<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    BackgroundSolarWind::EvaluateDmax(coords);
 

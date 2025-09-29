@@ -71,7 +71,7 @@ class BackgroundBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
 
 private:
 
@@ -162,7 +162,7 @@ protected:
    virtual void SetupBackground(bool construct);
 
    //! Calculate the maximum distance allowed per time step
-   virtual void EvaluateDmax(Coordinates&);
+   virtual void EvaluateDmax(BackgroundCoordinates&);
 
 //! Calculate magnetic field magnitude
    template <typename Fields>
@@ -170,19 +170,19 @@ protected:
 
 //! Compute the fields at an incremented position or time
    template <typename Fields>
-   void DirectionalDerivative(int xyz, Coordinates, Fields&);
+   void DirectionalDerivative(int xyz, BackgroundCoordinates, Fields&);
 
 //! Compute the field derivatives
    template <typename Fields>
-   void NumericalDerivatives(Coordinates&, Specie&, Fields&);
+   void NumericalDerivatives(BackgroundCoordinates&, Fields&);
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   void EvaluateBackground(BackgroundCoordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
+   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
 
 public:
 
@@ -209,7 +209,7 @@ public:
 
 //! Return fields at the internal position, evaluated or previously stored
    template <typename Fields>
-   void GetFields(Coordinates&, Fields&);
+   void GetFields(BackgroundCoordinates&, Fields&);
 
 #ifdef USE_SILO
 

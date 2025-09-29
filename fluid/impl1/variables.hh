@@ -45,19 +45,19 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #undef TURBULENCE_TYPE
 
 #if (FLUID_PRIMARY_TYPE == FLUID_GASDYN) || (FLUID_SECONDARY_TYPE == FLUID_GASDYN) || (FLUID_TERTIARY_TYPE == FLUID_GASDYN) || (FLUID_QUATERNARY_TYPE == FLUID_GASDYN)
-#include "fluid/conservation_laws_gasdyn.hh"
+#include "fluid/impl1/conservation_laws_gasdyn.hh"
 #endif
 
 #if (FLUID_PRIMARY_TYPE == FLUID_MHD) || (FLUID_SECONDARY_TYPE == FLUID_MHD) || (FLUID_TERTIARY_TYPE == FLUID_MHD) || (FLUID_QUATERNARY_TYPE == FLUID_MHD)
-#include "fluid/conservation_laws_mhd.hh"
+#include "fluid/impl1/conservation_laws_mhd.hh"
 #endif
 
 #if TURBULENCE_TYPE == TURB_ZANK6EQ
-#include "fluid/conservation_laws_zank6eq.hh"
+#include "fluid/impl1/conservation_laws_zank6eq.hh"
 #endif
 
 #if defined(PASSIVE_PRIMARY_01) || defined(PASSIVE_PRIMARY_02) || defined(PASSIVE_SECONDARY_01) || defined (PASSIVE_SECONDARY_02)
-#include "fluid/conservation_laws_passive.hh"
+#include "fluid/impl1/conservation_laws_passive.hh"
 #endif
 
 namespace Spectrum {

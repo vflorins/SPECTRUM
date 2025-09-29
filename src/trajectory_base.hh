@@ -150,7 +150,7 @@ class TrajectoryBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
    using HConfig::specie;
    using ButcherTable = ButcherTable<HConfig::rk_integrator>;

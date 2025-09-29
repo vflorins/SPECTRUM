@@ -27,7 +27,7 @@ class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<HConfig_>, HCo
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
    using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
    using HConfig::specie;

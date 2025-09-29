@@ -34,7 +34,7 @@ class TrajectoryFieldline : public TrajectoryFieldlineBase<TrajectoryFieldline<H
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
    using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
    using HConfig::specie;

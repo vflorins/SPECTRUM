@@ -414,6 +414,12 @@ def get_injectee(injectee_label, named):
 \\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
 \\author Lucius Schoenbaum
 \\date 9/18/2025
+This operation is more expensive in general than a straightforward
+copy, so it should only be used when the advantage of
+working with more than one type, unit system, or coordinate system
+makes it worth the tradeoff.
+The Get() operation converts field types as lists of values, while preserving values. 
+For a conversion operation, use Convert().
 */
    template <typename ParentFields>
    static inline Fields Get(ParentFields& fields) {

@@ -27,13 +27,13 @@ template <typename HConfig_>
 class BackgroundDiscontinuity : public BackgroundBase<HConfig_> {
 private:
 
-//! Readable name of the BackgroundDiscontinuity class
+//! Readable name of the class
    static constexpr std::string_view bg_name = "BackgroundDiscontinuity";
 
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -69,11 +69,11 @@ protected:
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   void EvaluateBackground(BackgroundCoordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
+   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
 
 public:
 

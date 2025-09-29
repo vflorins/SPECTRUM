@@ -33,9 +33,9 @@ private:
 
 public:
 
-   using BackgroundSolarWind = BackgroundSolarWind<HConfig>;
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using BackgroundSolarWind = BackgroundSolarWind<HConfig>;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -75,7 +75,7 @@ protected:
    void SetupBackground(bool construct) override;
 
 //! Compute the maximum distance per time step
-   void EvaluateDmax(Coordinates&) override;
+   void EvaluateDmax(BackgroundCoordinates&) override;
 
 //! Modify radial flow (if necessary)
    void ModifyUr(double r, double &ur_mod) override;
@@ -88,11 +88,11 @@ protected:
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   void EvaluateBackground(BackgroundCoordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
+   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
 
 public:
 

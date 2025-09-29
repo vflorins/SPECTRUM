@@ -65,7 +65,7 @@ void BackgroundUniform<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundUniform<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (Fields::Vel_found()) {
       fields.Vel() = u0;
@@ -89,7 +89,7 @@ void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields&
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
    if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;

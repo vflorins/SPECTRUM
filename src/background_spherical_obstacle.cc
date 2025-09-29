@@ -73,7 +73,7 @@ void BackgroundSphericalObstacle<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    GeoVector posprime = coords.Pos() - r0;
    double posprimenorm = posprime.Norm();
@@ -102,7 +102,7 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(Coordinates& coord
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       GeoVector posprime = coords.Pos() - r0;
@@ -140,7 +140,7 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordin
       if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, fields);
    };
 };
 
@@ -149,7 +149,7 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordin
 \date 03/25/2022
 */
 template <typename HConfig>
-void BackgroundSphericalObstacle<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundSphericalObstacle<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

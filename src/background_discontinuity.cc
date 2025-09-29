@@ -79,7 +79,7 @@ void BackgroundDiscontinuity<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
 // Upstream
    if ((coords.Pos() - r0) * n_discont - v_discont * coords.Time() > 0) {
@@ -105,7 +105,7 @@ void BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, F
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
    if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;

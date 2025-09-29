@@ -138,7 +138,7 @@ void BackgroundSmoothShock<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundSmoothShock<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    double a1, a2;
    ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
@@ -161,7 +161,7 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found()) {
@@ -190,7 +190,7 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& 
       };
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, fields);
    };
 };
 
@@ -199,7 +199,7 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& 
 \date 02/28/2025
 */
 template <typename Fields>
-void BackgroundSmoothShock<Fields>::EvaluateDmax(Coordinates& coords)
+void BackgroundSmoothShock<Fields>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

@@ -298,7 +298,7 @@ reasonable_defaults_baseline = {
     'batch_size': 1,
     # ----- Background ----- #
     'num_numeric_grad_evals': 1,
-    'incr_dmax_ratio': "{1,10000}",
+    'incr_dmax_ratio': 0.0001,
     'server_interpolation_order': 1,
     'smooth_discontinuity_order': 4,
     'server_num_ghost_cells': 2,
@@ -443,7 +443,7 @@ def ratio(dbl):
         denom *= 10
         numer *= 10
         fp, ip = math_modf(numer)
-    return f"{{{int(sgn*numer)},{int(denom)}}}"
+    return f"std::ratio<{int(sgn*numer)},{int(denom)}>()"
 
 
 if __name__ == "__main__":

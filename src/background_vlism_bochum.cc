@@ -82,10 +82,11 @@ void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 
    sin_theta_B0 = fmax(sp_tiny, sqrt(1.0 - Sqr(UnitVec(B0) * eprime[2])));
 
-#if MOD_TYPE == 3
-   double ht = Sqr(scB / sin_theta_B0) * (Sqr(ztr) - 1.0);
-   fzoom = sqrt((ht - 1.0) / (ht - Sqr(ztr)));
-#endif
+   if constexpr (HConfig::VLISMBochum_mod_type == 3) {
+      double ht = Sqr(scB / sin_theta_B0) * (Sqr(ztr) - 1.0);
+      fzoom = sqrt((ht - 1.0) / (ht - Sqr(ztr)));
+   }
+
 };
 
 /*!
@@ -98,56 +99,53 @@ void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 template <typename HConfig>
 double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
 {
-#if MOD_TYPE == 0
-   return 1.0;
-#endif
+   if constexpr (HConfig::VLISMBochum_mod_type == 0) {
+      return 1.0;
+   }
 
 // Where to evaluate the custom amplification function.
    double zev;
 
-// If "MOD_RPOS" is zero, the scaling is done with respect to the intersection point of the isochrone with the z-axis (s=0). To find "zev" the nonlinear equaiton zev+(1/2)ln[(zev-1)/(zev+1)]=zeta is solved via Newton iterations.
-#if MOD_RPOS == 0
-
-// Current error of iterator loop
-   double f0, f1, delta = 1.0;
+// If "mod_rpos" is zero, the scaling is done with respect to the intersection point of the isochrone with the z-axis (s=0). To find "zev" the nonlinear equaiton zev+(1/2)ln[(zev-1)/(zev+1)]=zeta is solved via Newton iterations.
+   if constexpr (HConfig::VLISMBochum_mod_rpos == 0) {
+      // Current error of iterator loop
+      double f0, f1, delta = 1.0;
 
 // Newton iterations
-   zev = 2.0;
-   while (fabs(delta) > sp_tiny) {
-      f0 = (zev + 0.5 * log((zev - 1.0) / (zev + 1.0)) - zeta);
-      f1 = (zev * zev) / (zev * zev - 1.0); 
-      delta = f0 / f1;
+      zev = 2.0;
+      while (fabs(delta) > sp_tiny) {
+         f0 = (zev + 0.5 * log((zev - 1.0) / (zev + 1.0)) - zeta);
+         f1 = (zev * zev) / (zev * zev - 1.0);
+         delta = f0 / f1;
 
 // Catch overshoot before doing log[<0] by just going halfway to 1.0
-      if (zev - delta <= 1.0) delta = 0.5 * (zev - 1.0);
-      zev -= delta;
-   };
+         if (zev - delta <= 1.0) delta = 0.5 * (zev - 1.0);
+         zev -= delta;
+      };
+   }
+   else {
+// If "mod_rpos" is one, the scaling is done with respect to the isochrone asymptotic position at s=inf, so zev=zeta.
+      zev = zeta;
+   }
 
-// If "MOD_RPOS" is one, the scaling is done with respect to the isochrone asymptotic position at s=inf, so zev=zeta.
-#else
-   zev = zeta;
-#endif
-
-// No modification for zev>ztr, zero for zev<ztr
-#if MOD_TYPE == 1
-   return (zev > ztr ? 1.0 : 0.0);
-
-// No modification for zev>ztr, constant for zev<ztr
-#elif MOD_TYPE == 2
-
-   if (fabs(sin_theta_B0) < sp_tiny) return 1.0;
-   else return (zev > ztr ? 1.0 : RelBtrans(ztr) / RelBtrans(zev));
-
-// No modification for zev>ztr, scaled to reach scB at the nose for zev<ztr
-#elif MOD_TYPE == 3
-
-   if ((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
-   else return RelBtrans(fzoom * zev) / RelBtrans(fzoom * ztr) / RelBtrans(zev) * RelBtrans(ztr);
-
-// Unmodified field
-#else
-   return 1.0;
-#endif
+   if constexpr (HConfig::VLISMBochum_mod_type == 1) {
+      // No modification for zev>ztr, zero for zev<ztr
+      return (zev > ztr ? 1.0 : 0.0);
+   }
+   else if constexpr (HConfig::VLISMBochum_mod_type == 2) {
+      // No modification for zev>ztr, constant for zev<ztr
+      if (fabs(sin_theta_B0) < sp_tiny) return 1.0;
+      else return (zev > ztr ? 1.0 : RelBtrans(ztr) / RelBtrans(zev));
+   }
+   else if constexpr (HConfig::VLISMBochum_mod_type == 3) {
+      // No modification for zev>ztr, scaled to reach scB at the nose for zev<ztr
+      if ((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
+      else return RelBtrans(fzoom * zev) / RelBtrans(fzoom * ztr) / RelBtrans(zev) * RelBtrans(ztr);
+   }
+   else {
+      // Unmodified field
+      return 1.0;
+   }
 
 };
 
@@ -159,7 +157,7 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
    GeoVector posprime = coords.Pos() - r0;
@@ -212,16 +210,16 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
       }
       else {
 
+         if constexpr (HConfig::VLISMBochum_mod_type == 3 && HConfig::VLISMBochum_mod_rpos == 0) {
+            // GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
+            wus = 0.0;
+            fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
+            fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
+            zeta = ztr + sp_small;
+         }
+         else {
 // FIXME Derive asymptotics for other taper functions
-#if (MOD_RPOS == 0) && (MOD_TYPE == 3)
-
-// GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
-         wus = 0.0;
-         fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
-         fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
-         zeta = ztr + sp_small;
-
-#endif
+         }
 
       };
       small_s_eval = true;
@@ -314,9 +312,9 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
-   NumericalDerivatives();
+   NumericalDerivatives(coords, fields);
 };
 
 };

@@ -91,7 +91,7 @@ void BackgroundShock<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundShock<HConfig>::EvaluateBackground(BackgroundCoordinates&) coords, Fields& fields)
 {
 // Upstream
    if ((coords.Pos() - r0) * n_shock - v_shock * coords.Time() > 0) {
@@ -117,7 +117,7 @@ void BackgroundShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundShock<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
    if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;

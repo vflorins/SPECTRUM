@@ -21,7 +21,10 @@ Elsewhere, this file can be edited normally.
 #include <iostream>
 #include <any>
 #include <stdexcept>
-#include "../generated/species_types.hh"
+#include "../generated/field_types.hh"
+#include "../fconfig.hh"
+
+
 
 namespace Spectrum {
 
@@ -34,8 +37,12 @@ or to house per-cell data on a grid.
 \author Juan G Alonzo Guzman
 \date 08/26/2025
 */
-template <typename ... Ts>
+template <typename FConfig_, typename ... Ts>
 struct Fields {
+public:
+
+   using FConfig = FConfig_;
+
 public:
 
 /*!
@@ -1229,6 +1236,12 @@ As an array of double, the size is given by the static member size().
 \brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
 \author Lucius Schoenbaum
 \date 9/18/2025
+This operation is more expensive in general than a straightforward
+copy, so it should only be used when the advantage of
+working with more than one type, unit system, or coordinate system
+makes it worth the tradeoff.
+The Get() operation converts field types as lists of values, while preserving values.
+For a conversion operation, use Convert().
 */
    template <typename ParentFields>
    static inline Fields Get(ParentFields& fields) {
@@ -1456,10 +1469,31 @@ As an array of double, the size is given by the static member size().
    // END(fields/generate, class)
 
 
+/*!
+\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\author Lucius Schoenbaum
+\date 9/28/2025
+This operation is fast whenever the operation is trivial, for general logic.
+*/
+   template <typename ParentFields>
+   static inline Fields Convert(ParentFields& fields) {
+      if constexpr (std::same_as<Fields, ParentFields>) {
+         return fields;
+      }
+      else {
+         // convert time
+
+         // convert pos
+
+         // convert vel
+
+         // convert mom
+
+      }
+   }
 
 
-
-   /*!
+/*!
 \author Juan G Alonso Guzman
 \date 10/18/2022
 \return Divergence of U

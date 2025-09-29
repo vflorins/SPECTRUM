@@ -65,7 +65,7 @@ void BackgroundDipole<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundDipole<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundDipole<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (Fields::Vel_found()) {
       fields.Vel() = gv_zeros;
@@ -95,7 +95,7 @@ void BackgroundDipole<HConfig>::EvaluateBackground(Coordinates& coords, Fields& 
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found())
@@ -132,7 +132,7 @@ void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coord
          fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives(coords, specie, fields);
+      NumericalDerivatives(coords, fields);
    };
 };
 

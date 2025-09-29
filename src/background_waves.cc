@@ -170,7 +170,7 @@ void BackgroundWaves<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundWaves<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    int wave;
    double arg, z_rot;
@@ -214,7 +214,7 @@ void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    int wave, xyz;
    double arg, z_rot;
@@ -262,7 +262,7 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords
 \date 10/14/2022
 */
 template <typename HConfig>
-void BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundWaves<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);

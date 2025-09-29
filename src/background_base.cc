@@ -91,7 +91,7 @@ DerivativeData BackgroundBase<HConfig>::GetDerivativeData(void) const
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HConfig>::DirectionalDerivative(const int xyz, Coordinates coords, Fields& fields)
+void BackgroundBase<HConfig>::DirectionalDerivative(const int xyz, BackgroundCoordinates coords, Fields& fields)
 {
 // temporaries for forward- and backward-stepped evaluation
    Fields fields_forw, fields_back;
@@ -203,10 +203,11 @@ void BackgroundBase<HConfig>::DirectionalDerivative(const int xyz, Coordinates c
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HConfig>::NumericalDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundBase<HConfig>::NumericalDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    double AbsMag;
    GeoVector HatMag;
+   constexpr Specie specie = HConfig::specie;
    constexpr bool gradients = Fields::DelVel_found() || Fields::DelMag_found() || Fields::DelAbsMag_found() || Fields::DelElc_found();
    constexpr bool time_derivatives =  Fields::DotVel_found() || Fields::DotMag_found() || Fields::DotAbsMag_found() || Fields::DotElc_found();
 
@@ -226,7 +227,7 @@ void BackgroundBase<HConfig>::NumericalDerivatives(Coordinates& coords, Specie& 
    if constexpr (gradients) {
 
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = fmin(LarmorRadius(coords.Mom()[0], AbsMag, specie), _ddata.dmax);
+      r_g = fmin(LarmorRadius<specie>(coords.Mom()[0], AbsMag), _ddata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
       fa_basis.row[2] = HatMag;
@@ -286,7 +287,7 @@ void BackgroundBase<HConfig>::NumericalDerivatives(Coordinates& coords, Specie& 
 // Time derivatives.
    if constexpr (time_derivatives) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(coords.Mom()[0]), AbsMag, specie), Vel(coords.Mom()[0]) / _ddata.dmax);
+      w_g = fmin(CyclotronFrequency(Vel<specie>(coords.Mom()[0]), AbsMag), Vel(coords.Mom()[0]) / _ddata.dmax);
       DirectionalDerivative(3, coords, fields);
    };
 
@@ -344,7 +345,7 @@ void BackgroundBase<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundBase<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -357,7 +358,7 @@ void BackgroundBase<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fi
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundBase<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
 };
 
@@ -368,7 +369,7 @@ void BackgroundBase<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords,
 \note The default method should be good enough for all grid-free backgrounds
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundBase<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = dmax0;
    LOWER_BITS(_status, STATE_INVALID);
@@ -416,16 +417,13 @@ double BackgroundBase<HConfig>::GetSafeIncr(const GeoVector& dir)
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 \date 09/08/2025
-\param[in]  t_in   Time
-\param[in]  pos_in Position
-\param[in]  mom_in Momentum (p,mu,phi) coordinates
-\param[out] fields All fields data
-\param[out] dmax The caller's dmax
+\param[in] coords coordinates (time, position, momentum) with Momentum in (p, mu, phi) coordinates
+\param[out] fields All fields data requested by caller
 \note This is a common routine that the derived classes should not change.
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundBase<HConfig>::GetFields(Coordinates& coords, Fields& fields)
+void BackgroundBase<HConfig>::GetFields(BackgroundCoordinates& coords, Fields& fields)
 {
 
 // Check that state setup is complete

@@ -78,14 +78,14 @@ void BackgroundSolarWind<HConfig>::SetupBackground(bool construct)
    ur0 = fabs(u0[0]);
 
 // Compute auxiliary quantities for fast-slow wind calculation
-   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::constant) {
+   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::constant) {
       // do nothing.
    }
-   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::linear_step) {
+   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::linear_step) {
       fsl_pls = fast_slow_lat_sw + 2.0 / fast_slow_dlat_sw;
       fsl_mns = fast_slow_lat_sw - 2.0 / fast_slow_dlat_sw;
    }
-   else if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::smooth_step) {
+   else if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::smooth_step) {
       fsl_pls = 0.5 * (fast_slow_ratio_sw + 1.0);
       fsl_mns = 0.5 * (fast_slow_ratio_sw - 1.0);
    }
@@ -123,7 +123,7 @@ double BackgroundSolarWind<HConfig>::TimeLag(const double r)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundSolarWind<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
@@ -139,7 +139,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
    t_lag = (coords.Time() - t0) - TimeLag(r);
 
 // Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
-   if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::wavy_time_dependent) {
+   if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::wavy_time_dependent) {
       arg = 2.0 * W0_sw * t_lag;
       Br0 = B0[0] + B0[1] * cos(arg);
    }
@@ -161,16 +161,16 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       fields.Iv2() = arg;
 
 // Assign magnetic mixing region
-   if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::wavy_static
-      || HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::wavy_time_dependent
+   if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::wavy_static
+      || HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::wavy_time_dependent
    ) {
 // Set tilt amplitude
       tilt_amp = tilt_ang_sw;
-      if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::wavy_time_dependent) {
+      if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::wavy_time_dependent) {
 // Variable tilt
          tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
       }
-      if constexpr (HConfig::SolarWindSectoredRegion == SolarWindSectoredRegion::HCS) {
+      if constexpr (HConfig::SolarWindSectoredRegion == SolarWindOptions::SectoredRegion::HCS) {
          if (M_PI_2 - fs_theta_sym < tilt_amp) {
             // todo placeholder - review after spdata/fields update
 //            _spdata.region[1] = 1.0;
@@ -182,14 +182,14 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 // Calculate speed (fast/slow) based on latitude
    ur = ur0;
 
-   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::constant) {
+   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::constant) {
       // do nothing.
    }
-   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::linear_step) {
+   if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::linear_step) {
       if (fs_theta_sym < fsl_mns) ur *= fast_slow_ratio_sw;
       else if (fs_theta_sym < fsl_pls) ur *= fast_slow_ratio_sw - 0.25 * fast_slow_dlat_sw * (fs_theta_sym - fsl_mns);
    }
-   else if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindSpeedLatitudeProfile::smooth_step) {
+   else if constexpr (HConfig::solarwind_speed_latitude_profile == SolarWindOptions::SpeedLatitudeProfile::smooth_step) {
       ur *= fsl_pls - fsl_mns * tanh(fast_slow_dlat_sw * (fs_theta_sym - fast_slow_lat_sw));
    }
    else {
@@ -222,13 +222,13 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       Br = Br0 * Sqr(r_ref / r);
       Bp = -Br * sintheta * r_mns * w0 / ur;
 
-      if constexpr (HConfig::SolarWindPolarCorrection == SolarWindPolarCorrection::none) {
+      if constexpr (HConfig::SolarWindPolarCorrection == SolarWindOptions::PolarCorrection::none) {
          // do nothing.
       }
-      else if constexpr (HConfig::SolarWindPolarCorrection == SolarWindPolarCorrection::Smith_Bieber) {
+      else if constexpr (HConfig::SolarWindPolarCorrection == SolarWindOptions::PolarCorrection::Smith_Bieber) {
          Bp -= Br * delta_omega_sw * r * w0 / ur;
       }
-      else if constexpr (HConfig::SolarWindPolarCorrection == SolarWindPolarCorrection::Zurbuchen_etal) {
+      else if constexpr (HConfig::SolarWindPolarCorrection == SolarWindOptions::PolarCorrection::Zurbuchen_etal) {
          phase = r_mns * w0 / ur;
          phase0 = r_mns * w0 / ur0;
          sinphase = sin(phase0);
@@ -236,7 +236,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
          Bt = Br * phase * dwt_sw * (sinphi * cosphase + cosphi * sinphase);
          Bp += Br * phase * (dwp_sw * sintheta + dwt_sw * costheta * (cosphi * cosphase - sinphi * sinphase));
       }
-      else if (HConfig::SolarWindPolarCorrection == SolarWindPolarCorrection::Schwadron_McComas) {
+      else if (HConfig::SolarWindPolarCorrection == SolarWindOptions::PolarCorrection::Schwadron_McComas) {
          // TODO
       }
 
@@ -245,8 +245,8 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       fields.Mag()[2] = Br * costheta;
 
 
-      if constexpr (HConfig::SolarWindPolarCorrection != SolarWindPolarCorrection::none
-               && HConfig::SolarWindPolarCorrection != SolarWindPolarCorrection::Smith_Bieber
+      if constexpr (HConfig::SolarWindPolarCorrection != SolarWindOptions::PolarCorrection::none
+               && HConfig::SolarWindPolarCorrection != SolarWindOptions::PolarCorrection::Smith_Bieber
       ) {
 // Add theta component from polar correction
          fields.Mag()[0] += Bt * costheta * cosphi;
@@ -255,10 +255,10 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       }
 
 // Correct polarity based on current sheet
-      if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::disabled) {
+      if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::disabled) {
          // do nothing.
       }
-      else if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::flat) {
+      else if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::flat) {
 // Flat current sheet at the equator
          if (acos(costheta) > M_PI_2) fields.Mag() *= -1.0;
       }
@@ -269,7 +269,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
          cosphase = cos(phase0);
          if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase)))
             fields.Mag() *= -1.0;
-         if constexpr (HConfig::SolarWindCurrentSheet == SolarWindCurrentSheet::wavy_time_dependent) {
+         if constexpr (HConfig::SolarWindCurrentSheet == SolarWindOptions::CurrentSheet::wavy_time_dependent) {
 // Solar cycle polarity changes
             if (sin(W0_sw * t_lag) < 0.0) fields.Mag() *= -1.0;
          }
@@ -290,7 +290,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       GeoMatrix rr;
@@ -312,7 +312,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
       if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, fields);
    };
 };
 
@@ -321,7 +321,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
 \date 03/10/2022
 */
 template <typename HConfig>
-void BackgroundSolarWind<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundSolarWind<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

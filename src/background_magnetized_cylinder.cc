@@ -45,7 +45,7 @@ BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(const Backgr
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    BackgroundCylindricalObstacle::EvaluateBackground(coords, fields);
    if constexpr (Fields::Mag_found()) fields.Mag() = B0 - fields.Mag();
@@ -59,14 +59,14 @@ void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coor
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(coords, specie, fields);
+      BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(coords, fields);
       if constexpr (Fields::DelMag_found()) fields.DelMag() *= -1.0;
    }
    else {
-      NumericalDerivatives(coords, specie, fields);
+      NumericalDerivatives(coords, fields);
    };
 };
 

@@ -138,7 +138,7 @@ void BackgroundSmoothDiscontinuity<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    double a1, a2;
    ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
@@ -160,7 +160,7 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coo
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
       if constexpr (Fields::DelVel_found()) {
@@ -191,7 +191,7 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coord
       };
    }
    else {
-      NumericalDerivatives();
+      NumericalDerivatives(coords, fields);
    };
 };
 
@@ -200,7 +200,7 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coord
 \date 02/28/2025
 */
 template <typename HConfig>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords)
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

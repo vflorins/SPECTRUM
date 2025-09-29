@@ -7,7 +7,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "common/physics.hh"
-#include "fluid/conservation_laws_mhd.hh"
+#include "fluid/impl1/conservation_laws_mhd.hh"
 
 namespace Spectrum {
 

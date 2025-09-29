@@ -27,13 +27,13 @@ template <typename HConfig_>
 class BackgroundServerCartesian : public BackgroundServer<HConfig_> {
 private:
 
-   //! Readable name of the class
+//! Readable name of the class
    static constexpr std::string_view bg_name = "BackgroundServerCartesian";
 
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;

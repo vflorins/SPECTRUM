@@ -46,7 +46,7 @@ BackgroundMagnetizedSphere<HConfig>::BackgroundMagnetizedSphere(const Background
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
    BackgroundSphericalObstacle::EvaluateBackground(coords, fields);
    if constexpr (Fields::Mag_found()) fields.Mag() = B0 - fields.Mag();
@@ -61,14 +61,14 @@ void BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(Coordinates& coords
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundMagnetizedSphere<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundMagnetizedSphere<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
    if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(coords, specie, fields);
+      BackgroundSphericalObstacle::EvaluateBackgroundDerivatives(coords, fields);
       if constexpr (Fields::DelMag_found()) fields.DelMag() *= -1.0;
    }
    else {
-      NumericalDerivatives(coords, specie, fields);
+      NumericalDerivatives(coords, fields);
    };
 };
 

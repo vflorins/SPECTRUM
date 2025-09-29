@@ -33,36 +33,10 @@ private:
    //! Readable name of the class
    const std::string bg_name = "BackgroundVLISMBochum";
 
-#if (MOD_RPOS != 0) && (MOD_RPOS != 1)
-#error Invalid MOD_RPOS
-#endif
-
-#if (MOD_TYPE == 1) && (MOD_RPOS != 1)
-#error Invalid combination of MOD_RPOS and MOD_TYPE
-#endif
-
-#if ((MOD_TYPE == 2) || (MOD_TYPE == 3)) && (MOD_RPOS != 0)
-#error Invalid combination of MOD_RPOS and MOD_TYPE
-#endif
-
-#if MOD_TYPE == 1
-   const double ztr = -5.0;
-#elif MOD_TYPE == 2
-   const double ztr = 1.3;
-#elif MOD_TYPE == 3
-   const double ztr = 1.3;
-#endif
-   static constexpr double ztr = finish_me;
-
-//static constexpr double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
-//static constexpr double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
-   static constexpr double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
-//static constexpr double scB = 30.0 / 3.0;
-
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::Coordinates;
+   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -80,6 +54,31 @@ public:
 //   using BackgroundBase::EvaluateBackground;
 //   using BackgroundBase::EvaluateBackgroundDerivatives;
    using BackgroundBase::NumericalDerivatives;
+
+private:
+
+   static_assert(!(HConfig::VLISMBochum_mod_rpos != 0 && HConfig::VLISMBochum_mod_rpos != 1), "Invalid mod_rpos");
+   static_assert(!(HConfig::VLISMBochum_mod_type == 1 && HConfig::VLISMBochum_mod_rpos != 1), "Invalid combination of mod_rpos and mod_type");
+   static_assert(!((HConfig::VLISMBochum_mod_type == 2 || HConfig::VLISMBochum_mod_type == 3) && HConfig::VLISMBochum_mod_rpos != 0), "Invalid combination of mod_rpos and mod_type");
+
+   static constexpr double Getztr() {
+      if constexpr (HConfig::VLISMBochum_mod_type == 1)
+         return -5.0;
+      else if constexpr (HConfig::VLISMBochum_mod_type == 2)
+         return 1.3;
+      else if constexpr (HConfig::VLISMBochum_mod_type == 3)
+         return 1.3;
+      else
+         return 1.0;
+   }
+
+   static constexpr double ztr = Getztr();
+
+//static constexpr double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
+//static constexpr double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
+   static constexpr double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
+//static constexpr double scB = 30.0 / 3.0;
+
 
 protected:
 
@@ -106,11 +105,11 @@ protected:
 
 //! Compute the internal u, B, and E fields
    template <typename Fields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   void EvaluateBackground(BackgroundCoordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Fields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Specie&, Fields&);
+   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
 
 public:
 

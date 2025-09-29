@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_HCONFIG_HH
 
 #include "common/definitions.hh"
+#include <ratio>
 
 namespace Spectrum {
 
@@ -22,12 +23,14 @@ Because template arguments cannot be floating point type, std::ratio is used for
 */
 template <
 typename BackgroundCoordinates_, // while live, including both vel and mom.
-typename RecordCoordinates_, // only including mom. todo
 typename BackgroundFields_,
+typename TrajectoryCoordinates_,
+typename TrajectoryFields_,
+typename RecordCoordinates_, // only including mom. todo
 typename DiffusionCoordinates_,
 typename DiffusionFields_,
 BuildMode build_mode_,
-Specie specie_,
+SpecieId specieid,
 DerivativeMethod derivative_method_,
 TimeFlow time_flow_,
 RKIntegrator rk_integrator_,
@@ -52,25 +55,25 @@ int server_num_ghost_cells_,
 //! Heliospheric current sheet (0: disabled, 1: flat, 2: wavy (Jokipii-Thomas 1981) and static, 3: wavy and time-dependent).
 //#define SOLARWIND_CURRENT_SHEET 0
 //   [test_parker_spiral.cc] Make sure that "SOLARWIND_CURRENT_SHEET" and SOLARWIND_POLAR_CORRECTION are (#)defined as 0 in src/background_solarwind.hh.
-auto solarwind_current_sheet_,
+SolarWindOptions::CurrentSheet solarwind_current_sheet_,
 //! Magnetic topology region (0: nowhere, 1: same as HCS)
 //#define SOLARWIND_SECTORED_REGION 0
-auto solarwind_sectored_region_,
+SolarWindOptions::SectoredRegion solarwind_sectored_region_,
 //! Correction to Parker Spiral, mainly for polar regions (0: none, 1: Smith-Bieber 1991, 2: Zurbuchen et al. 1997, 3: Schwadron-McComas 2003)
 //#define SOLARWIND_POLAR_CORRECTION 0
-auto solarwind_polar_correction_,
+SolarWindOptions::PolarCorrection solarwind_polar_correction_,
 //! Latitudinal profile for bulk speed (0: constant, 1: linear step, 2: smooth step)
 //#define SOLARWIND_SPEED_LATITUDE_PROFILE 0
-auto solarwind_speed_latitude_profile_,
+SolarWindOptions::SpeedLatitudeProfile solarwind_speed_latitude_profile_,
 //! Integer exponent of decrease of solar wind speed beyond the termination shock
 //#define SOLARWIND_TERMSHOCK_SPEED_EXPONENT 2
-auto solarwind_termshock_speed_exponent_,
+SolarWindOptions::TermShockSpeedExponent solarwind_termshock_speed_exponent_,
 //! What function to use within 'get_ampfactor' (0 = none, 1 = zero, 2 = constant, 3 = scaled)
 //#define MOD_TYPE 3
-auto VLISMBochum_mod_type_,
+VLISMBochumOptions::ModType VLISMBochum_mod_type_,
 //! Whether to scale relative to s=0 (0) or s=+inf (1)
 //#define MOD_RPOS 0
-auto VLISMBochum_mod_rpos_,
+VLISMBochumOptions::ModRPos VLISMBochum_mod_rpos_,
 // ----- Trajectory ----- //
 ////! Whether to record magnetic field extrema
 bool record_mag_extrema_,
@@ -98,7 +101,7 @@ std::ratio cfl_pitchangle_,
 //! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
 std::ratio drift_safety_,
 //! How many time steps to allow before recording a mirror event
-std::ratio mirror_threshold_,
+int mirror_threshold_,
 //// Switch controlling how to calculate mu. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
 TrajectoryOptions::PPerpMethod pperp_method_,
 //! Flag to use gradient and curvature drifts in drift velocity calculation
@@ -187,11 +190,14 @@ struct HConfig {
 
    using BackgroundCoordinates = BackgroundCoordinates_;
    using BackgroundFields = BackgroundFields_;
+   using TrajectoryCoordinates = TrajectoryCoordinates_;
+   using TrajectoryFields = TrajectoryFields_;
+   using RecordCoordinates = RecordCoordinates_;
    using DiffusionCoordinates = DiffusionCoordinates_;
    using DiffusionFields = DiffusionFields_;
 
    static constexpr auto build_mode = build_mode_;
-   static constexpr auto specie = specie_;
+   static constexpr auto specie = Specie<specieid>();
    static constexpr auto derivative_method = derivative_method_;
    static constexpr auto time_flow = time_flow_;
    static constexpr auto num_numeric_grad_evals = num_numeric_grad_evals_;

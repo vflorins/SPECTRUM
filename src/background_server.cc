@@ -79,7 +79,7 @@ void BackgroundServer<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundServer<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+void BackgroundServer<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
 {
 #ifdef NEED_SERVER
    server_front->GetVariables(coords.Time(), coords.Pos(), fields);
@@ -93,13 +93,12 @@ void BackgroundServer<HConfig>::EvaluateBackground(Coordinates& coords, Fields& 
 */
 template <typename HConfig>
 template <typename Fields>
-void BackgroundServer<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Specie& specie, Fields& fields)
+void BackgroundServer<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
 {
 #ifdef NEED_SERVER
    server_front->GetGradients(fields, _ddata);
 #endif
-   // todo review after moving BACKGROUND_grad_FAIL to _ddata from _spdata._mask
-   if (_ddata.BACKGROUND_grad_FAIL) NumericalDerivatives();
+   if (_ddata.BACKGROUND_grad_FAIL) NumericalDerivatives(coords, fields);
 };
 
 /*!
