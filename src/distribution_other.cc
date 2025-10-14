@@ -200,7 +200,7 @@ void DistributionPositionUniform::EvaluateValue(void)
    if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if (val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) Metric<CoordinateSystem::Spherical>::PosToCurv(this->_value);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ void DistributionAnisotropyLISM::EvaluateValue(void)
 // Find incoming direction in specified coordinate frame
    mom_rel = this->_mom;
    mom_rel.ChangeToBasis(rot_matrix);
-   mom_rel.XYZ_RTP();
+   Metric<CoordinateSystem::Spherical>::PosToCurv(mom_rel);
    this->_value[0] = mom_rel[1];
    this->_value[1] = mom_rel[2];
 
@@ -847,7 +847,7 @@ void DistributionLossCone::EvaluateValue(void)
    if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if (val_coord == 1) this->_value.XYZ_RTP();
+   if (val_coord == 1) Metric<CoordinateSystem::Spherical>::PosToCurv(this->_value);
 };
 
 /*!
