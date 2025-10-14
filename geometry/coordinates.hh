@@ -30,36 +30,28 @@ The class only includes static routines and so can be used without an object.
 template <CoordinateSystem coord_system>
 class Metric
 {
-protected:
-
 public:
 
 //! Convert a position vector from Cartesian to curvilinear
-   SPECTRUM_DEVICE_FUNC static GeoVector PosToCurv(const GeoVector& pos);
+   SPECTRUM_DEVICE_FUNC static GeoVector PosToCurv(const GeoVector& pos) {return pos;};
+
+//! Convert a position vector from Cartesian to curvilinear in place
+   SPECTRUM_DEVICE_FUNC static void PosToCurv(GeoVector& pos) {};
 
 //! Convert a position vector from curvilinear to Cartesian 
-   SPECTRUM_DEVICE_FUNC static GeoVector PosToCart(const GeoVector& pos);
+   SPECTRUM_DEVICE_FUNC static GeoVector PosToCart(const GeoVector& pos) {return pos;};
+
+//! Convert a position vector from curvilinear to Cartesian in place 
+   SPECTRUM_DEVICE_FUNC static void PosToCart(GeoVector& pos) {};
 
 //! Convert the components of a vector from Cartesian to curvilinear
-   SPECTRUM_DEVICE_FUNC static GeoVector CompToCurv(const GeoVector& pos, const GeoVector& comp);
+   SPECTRUM_DEVICE_FUNC static GeoVector CompToCurv(const GeoVector& pos, const GeoVector& comp) {return comp;};
 
 //! Convert the components of a vector from curvilinear to Cartesian 
-   SPECTRUM_DEVICE_FUNC static GeoVector CompToCart(const GeoVector& pos, const GeoVector& comp);
+   SPECTRUM_DEVICE_FUNC static GeoVector CompToCart(const GeoVector& pos, const GeoVector& comp) {return comp;};
 
 //! Scale factors 
-   SPECTRUM_DEVICE_FUNC static GeoVector ScaleFactors(const GeoVector& pos);
-};
-
-/*!
-\author Vladimir Florinski
-\date 10/13/2025
-\param[in] pos Position in Caretesian coordinates
-\return Position in Caretesian coordinates
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cartesian>::PosToCurv(const GeoVector& pos)
-{
-   return pos;
+   SPECTRUM_DEVICE_FUNC static GeoVector ScaleFactors(const GeoVector& pos) {return gv_ones;};
 };
 
 /*!
@@ -72,7 +64,7 @@ template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::PosToCurv(const GeoVector& pos)
 {
    double phi = atan2(pos.y, pos.x);
-   if(phi < 0.0) phi += M_2PI;
+   if (phi < 0.0) phi += M_2PI;
    return GeoVector(sqrt(Sqr(pos.x) + Sqr(pos.y)), phi, pos.z);
 };
 
@@ -86,23 +78,42 @@ template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::PosToCurv(const GeoVector& pos)
 {
    double r = pos.Norm();
-   double theta = acos(pos.z / r);
    double phi = atan2(pos.y, pos.x);
-   if(phi < 0.0) phi += M_2PI;
-   return GeoVector(r, theta, phi);
+   if (phi < 0.0) phi += M_2PI;
+   return GeoVector(r, acos(pos.z / r), phi);
 };
 
 /*!
 \author Vladimir Florinski
-\date 10/13/2025
-\param[in] pos Position in Caretesian coordinates
-\return Position in Caretesian coordinates
+\date 10/14/2025
+\param[in,out] pos Position vector to be converted
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cartesian>::PosToCart(const GeoVector& pos)
+SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Cylindrical>::PosToCurv(GeoVector& pos)
 {
-   return pos;
+   double phi = atan2(pos.y, pos.x);
+   if (phi < 0.0) phi += M_2PI;
+   pos[0] = sqrt(Sqr(pos.x) + Sqr(pos.y));
+   pos[1] = phi;
 };
+
+/*!
+\author Vladimir Florinski
+\date 10/14/2025
+\param[in,out] pos Position vector to be converted
+*/
+template <>
+SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Spherical>::PosToCurv(GeoVector& pos)
+{
+   double r = pos.Norm();
+   double phi = atan2(pos.y, pos.x);
+   if (phi < 0.0) phi += M_2PI;
+   pos[0] = r;
+   pos[1] = acos(pos.z / r);
+   pos[2] = phi;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
@@ -133,15 +144,33 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::PosTo
 /*!
 \author Vladimir Florinski
 \date 10/14/2025
-\param[in] pos Position vector (unused)
-\param[in] comp Components of a vector in Caretesian coordinates
-\return Components of the vector in Caretesian coordinates
+\param[in,out] pos Position vector to be converted
 */
 template <>
-SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cartesian>::CompToCurv(const GeoVector& pos, const GeoVector& comp)
+SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Cylindrical>::PosToCart(GeoVector& pos)
 {
-   return comp;
+   double s = pos[0];
+   pos.x = s * cos(pos[1]);
+   pos.y = s * sin(pos[1]);
 };
+
+/*!
+\author Vladimir Florinski
+\date 10/14/2025
+\param[in,out] pos Position vector to be converted
+*/
+template <>
+SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Spherical>::PosToCart(GeoVector& pos)
+{
+   double r = pos.Norm();
+   double s = r * sin(pos[1]);
+   double z = r * cos(pos[1]);
+   pos.x = s * cos(pos[2]);
+   pos.y = s * sin(pos[2]);
+   pos.z = z;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
@@ -179,19 +208,6 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::CompT
 /*!
 \author Vladimir Florinski
 \date 10/14/2025
-\param[in] pos Position vector (unused)
-\param[in] comp Components of a vector in Caretesian coordinates
-\return Components of the vector in Caretesian coordinates
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cartesian>::CompToCart(const GeoVector& pos, const GeoVector& comp)
-{
-   return comp;
-};
-
-/*!
-\author Vladimir Florinski
-\date 10/14/2025
 \param[in] pos Position vector in Cylindrical coordinates
 \param[in] comp Components of a vector in Cylindrical coordinates
 \return Components of the vector in Caretesian coordinates
@@ -222,16 +238,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::CompT
    return GeoVector(vrt * cosphi - comp[2] * sinphi, vrt * sinphi + comp[2] * cosphi, comp[0] * costheta - comp[1] * sintheta);
 };
 
-/*!
-\author Vladimir Florinski
-\date 10/14/2025
-\param[in] pos Position vector in Caretesian coordinates
-*/
-template <>
-SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cartesian>::ScaleFactors(const GeoVector& pos)
-{
-   return gv_ones;
-};
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
