@@ -7,6 +7,7 @@
 
 #include <array>
 #include <string_view>
+#include "common/definitions.hh"
 
 #include "common/definitions.hh"
 
@@ -149,7 +150,7 @@ struct ButcherTable
 //! Data about the RK scheme that is dependent on the Butcher Table
    static constexpr ButcherTableData data = RKData[static_cast<size_t>(rk_integrator)];
 
-//! Absolute tolerance (used only to avoid divission by zero in computing the relative tolerance)
+//! Absolute tolerance (used only to avoid division by zero in computing the relative tolerance)
    static constexpr double rk_tol_abs = 1.0E-9;
 
 //! Relative tolerance
