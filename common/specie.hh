@@ -191,67 +191,72 @@ enum class SpecieId {
    heliumI_core
 };
 
+
+namespace Specie_impl {
+
+//! Names of fluid species
+static constexpr std::array<std::string_view, MAX_PARTICLE_SPECIES> SpeciesNames
+      = {
+            "Electron (core)", "Electron (halo)", "Electron (beam)",
+            "Proton (core)", "Proton (halo)", "Proton (beam)",
+            "Proton (pickup)", "Alpha (core)", "Alpha (halo)",
+            "Helium II (core)", "Helium II (pickup)", "Hydrogen II (core)",
+            "Hydrogen I (core)", "Hydrogen I (halo)", "Hydrogen I (beam)","Helium I (core)"};
+
+//! Masses of particles comprising the fluids
+static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesMasses = {   SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                              SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
+                                                                              2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
+                                                                              2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
+                                                                              (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
+                                                                              2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON  + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle};
+
+//! Charges of particles comprising the fluids
+static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesCharges = {-SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
+                                                                            0.0, 0.0, 0.0, 0.0, 0.0};
+
+//! Polytropic indices of fluids
+static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesPolytropicIndices
+      = {5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0,
+         5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0};
+
+}
+
+
 template <SpecieId specieid>
 struct Specie {
 
-//! Names of fluid species
-   static constexpr std::array<std::string_view, MAX_PARTICLE_SPECIES> SpeciesNames
-         = {
-               "Electron (core)", "Electron (halo)", "Electron (beam)",
-               "Proton (core)", "Proton (halo)", "Proton (beam)",
-               "Proton (pickup)", "Alpha (core)", "Alpha (halo)",
-               "Helium II (core)", "Helium II (pickup)", "Hydrogen II (core)",
-               "Hydrogen I (core)", "Hydrogen I (halo)", "Hydrogen I (beam)","Helium I (core)"};
-
-//! Masses of particles comprising the fluids
-   static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesMasses = {   SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_ELECTRON  / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                          SPC_CONST_CGSM_MASS_PROTON    / unit_mass_particle,
-                                                                          2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
-                                                                          2.0 * (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_NEUTRON)  / unit_mass_particle,
-                                                                          (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          (2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON) + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          (SPC_CONST_CGSM_MASS_PROTON   + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle,
-                                                                          2.0 * (SPC_CONST_CGSM_MASS_PROTON + SPC_CONST_CGSM_MASS_NEUTRON  + SPC_CONST_CGSM_MASS_ELECTRON) / unit_mass_particle};
-
-//! Charges of particles comprising the fluids
-   static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesCharges = {-SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        -SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        2.0 * SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        SPC_CONST_CGSM_ELECTRON_CHARGE / unit_charge_particle,
-                                                                        0.0, 0.0, 0.0, 0.0, 0.0};
-
-//! Polytropic indices of fluids
-   static constexpr std::array<double, MAX_PARTICLE_SPECIES> SpeciesPolytropicIndices
-         = {5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0,
-            5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0, 5.0 / 3.0};
-
    static constexpr SpecieId id = specieid;
-   static constexpr std::string_view name = SpeciesNames[static_cast<size_t>(specieid)];
-   static constexpr double mass = SpeciesMasses[static_cast<size_t>(specieid)];
-   static constexpr double charge = SpeciesCharges[static_cast<size_t>(specieid)];
-   static constexpr double pt_idx = SpeciesPolytropicIndices[static_cast<size_t>(specieid)];
+   static constexpr std::string_view name = Specie_impl::SpeciesNames[static_cast<size_t>(specieid)];
+   static constexpr double mass = Specie_impl::SpeciesMasses[static_cast<size_t>(specieid)];
+   static constexpr double charge = Specie_impl::SpeciesCharges[static_cast<size_t>(specieid)];
+   static constexpr double pt_idx = Specie_impl::SpeciesPolytropicIndices[static_cast<size_t>(specieid)];
 
 // The factor multiplying charge is applied in order to marry particle and fluid scales.
 // See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
    static constexpr double q = charge_mass_particle * charge;
 
 };
-
 
 
 #endif

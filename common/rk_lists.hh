@@ -84,69 +84,70 @@ enum class RKIntegrator {
    RungeKuttaFehlberg_87E
 };
 
-
-template <RKIntegrator rk_integrator>
-struct ButcherTable
-{
-
-   struct ButcherTableData {
+struct ButcherTableData {
 //! Readable name
-      std::string_view name;
+   std::string_view name;
 //! Number of stages
-      uint8_t rk_stages;
+   uint8_t rk_stages;
 //! Formal order of convergence
-      uint8_t order;
+   uint8_t order;
 //! Adaptive or not
-      bool adaptive;
+   bool adaptive;
 //! Implicit or not
-      bool implicit;
-   };
+   bool implicit;
+};
 
 /*!
 Number of stages of RK method (look-up is via the enum value).
 \author Lucius Schoenbaum
 \date 09/09/2025
 */
-   static constexpr std::array<ButcherTableData, 33> RKData = {
-         /* First Order */
-         ButcherTableData{"Euler first order explicit", 1, 1, false, false,},
-         ButcherTableData{"Backward Euler first order implicit", 1, 1, false, true,},
-         /* Second Order */
-         ButcherTableData{"Midpoint second order implicit", 1, 2, false, true,},
-         ButcherTableData{"Midpoint second order explicit", 2, 2, false, false,},
-         ButcherTableData{"Kraaijevanger-Spijker second order implicit", 2, 2, false, true,},
-         ButcherTableData{"Qin-Zhang second order implicit", 2, 2, false, true,},
-         ButcherTableData{"Ralston second order explicit", 2, 2, false, false,},
-         ButcherTableData{"Heun second order explicit", 2, 2, false, false,},
-         ButcherTableData{"Crank-Nicolson second order implicit", 2, 2, false, true,},
-         ButcherTableData{"Gauss-Legendre second order implicit", 2, 2, false, true,},
-         ButcherTableData{"Heun-Euler second order adaptive explicit", 2, 2, true, false,},
-         ButcherTableData{"Lobatto IIIA second order adaptive implicit", 2, 2, true, true,},
-         ButcherTableData{"Lobatto IIIB second order adaptive implicit", 2, 2, true, true,},
-         ButcherTableData{"Lobatto IIIC second order adaptive implicit", 2, 2, true, true,},
-         ButcherTableData{"Fehlberg second order adaptive explicit", 3, 2, true, false,},
-         /* Third Order */
-         ButcherTableData{"Radau IA third order implicit", 2, 3, false, true,},
-         ButcherTableData{"Radau IIA third order implicit", 2, 3, false, true,},
-         ButcherTableData{"Kutta third order explicit", 3, 3, false, false,},
-         ButcherTableData{"Heun third order explicit", 3, 3, false, false,},
-         ButcherTableData{"Ralston third order explicit", 3, 3, false, false,},
-         ButcherTableData{"Strong Stability Preserving third order explicit", 3, 3, false, false,},
-         ButcherTableData{"Runge-Kutta third order implicit", 4, 3, false, true,},
-         ButcherTableData{"Bogacki–Shampine third order adaptive explicit", 4, 3, true, false,},
-         /* Fourth Order */
-         ButcherTableData{"Lobatto IIIA fourth order adaptive implicit", 3, 4, true, true,},
-         ButcherTableData{"Lobatto IIIB fourth order adaptive implicit", 3, 4, true, true,},
-         ButcherTableData{"Lobatto IIIC fourth order adaptive implicit", 3, 4, true, true,},
-         ButcherTableData{"Runge-Kutta fourth order explicit", 4, 4, false, false,},
-         ButcherTableData{"Kutta 3/8 fourth order explicit", 4, 4, false, false,},
-         /* Fifth or Higher Order */
-         ButcherTableData{"Runge-Kutta-Fehlberg fifth order explicit", 6, 5, true, false,},
-         ButcherTableData{"Cash-Karp fifth order explicit", 6, 5, true, false,},
-         ButcherTableData{"Dormand-Prince fifth order explicit", 7, 5, true, false,},
-         ButcherTableData{"Runge-Kutta-Fehlberg sixth order explicit", 8, 6, true, false,},
-         ButcherTableData{"Runge-Kutta-Fehlberg seventh order explicit", 10, 7, true, false,},
-   };
+static constexpr std::array<ButcherTableData, 33> RKData = {
+      /* First Order */
+      ButcherTableData{"Euler first order explicit", 1, 1, false, false,},
+      ButcherTableData{"Backward Euler first order implicit", 1, 1, false, true,},
+      /* Second Order */
+      ButcherTableData{"Midpoint second order implicit", 1, 2, false, true,},
+      ButcherTableData{"Midpoint second order explicit", 2, 2, false, false,},
+      ButcherTableData{"Kraaijevanger-Spijker second order implicit", 2, 2, false, true,},
+      ButcherTableData{"Qin-Zhang second order implicit", 2, 2, false, true,},
+      ButcherTableData{"Ralston second order explicit", 2, 2, false, false,},
+      ButcherTableData{"Heun second order explicit", 2, 2, false, false,},
+      ButcherTableData{"Crank-Nicolson second order implicit", 2, 2, false, true,},
+      ButcherTableData{"Gauss-Legendre second order implicit", 2, 2, false, true,},
+      ButcherTableData{"Heun-Euler second order adaptive explicit", 2, 2, true, false,},
+      ButcherTableData{"Lobatto IIIA second order adaptive implicit", 2, 2, true, true,},
+      ButcherTableData{"Lobatto IIIB second order adaptive implicit", 2, 2, true, true,},
+      ButcherTableData{"Lobatto IIIC second order adaptive implicit", 2, 2, true, true,},
+      ButcherTableData{"Fehlberg second order adaptive explicit", 3, 2, true, false,},
+      /* Third Order */
+      ButcherTableData{"Radau IA third order implicit", 2, 3, false, true,},
+      ButcherTableData{"Radau IIA third order implicit", 2, 3, false, true,},
+      ButcherTableData{"Kutta third order explicit", 3, 3, false, false,},
+      ButcherTableData{"Heun third order explicit", 3, 3, false, false,},
+      ButcherTableData{"Ralston third order explicit", 3, 3, false, false,},
+      ButcherTableData{"Strong Stability Preserving third order explicit", 3, 3, false, false,},
+      ButcherTableData{"Runge-Kutta third order implicit", 4, 3, false, true,},
+      ButcherTableData{"Bogacki–Shampine third order adaptive explicit", 4, 3, true, false,},
+      /* Fourth Order */
+      ButcherTableData{"Lobatto IIIA fourth order adaptive implicit", 3, 4, true, true,},
+      ButcherTableData{"Lobatto IIIB fourth order adaptive implicit", 3, 4, true, true,},
+      ButcherTableData{"Lobatto IIIC fourth order adaptive implicit", 3, 4, true, true,},
+      ButcherTableData{"Runge-Kutta fourth order explicit", 4, 4, false, false,},
+      ButcherTableData{"Kutta 3/8 fourth order explicit", 4, 4, false, false,},
+      /* Fifth or Higher Order */
+      ButcherTableData{"Runge-Kutta-Fehlberg fifth order explicit", 6, 5, true, false,},
+      ButcherTableData{"Cash-Karp fifth order explicit", 6, 5, true, false,},
+      ButcherTableData{"Dormand-Prince fifth order explicit", 7, 5, true, false,},
+      ButcherTableData{"Runge-Kutta-Fehlberg sixth order explicit", 8, 6, true, false,},
+      ButcherTableData{"Runge-Kutta-Fehlberg seventh order explicit", 10, 7, true, false,},
+};
+
+template <RKIntegrator rk_integrator>
+struct ButcherTable
+{
+
+
 
    //! Data about the RK scheme that is dependent on the Butcher Table
    static constexpr ButcherTableData data = RKData[static_cast<size_t>(rk_integrator)];
