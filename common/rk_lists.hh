@@ -84,6 +84,9 @@ enum class RKIntegrator {
    RungeKuttaFehlberg_87E
 };
 
+
+namespace ButcherTable_impl {
+
 struct ButcherTableData {
 //! Readable name
    std::string_view name;
@@ -143,14 +146,14 @@ static constexpr std::array<ButcherTableData, 33> RKData = {
       ButcherTableData{"Runge-Kutta-Fehlberg seventh order explicit", 10, 7, true, false,},
 };
 
+}
+
 template <RKIntegrator rk_integrator>
 struct ButcherTable
 {
 
-
-
    //! Data about the RK scheme that is dependent on the Butcher Table
-   static constexpr ButcherTableData data = RKData[static_cast<size_t>(rk_integrator)];
+   static constexpr ButcherTable_impl::ButcherTableData data = ButcherTable_impl::RKData[static_cast<size_t>(rk_integrator)];
 
 //! Absolute tolerance (used only to avoid division by zero in computing the relative tolerance)
    static constexpr double rk_tol_abs = 1.0E-9;
