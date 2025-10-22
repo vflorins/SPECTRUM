@@ -11,8 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <cmath>
 #include <complex>
-#include "compiletime_lists.hh"
-#include "rk_lists.hh"
 
 #include <common/gpu_config.hh>
 

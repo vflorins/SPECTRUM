@@ -8,6 +8,8 @@
 #include <array>
 #include <string_view>
 
+#include "common/definitions.hh"
+
 namespace Spectrum {
 
 enum class RKIntegrator {
@@ -221,7 +223,7 @@ struct ButcherTable
       else if constexpr (rk_integrator == RKIntegrator::Heun_2E) {
          a = {0.0, 1.0};
          b = {{0.0, 0.0},
-            {1.0, 0.0}};
+               {1.0, 0.0}};
          v = {1.0 / 2.0, 1.0 / 2.0};
          w = {1.0 / 2.0, 1.0 / 2.0};
       }
@@ -233,13 +235,11 @@ struct ButcherTable
          w = {1.0 / 2.0, 1.0 / 2.0};
       }
       else if constexpr (rk_integrator == RKIntegrator::GaussLegendre_2I) {
-#define sqrtthr (1.73205080756887729352)
-         a = {1.0 / 2.0 - sqrtthr / 6.0, 1.0 / 2.0 + sqrtthr / 6.0};
-         b = {{1.0 / 4.0, 1.0 / 4.0 - sqrtthr / 6.0},
-            {1.0 / 4.0 + sqrtthr / 6.0, 1.0 / 4.0}};
+         a = {1.0 / 2.0 - M_SQRT3 / 6.0, 1.0 / 2.0 + M_SQRT3 / 6.0};
+         b = {{1.0 / 4.0, 1.0 / 4.0 - M_SQRT3 / 6.0},
+            {1.0 / 4.0 + M_SQRT3 / 6.0, 1.0 / 4.0}};
          v = {1.0 / 2.0, 1.0 / 2.0};
          w = {1.0 / 2.0, 1.0 / 2.0};
-#undef sqrtthr
       }
       else if constexpr (rk_integrator == RKIntegrator::HeunEuler_21E) {
          a = {0.0, 1.0};

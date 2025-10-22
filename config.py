@@ -92,7 +92,7 @@ def check_defaults():
                 if not key in parameters:
                     print(f"[check_defaults] Warning: key {key} found in the list of {special_name} {special_value} physical defaults, but not found in the list of baseline defaults.")
 
-def ratio(dbl):
+def ratio(fp):
     """
     Parse a Python immediate floating point expression
     to produce an initializer expression for a std::ratio.
@@ -102,12 +102,12 @@ def ratio(dbl):
     (Thanks, scientists, for using base ten.)
     For example, 2000.003 might become 20000030000000004/100000000000000
     instead of 2000003/1000.
-    :param dbl: scalar
+    :param fp: scalar
     :return: string
     """
     denom = 1
-    numer = abs(dbl)
-    sgn = 1 if dbl >= 0 else -1
+    numer = abs(fp)
+    sgn = 1 if fp >= 0 else -1
     fp, ip = math_modf(numer)
     while fp != 0:
         denom *= 10
