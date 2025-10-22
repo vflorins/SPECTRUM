@@ -24,8 +24,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename HConfig_>
-class TrajectoryGuidingDiffScatt : public TrajectoryGuidingBase<TrajectoryGuidingDiffScatt<HConfig_>, HConfig_>, TrajectoryGuidingDiff<HConfig_>, TrajectoryGuidingScatt<HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_, Background_>, TrajectoryGuidingDiff<HConfig_, Background_>, TrajectoryGuidingScatt<HConfig_, Background_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiffScatt";
@@ -33,14 +33,20 @@ class TrajectoryGuidingDiffScatt : public TrajectoryGuidingBase<TrajectoryGuidin
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
 
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingDiffScatt<HConfig>, HConfig>;
-   using TrajectoryGuidingDiff = TrajectoryGuidingDiff<HConfig>;
-   using TrajectoryGuidingScatt = TrajectoryGuidingScatt<HConfig>;
+   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
+   using TrajectoryGuidingDiff = TrajectoryGuidingDiff<Background, Diffusion>;
+   using TrajectoryGuidingScatt = TrajectoryGuidingScatt<Background, Diffusion>;
+
+   using typename TrajectoryBase::DiffusionCoordinates;
+   using typename TrajectoryBase::DiffusionFields;
+   using typename TrajectoryBase::DiffusionFieldsRemainder;
+   using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -69,23 +75,22 @@ public:
 //////   using TrajectoryBase::local_pos;
 //////   using TrajectoryBase::local_mom;
 ////   using TrajectoryBase::diffusion;
-//   using TrajectoryBase::slope_pos;
-//   using TrajectoryBase::slope_mom;
+   using TrajectoryBase::slope_pos;
+   using TrajectoryBase::slope_mom;
 ////   // methods:
 ////   using TrajectoryBase::ConvertMomentum;
    using TrajectoryBase::Load;
-   using TrajectoryBase::Store;
 
 ////   using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::StoreLocal;
-//   using TrajectoryBase::RKSlopes;
-//   using TrajectoryBase::RKStep;
-//   using TrajectoryBase::HandleBoundaries;
-   using TrajectoryBase::CommonFields;
+   using TrajectoryBase::RKSlopes;
+   using TrajectoryBase::RKStep;
+   using TrajectoryBase::HandleBoundaries;
 //   using TrajectoryBase::MomentumCorrection;
    using TrajectoryBase::SpaceTerminateCheck;
-   using TrajectoryGuidingBase::DriftCoeff;
-//   using TrajectoryGuidingDiff::dr_perp;
+   using TrajectoryGuiding::DriftCoeff;
+   using TrajectoryGuidingDiff::dr_perp;
+   using TrajectoryBase::records;
 
 protected:
 

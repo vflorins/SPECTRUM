@@ -3,6 +3,7 @@
 \brief Declares several classes representing spatial boundaries
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -25,18 +26,23 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), GeoVector origin, GeoVector normal
 */
-template <typename Trajectory_>
-class BoundaryPlane : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryPlane : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryPlane";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+
    using BoundaryBase::_delta;
-   using BoundaryBase::_pos;
    using BoundaryBase::_normal;
 
 protected:
@@ -51,7 +57,7 @@ protected:
    BoundaryPlane(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryPlane(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryPlane(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryPlane(const BoundaryPlane& other);
@@ -72,25 +78,29 @@ public:
 // BoundaryPlaneAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryPlaneAbsorb class
-const std::string bnd_name_plane_absorb = "BoundaryPlaneAbsorb";
-
 /*!
 \brief Absorbing plane boundary
 \author Vladimir Florinski
 
 Parameters: (BoundaryPlane)
 */
-template <typename Trajectory_>
-class BoundaryPlaneAbsorb : public BoundaryPlane<Trajectory_> {
+template <typename HConfig_>
+class BoundaryPlaneAbsorb : public BoundaryPlane<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryPlaneAbsorb";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryPlane = BoundaryPlane<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryPlane = BoundaryPlane<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -117,25 +127,29 @@ public:
 // BoundaryPlaneReflect class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryPlaneReflect class
-const std::string bnd_name_plane_reflect = "BoundaryPlaneReflect";
-
 /*!
 \brief Reflecting plane boundary
 \author Vladimir Florinski
 
 Parameters: (BoundaryPlane)
 */
-template <typename Trajectory_>
-class BoundaryPlaneReflect : public BoundaryPlane<Trajectory_> {
+template <typename HConfig_>
+class BoundaryPlaneReflect : public BoundaryPlane<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryPlaneReflect";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryPlane = BoundaryPlane<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryPlane = BoundaryPlane<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -162,25 +176,29 @@ public:
 // BoundaryPlanePass class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryPlanePass class
-const std::string bnd_name_plane_pass = "BoundaryPlanePass";
-
 /*!
 \brief Plane crossing recording boundary (event)
 \author Vladimir Florinski
 
 Parameters: (BoundaryPlane)
 */
-template <typename Trajectory_>
-class BoundaryPlanePass : public BoundaryPlane<Trajectory_> {
+template <typename HConfig_>
+class BoundaryPlanePass : public BoundaryPlane<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryPlanePass";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryPlane = BoundaryPlane<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryPlane = BoundaryPlane<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -213,19 +231,24 @@ public:
 
 Parameters: (BoundaryBase), GeoVector corners[0], GeoVector[3] normals
 */
-template <typename Trajectory_>
-class BoundaryBox : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryBox : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryBox";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
-   using BoundaryBase::max_crossings;
    using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+
+   using BoundaryBase::max_crossings;
    using BoundaryBase::_delta;
-   using BoundaryBase::_pos;
    using BoundaryBase::_normal;
 
 protected:
@@ -261,25 +284,29 @@ public:
 // BoundaryBoxReflect class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryBoxReflect class
-const std::string bnd_name_box_reflect = "BoundaryBoxReflect";
-
 /*!
 \brief Reflecting box boundary
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryBox)
 */
-template <typename Trajectory_>
-class BoundaryBoxReflect : public BoundaryBox<Trajectory_> {
+template <typename HConfig_>
+class BoundaryBoxReflect : public BoundaryBox<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryBoxReflect";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryBox = BoundaryBox<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryBox = BoundaryBox<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -312,18 +339,23 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, double radius
 */
-template <typename Trajectory_>
-class BoundarySphere : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundarySphere : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundarySphere";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+
    using BoundaryBase::_delta;
-   using BoundaryBase::_pos;
    using BoundaryBase::_normal;
 
 protected:
@@ -359,25 +391,29 @@ public:
 // BoundarySphereAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundarySphereAbsorb class
-const std::string bnd_name_sphere_absorb = "BoundarySphereAbsorb";
-
 /*!
 \brief Absorbing spherical boundary
 \author Vladimir Florinski
 
 Parameters: (BoundarySphere)
 */
-template <typename Trajectory_>
-class BoundarySphereAbsorb : public BoundarySphere<Trajectory_> {
+template <typename HConfig_>
+class BoundarySphereAbsorb : public BoundarySphere<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundarySphereAbsorb";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundarySphere = BoundarySphere<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundarySphere = BoundarySphere<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -404,25 +440,29 @@ public:
 // BoundarySphereReflect class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundarySphereReflect class
-const std::string bnd_name_sphere_reflect = "BoundarySphereReflect";
-
 /*!
 \brief Reflecting spherical boundary
 \author Vladimir Florinski
 
 Parameters: (BoundarySphere)
 */
-template <typename Trajectory_>
-class BoundarySphereReflect : public BoundarySphere<Trajectory_> {
+template <typename HConfig_>
+class BoundarySphereReflect : public BoundarySphere<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundarySphereReflect";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundarySphere = BoundarySphere<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundarySphere = BoundarySphere<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -455,18 +495,23 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, double radius
 */
-template <typename Trajectory_>
-class BoundaryRankine : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryRankine : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryRankine";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+
    using BoundaryBase::_delta;
-   using BoundaryBase::_pos;
 
 protected:
 
@@ -504,25 +549,29 @@ public:
 // BoundaryRankineAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryRankineAbsorb class
-const std::string bnd_name_rankine_absorb = "BoundaryRankineAbsorb";
-
 /*!
 \brief Absorbing boundary in the shape of the Rankine half-body
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryRankine)
 */
-template <typename Trajectory_>
-class BoundaryRankineAbsorb : public BoundaryRankine<Trajectory_> {
+template <typename HConfig_>
+class BoundaryRankineAbsorb : public BoundaryRankine<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryRankineAbsorb";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryRankine = BoundaryRankine<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryRankine = BoundaryRankine<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -555,18 +604,23 @@ public:
 
 Parameters: (BoundaryBase), GeoVector origin, GeoVector fa_basis[2], double radius
 */
-template <typename Trajectory_>
-class BoundaryCylinder : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryCylinder : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryCylinder";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+
    using BoundaryBase::_delta;
-   using BoundaryBase::_pos;
    using BoundaryBase::_normal;
 
 protected:
@@ -605,25 +659,29 @@ public:
 // BoundaryCylinderAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryCylinderAbsorb class
-const std::string bnd_name_cylinder_absorb = "BoundaryCylinderAbsorb";
-
 /*!
 \brief Absorbing cylindrical boundary
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryCylinder)
 */
-template <typename Trajectory_>
-class BoundaryCylinderAbsorb : public BoundaryCylinder<Trajectory_> {
+template <typename HConfig_>
+class BoundaryCylinderAbsorb : public BoundaryCylinder<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryCylinderAbsorb";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryCylinder = BoundaryCylinder<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryCylinder = BoundaryCylinder<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -657,18 +715,23 @@ public:
 Parameters: (BoundaryBase), int region_ind, double region_val
 */
 // TODO: allow the region indicator variable to vary
-template <typename Trajectory_>
-class BoundaryRegion : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryRegion : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryRegion";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
-   using BoundaryBase::_delta;
+   using BoundaryBase::_coords;
    using BoundaryBase::_fields;
+
+   using BoundaryBase::_delta;
    using BoundaryBase::_normal;
 
 protected:
@@ -704,25 +767,29 @@ public:
 // BoundaryRegionAbsorb class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryRegionAbsorb class
-const std::string bnd_name_region_absorb = "BoundaryRegionAbsorb";
-
 /*!
 \brief Absorbing Region boundary
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryRegion)
 */
-template <typename Trajectory_>
-class BoundaryRegionAbsorb : public BoundaryRegion<Trajectory_> {
+template <typename HConfig_>
+class BoundaryRegionAbsorb : public BoundaryRegion<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryRegionAbsorb";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryRegion = BoundaryRegion<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryRegion = BoundaryRegion<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:

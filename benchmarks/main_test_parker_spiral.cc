@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
    using Fields = Fields<Mag_t>;
    using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
-   using Background = BackgroundSolarWind<Fields>;
+   using Background = BackgroundSolarWind<HConfig>;
 
    using InitialTime = InitialTimeFixed<Trajectory>;
    using InitialSpace = InitialSpaceFixed<Trajectory>;
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 100.0;
-   container.Insert(Mom(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie));
+   container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
    trajectory->AddInitial(InitialMomentum(), container);
 

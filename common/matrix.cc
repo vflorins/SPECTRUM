@@ -208,13 +208,7 @@ SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
 SPECTRUM_DEVICE_FUNC GeoMatrix Dyadic(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    GeoMatrix cov_matr;
-
-   for (auto i = 0; i < 3; i++) {
-      for (auto j = 0; j < 3; j++) {
-         cov_matr[i][j] = vect_l[i] * vect_r[j];
-      };
-   };
-   
+   cov_matr.Dyadic(vect_l, vect_r);
    return cov_matr;
 };
 

@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundWaves methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -169,8 +171,8 @@ void BackgroundWaves<HConfig>::SetupBackground(bool construct)
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundWaves<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    int wave;
    double arg, z_rot;
@@ -179,8 +181,8 @@ void BackgroundWaves<HConfig>::EvaluateBackground(BackgroundCoordinates& coords,
 
    posprime = coords.Pos() - r0;
 
-   if constexpr (Fields::Vel_found()) fields.Vel() = gv_zeros;
-   if constexpr (Fields::Mag_found()) {
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = gv_zeros;
+   if constexpr (RequestedFields::Mag_found()) {
       fields.Mag() = B0;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
@@ -201,8 +203,8 @@ void BackgroundWaves<HConfig>::EvaluateBackground(BackgroundCoordinates& coords,
          };
       };
    };
-   if constexpr (Fields::Elc_found()) fields.Elc() = gv_zeros;
-   if constexpr (Fields::Iv0_found()) fields.Iv0() = 1.0;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc() = gv_zeros;
+   if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -213,8 +215,8 @@ void BackgroundWaves<HConfig>::EvaluateBackground(BackgroundCoordinates& coords,
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
    int wave, xyz;
    double arg, z_rot;
@@ -223,8 +225,8 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinat
 
    posprime = coords.Pos() - r0;
 
-   if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found()) {
+   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+   if constexpr (RequestedFields::DelMag_found()) {
       fields.DelMag() = gm_zeros;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
@@ -251,10 +253,10 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinat
          };
       };
    };
-   if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
-   if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
-   if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
-   if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
+   if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
 };
 
 /*!
@@ -262,7 +264,8 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinat
 \date 10/14/2022
 */
 template <typename HConfig>
-void BackgroundWaves<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
+template <typename Coordinates>
+void BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);

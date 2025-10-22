@@ -311,9 +311,10 @@ SPECTRUM_DEVICE_FUNC inline double Vel(double mom)
 \param[in] mom Momentum
 \return Velocity
 */
-template <Specie specie>
+template <Specie specie, CoordinateSystem Vel_Sys, CoordinateSystem Mom_Sys>
 SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom)
 {
+//   if constexpr (Vel_Sys == CoordinateSystem::)
    double mmag = mom.Norm();
    double vmag = Vel<specie>(mmag);
    return (vmag / mmag) * mom;

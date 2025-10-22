@@ -13,7 +13,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/mpi_config.hh"
 #include "common/workload_manager.hh"
 #include "server_config.hh"
-//#include "trajectory.hh"
+#include "trajectory_base.hh"
 #include "background_base.hh"
 #include "diffusion_base.hh"
 #include "distribution_base.hh"
@@ -37,18 +37,27 @@ const bool print_last_trajectory = false;
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Trajectory_>
+template <typename SimulationConfig_, typename Trajectory_>
 class SimulationWorker {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using SimulationConfig = SimulationConfig_;
+   using BackgroundConfig = SimulationConfig::BackgroundConfig;
+   using TrajectoryConfig = SimulationConfig::TrajectoryConfig;
+   using DistributionConfig = SimulationConfig::DistributionConfig;
+   using DiffusionConfig = SimulationConfig::DiffusionConfig;
+   using BoundaryConfig = SimulationConfig::BoundaryConfig;
+   using InitialConfig = SimulationConfig::InitialConfig;
 
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using InitialBase = InitialBase<Trajectory>;
+
+//   using BackgroundBase = BackgroundBase<BackgroundConfig>;
+//   using TrajectoryBase = TrajectoryBase<TrajectoryConfig>;
+   using Trajectory = Trajectory_;
+   using Background = Trajectory::Background;
+   using DistributionBase = DistributionBase<DistributionConfig>;
+   using DiffusionBase = DiffusionBase<DiffusionConfig>;
+   using BoundaryBase = BoundaryBase<BoundaryConfig>;
+   using InitialBase = InitialBase<InitialConfig>;
 
 protected:
 
@@ -115,11 +124,8 @@ public:
 //! Get number of completed batches
    int GetJobsDone(void) const {return jobsdone;};
 
-//! Set the particle specie
-   void SetSpecie(unsigned int specie_in);
-
 //! Add a background object (passthrough to trajectory)
-   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
+   void AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
    // TODO: experiment
 //! Add a distribution object
@@ -177,17 +183,17 @@ public:
 \brief A server class
 \author Juan G Alonso Guzman
 */
-template <typename Trajectory_>
-class SimulationServer : public SimulationWorker<Trajectory_> {
+template <typename HConfig_, typename Trajectory_>
+class SimulationServer : public SimulationWorker<HConfig_, Trajectory_> {
 public:
 
+   using HConfig = HConfig_;
    using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BackgroundBase = BackgroundBase<Fields>;
+   using Background = Trajectory::Background;
 
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using SimulationWorker = SimulationWorker<Trajectory>;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DiffusionBase = DiffusionBase<HConfig>;
+   using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
    using SimulationWorker::current_batch_size;
    using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
@@ -223,7 +229,7 @@ public:
    SimulationServer(void);
 
 //! Add a background object
-   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
+   void AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
 
 //! Main simulation loop
    void MainLoop(void) override;
@@ -237,19 +243,18 @@ public:
 \brief A master class
 \author Juan G Alonso Guzman
 */
-template <typename Trajectory_>
-class SimulationMaster : public SimulationServer<Trajectory_> {
+template <typename HConfig_, typename Trajectory_>
+class SimulationMaster : public SimulationServer<HConfig_, Trajectory_> {
 public:
 
+   using HConfig = HConfig_;
    using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using TrajectoryBase = TrajectoryBase<Trajectory, HConfig>;
+   using Background = Trajectory::Background;
 
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using SimulationWorker = SimulationWorker<Trajectory>;
-   using SimulationServer = SimulationServer<Trajectory>;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DiffusionBase = DiffusionBase<HConfig>;
+   using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
+   using SimulationServer = SimulationServer<HConfig, Trajectory>;
    using SimulationWorker::current_batch_size;
    using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
@@ -369,14 +374,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-//template <typename Trajectory>
+//template <typename HConfig>
 //using Simulation = std::variant<std::unique_ptr<SimulationWorker<Trajectory>>, std::unique_ptr<SimulationServer<Trajectory>>, std::unique_ptr<SimulationMaster<Trajectory>>>;
 
 ////! Generate a complete simulation object
-//template <typename Trajectory>
+//template <typename HConfig>
 //std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
-
-
 
 
 };

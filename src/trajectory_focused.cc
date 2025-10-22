@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename HConfig>
-TrajectoryFocused<HConfig>::TrajectoryFocused(void)
+template <typename Background, typename Diffusion>
+TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(void)
                  : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ TrajectoryFocused<HConfig>::TrajectoryFocused(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename HConfig>
-TrajectoryFocused<HConfig>::TrajectoryFocused(const std::string& name_in, uint16_t status_in)
+template <typename Background, typename Diffusion>
+TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(const std::string& name_in, uint16_t status_in)
                  : TrajectoryBase(name_in, status_in)
 {
 };
@@ -41,14 +41,14 @@ TrajectoryFocused<HConfig>::TrajectoryFocused(const std::string& name_in, uint16
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename HConfig>
-void TrajectoryFocused<HConfig>::SetStart(void)
+template <typename Background, typename Diffusion>
+void TrajectoryFocused<Background, Diffusion>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag(), specie);
+   mag_mom = MagneticMoment<specie>(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag());
 };
 
 /*!
@@ -56,8 +56,8 @@ void TrajectoryFocused<HConfig>::SetStart(void)
 \author Vladimir Florinski
 \date 03/11/2024
 */
-template <typename HConfig>
-void TrajectoryFocused<HConfig>::DriftCoeff(void)
+template <typename Background, typename Diffusion>
+void TrajectoryFocused<Background, Diffusion>::DriftCoeff(void)
 {
    auto U = _fields.Vel();
    auto bhat = _fields.HatMag();
@@ -70,10 +70,10 @@ void TrajectoryFocused<HConfig>::DriftCoeff(void)
       auto absB = _fields.AbsMag();
       drift_vel = 0.5 * st2 * (bhat ^ _fields.DelAbsMag()) / absB;
 // Add curvature drift. Note that (Bvec * grad)Bvec = [Bvec]^T * [gradBvec].
-      drift_vel += ( 0.5 * st2 * bhat * (B * _fields.curlB())
+      drift_vel += ( 0.5 * st2 * bhat * (B * _fields.CurlMag())
                      + ct2 * (bhat ^ (B * _fields.DelMag())) ) / Sqr(absB);
 // Scale by pvc/qB
-      drift_vel *= LarmorRadius(_coords.Mom()[0], _fields.AbsMag(), HConfig::specie) * _coords.Vel()[0];
+      drift_vel *= LarmorRadius<specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0];
 // Add bulk flow and parallel velocities
       drift_vel += U + _coords.Vel()[0] * _coords.Mom()[1] * bhat;
    }
@@ -87,8 +87,8 @@ void TrajectoryFocused<HConfig>::DriftCoeff(void)
 \author Vladimir Florinski
 \date 08/07/2023
 */
-template <typename HConfig>
-void TrajectoryFocused<HConfig>::PhysicalStep(void)
+template <typename Background, typename Diffusion>
+void TrajectoryFocused<Background, Diffusion>::PhysicalStep(void)
 {
    constexpr double cfl_adv = HConfig::cfl_advection;
    constexpr double drift_safety = HConfig::drift_safety;
@@ -103,8 +103,8 @@ void TrajectoryFocused<HConfig>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename HConfig>
-void TrajectoryFocused<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Background, typename Diffusion>
+void TrajectoryFocused<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    GeoMatrix bhatbhat;
    GeoVector cdUvecdt;
@@ -129,14 +129,14 @@ void TrajectoryFocused<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
    bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _coords.Vel()[0];
 
    slope_mom_istage[0] = 0.5 * _coords.Mom()[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec
-                                         - st2 * _fields.divU() - _coords.Mom()[1] * bhat_cdUvecdt);
+                                         - st2 * _fields.DivVel() - _coords.Mom()[1] * bhat_cdUvecdt);
 
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[1] = 0.0;
    }
    else if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
-      slope_mom_istage[1] = 0.5 * st2 * ( _coords.Vel()[0] * _fields.divbhat() - bhat_cdUvecdt
-                                          + _coords.Mom()[1] * (_fields.divU() - 3.0 * bhatbhat_gradUvec) );
+      slope_mom_istage[1] = 0.5 * st2 * ( _coords.Vel()[0] * _fields.DivHatMag() - bhat_cdUvecdt
+                                          + _coords.Mom()[1] * (_fields.DivVel() - 3.0 * bhatbhat_gradUvec) );
    }
    
    slope_mom_istage[2] = 0.0;
@@ -149,8 +149,8 @@ void TrajectoryFocused<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename HConfig>
-bool TrajectoryFocused<HConfig>::Advance(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryFocused<Background, Diffusion>::Advance(void)
 {
    return RKAdvance();
 };
@@ -159,12 +159,12 @@ bool TrajectoryFocused<HConfig>::Advance(void)
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename HConfig>
-inline void TrajectoryFocused<HConfig>::MomentumCorrection(void)
+template <typename Background, typename Diffusion>
+inline void TrajectoryFocused<Background, Diffusion>::MomentumCorrection(void)
 {
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum(mag_mom, _fields.AbsMag(), HConfig::specie) / _coords.Mom()[0]));
+      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum<specie>(mag_mom, _fields.AbsMag()) / _coords.Mom()[0]));
    }
 
 // Check to enforce |mu| <= 1.0

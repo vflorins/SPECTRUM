@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundUniform methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,19 +66,19 @@ void BackgroundUniform<HConfig>::SetupBackground(bool construct)
 \date 01/04/2024
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundUniform<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
-   if constexpr (Fields::Vel_found()) {
-      fields.Vel() = u0;
+   if constexpr (RequestedFields::Fluv_found()) {
+      fields.Fluv() = u0;
    }
-   if constexpr (Fields::Mag_found()) {
+   if constexpr (RequestedFields::Mag_found()) {
       fields.Mag() = B0;
    }
-   if constexpr (Fields::Elc_found()) {
+   if constexpr (RequestedFields::Elc_found()) {
       fields.Elc() = E0;
    }
-   if constexpr (Fields::Iv0_found()) {
+   if constexpr (RequestedFields::Iv0_found()) {
       fields.Iv0() = 1.0;
    }
    LOWER_BITS(_status, STATE_INVALID);
@@ -88,18 +90,18 @@ void BackgroundUniform<HConfig>::EvaluateBackground(BackgroundCoordinates& coord
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
-   if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found()) fields.DelMag() = gm_zeros;
-   if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
+   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+   if constexpr (RequestedFields::DelMag_found()) fields.DelMag() = gm_zeros;
+   if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
-   if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
-   if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
 };
 
 };

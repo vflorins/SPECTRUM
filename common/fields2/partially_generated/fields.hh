@@ -23,8 +23,8 @@ Elsewhere, this file can be edited normally.
 #include <stdexcept>
 #include "../generated/field_types.hh"
 #include "../fconfig.hh"
-
-
+#include "../../compiletime_lists.hh"
+#include "../../physics.hh"
 
 namespace Spectrum {
 
@@ -95,32 +95,43 @@ public: // test
    // BEGIN(fields/generate, base)
 
    static constexpr const std::size_t Pos_offset = compute_offset<Pos_t>();
+   static constexpr const std::size_t Rad_offset = compute_offset<Rad_t>();
    static constexpr const std::size_t Time_offset = compute_offset<Time_t>();
    static constexpr const std::size_t Den_offset = compute_offset<Den_t>();
    static constexpr const std::size_t Prs_offset = compute_offset<Prs_t>();
    static constexpr const std::size_t Enr_offset = compute_offset<Enr_t>();
-   static constexpr const std::size_t Vel_offset = compute_offset<Vel_t>();
-   static constexpr const std::size_t Mom_offset = compute_offset<Mom_t>();
+   static constexpr const std::size_t Fluv_offset = compute_offset<Fluv_t>();
+   static constexpr const std::size_t Flum_offset = compute_offset<Flum_t>();
    static constexpr const std::size_t FlxDen_offset = compute_offset<FlxDen_t>();
-   static constexpr const std::size_t FlxMom_offset = compute_offset<FlxMom_t>();
    static constexpr const std::size_t FlxEnr_offset = compute_offset<FlxEnr_t>();
+   static constexpr const std::size_t FlxFlum_offset = compute_offset<FlxFlum_t>();
+   static constexpr const std::size_t AbsFluv_offset = compute_offset<AbsFluv_t>();
+   static constexpr const std::size_t HatFluv_offset = compute_offset<HatFluv_t>();
+   static constexpr const std::size_t AbsFlum_offset = compute_offset<AbsFlum_t>();
+   static constexpr const std::size_t HatFlum_offset = compute_offset<HatFlum_t>();
    static constexpr const std::size_t Mag_offset = compute_offset<Mag_t>();
    static constexpr const std::size_t FlxMag_offset = compute_offset<FlxMag_t>();
    static constexpr const std::size_t Glm_offset = compute_offset<Glm_t>();
    static constexpr const std::size_t FlxGlm_offset = compute_offset<FlxGlm_t>();
+   static constexpr const std::size_t Mom_offset = compute_offset<Mom_t>();
+   static constexpr const std::size_t AbsMom_offset = compute_offset<AbsMom_t>();
+   static constexpr const std::size_t HatMom_offset = compute_offset<HatMom_t>();
+   static constexpr const std::size_t Vel_offset = compute_offset<Vel_t>();
+   static constexpr const std::size_t AbsVel_offset = compute_offset<AbsVel_t>();
+   static constexpr const std::size_t HatVel_offset = compute_offset<HatVel_t>();
    static constexpr const std::size_t Elc_offset = compute_offset<Elc_t>();
+   static constexpr const std::size_t AbsElc_offset = compute_offset<AbsElc_t>();
+   static constexpr const std::size_t HatElc_offset = compute_offset<HatElc_t>();
    static constexpr const std::size_t AbsMag_offset = compute_offset<AbsMag_t>();
    static constexpr const std::size_t HatMag_offset = compute_offset<HatMag_t>();
-   static constexpr const std::size_t DelVel_offset = compute_offset<DelVel_t>();
+   static constexpr const std::size_t DelFluv_offset = compute_offset<DelFluv_t>();
    static constexpr const std::size_t DelElc_offset = compute_offset<DelElc_t>();
    static constexpr const std::size_t DelMag_offset = compute_offset<DelMag_t>();
    static constexpr const std::size_t DelAbsMag_offset = compute_offset<DelAbsMag_t>();
-   static constexpr const std::size_t DelHatMag_offset = compute_offset<DelHatMag_t>();
-   static constexpr const std::size_t DotVel_offset = compute_offset<DotVel_t>();
+   static constexpr const std::size_t DotFluv_offset = compute_offset<DotFluv_t>();
    static constexpr const std::size_t DotElc_offset = compute_offset<DotElc_t>();
    static constexpr const std::size_t DotMag_offset = compute_offset<DotMag_t>();
    static constexpr const std::size_t DotAbsMag_offset = compute_offset<DotAbsMag_t>();
-   static constexpr const std::size_t DotHatMag_offset = compute_offset<DotHatMag_t>();
    static constexpr const std::size_t Iv0_offset = compute_offset<Iv0_t>();
    static constexpr const std::size_t Iv1_offset = compute_offset<Iv1_t>();
    static constexpr const std::size_t Iv2_offset = compute_offset<Iv2_t>();
@@ -188,6 +199,17 @@ As an array of double, the size is given by the static member size().
 
    // BEGIN(fields/generate, class)
 
+
+/*!
+\brief Whether Pos (Position in space) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Pos_found(void) {
+      return (Pos_offset != Type_not_found);
+   };
+
+
 /*!
 \brief Get Pos (Position in space) from the data type, as lvalue.
 \author Lucius Schoenbaum
@@ -205,17 +227,59 @@ As an array of double, the size is given by the static member size().
    const GeoVector& Pos(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + Pos_offset));
    };
+   
 
 
 /*!
-\brief Whether Pos (Position in space) is in the data type.
+\brief Whether Rad (Radial spatial coordinate) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Pos_found(void) {
-      return (Pos_offset != Type_not_found);
+   static constexpr bool Rad_found(void) {
+      return (Rad_offset != Type_not_found);
    };
-   
+
+
+/*!
+\brief Get Rad (Radial spatial coordinate) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& Rad(void) {
+      if constexpr (Rad_found())
+         return reinterpret_cast<double&>(*(data + Rad_offset));
+      else
+            if constexpr (FConfig::Pos_radial)
+               return Pos()[0];
+            else
+               return Pos().Norm();
+   };
+
+/*!
+\brief Get Rad (Radial spatial coordinate) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& Rad(void) const {
+      if constexpr (Rad_found())
+         return reinterpret_cast<double&>(*(data + Rad_offset));
+      else
+         if constexpr (FConfig::Pos_radial)
+            return Pos()[0];
+         else
+            return Pos().Norm();
+   };
+
+
+/*!
+\brief Whether Time (Time) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Time_found(void) {
+      return (Time_offset != Type_not_found);
+   };
+
 
 /*!
 \brief Get Time (Time) from the data type, as lvalue.
@@ -234,17 +298,18 @@ As an array of double, the size is given by the static member size().
    const double& Time(void) const {
       return reinterpret_cast<const double&>(*(data + Time_offset));
    };
+   
 
 
 /*!
-\brief Whether Time (Time) is in the data type.
+\brief Whether Den (Density field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Time_found(void) {
-      return (Time_offset != Type_not_found);
+   static constexpr bool Den_found(void) {
+      return (Den_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Den (Density field) from the data type, as lvalue.
@@ -263,17 +328,18 @@ As an array of double, the size is given by the static member size().
    const double& Den(void) const {
       return reinterpret_cast<const double&>(*(data + Den_offset));
    };
+   
 
 
 /*!
-\brief Whether Den (Density field) is in the data type.
+\brief Whether Prs (Pressure field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Den_found(void) {
-      return (Den_offset != Type_not_found);
+   static constexpr bool Prs_found(void) {
+      return (Prs_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Prs (Pressure field) from the data type, as lvalue.
@@ -292,17 +358,18 @@ As an array of double, the size is given by the static member size().
    const double& Prs(void) const {
       return reinterpret_cast<const double&>(*(data + Prs_offset));
    };
+   
 
 
 /*!
-\brief Whether Prs (Pressure field) is in the data type.
+\brief Whether Enr (Energy field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Prs_found(void) {
-      return (Prs_offset != Type_not_found);
+   static constexpr bool Enr_found(void) {
+      return (Enr_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Enr (Energy field) from the data type, as lvalue.
@@ -321,75 +388,105 @@ As an array of double, the size is given by the static member size().
    const double& Enr(void) const {
       return reinterpret_cast<const double&>(*(data + Enr_offset));
    };
+   
 
 
 /*!
-\brief Whether Enr (Energy field) is in the data type.
+\brief Whether Fluv (Fluid Flow Velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Enr_found(void) {
-      return (Enr_offset != Type_not_found);
+   static constexpr bool Fluv_found(void) {
+      return (Fluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Fluv (Fluid Flow Velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& Fluv(void) {
+      return reinterpret_cast<GeoVector&>(*(data + Fluv_offset));
+   };
+
+/*!
+\brief Get Fluv (Fluid Flow Velocity field) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& Fluv(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + Fluv_offset));
    };
    
 
+
 /*!
-\brief Get Vel (Velocity field) from the data type, as lvalue.
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Fluv
+*/
+   inline double DivFluv(void)
+   {
+      return DelFluv().Trace();
+   };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Fluv
+*/
+   inline GeoVector CurlFluv(void)
+   {
+      GeoMatrix G = DelFluv();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
+
+
+/*!
+\brief Whether Flum (Fluid Flow Momentum field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& Vel(void) {
-      return reinterpret_cast<GeoVector&>(*(data + Vel_offset));
+   static constexpr bool Flum_found(void) {
+      return (Flum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Flum (Fluid Flow Momentum field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& Flum(void) {
+      return reinterpret_cast<GeoVector&>(*(data + Flum_offset));
    };
 
 /*!
-\brief Get Vel (Velocity field) from the data type, as const rvalue.
+\brief Get Flum (Fluid Flow Momentum field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Vel(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Vel_offset));
-   };
-
-
-/*!
-\brief Whether Vel (Velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool Vel_found(void) {
-      return (Vel_offset != Type_not_found);
+   const GeoVector& Flum(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + Flum_offset));
    };
    
 
+
 /*!
-\brief Get Mom (Momentum field) from the data type, as lvalue.
+\brief Whether FlxDen (Fluid density flux function) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& Mom(void) {
-      return reinterpret_cast<GeoVector&>(*(data + Mom_offset));
+   static constexpr bool FlxDen_found(void) {
+      return (FlxDen_offset != Type_not_found);
    };
 
-/*!
-\brief Get Mom (Momentum field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoVector& Mom(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Mom_offset));
-   };
-
-
-/*!
-\brief Whether Mom (Momentum field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool Mom_found(void) {
-      return (Mom_offset != Type_not_found);
-   };
-   
 
 /*!
 \brief Get FlxDen (Fluid density flux function) from the data type, as lvalue.
@@ -408,46 +505,18 @@ As an array of double, the size is given by the static member size().
    const double& FlxDen(void) const {
       return reinterpret_cast<const double&>(*(data + FlxDen_offset));
    };
-
-
-/*!
-\brief Whether FlxDen (Fluid density flux function) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool FlxDen_found(void) {
-      return (FlxDen_offset != Type_not_found);
-   };
    
 
+
 /*!
-\brief Get FlxMom (Fluid momentum flux function) from the data type, as lvalue.
+\brief Whether FlxEnr (Fluid energy flux function) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& FlxMom(void) {
-      return reinterpret_cast<GeoVector&>(*(data + FlxMom_offset));
+   static constexpr bool FlxEnr_found(void) {
+      return (FlxEnr_offset != Type_not_found);
    };
 
-/*!
-\brief Get FlxMom (Fluid momentum flux function) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoVector& FlxMom(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + FlxMom_offset));
-   };
-
-
-/*!
-\brief Whether FlxMom (Fluid momentum flux function) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool FlxMom_found(void) {
-      return (FlxMom_offset != Type_not_found);
-   };
-   
 
 /*!
 \brief Get FlxEnr (Fluid energy flux function) from the data type, as lvalue.
@@ -466,17 +535,200 @@ As an array of double, the size is given by the static member size().
    const double& FlxEnr(void) const {
       return reinterpret_cast<const double&>(*(data + FlxEnr_offset));
    };
+   
 
 
 /*!
-\brief Whether FlxEnr (Fluid energy flux function) is in the data type.
+\brief Whether FlxFlum (Fluid flow momentum flux function) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool FlxEnr_found(void) {
-      return (FlxEnr_offset != Type_not_found);
+   static constexpr bool FlxFlum_found(void) {
+      return (FlxFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxFlum (Fluid flow momentum flux function) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& FlxFlum(void) {
+      return reinterpret_cast<GeoVector&>(*(data + FlxFlum_offset));
+   };
+
+/*!
+\brief Get FlxFlum (Fluid flow momentum flux function) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& FlxFlum(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + FlxFlum_offset));
    };
    
+
+
+/*!
+\brief Whether AbsFluv (Fluid Flow Velocity field magnitude) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsFluv_found(void) {
+      return (AbsFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& AbsFluv(void) {
+      if constexpr (AbsFluv_found())
+         return reinterpret_cast<double&>(*(data + AbsFluv_offset));
+      else
+            if constexpr (FConfig::Fluv_radial)
+               return Fluv()[0];
+            else
+               return Fluv().Norm();
+   };
+
+/*!
+\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& AbsFluv(void) const {
+      if constexpr (AbsFluv_found())
+         return reinterpret_cast<double&>(*(data + AbsFluv_offset));
+      else
+         if constexpr (FConfig::Fluv_radial)
+            return Fluv()[0];
+         else
+            return Fluv().Norm();
+   };
+
+
+/*!
+\brief Whether HatFluv (Direction of fluid flow velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatFluv_found(void) {
+      return (HatFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatFluv (Direction of fluid flow velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatFluv(void) {
+      if constexpr (HatFluv_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
+      else
+         return UnitVec(Fluv());
+   };
+
+/*!
+\brief Get HatFluv (Direction of fluid flow velocity) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatFluv(void) const {
+      if constexpr (HatFluv_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
+      else
+         return UnitVec(Fluv());
+   };
+
+
+/*!
+\brief Whether AbsFlum (Fluid Flow Momentum field magnitude) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsFlum_found(void) {
+      return (AbsFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& AbsFlum(void) {
+      if constexpr (AbsFlum_found())
+         return reinterpret_cast<double&>(*(data + AbsFlum_offset));
+      else
+            if constexpr (FConfig::Flum_radial)
+               return Flum()[0];
+            else
+               return Flum().Norm();
+   };
+
+/*!
+\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& AbsFlum(void) const {
+      if constexpr (AbsFlum_found())
+         return reinterpret_cast<double&>(*(data + AbsFlum_offset));
+      else
+         if constexpr (FConfig::Flum_radial)
+            return Flum()[0];
+         else
+            return Flum().Norm();
+   };
+
+
+/*!
+\brief Whether HatFlum (Direction of fluid flow momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatFlum_found(void) {
+      return (HatFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatFlum (Direction of fluid flow momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatFlum(void) {
+      if constexpr (HatFlum_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
+      else
+         return UnitVec(Flum());
+   };
+
+/*!
+\brief Get HatFlum (Direction of fluid flow momentum) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatFlum(void) const {
+      if constexpr (HatFlum_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
+      else
+         return UnitVec(Flum());
+   };
+
+
+/*!
+\brief Whether Mag (Magnetic field) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Mag_found(void) {
+      return (Mag_offset != Type_not_found);
+   };
+
 
 /*!
 \brief Get Mag (Magnetic field) from the data type, as lvalue.
@@ -495,17 +747,45 @@ As an array of double, the size is given by the static member size().
    const GeoVector& Mag(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + Mag_offset));
    };
+   
 
 
 /*!
-\brief Whether Mag (Magnetic field) is in the data type.
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Mag
+*/
+   inline double DivMag(void)
+   {
+      return DelMag().Trace();
+   };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Mag
+*/
+   inline GeoVector CurlMag(void)
+   {
+      GeoMatrix G = DelMag();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
+
+
+/*!
+\brief Whether FlxMag (Magnetic field flux function) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Mag_found(void) {
-      return (Mag_offset != Type_not_found);
+   static constexpr bool FlxMag_found(void) {
+      return (FlxMag_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get FlxMag (Magnetic field flux function) from the data type, as lvalue.
@@ -524,17 +804,18 @@ As an array of double, the size is given by the static member size().
    const GeoVector& FlxMag(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + FlxMag_offset));
    };
+   
 
 
 /*!
-\brief Whether FlxMag (Magnetic field flux function) is in the data type.
+\brief Whether Glm (Lagrange multiplier field of GLM MHD) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool FlxMag_found(void) {
-      return (FlxMag_offset != Type_not_found);
+   static constexpr bool Glm_found(void) {
+      return (Glm_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as lvalue.
@@ -553,17 +834,18 @@ As an array of double, the size is given by the static member size().
    const double& Glm(void) const {
       return reinterpret_cast<const double&>(*(data + Glm_offset));
    };
+   
 
 
 /*!
-\brief Whether Glm (Lagrange multiplier field of GLM MHD) is in the data type.
+\brief Whether FlxGlm (Lagrange mutlipler flux function of GLM MHD) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Glm_found(void) {
-      return (Glm_offset != Type_not_found);
+   static constexpr bool FlxGlm_found(void) {
+      return (FlxGlm_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as lvalue.
@@ -582,17 +864,230 @@ As an array of double, the size is given by the static member size().
    const double& FlxGlm(void) const {
       return reinterpret_cast<const double&>(*(data + FlxGlm_offset));
    };
+   
 
 
 /*!
-\brief Whether FlxGlm (Lagrange mutlipler flux function of GLM MHD) is in the data type.
+\brief Whether Mom (Particle Momentum) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool FlxGlm_found(void) {
-      return (FlxGlm_offset != Type_not_found);
+   static constexpr bool Mom_found(void) {
+      return (Mom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Mom (Particle Momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& Mom(void) {
+      return reinterpret_cast<GeoVector&>(*(data + Mom_offset));
+   };
+
+/*!
+\brief Get Mom (Particle Momentum) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& Mom(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + Mom_offset));
    };
    
+
+
+/*!
+\brief Whether AbsMom (Magnitude of momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsMom_found(void) {
+      return (AbsMom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsMom (Magnitude of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& AbsMom(void) {
+      if constexpr (AbsMom_found())
+         return reinterpret_cast<double&>(*(data + AbsMom_offset));
+      else
+            if constexpr (FConfig::Mom_radial)
+               return Mom()[0];
+            else
+               return Mom().Norm();
+   };
+
+/*!
+\brief Get AbsMom (Magnitude of momentum) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& AbsMom(void) const {
+      if constexpr (AbsMom_found())
+         return reinterpret_cast<double&>(*(data + AbsMom_offset));
+      else
+         if constexpr (FConfig::Mom_radial)
+            return Mom()[0];
+         else
+            return Mom().Norm();
+   };
+
+
+/*!
+\brief Whether HatMom (Direction of momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatMom_found(void) {
+      return (HatMom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatMom (Direction of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatMom(void) {
+      if constexpr (HatMom_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
+      else
+         return UnitVec(Mom());
+   };
+
+/*!
+\brief Get HatMom (Direction of momentum) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatMom(void) const {
+      if constexpr (HatMom_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
+      else
+         return UnitVec(Mom());
+   };
+
+
+/*!
+\brief Whether Vel (Particle Velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Vel_found(void) {
+      return (Vel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Vel (Particle Velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& Vel(void) {
+      return reinterpret_cast<GeoVector&>(*(data + Vel_offset));
+   };
+
+/*!
+\brief Get Vel (Particle Velocity) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& Vel(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + Vel_offset));
+   };
+   
+
+
+/*!
+\brief Whether AbsVel (Magnitude of velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsVel_found(void) {
+      return (AbsVel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsVel (Magnitude of velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& AbsVel(void) {
+      if constexpr (AbsVel_found())
+         return reinterpret_cast<double&>(*(data + AbsVel_offset));
+      else
+            if constexpr (FConfig::Vel_radial)
+               return Vel()[0];
+            else
+               return Vel().Norm();
+   };
+
+/*!
+\brief Get AbsVel (Magnitude of velocity) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const double& AbsVel(void) const {
+      if constexpr (AbsVel_found())
+         return reinterpret_cast<double&>(*(data + AbsVel_offset));
+      else
+         if constexpr (FConfig::Vel_radial)
+            return Vel()[0];
+         else
+            return Vel().Norm();
+   };
+
+
+/*!
+\brief Whether HatVel (Direction of velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatVel_found(void) {
+      return (HatVel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatVel (Direction of velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatVel(void) {
+      if constexpr (HatVel_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
+      else
+         return UnitVec(Vel());
+   };
+
+/*!
+\brief Get HatVel (Direction of velocity) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatVel(void) const {
+      if constexpr (HatVel_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
+      else
+         return UnitVec(Vel());
+   };
+
+
+/*!
+\brief Whether Elc (Electric field) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Elc_found(void) {
+      return (Elc_offset != Type_not_found);
+   };
+
 
 /*!
 \brief Get Elc (Electric field) from the data type, as lvalue.
@@ -611,34 +1106,109 @@ As an array of double, the size is given by the static member size().
    const GeoVector& Elc(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + Elc_offset));
    };
-
-
-/*!
-\brief Whether Elc (Electric field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool Elc_found(void) {
-      return (Elc_offset != Type_not_found);
-   };
    
 
+
 /*!
-\brief Get AbsMag (Magnetic field magnitude) from the data type, as lvalue.
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Elc
+*/
+   inline double DivElc(void)
+   {
+      return DelElc().Trace();
+   };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Elc
+*/
+   inline GeoVector CurlElc(void)
+   {
+      GeoMatrix G = DelElc();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
+
+
+/*!
+\brief Whether AbsElc (Electric field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   double& AbsMag(void) {
-      return reinterpret_cast<double&>(*(data + AbsMag_offset));
+   static constexpr bool AbsElc_found(void) {
+      return (AbsElc_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsElc (Electric field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   double& AbsElc(void) {
+      if constexpr (AbsElc_found())
+         return reinterpret_cast<double&>(*(data + AbsElc_offset));
+      else
+            if constexpr (FConfig::Elc_radial)
+               return Elc()[0];
+            else
+               return Elc().Norm();
    };
 
 /*!
-\brief Get AbsMag (Magnetic field magnitude) from the data type, as const rvalue.
+\brief Get AbsElc (Electric field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsMag(void) const {
-      return reinterpret_cast<const double&>(*(data + AbsMag_offset));
+   const double& AbsElc(void) const {
+      if constexpr (AbsElc_found())
+         return reinterpret_cast<double&>(*(data + AbsElc_offset));
+      else
+         if constexpr (FConfig::Elc_radial)
+            return Elc()[0];
+         else
+            return Elc().Norm();
+   };
+
+
+/*!
+\brief Whether HatElc (Electric field direction) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatElc_found(void) {
+      return (HatElc_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatElc (Electric field direction) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatElc(void) {
+      if constexpr (HatElc_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
+      else
+         return UnitVec(Elc());
+   };
+
+/*!
+\brief Get HatElc (Electric field direction) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatElc(void) const {
+      if constexpr (HatElc_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
+      else
+         return UnitVec(Elc());
    };
 
 
@@ -650,24 +1220,36 @@ As an array of double, the size is given by the static member size().
    static constexpr bool AbsMag_found(void) {
       return (AbsMag_offset != Type_not_found);
    };
-   
+
 
 /*!
-\brief Get HatMag (Magnetic field direction) from the data type, as lvalue.
+\brief Get AbsMag (Magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& HatMag(void) {
-      return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
+   double& AbsMag(void) {
+      if constexpr (AbsMag_found())
+         return reinterpret_cast<double&>(*(data + AbsMag_offset));
+      else
+            if constexpr (FConfig::Mag_radial)
+               return Mag()[0];
+            else
+               return Mag().Norm();
    };
 
 /*!
-\brief Get HatMag (Magnetic field direction) from the data type, as const rvalue.
+\brief Get AbsMag (Magnetic field magnitude) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + HatMag_offset));
+   const double& AbsMag(void) const {
+      if constexpr (AbsMag_found())
+         return reinterpret_cast<double&>(*(data + AbsMag_offset));
+      else
+         if constexpr (FConfig::Mag_radial)
+            return Mag()[0];
+         else
+            return Mag().Norm();
    };
 
 
@@ -679,36 +1261,72 @@ As an array of double, the size is given by the static member size().
    static constexpr bool HatMag_found(void) {
       return (HatMag_offset != Type_not_found);
    };
+
+
+/*!
+\brief Get HatMag (Magnetic field direction) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& HatMag(void) {
+      if constexpr (HatMag_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
+      else
+         return UnitVec(Mag());
+   };
+
+/*!
+\brief Get HatMag (Magnetic field direction) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& HatMag(void) const {
+      if constexpr (HatMag_found())
+         return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
+      else
+         return UnitVec(Mag());
+   };
+
+
+/*!
+\brief Whether DelFluv (Gradient of fluid flow velocity field) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool DelFluv_found(void) {
+      return (DelFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoMatrix& DelFluv(void) {
+      return reinterpret_cast<GeoMatrix&>(*(data + DelFluv_offset));
+   };
+
+/*!
+\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoMatrix& DelFluv(void) const {
+      return reinterpret_cast<const GeoMatrix&>(*(data + DelFluv_offset));
+   };
    
 
+
 /*!
-\brief Get DelVel (Gradient of velocity field) from the data type, as lvalue.
+\brief Whether DelElc (Gradient of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoMatrix& DelVel(void) {
-      return reinterpret_cast<GeoMatrix&>(*(data + DelVel_offset));
+   static constexpr bool DelElc_found(void) {
+      return (DelElc_offset != Type_not_found);
    };
 
-/*!
-\brief Get DelVel (Gradient of velocity field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoMatrix& DelVel(void) const {
-      return reinterpret_cast<const GeoMatrix&>(*(data + DelVel_offset));
-   };
-
-
-/*!
-\brief Whether DelVel (Gradient of velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DelVel_found(void) {
-      return (DelVel_offset != Type_not_found);
-   };
-   
 
 /*!
 \brief Get DelElc (Gradient of electric field) from the data type, as lvalue.
@@ -727,17 +1345,18 @@ As an array of double, the size is given by the static member size().
    const GeoMatrix& DelElc(void) const {
       return reinterpret_cast<const GeoMatrix&>(*(data + DelElc_offset));
    };
+   
 
 
 /*!
-\brief Whether DelElc (Gradient of electric field) is in the data type.
+\brief Whether DelMag (Gradient of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelElc_found(void) {
-      return (DelElc_offset != Type_not_found);
+   static constexpr bool DelMag_found(void) {
+      return (DelMag_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get DelMag (Gradient of magnetic field) from the data type, as lvalue.
@@ -756,17 +1375,18 @@ As an array of double, the size is given by the static member size().
    const GeoMatrix& DelMag(void) const {
       return reinterpret_cast<const GeoMatrix&>(*(data + DelMag_offset));
    };
+   
 
 
 /*!
-\brief Whether DelMag (Gradient of magnetic field) is in the data type.
+\brief Whether DelAbsMag (Gradient of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelMag_found(void) {
-      return (DelMag_offset != Type_not_found);
+   static constexpr bool DelAbsMag_found(void) {
+      return (DelAbsMag_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as lvalue.
@@ -785,75 +1405,48 @@ As an array of double, the size is given by the static member size().
    const GeoVector& DelAbsMag(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + DelAbsMag_offset));
    };
+   
 
 
 /*!
-\brief Whether DelAbsMag (Gradient of magnetic field magnitude) is in the data type.
+\brief Whether DotFluv (Time derivative of fluid flow velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelAbsMag_found(void) {
-      return (DelAbsMag_offset != Type_not_found);
+   static constexpr bool DotFluv_found(void) {
+      return (DotFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   GeoVector& DotFluv(void) {
+      return reinterpret_cast<GeoVector&>(*(data + DotFluv_offset));
+   };
+
+/*!
+\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type, as const rvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   const GeoVector& DotFluv(void) const {
+      return reinterpret_cast<const GeoVector&>(*(data + DotFluv_offset));
    };
    
 
+
 /*!
-\brief Get DelHatMag (Gradient of magnetic field direction ) from the data type, as lvalue.
+\brief Whether DotElc (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoMatrix& DelHatMag(void) {
-      return reinterpret_cast<GeoMatrix&>(*(data + DelHatMag_offset));
+   static constexpr bool DotElc_found(void) {
+      return (DotElc_offset != Type_not_found);
    };
 
-/*!
-\brief Get DelHatMag (Gradient of magnetic field direction ) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoMatrix& DelHatMag(void) const {
-      return reinterpret_cast<const GeoMatrix&>(*(data + DelHatMag_offset));
-   };
-
-
-/*!
-\brief Whether DelHatMag (Gradient of magnetic field direction ) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DelHatMag_found(void) {
-      return (DelHatMag_offset != Type_not_found);
-   };
-   
-
-/*!
-\brief Get DotVel (Time derivative of velocity field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   GeoVector& DotVel(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DotVel_offset));
-   };
-
-/*!
-\brief Get DotVel (Time derivative of velocity field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoVector& DotVel(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DotVel_offset));
-   };
-
-
-/*!
-\brief Whether DotVel (Time derivative of velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DotVel_found(void) {
-      return (DotVel_offset != Type_not_found);
-   };
-   
 
 /*!
 \brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
@@ -872,17 +1465,18 @@ As an array of double, the size is given by the static member size().
    const GeoVector& DotElc(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + DotElc_offset));
    };
+   
 
 
 /*!
-\brief Whether DotElc (Time derivative of electric field) is in the data type.
+\brief Whether DotMag (Time derivative of magnetic field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DotElc_found(void) {
-      return (DotElc_offset != Type_not_found);
+   static constexpr bool DotMag_found(void) {
+      return (DotMag_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
@@ -901,17 +1495,18 @@ As an array of double, the size is given by the static member size().
    const GeoVector& DotMag(void) const {
       return reinterpret_cast<const GeoVector&>(*(data + DotMag_offset));
    };
+   
 
 
 /*!
-\brief Whether DotMag (Time derivative of magnetic field) is in the data type.
+\brief Whether DotAbsMag (Time derivative of magnetic field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DotMag_found(void) {
-      return (DotMag_offset != Type_not_found);
+   static constexpr bool DotAbsMag_found(void) {
+      return (DotAbsMag_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
@@ -930,46 +1525,18 @@ As an array of double, the size is given by the static member size().
    const double& DotAbsMag(void) const {
       return reinterpret_cast<const double&>(*(data + DotAbsMag_offset));
    };
-
-
-/*!
-\brief Whether DotAbsMag (Time derivative of magnetic field magnitude) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DotAbsMag_found(void) {
-      return (DotAbsMag_offset != Type_not_found);
-   };
    
 
+
 /*!
-\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
+\brief Whether Iv0 (Zeroth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   GeoVector& DotHatMag(void) {
-      return reinterpret_cast<GeoVector&>(*(data + DotHatMag_offset));
+   static constexpr bool Iv0_found(void) {
+      return (Iv0_offset != Type_not_found);
    };
 
-/*!
-\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const GeoVector& DotHatMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DotHatMag_offset));
-   };
-
-
-/*!
-\brief Whether DotHatMag (Time derivative of magnetic field direction) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DotHatMag_found(void) {
-      return (DotHatMag_offset != Type_not_found);
-   };
-   
 
 /*!
 \brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
@@ -988,17 +1555,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv0(void) const {
       return reinterpret_cast<const double&>(*(data + Iv0_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv0 (Zeroth (general purpose) Indicator variable) is in the data type.
+\brief Whether Iv1 (First (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv0_found(void) {
-      return (Iv0_offset != Type_not_found);
+   static constexpr bool Iv1_found(void) {
+      return (Iv1_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
@@ -1017,17 +1585,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv1(void) const {
       return reinterpret_cast<const double&>(*(data + Iv1_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv1 (First (general purpose) Indicator variable) is in the data type.
+\brief Whether Iv2 (Second (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv1_found(void) {
-      return (Iv1_offset != Type_not_found);
+   static constexpr bool Iv2_found(void) {
+      return (Iv2_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
@@ -1046,17 +1615,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv2(void) const {
       return reinterpret_cast<const double&>(*(data + Iv2_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv2 (Second (general purpose) Indicator variable) is in the data type.
+\brief Whether Iv3 (Third (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv2_found(void) {
-      return (Iv2_offset != Type_not_found);
+   static constexpr bool Iv3_found(void) {
+      return (Iv3_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
@@ -1075,17 +1645,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv3(void) const {
       return reinterpret_cast<const double&>(*(data + Iv3_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv3 (Third (general purpose) Indicator variable) is in the data type.
+\brief Whether Iv4 (Fourth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv3_found(void) {
-      return (Iv3_offset != Type_not_found);
+   static constexpr bool Iv4_found(void) {
+      return (Iv4_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
@@ -1104,17 +1675,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv4(void) const {
       return reinterpret_cast<const double&>(*(data + Iv4_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv4 (Fourth (general purpose) Indicator variable) is in the data type.
+\brief Whether Iv5 (Fifth (general purpose) Indicator variable) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv4_found(void) {
-      return (Iv4_offset != Type_not_found);
+   static constexpr bool Iv5_found(void) {
+      return (Iv5_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
@@ -1133,17 +1705,18 @@ As an array of double, the size is given by the static member size().
    const double& Iv5(void) const {
       return reinterpret_cast<const double&>(*(data + Iv5_offset));
    };
+   
 
 
 /*!
-\brief Whether Iv5 (Fifth (general purpose) Indicator variable) is in the data type.
+\brief Whether IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Iv5_found(void) {
-      return (Iv5_offset != Type_not_found);
+   static constexpr bool IvLISM_found(void) {
+      return (IvLISM_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as lvalue.
@@ -1162,17 +1735,18 @@ As an array of double, the size is given by the static member size().
    const double& IvLISM(void) const {
       return reinterpret_cast<const double&>(*(data + IvLISM_offset));
    };
+   
 
 
 /*!
-\brief Whether IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) is in the data type.
+\brief Whether IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool IvLISM_found(void) {
-      return (IvLISM_offset != Type_not_found);
+   static constexpr bool IvBmix_found(void) {
+      return (IvBmix_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
@@ -1191,17 +1765,18 @@ As an array of double, the size is given by the static member size().
    const double& IvBmix(void) const {
       return reinterpret_cast<const double&>(*(data + IvBmix_offset));
    };
+   
 
 
 /*!
-\brief Whether IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
+\brief Whether IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool IvBmix_found(void) {
-      return (IvBmix_offset != Type_not_found);
+   static constexpr bool IvSolarCycle_found(void) {
+      return (IvSolarCycle_offset != Type_not_found);
    };
-   
+
 
 /*!
 \brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
@@ -1220,16 +1795,6 @@ As an array of double, the size is given by the static member size().
    const double& IvSolarCycle(void) const {
       return reinterpret_cast<const double&>(*(data + IvSolarCycle_offset));
    };
-
-
-/*!
-\brief Whether IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool IvSolarCycle_found(void) {
-      return (IvSolarCycle_offset != Type_not_found);
-   };
    
 
 /*!
@@ -1240,7 +1805,7 @@ This operation is more expensive in general than a straightforward
 copy, so it should only be used when the advantage of
 working with more than one type, unit system, or coordinate system
 makes it worth the tradeoff.
-The Get() operation converts field types as lists of values, while preserving values.
+The Get() operation converts field types as lists of values, while preserving values. 
 For a conversion operation, use Convert().
 */
    template <typename ParentFields>
@@ -1251,6 +1816,19 @@ For a conversion operation, use Convert().
             out.Pos() = fields.Pos();
          else
             out.Pos() = Pos_t();
+      }
+      if constexpr (Fields::Rad_found()) {
+         if constexpr (ParentFields::Rad_found())
+            out.Rad() = fields.Rad();
+         else
+            if constexpr (ParentFields::Pos_found()) {
+               if constexpr (ParentFields::FConfig::Pos_radial)
+                  out.Rad() = fields.Pos[0];
+               else
+                  out.Rad() = fields.Pos.Norm();
+            }
+            else
+                out.Rad() = Rad_t();
       }
       if constexpr (Fields::Time_found()) {
          if constexpr (ParentFields::Time_found())
@@ -1276,17 +1854,17 @@ For a conversion operation, use Convert().
          else
             out.Enr() = Enr_t();
       }
-      if constexpr (Fields::Vel_found()) {
-         if constexpr (ParentFields::Vel_found())
-            out.Vel() = fields.Vel();
+      if constexpr (Fields::Fluv_found()) {
+         if constexpr (ParentFields::Fluv_found())
+            out.Fluv() = fields.Fluv();
          else
-            out.Vel() = Vel_t();
+            out.Fluv() = Fluv_t();
       }
-      if constexpr (Fields::Mom_found()) {
-         if constexpr (ParentFields::Mom_found())
-            out.Mom() = fields.Mom();
+      if constexpr (Fields::Flum_found()) {
+         if constexpr (ParentFields::Flum_found())
+            out.Flum() = fields.Flum();
          else
-            out.Mom() = Mom_t();
+            out.Flum() = Flum_t();
       }
       if constexpr (Fields::FlxDen_found()) {
          if constexpr (ParentFields::FlxDen_found())
@@ -1294,17 +1872,55 @@ For a conversion operation, use Convert().
          else
             out.FlxDen() = FlxDen_t();
       }
-      if constexpr (Fields::FlxMom_found()) {
-         if constexpr (ParentFields::FlxMom_found())
-            out.FlxMom() = fields.FlxMom();
-         else
-            out.FlxMom() = FlxMom_t();
-      }
       if constexpr (Fields::FlxEnr_found()) {
          if constexpr (ParentFields::FlxEnr_found())
             out.FlxEnr() = fields.FlxEnr();
          else
             out.FlxEnr() = FlxEnr_t();
+      }
+      if constexpr (Fields::FlxFlum_found()) {
+         if constexpr (ParentFields::FlxFlum_found())
+            out.FlxFlum() = fields.FlxFlum();
+         else
+            out.FlxFlum() = FlxFlum_t();
+      }
+      if constexpr (Fields::AbsFluv_found()) {
+         if constexpr (ParentFields::AbsFluv_found())
+            out.AbsFluv() = fields.AbsFluv();
+         else
+            if constexpr (ParentFields::Fluv_found()) {
+               if constexpr (ParentFields::FConfig::Fluv_radial)
+                  out.AbsFluv() = fields.Fluv[0];
+               else
+                  out.AbsFluv() = fields.Fluv.Norm();
+            }
+            else
+                out.AbsFluv() = AbsFluv_t();
+      }
+      if constexpr (Fields::HatFluv_found()) {
+         if constexpr (ParentFields::HatFluv_found())
+            out.HatFluv() = fields.HatFluv();
+         else
+            out.HatFluv() = HatFluv_t();
+      }
+      if constexpr (Fields::AbsFlum_found()) {
+         if constexpr (ParentFields::AbsFlum_found())
+            out.AbsFlum() = fields.AbsFlum();
+         else
+            if constexpr (ParentFields::Flum_found()) {
+               if constexpr (ParentFields::FConfig::Flum_radial)
+                  out.AbsFlum() = fields.Flum[0];
+               else
+                  out.AbsFlum() = fields.Flum.Norm();
+            }
+            else
+                out.AbsFlum() = AbsFlum_t();
+      }
+      if constexpr (Fields::HatFlum_found()) {
+         if constexpr (ParentFields::HatFlum_found())
+            out.HatFlum() = fields.HatFlum();
+         else
+            out.HatFlum() = HatFlum_t();
       }
       if constexpr (Fields::Mag_found()) {
          if constexpr (ParentFields::Mag_found())
@@ -1330,17 +1946,93 @@ For a conversion operation, use Convert().
          else
             out.FlxGlm() = FlxGlm_t();
       }
+      if constexpr (Fields::Mom_found()) {
+         if constexpr (ParentFields::Mom_found())
+            out.Mom() = fields.Mom();
+         else
+            out.Mom() = Mom_t();
+      }
+      if constexpr (Fields::AbsMom_found()) {
+         if constexpr (ParentFields::AbsMom_found())
+            out.AbsMom() = fields.AbsMom();
+         else
+            if constexpr (ParentFields::Mom_found()) {
+               if constexpr (ParentFields::FConfig::Mom_radial)
+                  out.AbsMom() = fields.Mom[0];
+               else
+                  out.AbsMom() = fields.Mom.Norm();
+            }
+            else
+                out.AbsMom() = AbsMom_t();
+      }
+      if constexpr (Fields::HatMom_found()) {
+         if constexpr (ParentFields::HatMom_found())
+            out.HatMom() = fields.HatMom();
+         else
+            out.HatMom() = HatMom_t();
+      }
+      if constexpr (Fields::Vel_found()) {
+         if constexpr (ParentFields::Vel_found())
+            out.Vel() = fields.Vel();
+         else
+            out.Vel() = Vel_t();
+      }
+      if constexpr (Fields::AbsVel_found()) {
+         if constexpr (ParentFields::AbsVel_found())
+            out.AbsVel() = fields.AbsVel();
+         else
+            if constexpr (ParentFields::Vel_found()) {
+               if constexpr (ParentFields::FConfig::Vel_radial)
+                  out.AbsVel() = fields.Vel[0];
+               else
+                  out.AbsVel() = fields.Vel.Norm();
+            }
+            else
+                out.AbsVel() = AbsVel_t();
+      }
+      if constexpr (Fields::HatVel_found()) {
+         if constexpr (ParentFields::HatVel_found())
+            out.HatVel() = fields.HatVel();
+         else
+            out.HatVel() = HatVel_t();
+      }
       if constexpr (Fields::Elc_found()) {
          if constexpr (ParentFields::Elc_found())
             out.Elc() = fields.Elc();
          else
             out.Elc() = Elc_t();
       }
+      if constexpr (Fields::AbsElc_found()) {
+         if constexpr (ParentFields::AbsElc_found())
+            out.AbsElc() = fields.AbsElc();
+         else
+            if constexpr (ParentFields::Elc_found()) {
+               if constexpr (ParentFields::FConfig::Elc_radial)
+                  out.AbsElc() = fields.Elc[0];
+               else
+                  out.AbsElc() = fields.Elc.Norm();
+            }
+            else
+                out.AbsElc() = AbsElc_t();
+      }
+      if constexpr (Fields::HatElc_found()) {
+         if constexpr (ParentFields::HatElc_found())
+            out.HatElc() = fields.HatElc();
+         else
+            out.HatElc() = HatElc_t();
+      }
       if constexpr (Fields::AbsMag_found()) {
          if constexpr (ParentFields::AbsMag_found())
             out.AbsMag() = fields.AbsMag();
          else
-            out.AbsMag() = AbsMag_t();
+            if constexpr (ParentFields::Mag_found()) {
+               if constexpr (ParentFields::FConfig::Mag_radial)
+                  out.AbsMag() = fields.Mag[0];
+               else
+                  out.AbsMag() = fields.Mag.Norm();
+            }
+            else
+                out.AbsMag() = AbsMag_t();
       }
       if constexpr (Fields::HatMag_found()) {
          if constexpr (ParentFields::HatMag_found())
@@ -1348,11 +2040,11 @@ For a conversion operation, use Convert().
          else
             out.HatMag() = HatMag_t();
       }
-      if constexpr (Fields::DelVel_found()) {
-         if constexpr (ParentFields::DelVel_found())
-            out.DelVel() = fields.DelVel();
+      if constexpr (Fields::DelFluv_found()) {
+         if constexpr (ParentFields::DelFluv_found())
+            out.DelFluv() = fields.DelFluv();
          else
-            out.DelVel() = DelVel_t();
+            out.DelFluv() = DelFluv_t();
       }
       if constexpr (Fields::DelElc_found()) {
          if constexpr (ParentFields::DelElc_found())
@@ -1372,17 +2064,11 @@ For a conversion operation, use Convert().
          else
             out.DelAbsMag() = DelAbsMag_t();
       }
-      if constexpr (Fields::DelHatMag_found()) {
-         if constexpr (ParentFields::DelHatMag_found())
-            out.DelHatMag() = fields.DelHatMag();
+      if constexpr (Fields::DotFluv_found()) {
+         if constexpr (ParentFields::DotFluv_found())
+            out.DotFluv() = fields.DotFluv();
          else
-            out.DelHatMag() = DelHatMag_t();
-      }
-      if constexpr (Fields::DotVel_found()) {
-         if constexpr (ParentFields::DotVel_found())
-            out.DotVel() = fields.DotVel();
-         else
-            out.DotVel() = DotVel_t();
+            out.DotFluv() = DotFluv_t();
       }
       if constexpr (Fields::DotElc_found()) {
          if constexpr (ParentFields::DotElc_found())
@@ -1401,12 +2087,6 @@ For a conversion operation, use Convert().
             out.DotAbsMag() = fields.DotAbsMag();
          else
             out.DotAbsMag() = DotAbsMag_t();
-      }
-      if constexpr (Fields::DotHatMag_found()) {
-         if constexpr (ParentFields::DotHatMag_found())
-            out.DotHatMag() = fields.DotHatMag();
-         else
-            out.DotHatMag() = DotHatMag_t();
       }
       if constexpr (Fields::Iv0_found()) {
          if constexpr (ParentFields::Iv0_found())
@@ -1469,178 +2149,363 @@ For a conversion operation, use Convert().
    // END(fields/generate, class)
 
 
+
+
 /*!
 \brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
 \author Lucius Schoenbaum
 \date 9/28/2025
 This operation is fast whenever the operation is trivial, for general logic.
+To obtain fields in the type TypeX from given fields y in the type TypeY:
+```auto x = TypeX::Convert(y);```
 */
    template <typename ParentFields>
    static inline Fields Convert(ParentFields& fields) {
+      Fields X;
       if constexpr (std::same_as<Fields, ParentFields>) {
-         return fields;
+         X = fields;
       }
       else {
-         // convert time
+         // todo: the method is implemented as-needed.
+         if constexpr (Time_found()) {
+            X.Time() = fields.Time();
+         }
+         if constexpr (Pos_found()) {
+            if constexpr (ParentFields::Pos_found()) {
+               if constexpr (ParentFields::FConfig::Pos_sys == FConfig::Pos_sys)
+                  X.Pos() = fields.Pos();
+               else
+                  // todo - Pos_sys != Pos_sys
+                  X.Pos() = {1e30,1e30,1e30};
+            }
+         }
+         if constexpr (Mom_found() || Vel_found()) {
+            // For the sake of simplicity we compute Mom.
+            constexpr GeoVector Mom_tmp = {1e30,1e30,1e30};
+            if constexpr (ParentFields::Mom_found()) {
+               if constexpr (ParentFields::FConfig::Mom_sys == FConfig::Mom_sys)
+                  Mom_tmp = fields.Mom();
+               else {
+                  // todo - Mom_sys != Mom_sys ----> MomConvert subroutine ___________
+               }
+            }
+            else if constexpr (ParentFields::Vel_found()) {
+               // todo check!!
+               Mom_tmp = Mom<FConfig::specie>(fields.Vel());
+            }
+            else {
+               // Conversion fails.
+            }
+            // write value
+            if constexpr (Mom_found()) {
+               X.Mom() = Mom_tmp;
+            }
+            if constexpr (Vel_found()) {
+               // todo check!!
+               X.Vel() = Vel<FConfig::specie>(Mom_tmp);
+            }
+         }
+         if constexpr (Rad_found()) {
+            // todo review if Pos not in fields
+            X.Rad() = fields.Rad();
+         }
+         if constexpr (AbsVel_found()) {
+            // todo review if Vel/Mom not in fields
+            X.AbsVel() = fields.AbsVel();
+         }
+         if constexpr (AbsMom_found()) {
+            // todo review if Vel/Mom not in fields
+            X.AbsMom() = fields.AbsMom();
+         }
+      }
+      return X;
+   }
 
-         // convert pos
 
-         // convert vel
 
-         // convert mom
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return VelPerp, VelPara, VelAzim in anisotropic or pitch-angle coordinates.
+Namely, they are magnitude in Mag direction, magnitude in Mag-perpendicular direction,
+and azimuthal angle (unused in a reduced model).
+\note The velocity coordinates must generally be anisotropic or pitch-angle for this to work.
+The assumption that the fields type holds Mag() is unsatisfied in practice.
+*/
+   double VelPerp() const
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[0];
+      }
+      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*sqrt(1 - Sqr(Vel()[1]));
+      }
+      return 0.0;
+   }
+   double VelPara() const
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[1];
+      }
+      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*Vel()[1];
+      }
+      return 0.0;
+   }
+   double VelAzim() const
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[2];
+      }
+      return 0.0;
+   };
 
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return VelPerp, VelPara, VelAzim as lvalue
+*/
+   double& VelPerp()
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[0];
+      }
+      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*sqrt(1 - Sqr(Vel()[1]));
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Vel()[0];
+   }
+   double& VelPara()
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[1];
+      }
+      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*Vel()[1];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Vel()[0];
+   }
+   double& VelAzim()
+   {
+      if (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[2];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Vel()[0];
+   };
+
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return MomPerp, MomPara, MomAzim in anisotropic or pitch-angle coordinates.
+Namely, they are magnitude in Mag direction, magnitude in Mag-perpendicular direction,
+and azimuthal angle (unused in a reduced model).
+*/
+   double MomPerp() const
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[0];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   double MomPara() const
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[2];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*Mom()[1];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   double MomAzim() const
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[1];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[2];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   };
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return MomPerp, MomPara, MomAzim as lvalue
+*/
+   double& MomPerp()
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[0];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Mom()[0];
+   }
+   double& MomPara()
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[1];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*Mom()[1];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Mom()[0];
+   }
+   double& MomAzim()
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[2];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      // todo exception
+      return Mom()[0];
+   };
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+Make all fields consistent, including fields stored for quick lookup.
+*/
+   template <typename RequestedFields>
+   void MakeConsistent() {
+      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
+         auto AbsMag = Mag().Norm();
+         if constexpr (RequestedFields::AbsMag_found())
+            AbsMag() = AbsMag;
+         if constexpr (RequestedFields::HatMag_found())
+            HatMag() = Mag() / AbsMag;
+      }
+      if constexpr (RequestedFields::Rad_found()) {
+         if constexpr (FConfig::Pos_Radial)
+            Rad() = Pos()[0];
+         else
+            Rad() = Pos().Norm();
+      }
+      if constexpr (RequestedFields::AbsMom_found()) {
+         if constexpr (FConfig::Mom_Radial)
+            AbsMom() = Mom()[0];
+         else
+            AbsMom() = Mom().Norm();
+      }
+      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
+         if constexpr (RequestedFields::AbsVel_found()) {
+            if constexpr (FConfig::Vel_Radial)
+               AbsVel() = Vel()[0];
+            else
+               AbsVel() = Vel().Norm();
+         }
+         if constexpr (RequestedFields::HatVel_found())
+            HatVel() = Vel() / AbsVel();
       }
    }
 
 
 /*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of U
+\author Lucius Schoenbaum
+\date 10/21/2025
+\return bool: whether there is a derived field in the fields list
 */
-   inline double divU(void)
-   {
-      return DelVel().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of B
-*/
-   inline double divB(void)
-   {
-      return DelMag().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of E
-*/
-   inline double divE(void)
-   {
-      return DelElc().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of U
-*/
-   inline GeoVector curlU(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelVel();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of B
-*/
-   inline GeoVector curlB(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelMag();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of E
-*/
-   inline GeoVector curlE(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelElc();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
+   constexpr bool Derived_found() {
+      return (Ts::derived || ...);
+   }
 
 
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Divergence of bhat
+\return Divergence of direction of magnetic field
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
-   double divbhat()
+   double DivHatMag()
    {
-      auto bhat = DotMag();
-      auto Bmag = AbsMag();
-      auto gradBmag = DelAbsMag();
-      auto Bdiv = divB();
-      double x1 = gradBmag * bhat;
-      auto x2 = Bdiv - x1;
-      auto x3 = x2/Bmag;
-      return x3;
+      return (DivMag() - (DelAbsMag() * HatMag())) / AbsMag();
    };
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Curl of bhat
+\return Curl of direction of magnetic field
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
-   GeoVector curlbhat()
+   GeoVector CurlHatMag()
    {
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      auto gradBmag = DelAbsMag();
-      return (curlB() - (gradBmag ^ bhat)) / Bmag;
+      return (CurlMag() - (DelAbsMag() ^ HatMag())) / AbsMag();
    };
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Gradient of bhat
+\return Gradient of direction of magnetic field
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
-   GeoMatrix gradbhat()
+   GeoMatrix DelHatMag()
    {
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      auto gradB = DelMag();
-      auto gradBmag = DelAbsMag();
-      // todo Dyadic can be made static
-      GeoMatrix tmp;
-      tmp.Dyadic(gradBmag, bhat);
-      return (gradB - tmp) / Bmag;
+      return (DelMag() - Dyadic(DelAbsMag(), HatMag())) / AbsMag();
    };
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Time derivative of bhat
+\return Time derivative of direction of magnetic field
 */
-   GeoVector dbhatdt()
+   GeoVector DotHatMag()
    {
-      auto dBvecdt = DotMag();
-      auto dBmagdt = DotAbsMag();
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      return (dBvecdt - (dBmagdt * bhat)) / Bmag;
+      return (DotMag() - (DotAbsMag() * HatMag())) / AbsMag();
    };
 
 
-   /*!
+/*!
 \author Lucius Schoenbaum
 \date 05/28/2025
 \return string representation of state, for testing purposes
 */
-   std::string str(bool recursive = false) const {
+   std::string str() const {
       std::string out = "{";
       // todo - foreach
       out += "}";

@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundDiscontinuity methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,23 +80,23 @@ void BackgroundDiscontinuity<HConfig>::SetupBackground(bool construct)
 \date 05/14/2025
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Upstream
    if ((coords.Pos() - r0) * n_discont - v_discont * coords.Time() > 0) {
-      if constexpr (Fields::Vel_found()) fields.Vel() = u0;
-      if constexpr (Fields::Mag_found()) fields.Mag() = B0;
-      if constexpr (Fields::Iv0_found()) fields.Iv0() = 1.0;
+      if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u0;
+      if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0;
+      if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0;
    }
 // Downstream
    else {
-      if constexpr (Fields::Vel_found()) fields.Vel() = u1;
-      if constexpr (Fields::Mag_found()) fields.Mag() = B1;
-      if constexpr (Fields::Iv0_found()) fields.Iv0() = 2.0;
+      if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u1;
+      if constexpr (RequestedFields::Mag_found()) fields.Mag() = B1;
+      if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 2.0;
    };
 
-   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -104,18 +106,18 @@ void BackgroundDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordinates&
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
-   if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
-   if constexpr (Fields::DelMag_found()) fields.DelMag() = gm_zeros;
-   if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
+   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+   if constexpr (RequestedFields::DelMag_found()) fields.DelMag() = gm_zeros;
+   if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
 
 // Time derivatives are zero
-   if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
-   if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
-   if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
 };
 
 };

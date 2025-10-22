@@ -33,7 +33,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSphericalObstacle<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -43,12 +44,13 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundConfig::derivative_method;
 
 protected:
 
@@ -62,18 +64,19 @@ protected:
    double dmax_fraction;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(BackgroundCoordinates&) override;
+   template <typename Coordinates>
+   void EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -87,7 +90,7 @@ public:
    BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other);
 
 //! Destructor
-   ~BackgroundSphericalObstacle() override = default;
+   ~BackgroundSphericalObstacle() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundSphericalObstacle);

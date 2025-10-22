@@ -27,8 +27,8 @@ int main(int argc, char** argv)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    using Fields = Fields<Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
-   using Trajectory = TrajectoryGuidingDiff<Fields>;
-   using Background = BackgroundUniform<Fields>;
+   using Trajectory = TrajectoryGuidingDiff<HConfig>;
+   using Background = BackgroundUniform<HConfig>;
 
    using Simulation = SimulationWorker<Trajectory>;
    using InitialTime = InitialTimeFixed<Trajectory>;
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum = Mom<specie>(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    double theta = DegToRad(90.0);
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Scattering frequency
-   double D0 = Sqr(LarmorRadius(momentum,Bmag,specie)) * CyclotronFrequency(Vel(momentum),Bmag,specie);
+   double D0 = Sqr(LarmorRadius<specie>(momentum, Bmag)) * CyclotronFrequency<specie>(Vel<specie>(momentum), Bmag);
    container.Insert(D0);
 
 // Pass ownership of "diffusion" to simulation

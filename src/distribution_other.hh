@@ -29,14 +29,13 @@ namespace Spectrum {
 Type: Unspecified
 Parameters: (DistributionTemplated), double val_hot, double val_cold
 */
-template <typename Trajectory_, class distroClass>
-class DistributionUniform : public DistributionTemplated<Trajectory_, distroClass> {
+template <typename HConfig_, class distroClass>
+class DistributionUniform : public DistributionTemplated<HConfig_, distroClass> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, distroClass>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, distroClass>;
 
 protected:
 
@@ -46,11 +45,9 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-   using DistributionTemplated::_t;
-   using DistributionTemplated::_t2;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
 
 protected:
@@ -74,7 +71,7 @@ protected:
    DistributionUniform(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionUniform(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DistributionUniform(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionUniform(const DistributionUniform& other);
@@ -99,14 +96,13 @@ const std::string dist_name_time_uniform = "DistributionTimeUniform";
 Type: 1D time
 Parameters: (DistributionUniform), int val_time
 */
-template <typename Trajectory_>
-class DistributionTimeUniform : public DistributionUniform<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionTimeUniform : public DistributionUniform<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionUniform = DistributionUniform<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionUniform = DistributionUniform<HConfig, double>;
 
 protected:
 
@@ -116,8 +112,10 @@ protected:
    using DistributionUniform::_weight;
    using DistributionUniform::dims;
    using DistributionUniform::_value;
-   using DistributionUniform::_t;
-   using DistributionUniform::_t2;
+   using DistributionUniform::_coords1;
+   using DistributionUniform::_coords2;
+   using DistributionUniform::_fields1;
+   using DistributionUniform::_fields2;
 
 protected:
 
@@ -159,14 +157,13 @@ const std::string dist_name_position_uniform = "DistributionPositionUniform";
 Type: 3D position
 Parameters: (DistributionUniform), int val_time, int val_coord
 */
-template <typename Trajectory_>
-class DistributionPositionUniform : public DistributionUniform<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionPositionUniform : public DistributionUniform<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionUniform = DistributionUniform<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionUniform = DistributionUniform<HConfig, double>;
 
 protected:
 
@@ -176,8 +173,10 @@ protected:
    using DistributionUniform::_weight;
    using DistributionUniform::dims;
    using DistributionUniform::_value;
-   using DistributionUniform::_pos;
-   using DistributionUniform::_pos2;
+   using DistributionUniform::_coords1;
+   using DistributionUniform::_coords2;
+   using DistributionUniform::_fields1;
+   using DistributionUniform::_fields2;
 
 protected:
 
@@ -222,14 +221,13 @@ const std::string dist_name_momentum_uniform = "DistributionMomentumUniform";
 Type: 3D momentum
 Parameters: (DistributionUniform), int val_time, int val_coord
 */
-template <typename Trajectory_>
-class DistributionMomentumUniform : public DistributionUniform<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionMomentumUniform : public DistributionUniform<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionUniform = DistributionUniform<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionUniform = DistributionUniform<HConfig, double>;
 
 protected:
 
@@ -239,9 +237,9 @@ protected:
    using DistributionUniform::_weight;
    using DistributionUniform::dims;
    using DistributionUniform::_value;
-   using DistributionUniform::_mom;
-   using DistributionUniform::_mom2;
-   using DistributionUniform::_fields;
+   using DistributionUniform::_coords1;
+   using DistributionUniform::_coords2;
+   using DistributionUniform::_fields1;
    using DistributionUniform::_fields2;
 
 protected:
@@ -291,14 +289,13 @@ const std::string dist_name_position_momentum_uniform = "DistributionPositionMom
 Type: 2D position-momentum
 Parameters: (DistributionUniform), int val_time, int pos_idx, int mom_idx
 */
-template <typename Trajectory_>
-class DistributionPositionMomentumUniform : public DistributionUniform<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionPositionMomentumUniform : public DistributionUniform<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionUniform = DistributionUniform<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionUniform = DistributionUniform<HConfig, double>;
 
 protected:
 
@@ -308,11 +305,9 @@ protected:
    using DistributionUniform::_weight;
    using DistributionUniform::dims;
    using DistributionUniform::_value;
-   using DistributionUniform::_pos;
-   using DistributionUniform::_pos2;
-   using DistributionUniform::_mom;
-   using DistributionUniform::_mom2;
-   using DistributionUniform::_fields;
+   using DistributionUniform::_coords1;
+   using DistributionUniform::_coords2;
+   using DistributionUniform::_fields1;
    using DistributionUniform::_fields2;
 
 protected:
@@ -361,16 +356,15 @@ const std::string dist_name_anisotropy_LISM = "DistributionAnisotropyLISM";
 Type: 3D momentum
 Parameters: (DistributionUniform), GeoVector[3] rot_matrix, GeoVector U_LISM, double mom_pow_law
 */
-template <typename Trajectory_>
-class DistributionAnisotropyLISM : public DistributionTemplated<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionAnisotropyLISM : public DistributionTemplated<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, double>;
 
-   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>>, "DistributionAnisotropyLISM requires Lorentz Trajectory.");
+   static_assert(std::same_as<Trajectory, TrajectoryLorentz<HConfig>>, "DistributionAnisotropyLISM requires Lorentz Trajectory.");
 
 protected:
 
@@ -380,13 +374,9 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-//   using DistributionTemplated::_t;
-//   using DistributionTemplated::_t2;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_pos;
-   using DistributionTemplated::_pos2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
 
@@ -460,14 +450,13 @@ const std::string dist_name_spectrum_kinetic_energy_power_law = "DistributionSpe
 Type: 1D momentum
 Parameters: (DistributionTemplated), double J0, double T0, double pow_law, double val_cold
 */
-template <typename Trajectory_>
-class DistributionSpectrumKineticEnergyPowerLaw : public DistributionTemplated<Trajectory_, double> {
+template <typename HConfig_>
+class DistributionSpectrumKineticEnergyPowerLaw : public DistributionTemplated<HConfig_, double> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, double>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, double>;
 
 protected:
 
@@ -477,13 +466,9 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-//   using DistributionTemplated::_t;
-//   using DistributionTemplated::_t2;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_pos;
-   using DistributionTemplated::_pos2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
 
@@ -522,7 +507,7 @@ public:
    DistributionSpectrumKineticEnergyPowerLaw(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other);
@@ -548,14 +533,13 @@ const std::string dist_name_spectrum_kinetic_energy_bent_power_law = "Distributi
 Type: 1D momentum
 Parameters: (DistributionSpectrumKineticEnergyPowerLaw), double T_b, double pow_law_b
 */
-template <typename Trajectory_>
-class DistributionSpectrumKineticEnergyBentPowerLaw : public DistributionSpectrumKineticEnergyPowerLaw<Trajectory_> {
+template <typename HConfig_>
+class DistributionSpectrumKineticEnergyBentPowerLaw : public DistributionSpectrumKineticEnergyPowerLaw<HConfig_> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionSpectrumKineticEnergyPowerLaw = DistributionSpectrumKineticEnergyPowerLaw<Trajectory>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionSpectrumKineticEnergyPowerLaw = DistributionSpectrumKineticEnergyPowerLaw<HConfig>;
 
    using DistributionSpectrumKineticEnergyPowerLaw::pow_law;
    using DistributionSpectrumKineticEnergyPowerLaw::kin_energy;
@@ -567,11 +551,9 @@ protected:
    using DistributionSpectrumKineticEnergyPowerLaw::_weight;
    using DistributionSpectrumKineticEnergyPowerLaw::dims;
    using DistributionSpectrumKineticEnergyPowerLaw::_value;
-   using DistributionSpectrumKineticEnergyPowerLaw::_mom;
-   using DistributionSpectrumKineticEnergyPowerLaw::_mom2;
-   using DistributionSpectrumKineticEnergyPowerLaw::_pos;
-   using DistributionSpectrumKineticEnergyPowerLaw::_pos2;
-   using DistributionSpectrumKineticEnergyPowerLaw::_fields;
+   using DistributionSpectrumKineticEnergyPowerLaw::_coords1;
+   using DistributionSpectrumKineticEnergyPowerLaw::_coords2;
+   using DistributionSpectrumKineticEnergyPowerLaw::_fields1;
    using DistributionSpectrumKineticEnergyPowerLaw::_fields2;
    using DistributionSpectrumKineticEnergyPowerLaw::specie;
 
@@ -623,14 +605,13 @@ const std::string dist_name_pos_cumulative_O1 = "DistributionPositionCumulativeO
 Type: 1D time
 Parameters: (DistributionTemplated)
 */
-template <typename Trajectory_>
-class DistributionPositionCumulativeOrder1 : public DistributionTemplated<Trajectory_, GeoVector> {
+template <typename HConfig_>
+class DistributionPositionCumulativeOrder1 : public DistributionTemplated<HConfig_, GeoVector> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, GeoVector>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, GeoVector>;
 
 protected:
 
@@ -640,13 +621,9 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-   using DistributionTemplated::_t;
-   using DistributionTemplated::_t2;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_pos;
-   using DistributionTemplated::_pos2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
 
@@ -691,14 +668,13 @@ const std::string dist_name_pos_cumulative_O2 = "DistributionPositionCumulativeO
 Type: 1D time
 Parameters: (DistributionTemplated)
 */
-template <typename Trajectory_>
-class DistributionPositionCumulativeOrder2 : public DistributionTemplated<Trajectory_, GeoMatrix> {
+template <typename HConfig_>
+class DistributionPositionCumulativeOrder2 : public DistributionTemplated<HConfig_, GeoMatrix> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, GeoMatrix>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, GeoMatrix>;
 
 protected:
 
@@ -708,13 +684,9 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-   using DistributionTemplated::_t;
-   using DistributionTemplated::_t2;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_pos;
-   using DistributionTemplated::_pos2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
 
@@ -758,14 +730,13 @@ const std::string dist_name_loss_cone = "DistributionLossCone";
 Type: 3D position
 Parameters: (DistributionTemplated), int val_time, int val_coord
 */
-template <typename Trajectory_>
-class DistributionLossCone : public DistributionTemplated<Trajectory_, GeoVector> {
+template <typename HConfig_>
+class DistributionLossCone : public DistributionTemplated<HConfig_, GeoVector> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DistributionTemplated = DistributionTemplated<Trajectory, GeoVector>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
+   using DistributionTemplated = DistributionTemplated<HConfig, GeoVector>;
 
 protected:
 
@@ -775,14 +746,12 @@ protected:
    using DistributionTemplated::_weight;
    using DistributionTemplated::dims;
    using DistributionTemplated::_value;
-   using DistributionTemplated::_mom;
-   using DistributionTemplated::_mom2;
-   using DistributionTemplated::_pos;
-   using DistributionTemplated::_pos2;
-   using DistributionTemplated::_fields;
+   using DistributionTemplated::_coords1;
+   using DistributionTemplated::_coords2;
+   using DistributionTemplated::_fields1;
    using DistributionTemplated::_fields2;
    using DistributionTemplated::specie;
-   using DistributionTemplated::_edata;
+   using DistributionTemplated::_edata1;
    using DistributionTemplated::_edata2;
 
 protected:

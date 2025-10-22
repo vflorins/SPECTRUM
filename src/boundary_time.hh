@@ -23,17 +23,21 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), double timemark
 */
-template <typename Trajectory_>
-class BoundaryTime : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryTime : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryTime";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory_>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
-   using BoundaryBase::_t;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
    using BoundaryBase::_delta;
 
 protected:
@@ -66,26 +70,30 @@ public:
 // BoundaryTimeExpire class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryTimeExpire class
-const std::string bnd_name_time_expire = "BoundaryTimeExpire";
-
 /*!
 \brief Time expiration boundary
 \author Vladimir Florinski
 
 Parameters: (BoundaryTime)
 */
-template <typename Trajectory_>
-class BoundaryTimeExpire : public BoundaryTime<Trajectory_> {
+template <typename HConfig_>
+class BoundaryTimeExpire : public BoundaryTime<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryTimeExpire";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory_>;
-   using BoundaryTime = BoundaryTime<Trajectory_>;
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryTime = BoundaryTime<HConfig_>;
 
    using BoundaryBase::max_crossings;
-   using BoundaryBase::_status;
 
 protected:
 
@@ -111,23 +119,28 @@ public:
 // BoundaryTimePass class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryTimePass class
-const std::string bnd_name_time_pass = "BoundaryTimePass";
-
 /*!
 \brief Describes a fixed time marker
 \author Vladimir Florinski
 
 Parameters: (BoundaryTime)
 */
-template <typename Trajectory_>
-class BoundaryTimePass : public BoundaryTime<Trajectory_> {
+template <typename HConfig_>
+class BoundaryTimePass : public BoundaryTime<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryTimePass";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory_>;
-   using BoundaryTime = BoundaryTime<Trajectory_>;
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryTime = BoundaryTime<HConfig_>;
 
    using BoundaryBase::max_crossings;
 
@@ -155,26 +168,29 @@ public:
 // BoundaryTimeRecurrent class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryTimeRecurrent class
-const std::string bnd_name_time_recur = "BoundaryTimeRecurrent";
-
 /*!
 \brief Describes a boundary that recurs, i.e., moves forward by a fixed time after each crossing
 \author Vladimir Florinski
 
 Parameters: (BoundaryTime)
 */
-template <typename Trajectory_>
-class BoundaryTimeRecurrent : public BoundaryTime<Trajectory_> {
+template <typename HConfig_>
+class BoundaryTimeRecurrent : public BoundaryTime<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryTimeRecurrent";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory_>;
-   using BoundaryTime = BoundaryTime<Trajectory_>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
-   using BoundaryBase::_t;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryTime = BoundaryTime<HConfig_>;
+
    using BoundaryBase::_delta;
    using BoundaryBase::CrossingsMade;
 

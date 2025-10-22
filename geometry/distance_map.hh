@@ -45,7 +45,7 @@ protected:
    DistanceBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistanceBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DistanceBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistanceBase(const DistanceBase& other);

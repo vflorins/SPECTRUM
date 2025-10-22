@@ -23,7 +23,7 @@ namespace Spectrum {
 */
 template <typename Trajectory, class distroClass>
 DistributionUniform<Trajectory, distroClass>::DistributionUniform()
-                                : DistributionTemplated("", 0, STATE_NONE)
+                                : DistributionTemplated("", STATE_NONE)
 {
 };
 
@@ -32,8 +32,8 @@ DistributionUniform<Trajectory, distroClass>::DistributionUniform()
 \date 06/18/2021
 */
 template <typename Trajectory, class distroClass>
-DistributionUniform<Trajectory, distroClass>::DistributionUniform(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                                : DistributionTemplated(name_in, specie_in, status_in)
+DistributionUniform<Trajectory, distroClass>::DistributionUniform(const std::string& name_in, uint16_t status_in)
+                                : DistributionTemplated(name_in, status_in)
 {
 };
 
@@ -99,9 +99,9 @@ void DistributionUniform<Trajectory, distroClass>::UniformCold(void)
 \author Vladimir Florinski
 \date 06/18/2021
 */
-template <typename Trajectory>
-DistributionTimeUniform<Trajectory>::DistributionTimeUniform(void)
-                       : DistributionUniform(dist_name_time_uniform, 0, DISTRO_TIME)
+template <typename HConfig>
+DistributionTimeUniform<HConfig>::DistributionTimeUniform(void)
+                       : DistributionUniform(dist_name_time_uniform, DISTRO_TIME)
 {
 };
 
@@ -112,8 +112,8 @@ DistributionTimeUniform<Trajectory>::DistributionTimeUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionTimeUniform<Trajectory>::DistributionTimeUniform(const DistributionTimeUniform& other)
+template <typename HConfig>
+DistributionTimeUniform<HConfig>::DistributionTimeUniform(const DistributionTimeUniform& other)
                        : DistributionUniform(other)
 {
    RAISE_BITS(_status, DISTRO_TIME);
@@ -126,8 +126,8 @@ DistributionTimeUniform<Trajectory>::DistributionTimeUniform(const DistributionT
 \date 08/11/2024
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionTimeUniform<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionTimeUniform<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
@@ -144,11 +144,11 @@ void DistributionTimeUniform<Trajectory>::SetupDistribution(bool construct)
 \author Juan G Alonso Guzman
 \date 08/11/2024
 */
-template <typename Trajectory>
-void DistributionTimeUniform<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionTimeUniform<HConfig>::EvaluateValue(void)
 {
-   if (val_time == 0) _value[0] = _t;
-   else _value[0] = _t2;
+   if (val_time == 0) _value[0] = _coords1.Time();
+   else _value[0] = _coords2.Time();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -159,9 +159,9 @@ void DistributionTimeUniform<Trajectory>::EvaluateValue(void)
 \author Juan G Alonso Guzman
 \date 06/13/2022
 */
-template <typename Trajectory>
-DistributionPositionUniform<Trajectory>::DistributionPositionUniform(void)
-                           : DistributionUniform(dist_name_position_uniform, 0, DISTRO_SPACE)
+template <typename HConfig>
+DistributionPositionUniform<HConfig>::DistributionPositionUniform(void)
+                           : DistributionUniform(dist_name_position_uniform, DISTRO_SPACE)
 {
 };
 
@@ -172,8 +172,8 @@ DistributionPositionUniform<Trajectory>::DistributionPositionUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionPositionUniform<Trajectory>::DistributionPositionUniform(const DistributionPositionUniform& other)
+template <typename HConfig>
+DistributionPositionUniform<HConfig>::DistributionPositionUniform(const DistributionPositionUniform& other)
                            : DistributionUniform(other)
 {
    RAISE_BITS(_status, DISTRO_SPACE);
@@ -185,8 +185,8 @@ DistributionPositionUniform<Trajectory>::DistributionPositionUniform(const Distr
 \date 06/13/2022
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionPositionUniform<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionPositionUniform<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
@@ -203,11 +203,11 @@ void DistributionPositionUniform<Trajectory>::SetupDistribution(bool construct)
 \author Juan G Alonso Guzman
 \date 06/13/2022
 */
-template <typename Trajectory>
-void DistributionPositionUniform<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionPositionUniform<HConfig>::EvaluateValue(void)
 {
-   if (val_time == 0) _value = _pos;
-   else _value = _pos2;
+   if (val_time == 0) _value = _coords1.Pos();
+   else _value = _coords2.Pos();
 
    if (val_coord == 1) _value.XYZ_RTP();
 };
@@ -220,9 +220,9 @@ void DistributionPositionUniform<Trajectory>::EvaluateValue(void)
 \author Juan G Alonso Guzman
 \date 02/27/2024
 */
-template <typename Trajectory>
-DistributionMomentumUniform<Trajectory>::DistributionMomentumUniform(void)
-                           : DistributionUniform(dist_name_momentum_uniform, 0, DISTRO_MOMENTUM)
+template <typename HConfig>
+DistributionMomentumUniform<HConfig>::DistributionMomentumUniform(void)
+                           : DistributionUniform(dist_name_momentum_uniform, DISTRO_MOMENTUM)
 {
 };
 
@@ -233,8 +233,8 @@ DistributionMomentumUniform<Trajectory>::DistributionMomentumUniform(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionMomentumUniform<Trajectory>::DistributionMomentumUniform(const DistributionMomentumUniform& other)
+template <typename HConfig>
+DistributionMomentumUniform<HConfig>::DistributionMomentumUniform(const DistributionMomentumUniform& other)
                            : DistributionUniform(other)
 {
    RAISE_BITS(_status, DISTRO_MOMENTUM);
@@ -246,8 +246,8 @@ DistributionMomentumUniform<Trajectory>::DistributionMomentumUniform(const Distr
 \date 02/27/2024
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionMomentumUniform<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionMomentumUniform<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
@@ -268,36 +268,36 @@ void DistributionMomentumUniform<Trajectory>::SetupDistribution(bool construct)
 If val_coord == 0, then "native coordinates" are used, meaning that the momentum vector is left in whatever coordinates are used for trajectory integration.
 If val_coord == 1, then the momentum vector is converted to locally spherical coordinates with B || z. In this case, only the momentum magnitude and pitch angle (if available) are recorded, so the distribution effectively becomes 2D.
 */
-template <typename Trajectory>
-void DistributionMomentumUniform<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionMomentumUniform<HConfig>::EvaluateValue(void)
 {
    GeoVector momentum, bhat;
    if (val_time == 0) {
-      momentum = _mom;
-      bhat = _fields.HatMag();
+      momentum = _coords1.Mom();
+      bhat = _fields1.HatMag();
    }
    else {
-      momentum = _mom2;
+      momentum = _coords2.Mom();
       bhat = _fields2.HatMag();
    };
 
    if (val_coord == 0) _value = momentum;
    else {
-      if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
+      if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
 // Focused and Parker trajectories are already in locally spherical coordinates
          _value = momentum;
       }
-      else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>) {
+      else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<HConfig>>) {
          _value[0] = momentum[2];
          _value[1] = 0.0;
          _value[2] = 0.0;
       }
-      else if constexpr (std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, HConfig>>) {
+      else if constexpr (std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
          _value[0] = momentum.Norm();
          _value[1] = momentum[2] / _value[0];
          _value[2] = 0.0;
       }
-      else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>>) {
+      else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>>) {
          _value[0] = momentum.Norm();
          _value[1] = momentum * bhat / _value[0];
          _value[2] = 0.0;
@@ -313,9 +313,9 @@ void DistributionMomentumUniform<Trajectory>::EvaluateValue(void)
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-template <typename Trajectory>
-DistributionPositionMomentumUniform<Trajectory>::DistributionPositionMomentumUniform(void)
-                                   : DistributionUniform(dist_name_position_momentum_uniform, 0, DISTRO_MOMENTUM)
+template <typename HConfig>
+DistributionPositionMomentumUniform<HConfig>::DistributionPositionMomentumUniform(void)
+                                   : DistributionUniform(dist_name_position_momentum_uniform, DISTRO_MOMENTUM)
 {
 };
 
@@ -326,8 +326,8 @@ DistributionPositionMomentumUniform<Trajectory>::DistributionPositionMomentumUni
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionPositionMomentumUniform<Trajectory>::DistributionPositionMomentumUniform(const DistributionPositionMomentumUniform& other)
+template <typename HConfig>
+DistributionPositionMomentumUniform<HConfig>::DistributionPositionMomentumUniform(const DistributionPositionMomentumUniform& other)
                                    : DistributionUniform(other)
 {
    RAISE_BITS(_status, DISTRO_MOMENTUM);
@@ -339,8 +339,8 @@ DistributionPositionMomentumUniform<Trajectory>::DistributionPositionMomentumUni
 \date 02/28/2025
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionPositionMomentumUniform<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionPositionMomentumUniform<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionUniform::SetupDistribution(false);
@@ -358,16 +358,16 @@ void DistributionPositionMomentumUniform<Trajectory>::SetupDistribution(bool con
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-template <typename Trajectory>
-void DistributionPositionMomentumUniform<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionPositionMomentumUniform<HConfig>::EvaluateValue(void)
 {
    if (val_time == 0) {
-      _value[0] = _pos[pos_idx];
-      _value[1] = _coords.Mom()[mom_idx];
+      _value[0] = _coords1.Pos()[pos_idx];
+      _value[1] = _coords1.Mom()[mom_idx];
    }
    else {
-      _value[0] = _pos2[pos_idx];
-      _value[1] = _mom2[mom_idx];
+      _value[0] = _coords2.Pos()[pos_idx];
+      _value[1] = _coords2.Mom()[mom_idx];
    };
 };
 
@@ -379,9 +379,9 @@ void DistributionPositionMomentumUniform<Trajectory>::EvaluateValue(void)
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-DistributionAnisotropyLISM<Trajectory>::DistributionAnisotropyLISM(void)
-                          : DistributionTemplated(dist_name_anisotropy_LISM, 0, DISTRO_MOMENTUM)
+template <typename HConfig>
+DistributionAnisotropyLISM<HConfig>::DistributionAnisotropyLISM(void)
+                          : DistributionTemplated(dist_name_anisotropy_LISM, DISTRO_MOMENTUM)
 {
 };
 
@@ -392,8 +392,8 @@ DistributionAnisotropyLISM<Trajectory>::DistributionAnisotropyLISM(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionAnisotropyLISM<Trajectory>::DistributionAnisotropyLISM(const DistributionAnisotropyLISM& other)
+template <typename HConfig>
+DistributionAnisotropyLISM<HConfig>::DistributionAnisotropyLISM(const DistributionAnisotropyLISM& other)
                           : DistributionTemplated(other)
 {
    RAISE_BITS(_status, DISTRO_MOMENTUM);
@@ -405,8 +405,8 @@ DistributionAnisotropyLISM<Trajectory>::DistributionAnisotropyLISM(const Distrib
 \date 12/26/2023
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
@@ -434,32 +434,32 @@ void DistributionAnisotropyLISM<Trajectory>::SetupDistribution(bool construct)
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::EvaluateValue(void)
 {
 // Find incoming direction in specified coordinate frame
-   mom_rel = _mom;
+   mom_rel = _coords1.Mom();
    mom_rel.ChangeToBasis(rot_matrix);
    mom_rel.XYZ_RTP();
    _value[0] = mom_rel[1];
    _value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = _mom2 - RelFactor1(_mom2.Norm(), specie) * SpeciesMasses[specie] * U_LISM;
+   mom_rel = _coords2.Mom() - RelFactor1<specie>(_coords2.Mom().Norm()) * specie.mass * U_LISM;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::ComptonGettingFactor(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::ComptonGettingFactor(void)
 {
    double vel;
    GeoVector mom_hat;
 
-   vel = Vel(_mom.Norm(), specie);
-   mom_hat = UnitVec(_mom);
+   vel = Vel<specie>(_coords1.Mom().Norm());
+   mom_hat = UnitVec(_coords1.Mom());
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
    _weight = 1.0 - mom_pow_law * U_LISM * mom_hat / vel;
@@ -469,18 +469,18 @@ void DistributionAnisotropyLISM<Trajectory>::ComptonGettingFactor(void)
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::MomPowerLawAnisotropy(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::MomPowerLawAnisotropy(void)
 {
-   _weight = pow(mom_rel.Norm() / _mom.Norm(), mom_pow_law);
+   _weight = pow(mom_rel.Norm() / _coords1.Mom().Norm(), mom_pow_law);
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::FirstLegendreAnisotropy(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::FirstLegendreAnisotropy(void)
 {
    _weight = UnitVec(mom_rel) * _fields2.HatMag();
 };
@@ -489,8 +489,8 @@ void DistributionAnisotropyLISM<Trajectory>::FirstLegendreAnisotropy(void)
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::SecondLegendreAnisotropy(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::SecondLegendreAnisotropy(void)
 {
    _weight = 0.5 * (3.0 * Sqr(UnitVec(mom_rel) * _fields2.HagMat()) - 1.0);
 };
@@ -499,11 +499,11 @@ void DistributionAnisotropyLISM<Trajectory>::SecondLegendreAnisotropy(void)
 \author Juan G Alonso Guzman
 \date 12/26/2023
 */
-template <typename Trajectory>
-void DistributionAnisotropyLISM<Trajectory>::bCrossGradientAnisotropy(void)
+template <typename HConfig>
+void DistributionAnisotropyLISM<HConfig>::bCrossGradientAnisotropy(void)
 {
 // FIXME: This is according to Zhang et al. 2020, but (perhaps) differs from Zhang et al. 2014. We should investigate this further.
-   _weight = grad_perp_dens * (_pos2 + LarmorRadius(mom_rel.Norm(), _fields2.AbsMag(), specie) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
+   _weight = grad_perp_dens * (_coords2.Pos() + LarmorRadius<specie>(mom_rel.Norm(), _fields2.AbsMag()) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
 };
 
 //#endif
@@ -516,9 +516,9 @@ void DistributionAnisotropyLISM<Trajectory>::bCrossGradientAnisotropy(void)
 \author Vladimir Florinski
 \date 06/18/2021
 */
-template <typename Trajectory>
-DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyPowerLaw(void)
-                                         : DistributionTemplated(dist_name_spectrum_kinetic_energy_power_law, 0, DISTRO_MOMENTUM)
+template <typename HConfig>
+DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticEnergyPowerLaw(void)
+                                         : DistributionTemplated(dist_name_spectrum_kinetic_energy_power_law, DISTRO_MOMENTUM)
 {
 };
 
@@ -526,12 +526,11 @@ DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKinet
 \author Juan G Alonso Guzman
 \date 12/06/2023
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                                         : DistributionTemplated(name_in, specie_in, status_in)
+template <typename HConfig>
+DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, uint16_t status_in)
+                                         : DistributionTemplated(name_in, status_in)
 {
 };
 
@@ -542,8 +541,8 @@ DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKinet
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other)
+template <typename HConfig>
+DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other)
                                          : DistributionTemplated(other)
 {
    RAISE_BITS(_status, DISTRO_MOMENTUM);
@@ -555,8 +554,8 @@ DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::DistributionSpectrumKinet
 \date 05/05/2022
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
@@ -580,17 +579,17 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SetupDistribution(bo
 \author Lucius Schoenbaum
 \date 08/09/2025
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::EvaluateValue(void)
 {
-   if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
-      _value[0] = EnrKin(_mom[0], specie);
+   if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
+      _value[0] = EnrKin<specie>(_coords1.Mom()[0]);
    }
    else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>) {
-      _value[0] = EnrKin(_mom[2], specie);
+      _value[0] = EnrKin<specie>(_coords1.Mom()[2]);
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, HConfig>>) {
-      _value[0] = EnrKin(_mom.Norm(), specie);
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>> || std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
+      _value[0] = EnrKin<specie>(_coords1.Mom().Norm());
    }
    else {
 // stub
@@ -604,27 +603,27 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::EvaluateValue(void)
 \author Lucius Schoenbaum
 \date 08/09/2025
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnergyPowerLawHot(void)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SpectrumKineticEnergyPowerLawHot(void)
 {
    double mom2mag;
-   if constexpr (std::same_as<Trajectory, TrajectoryFocused<Fields>> || std::same_as<Trajectory, TrajectoryParker<Fields>>) {
-      mom2mag = _mom2[0];
+   if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
+      mom2mag = _coords2.Mom()[0];
    }
-   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>) {
-      mom2mag = _mom2[2];
+   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<HConfig>>) {
+      mom2mag = _coords2.Mom()[2];
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryGuidingBase<Trajectory, HConfig>>) {
-      mom2mag = _mom2.Norm();
+   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>> || std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
+      mom2mag = _coords2.Mom().Norm();
    }
    else {
 // stub
       ;
    }
-   kin_energy = EnrKin(mom2mag, specie);
+   kin_energy = EnrKin<specie>(mom2mag);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel(mom2mag, specie);
+   double velocity = Vel<specie>(mom2mag);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
    _weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
@@ -642,8 +641,8 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
 \author Vladimir Florinski
 \date 05/17/2022
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnergyPowerLawCold(void)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SpectrumKineticEnergyPowerLawCold(void)
 {
    _weight = val_cold;
 };
@@ -657,9 +656,9 @@ void DistributionSpectrumKineticEnergyPowerLaw<Trajectory>::SpectrumKineticEnerg
 \date 12/06/2023
 */
 
-template <typename Trajectory>
-DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyBentPowerLaw(void)
-                                             : DistributionSpectrumKineticEnergyPowerLaw(dist_name_spectrum_kinetic_energy_bent_power_law, 0, DISTRO_MOMENTUM)
+template <typename HConfig>
+DistributionSpectrumKineticEnergyBentPowerLaw<HConfig>::DistributionSpectrumKineticEnergyBentPowerLaw(void)
+                                             : DistributionSpectrumKineticEnergyPowerLaw(dist_name_spectrum_kinetic_energy_bent_power_law, DISTRO_MOMENTUM)
 {
 };
 
@@ -670,8 +669,8 @@ DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::DistributionSpectrumK
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::DistributionSpectrumKineticEnergyBentPowerLaw(const DistributionSpectrumKineticEnergyBentPowerLaw& other)
+template <typename HConfig>
+DistributionSpectrumKineticEnergyBentPowerLaw<HConfig>::DistributionSpectrumKineticEnergyBentPowerLaw(const DistributionSpectrumKineticEnergyBentPowerLaw& other)
                                              : DistributionSpectrumKineticEnergyPowerLaw(other)
 {
    RAISE_BITS(_status, DISTRO_MOMENTUM);
@@ -683,8 +682,8 @@ DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::DistributionSpectrumK
 \date 12/06/2023
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyBentPowerLaw<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(false);
@@ -704,8 +703,8 @@ void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SetupDistributio
 \author Juan G Alonso Guzman
 \date 12/06/2023
 */
-template <typename Trajectory>
-void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SpectrumKineticEnergyPowerLawHot(void)
+template <typename HConfig>
+void DistributionSpectrumKineticEnergyBentPowerLaw<HConfig>::SpectrumKineticEnergyPowerLawHot(void)
 {
    DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot();
 // The power law is the differential intensity J=f(p)*p^2, but the weighting function is f(p) itself, so a division by p^2 is required here.
@@ -720,9 +719,9 @@ void DistributionSpectrumKineticEnergyBentPowerLaw<Trajectory>::SpectrumKineticE
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-DistributionPositionCumulativeOrder1<Trajectory>::DistributionPositionCumulativeOrder1(void)
-                                    : DistributionTemplated(dist_name_pos_cumulative_O1, 0, DISTRO_TIME)
+template <typename HConfig>
+DistributionPositionCumulativeOrder1<HConfig>::DistributionPositionCumulativeOrder1(void)
+                                    : DistributionTemplated(dist_name_pos_cumulative_O1, DISTRO_TIME)
 {
 };
 
@@ -733,8 +732,8 @@ DistributionPositionCumulativeOrder1<Trajectory>::DistributionPositionCumulative
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionPositionCumulativeOrder1<Trajectory>::DistributionPositionCumulativeOrder1(const DistributionPositionCumulativeOrder1& other)
+template <typename HConfig>
+DistributionPositionCumulativeOrder1<HConfig>::DistributionPositionCumulativeOrder1(const DistributionPositionCumulativeOrder1& other)
                                     : DistributionTemplated(other)
 {
    RAISE_BITS(_status, DISTRO_TIME);
@@ -746,8 +745,8 @@ DistributionPositionCumulativeOrder1<Trajectory>::DistributionPositionCumulative
 \date 09/15/2022
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder1<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder1<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
@@ -764,20 +763,20 @@ void DistributionPositionCumulativeOrder1<Trajectory>::SetupDistribution(bool co
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder1<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder1<HConfig>::EvaluateValue(void)
 {
-   _value[0] = _t2;
+   _value[0] = _coords2.Time();
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder1<Trajectory>::RecordPosition(void)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder1<HConfig>::RecordPosition(void)
 {
-   _weight = _pos2 - _pos;
+   _weight = _coords2.Pos() - _coords1.Pos();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -788,9 +787,9 @@ void DistributionPositionCumulativeOrder1<Trajectory>::RecordPosition(void)
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-DistributionPositionCumulativeOrder2<Trajectory>::DistributionPositionCumulativeOrder2(void)
-                                    : DistributionTemplated(dist_name_pos_cumulative_O2, 0, DISTRO_TIME)
+template <typename HConfig>
+DistributionPositionCumulativeOrder2<HConfig>::DistributionPositionCumulativeOrder2(void)
+                                    : DistributionTemplated(dist_name_pos_cumulative_O2, DISTRO_TIME)
 {
 };
 
@@ -801,8 +800,8 @@ DistributionPositionCumulativeOrder2<Trajectory>::DistributionPositionCumulative
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionPositionCumulativeOrder2<Trajectory>::DistributionPositionCumulativeOrder2(const DistributionPositionCumulativeOrder2& other)
+template <typename HConfig>
+DistributionPositionCumulativeOrder2<HConfig>::DistributionPositionCumulativeOrder2(const DistributionPositionCumulativeOrder2& other)
                                     : DistributionTemplated(other)
 {
    RAISE_BITS(_status, DISTRO_TIME);
@@ -814,8 +813,8 @@ DistributionPositionCumulativeOrder2<Trajectory>::DistributionPositionCumulative
 \date 09/15/2022
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder2<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder2<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
@@ -832,20 +831,20 @@ void DistributionPositionCumulativeOrder2<Trajectory>::SetupDistribution(bool co
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder2<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder2<HConfig>::EvaluateValue(void)
 {
-   _value[0] = _t2;
+   _value[0] = _coords2.Time();
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-void DistributionPositionCumulativeOrder2<Trajectory>::RecordPosition(void)
+template <typename HConfig>
+void DistributionPositionCumulativeOrder2<HConfig>::RecordPosition(void)
 {
-   _weight.Dyadic(_pos2 - _pos);
+   _weight.Dyadic(_coords2.Pos() - _coords1.Pos());
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -856,9 +855,9 @@ void DistributionPositionCumulativeOrder2<Trajectory>::RecordPosition(void)
 \author Juan G Alonso Guzman
 \date 06/23/2023
 */
-template <typename Trajectory>
-DistributionLossCone<Trajectory>::DistributionLossCone(void)
-                    : DistributionTemplated(dist_name_loss_cone, 0, DISTRO_SPACE)
+template <typename HConfig>
+DistributionLossCone<HConfig>::DistributionLossCone(void)
+                    : DistributionTemplated(dist_name_loss_cone, DISTRO_SPACE)
 {
 };
 
@@ -869,8 +868,8 @@ DistributionLossCone<Trajectory>::DistributionLossCone(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory>
-DistributionLossCone<Trajectory>::DistributionLossCone(const DistributionLossCone& other)
+template <typename HConfig>
+DistributionLossCone<HConfig>::DistributionLossCone(const DistributionLossCone& other)
                     : DistributionTemplated(other)
 {
    RAISE_BITS(_status, DISTRO_SPACE);
@@ -882,8 +881,8 @@ DistributionLossCone<Trajectory>::DistributionLossCone(const DistributionLossCon
 \date 06/23/2023
 \param[in] construct Whether called from a copy constructor or separately
 */
-template <typename Trajectory>
-void DistributionLossCone<Trajectory>::SetupDistribution(bool construct)
+template <typename HConfig>
+void DistributionLossCone<HConfig>::SetupDistribution(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DistributionTemplated::SetupDistribution(false);
@@ -903,11 +902,11 @@ void DistributionLossCone<Trajectory>::SetupDistribution(bool construct)
 \author Juan G Alonso Guzman
 \date 06/23/2023
 */
-template <typename Trajectory>
-void DistributionLossCone<Trajectory>::EvaluateValue(void)
+template <typename HConfig>
+void DistributionLossCone<HConfig>::EvaluateValue(void)
 {
-   if (val_time == 0) _value = _pos;
-   else _value = _pos2;
+   if (val_time == 0) _value = _coords1.Pos();
+   else _value = _coords2.Pos();
 
    if (val_coord == 1) _value.XYZ_RTP();
 };
@@ -917,10 +916,10 @@ void DistributionLossCone<Trajectory>::EvaluateValue(void)
 \author Lucius Schoenbaum
 \date 08/09/2025
 */
-template <typename Trajectory>
-void DistributionLossCone<Trajectory>::RecordLossCone(void)
+template <typename HConfig>
+void DistributionLossCone<HConfig>::RecordLossCone(void)
 {
-   if (val_time == 0) _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields.Mag() / _edata2.Bmag_max)));
+   if (val_time == 0) _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields1.Mag() / _edata2.Bmag_max)));
    else _weight = GeoVector(_edata2.Bmag_min, _edata2.Bmag_max, asin(sqrt(_fields2.Mag() / _edata2.Bmag_max)));
 };
 

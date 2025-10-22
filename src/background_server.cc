@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServer methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,9 +20,9 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-template <typename HConfig>
-BackgroundServer<HConfig>::BackgroundServer(void)
-                : BackgroundBase("", 0, STATE_NONE)
+template <typename HConfig, typename ServerFront>
+BackgroundServer<HConfig, ServerFront>::BackgroundServer(void)
+                : BackgroundBase("", STATE_NONE)
 {
 };
 
@@ -28,8 +30,8 @@ BackgroundServer<HConfig>::BackgroundServer(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-template <typename HConfig>
-BackgroundServer<HConfig>::BackgroundServer(const std::string& name_in, uint16_t status_in)
+template <typename HConfig, typename ServerFront>
+BackgroundServer<HConfig, ServerFront>::BackgroundServer(const std::string& name_in, uint16_t status_in)
                 : BackgroundBase(name_in, status_in)
 {
 };
@@ -41,8 +43,8 @@ BackgroundServer<HConfig>::BackgroundServer(const std::string& name_in, uint16_t
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HConfig>
-BackgroundServer<HConfig>::BackgroundServer(const BackgroundServer& other)
+template <typename HConfig, typename ServerFront>
+BackgroundServer<HConfig, ServerFront>::BackgroundServer(const BackgroundServer& other)
                 : BackgroundBase(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);
@@ -57,8 +59,8 @@ BackgroundServer<HConfig>::BackgroundServer(const BackgroundServer& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename HConfig>
-void BackgroundServer<HConfig>::SetupBackground(bool construct)
+template <typename HConfig, typename ServerFront>
+void BackgroundServer<HConfig, ServerFront>::SetupBackground(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BackgroundBase::SetupBackground(false);
@@ -77,9 +79,9 @@ void BackgroundServer<HConfig>::SetupBackground(bool construct)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HConfig>
-template <typename Fields>
-void BackgroundServer<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename HConfig, typename ServerFront>
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundServer<HConfig, ServerFront>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 #ifdef NEED_SERVER
    server_front->GetVariables(coords.Time(), coords.Pos(), fields);
@@ -91,25 +93,26 @@ void BackgroundServer<HConfig>::EvaluateBackground(BackgroundCoordinates& coords
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HConfig>
-template <typename Fields>
-void BackgroundServer<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename HConfig, typename ServerFront>
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundServer<HConfig, ServerFront>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
 #ifdef NEED_SERVER
    server_front->GetGradients(fields, _ddata);
 #endif
-   if (_ddata.BACKGROUND_grad_FAIL) NumericalDerivatives(coords, fields);
+   if (_ddata.BACKGROUND_grad_FAIL)
+      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 06/17/2024
 */
-template <typename HConfig>
-void BackgroundServer<HConfig>::EvaluateBmag(void)
+template <typename HConfig, typename ServerFront>
+void BackgroundServer<HConfig, ServerFront>::EvaluateAbsMag(void)
 {
-   if constexpr (HConfig::server_interpolation_order > 0) {
-      BackgroundBase::EvaluateBmag();
+   if constexpr (BackgroundConfig::server_interpolation_order > 0) {
+      BackgroundBase::EvaluateAbsMag();
    }
    else {
 // If variables are interpolated, override this function to be empty, and interpolation will occur within "GetVariables".
@@ -122,8 +125,8 @@ void BackgroundServer<HConfig>::EvaluateBmag(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename HConfig>
-void BackgroundServer<HConfig>::StopServerFront(void)
+template <typename HConfig, typename ServerFront>
+void BackgroundServer<HConfig, ServerFront>::StopServerFront(void)
 {
 #ifdef GEO_DEBUG
    server_front->PrintStencilOutcomes();

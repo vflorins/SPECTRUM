@@ -20,8 +20,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 11/24/2020
 */
-template <typename Trajectory, typename HConfig>
-TrajectoryBase<Trajectory, HConfig>::TrajectoryBase(void)
+template <typename Background, typename Diffusion>
+TrajectoryBase<Background, Diffusion>::TrajectoryBase(void)
               : Params("", STATE_NONE),
               records(HConfig::record_trajectory_segment_presize)
 {
@@ -33,8 +33,8 @@ TrajectoryBase<Trajectory, HConfig>::TrajectoryBase(void)
 \param[in] name_in    Readable name of the class
 \param[in] status_in  Initial status
 */
-template <typename Trajectory, typename HConfig>
-TrajectoryBase<Trajectory, HConfig>::TrajectoryBase(const std::string& name_in, uint16_t status_in)
+template <typename Background, typename Diffusion>
+TrajectoryBase<Background, Diffusion>::TrajectoryBase(const std::string& name_in, uint16_t status_in)
               : Params(name_in, status_in),
                 records(HConfig::record_trajectory_segment_presize)
 {
@@ -44,8 +44,8 @@ TrajectoryBase<Trajectory, HConfig>::TrajectoryBase(const std::string& name_in, 
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::ResetAllBoundaries(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::ResetAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -67,8 +67,8 @@ void TrajectoryBase<Trajectory, HConfig>::ResetAllBoundaries(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::ComputeAllBoundaries(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -81,8 +81,8 @@ void TrajectoryBase<Trajectory, HConfig>::ComputeAllBoundaries(void)
 \author Vladimir Florinski
 \date 02/06/2021
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::UpdateAllBoundaries(void)
+template <typename Background>
+void TrajectoryBase<Background>::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -97,8 +97,8 @@ void TrajectoryBase<Trajectory, HConfig>::UpdateAllBoundaries(void)
 \author Lucius Schoenbaum
 \date 09/11/2025
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::ReverseMomentum(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::ReverseMomentum(void)
 {
    _coords.Mom() *= -1.0;
 };
@@ -110,8 +110,8 @@ void TrajectoryBase<Trajectory, HConfig>::ReverseMomentum(void)
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::TimeBoundaryProximityCheck(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::TimeBoundaryProximityCheck(void)
 {
    unsigned int bnd;
    double delta, delta_next;
@@ -151,8 +151,8 @@ void TrajectoryBase<Trajectory, HConfig>::TimeBoundaryProximityCheck(void)
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
 */
-template <typename Trajectory, typename HConfig>
-bool TrajectoryBase<Trajectory, HConfig>::SpaceTerminateCheck(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryBase<Background, Diffusion>::SpaceTerminateCheck(void)
 try {
    uint16_t bnd_status;
    int bnd = 0, distro;
@@ -176,8 +176,7 @@ try {
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         // todo modify signature of ProcessTrajectory
-         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, _coords, _fields, records, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, records.GetMagInitial(), _coords, _fields, records.GetMagExtrema(), action);
       };
    };
 
@@ -188,7 +187,7 @@ try {
          PrintMessage(__FILE__, __LINE__, "Advance: The trajectory will terminate inside the RK loop", true);
       }
 
-      Store();
+      records.Store(_coords);
       return true;
    }
    else return false;
@@ -205,59 +204,19 @@ catch (ExBoundaryError& exception) {
 };
 
 /*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 08/14/2025
-*/
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::CommonFields(void)
-try {
-// Compute fields and reset derivative data
-   GeoVector mom_saved = _coords.Mom();
-   _coords.Mom() = ConvertMomentum();
-   background->GetFields(_coords, _fields);
-// Set field-dependent dmax, for use by trajectories while advancing
-   _dmax = background->GetDmax();
-   _coords.Mom() = mom_saved;
-}
-
-catch (ExUninitialized& exception) {
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-}
-
-catch (ExCoordinates& exception) {
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-}
-
-#if SERVER_TYPE != SERVER_SELF
-catch (ExServerError& exception) {
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-}
-#endif
-
-catch (ExFieldError& exception) {
-   RAISE_BITS(_status, TRAJ_DISCARD);
-   throw;
-};
-
-/*!
 \brief Compute fields for a non-canonical coordinate
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 02/21/2025
-\param[in]  t_in   Time at which to compute fields
-\param[in]  pos_in Position at which to compute fields
-\param[in]  mom_in Momentum (p,mu,phi) coordinates
-\param[out] fields Fields at t_in and pos_in for output
+\param[in]  coords   Coordinates (typically Time, Position, Momentum) at which to compute fields
+\param[out] fields Fields requested to be populated by the background
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::CommonFields(Coordinates& coords, TrajectoryFields& fields)
+template <typename Background, typename Diffusion>
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void TrajectoryBase<Background, Diffusion>::CommonFields(Coordinates& coords, Fields& fields)
 try {
-   background->GetFields(coords, fields);
+// Compute fields and reset derivative data
+   background->template GetFields<Coordinates, Fields, RequestedFields>(coords, fields);
 // Set field-dependent dmax, for use by trajectories while advancing
    _dmax = background->GetDmax();
 }
@@ -292,8 +251,8 @@ catch (ExFieldError& exception) {
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename HConfig>
-bool TrajectoryBase<Trajectory, HConfig>::RKSlopes(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryBase<Background, Diffusion>::RKSlopes(void)
 {
 // When the function exits we are finished with the input coords, and can free the memory.
    unsigned int istage, islope;
@@ -303,14 +262,14 @@ bool TrajectoryBase<Trajectory, HConfig>::RKSlopes(void)
 // Advance to the current stage.
       for (islope = 0; islope < istage; islope++) {
          if constexpr (HConfig::time_flow == TimeFlow::forward) {
-            _coords.Time() += the_new_butcher_table.a[istage] * dt;
-            _coords.Pos() += dt * the_new_butcher_table.b[istage][islope] * slope_pos[islope];
-            _coords.Mom() += dt * the_new_butcher_table.b[istage][islope] * slope_mom[islope];
+            _coords.Time() += butcher_table.a[istage] * dt;
+            _coords.Pos() += dt * butcher_table.b[istage][islope] * slope_pos[islope];
+            _coords.Mom() += dt * butcher_table.b[istage][islope] * slope_mom[islope];
          }
          else {
-            _coords.Time() -= the_new_butcher_table.a[istage] * dt;
-            _coords.Pos() -= dt * the_new_butcher_table.b[istage][islope] * slope_pos[islope];
-            _coords.Mom() -= dt * the_new_butcher_table.b[istage][islope] * slope_mom[islope];
+            _coords.Time() -= butcher_table.a[istage] * dt;
+            _coords.Pos() -= dt * butcher_table.b[istage][islope] * slope_pos[islope];
+            _coords.Mom() -= dt * butcher_table.b[istage][islope] * slope_mom[islope];
          }
       };
 
@@ -324,7 +283,8 @@ bool TrajectoryBase<Trajectory, HConfig>::RKSlopes(void)
       MomentumCorrection();
 
 // Find velocity and acceleration.
-      _coords.Vel() = Vel<specie>(_coords.Mom());
+      if constexpr (TrajectoryCoordinates::Vel_found())
+         _coords.Vel() = Vel<specie>(_coords.Mom());
       Slopes(slope_pos[istage], slope_mom[istage]);
 
 // The slopes have been computed, so we can reset _coords to their values at the beginning of the step.
@@ -342,8 +302,8 @@ bool TrajectoryBase<Trajectory, HConfig>::RKSlopes(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename HConfig>
-bool TrajectoryBase<Trajectory, HConfig>::RKStep(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryBase<Background, Diffusion>::RKStep(void)
 {
    using BT = ButcherTable;
    unsigned int islope;
@@ -362,20 +322,22 @@ bool TrajectoryBase<Trajectory, HConfig>::RKStep(void)
    for (islope = 0; islope < BT::data.rk_stages; islope++) {
 
       if constexpr (HConfig::time_flow == TimeFlow::forward) {
-         _coords.Pos() += dt * the_new_butcher_table.v[islope] * slope_pos[islope];
-         _coords.Mom() += dt * the_new_butcher_table.v[islope] * slope_mom[islope];
+         _coords.Pos() += dt * butcher_table.v[islope] * slope_pos[islope];
+         _coords.Mom() += dt * butcher_table.v[islope] * slope_mom[islope];
          if constexpr (BT::data.adaptive)
-            pos_lo += dt * the_new_butcher_table.w[islope] * slope_pos[islope];
+            pos_lo += dt * butcher_table.w[islope] * slope_pos[islope];
       }
       else {
-         _coords.Pos() -= dt * the_new_butcher_table.v[islope] * slope_pos[islope];
-         _coords.Mom() -= dt * the_new_butcher_table.v[islope] * slope_mom[islope];
+         _coords.Pos() -= dt * butcher_table.v[islope] * slope_pos[islope];
+         _coords.Mom() -= dt * butcher_table.v[islope] * slope_mom[islope];
          if constexpr (BT::data.adaptive)
-            pos_lo -= dt * the_new_butcher_table.w[islope] * slope_pos[islope];
+            pos_lo -= dt * butcher_table.w[islope] * slope_pos[islope];
       }
 
    };
+// Update velocity fields
    _coords.Vel() = Vel<specie>(_coords.Mom());
+
 
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
    if (BT::data.adaptive) {
@@ -399,8 +361,8 @@ bool TrajectoryBase<Trajectory, HConfig>::RKStep(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::HandleBoundaries(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::HandleBoundaries(void)
 {
    int bnd, bnd_status, distro;
 
@@ -434,7 +396,7 @@ void TrajectoryBase<Trajectory, HConfig>::HandleBoundaries(void)
    if (bactive_m >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_m[bactive_m]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, _coords, _fields, records, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, records.GetMagInitial(), _coords, _fields, records.GetMagExtrema(), action);
       };
       bactive_m = -1;
    };
@@ -488,7 +450,7 @@ void TrajectoryBase<Trajectory, HConfig>::HandleBoundaries(void)
    if (bactive_s >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_s[bactive_s]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, _coords, _fields, records, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, records.GetMagInitial(), _coords, _fields, records.GetMagExtrema(), action);
       };
       bactive_s = -1;
    };
@@ -515,7 +477,7 @@ void TrajectoryBase<Trajectory, HConfig>::HandleBoundaries(void)
    if (bactive_t >= 0) {
       for (distro = 0; distro < distributions.size(); distro++) {
          action = bcond_t[bactive_t]->GetAction(distro);
-         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, _coords, _fields, records, action);
+         if (action >= 0) distributions[distro]->ProcessTrajectory(coords0, fields0, records.GetMagInitial(), _coords, _fields, records.GetMagExtrema(), action);
       };
       bactive_t = -1;
    };
@@ -532,11 +494,11 @@ void TrajectoryBase<Trajectory, HConfig>::HandleBoundaries(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Trajectory, typename HConfig>
-bool TrajectoryBase<Trajectory, HConfig>::RKAdvance(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryBase<Background, Diffusion>::RKAdvance(void)
 {
+
 // Retrieve latest point of the trajectory and store it locally.
-   Load();
    StoreLocal();
 
 // The common fields and "dmax" have been computed at the end of Advance() or in SetStart() before the first step.
@@ -564,7 +526,7 @@ bool TrajectoryBase<Trajectory, HConfig>::RKAdvance(void)
    };
 
 // A new point is obtained, update records.
-   Store();
+   records.Store(_coords);
 
    return true;
 };
@@ -573,8 +535,8 @@ bool TrajectoryBase<Trajectory, HConfig>::RKAdvance(void)
 \author Vladimir Florinski
 \date 09/30/2022
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::MomentumCorrection(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::MomentumCorrection(void)
 {
 };
 
@@ -583,8 +545,8 @@ void TrajectoryBase<Trajectory, HConfig>::MomentumCorrection(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-template <typename Trajectory, typename HConfig>
-bool TrajectoryBase<Trajectory, HConfig>::IsSimulationReady(void) const
+template <typename Background, typename Diffusion>
+bool TrajectoryBase<Background, Diffusion>::IsSimulationReady(void) const
 {
 // A background object is required
    if (!background) return false;
@@ -620,10 +582,10 @@ bool TrajectoryBase<Trajectory, HConfig>::IsSimulationReady(void) const
 \param[in] background_in Background object for type recognition
 \param[in] container_in  Data container for initializating the background object
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::AddBackground(const DataContainer& container_in)
 {
-   background = background_in.Clone();
+   background = std::make_unique(Background());
    background->ConnectRNG(rng);
    background->SetupObject(container_in);
    
@@ -636,8 +598,8 @@ void TrajectoryBase<Trajectory, HConfig>::AddBackground(const BackgroundBase& ba
 \param[in] diffusion_in Diffusion object for type recognitions
 \param[in] container_in Data container for initializating the diffusion object
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    diffusion = diffusion_in.Clone();
    diffusion->SetupObject(container_in);
@@ -651,8 +613,8 @@ void TrajectoryBase<Trajectory, HConfig>::AddDiffusion(const DiffusionBase& diff
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
 // Time boundary
    if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
@@ -682,8 +644,8 @@ void TrajectoryBase<Trajectory, HConfig>::AddBoundary(const BoundaryBase& bounda
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
 // Time condition
    if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
@@ -717,8 +679,8 @@ void TrajectoryBase<Trajectory, HConfig>::AddInitial(const InitialBase& initial_
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done in"Advance()" at the beginning of each step.
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::SetStart(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::SetStart(void)
 try {
 
 // Get the starting time from the initial time distribution
@@ -728,22 +690,18 @@ try {
 // Get a momentum sample along an arbitrary axis (bhat is unknown at this step). Only the momentum magnitude is needed for the first call to CommonFields().
    _coords.Mom() = icond_m->GetMomSample(gv_ones);
 
-// Obtain the fields for that position (this initializes _dmax)
-   CommonFields();
+// Obtain the fields for the coordinates (this initializes _dmax).
+   CommonFields(_coords, _fields);
+
+// Get the starting momentum from the distribution along the correct axis (bhat is now determined).
+   _coords.Mom() = icond_m->GetMomSample(_fields.HatMag());
+// Get the starting momentum from the distribution along the correct axis (bhat is now determined).
+   _coords.Vel() = Vel<specie>(_coords.Mom());
 
 // Record the initial spatial data for distribution purposes.
    fields0 = _fields;
 // Initialize the trajectory records class.
    records.SetStart(_fields);
-
-// Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   if constexpr (TrajectoryFields::HatMag_found()) {
-      _coords.Mom() = icond_m->GetMomSample(_fields.HatMag());
-   }
-   else {
-      _coords.Mom() = icond_m->GetMomSample(_fields.Mag().Norm());
-   }
-   _coords.Vel() = Vel<specie>(_coords.Mom());
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
    dt_adaptive = sp_large * _dmax / c_code;
@@ -783,8 +741,8 @@ catch (ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 12/17/2020
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::Integrate(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::Integrate(void)
 {
    bool was_advanced;
    int time_step_adaptations = 0;
@@ -795,23 +753,23 @@ void TrajectoryBase<Trajectory, HConfig>::Integrate(void)
 // Attempt to advance trajectory by one segment
       was_advanced = Advance();
 
-   if constexpr (HConfig::trajectory_adv_safety_level > 1) {
+      if constexpr (HConfig::trajectory_adv_safety_level > 1) {
 // Too many steps were taken - terminate
-      if (records.Segments() > HConfig::max_trajectory_steps) {
-         RAISE_BITS(_status, TRAJ_DISCARD);
-         throw ExMaxStepsReached();
-      };
+         if (records.Segments() > HConfig::max_trajectory_steps) {
+            RAISE_BITS(_status, TRAJ_DISCARD);
+            throw ExMaxStepsReached();
+         };
 
 // Too many time adaptations were performed - terminate
-      if (was_advanced) time_step_adaptations = 0;
-      else {
-         time_step_adaptations++;
-         if (time_step_adaptations > HConfig::max_time_adaptations) {
-            RAISE_BITS(_status, TRAJ_DISCARD);
-            throw ExMaxTimeAdaptsReached();
+         if (was_advanced) time_step_adaptations = 0;
+         else {
+            time_step_adaptations++;
+            if (time_step_adaptations > HConfig::max_time_adaptations) {
+               RAISE_BITS(_status, TRAJ_DISCARD);
+               throw ExMaxTimeAdaptsReached();
+            };
          };
-      };
-   }
+      }
 
       if constexpr (HConfig::trajectory_adv_safety_level > 0) {
 // Time step is too small - terminate
@@ -833,8 +791,8 @@ void TrajectoryBase<Trajectory, HConfig>::Integrate(void)
 \author Vladimir Florinski
 \date 02/17/2023
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::StopBackground(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::StopBackground(void)
 {
    background->StopServerFront();
 };
@@ -847,8 +805,8 @@ void TrajectoryBase<Trajectory, HConfig>::StopBackground(void)
 \param[in] bnd    Which boundary condition to use
 \return int number of crossings
 */
-template <typename Trajectory, typename HConfig>
-int TrajectoryBase<Trajectory, HConfig>::Crossings(unsigned int output, unsigned int bnd) const
+template <typename Background, typename Diffusion>
+int TrajectoryBase<Background, Diffusion>::Crossings(unsigned int output, unsigned int bnd) const
 {
    if (bnd < 0) return 0;
 
@@ -863,8 +821,8 @@ int TrajectoryBase<Trajectory, HConfig>::Crossings(unsigned int output, unsigned
 \author Vladimir Florinski
 \date 12/27/2021
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::InterpretStatus(void) const
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::InterpretStatus(void) const
 {
    std::cerr << "Trajectory status: ";
    if (BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
@@ -882,8 +840,8 @@ void TrajectoryBase<Trajectory, HConfig>::InterpretStatus(void) const
 \author Vladimir Florinski
 \date 02/22/2023
 */
-template <typename Trajectory, typename HConfig>
-void TrajectoryBase<Trajectory, HConfig>::PrintInfo(void) const
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::PrintInfo(void) const
 {
    int obj;
    std::cerr << std::endl;

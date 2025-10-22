@@ -35,7 +35,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundMagnetizedCylinder<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -45,23 +46,24 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::NumericalDerivatives;
    using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<HConfig>;
+
+   using BackgroundConfig::derivative_method;
 
 protected:
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -72,7 +74,7 @@ public:
    BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other);
 
 //! Destructor
-   ~BackgroundMagnetizedCylinder() override = default;
+   ~BackgroundMagnetizedCylinder() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundMagnetizedCylinder);

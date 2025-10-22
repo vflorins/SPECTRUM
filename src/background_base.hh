@@ -11,7 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_BASE_HH
 #define SPECTRUM_BACKGROUND_BASE_HH
 
-#include "config.h"
+#include "background.config.default.hh"
+
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "common/params.hh"
@@ -58,11 +59,14 @@ inline const char* ExFieldError::what(void) const noexcept
 // BackgroundBase class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 /*!
 \brief A base class to generate plasma background
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
-The BackgroundXXXXX" classes describe plasma condition (u, E, B, dB/dt, gradB) at an arbitrary location. In the simplest scenario these are computed analytically from a known formula. A more complex situation is when the background is provided externally, typically from a file produced from a numerical simulation. Derived classes may contain an interface to read mesh based output files and calculate field values using interpolation.
+The BackgroundXXXXX classes describe plasma condition (u, E, B, dB/dt, gradB) at an arbitrary location. In the simplest scenario these are computed analytically from a known formula. A more complex situation is when the background is provided externally, typically from a file produced from a numerical simulation. Derived classes may contain an interface to read mesh based output files and calculate field values using interpolation.
 
 Parameters: double t0, GeoVector r0, GeoVector u0, GeoVector B0, double dmax0
 */
@@ -71,7 +75,10 @@ class BackgroundBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundBase<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
+
+   using BackgroundConfig::num_numeric_grad_evals;
 
 private:
 
@@ -89,7 +96,7 @@ private:
    static constexpr double incr_dmax_ratio = 0.0001;
 
 //! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
-   static constexpr double local_rot_ang = M_PI / HConfig::num_numeric_grad_evals;
+   static constexpr double local_rot_ang = M_PI / BackgroundConfig::num_numeric_grad_evals;
 
 //! Sine and cosine of local rotation angle
    static constexpr double sin_lra = sin(local_rot_ang);
@@ -159,44 +166,55 @@ protected:
    BackgroundBase(const BackgroundBase& other);
 
 //! Set up the field evaluator based on "params"
-   virtual void SetupBackground(bool construct);
-
-   //! Calculate the maximum distance allowed per time step
-   virtual void EvaluateDmax(BackgroundCoordinates&);
+   void SetupBackground(bool construct);
 
 //! Calculate magnetic field magnitude
    template <typename Fields>
-   void EvaluateBmag(Fields&);
+   void EvaluateAbsMag(Fields&);
+
+   /*
+    * The following methods are valid for any Coordinate type
+    * that includes position and time (Pos_t, Time_t).
+    * The fields type must always contain magnetic field (Mag_t).
+    */
+
+   //! Calculate the maximum distance allowed per time step
+   template <typename Coordinates>
+   void EvaluateDmax(Coordinates&);
 
 //! Compute the fields at an incremented position or time
-   template <typename Fields>
-   void DirectionalDerivative(int xyz, BackgroundCoordinates, Fields&);
-
-//! Compute the field derivatives
-   template <typename Fields>
-   void NumericalDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void DirectionalDerivative(int xyz, Coordinates, Fields&);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
+
+   /*
+    * The following methods are valid for any Coordinate type
+    * that includes position and time (Pos_t, Time_t) and
+    * magnitude of momentum (AbsMom_t or at least Mom_t).
+    * The fields type (Fields) must always contain magnetic field (Mag_t).
+    */
+
+//! Compute the field derivatives
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void NumericalDerivatives(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
 //! Destructor
-   virtual ~BackgroundBase() = default;
-
-//! Clone function (stub)
-   virtual std::unique_ptr<BackgroundBase> Clone(void) const = 0;
+   ~BackgroundBase() = default;
 
 //! Set up the object's persistent class data members
    void SetupObject(const DataContainer& cont_in);
 
 //! Signal the backend this client no longer needs its service
-   virtual void StopServerFront(void);
+   void StopServerFront(void);
 
 //! Find "safe" increment in a given direction
    double GetSafeIncr(const GeoVector& dir);
@@ -207,9 +225,13 @@ public:
 //! Return the derivative data (a struct)
    DerivativeData GetDerivativeData(void) const;
 
-//! Return fields at the internal position, evaluated or previously stored
-   template <typename Fields>
-   void GetFields(BackgroundCoordinates&, Fields&);
+//! Return requested fields at the position specified by coordinates.
+// This public method is valid for any Coordinate type
+// that includes position and time (Pos_t, Time_t) and
+// magnitude of momentum (AbsMom_t or at least Mom_t).
+// The fields type (Fields) must always contain magnetic field (Mag_t).
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void GetFields(Coordinates&, Fields&);
 
 #ifdef USE_SILO
 

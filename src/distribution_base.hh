@@ -31,29 +31,6 @@ const uint16_t DISTRO_MOMENTUM = 0x0040;
 //! Function type to respond to different actions
 using WeightAction = std::function<void(void)>;
 
-//! Forward-declare Trajectory base types
-template <typename Trajectory, typename HConfig>
-class TrajectoryFieldlineBase;
-template <typename Trajectory, typename HConfig>
-class TrajectoryGuidingBase;
-//! Forward-declare Trajectory types
-template <typename Fields, typename Trace_t>
-class TrajectoryFieldline;
-template <typename Fields>
-class TrajectoryFocused;
-template <typename Fields>
-class TrajectoryGuiding;
-template <typename Fields>
-class TrajectoryGuidingDiff;
-template <typename Fields>
-class TrajectoryGuidingDiffScatt;
-template <typename Fields>
-class TrajectoryGuidingScatt;
-template <typename Fields>
-class TrajectoryLorentz;
-template <typename Fields>
-class TrajectoryParker;
-
 
 /*!
 \brief A base class describing a generic binned distribution
@@ -61,12 +38,13 @@ class TrajectoryParker;
 
 The class is optimized for convenience, not speed. All distributions are treated as 3D and addressed through a multi-index. Access to 1D and 2D distributions is therefore slower than using one/two integers. This should not be an issue for most applications because a single event requires integrating a trajectory, which is a lengthy procedure. A distribution could mix space and momentum coordinates.
 */
-template <typename Trajectory_>
+template <typename HConfig_>
 class DistributionBase : public Params {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
+   using Fields = HConfig::TrajectoryConfig::Fields;
 
 protected:
 
@@ -114,26 +92,23 @@ protected:
 //! Total event count (transient)
    int n_events = 0;
 
+//! Coordinates (transient)
+   Coordinates _coords1;
+
 //! Fields (transient)
-   Fields _fields;
+   Fields _fields1;
 
 //! Extrema data (transient)
-   ExtremaData _edata;
+   MagExtrema _edata1;
 
-//! Second time value (transient)
-   double _t2;
-
-//! Second spatial position (transient)
-   GeoVector _pos2;
-
-//! Second momentum vector (transient)
-   GeoVector _mom2;
+//! Second coordinates (transient)
+   Coordinates _coords2;
 
 //! Second fields instance (transient)
    Fields _fields2;
 
 //! Second extrema data instance (transient)
-   ExtremaData _edata2;
+   MagExtrema _edata2;
 
 //! Internal value to be binned (transient)
    GeoVector _value;
@@ -147,7 +122,7 @@ protected:
    DistributionBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DistributionBase(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionBase(const DistributionBase& other);
@@ -233,8 +208,8 @@ public:
    GeoVector* GetValuesRecordAddress(void);
 
 //! Analyze the trajectory outcome and record it in the distribution (generic)
-   void ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const Fields& fields1, const ExtremaData& edata1,
-                          double t2, const GeoVector& pos2, const GeoVector& mom2, const Fields& fields2, const ExtremaData& edata2,
+   void ProcessTrajectory(const Coordinates& coords1, const Fields& fields1, const MagExtrema& edata1,
+                          const Coordinates& coords2, const Fields& fields2, const MagExtrema& edata2,
                           int action_in);
 
 //! Dump the complete distribution to a file (stub)
@@ -263,8 +238,8 @@ public:
 \date 06/14/2021
 \return Number of bins in each dimension
 */
-template <typename Trajectory>
-inline MultiIndex DistributionBase<Trajectory>::NBins(void) const
+template <typename HConfig>
+inline MultiIndex DistributionBase<HConfig>::NBins(void) const
 {
    return n_bins;
 };
@@ -276,8 +251,8 @@ inline MultiIndex DistributionBase<Trajectory>::NBins(void) const
 \param[in] bin Bin number
 \return Smallest value for this bin
 */
-template <typename Trajectory>
-inline double DistributionBase<Trajectory>::BinLeft(int ijk, int bin) const
+template <typename HConfig>
+inline double DistributionBase<HConfig>::BinLeft(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + bin * bin_size[ijk]);
@@ -291,8 +266,8 @@ inline double DistributionBase<Trajectory>::BinLeft(int ijk, int bin) const
 \param[in] bin Bin number
 \return Center value for this bin (log-center for logarithmic bins)
 */
-template <typename Trajectory>
-inline double DistributionBase<Trajectory>::BinCent(int ijk, int bin) const
+template <typename HConfig>
+inline double DistributionBase<HConfig>::BinCent(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 0.5) * bin_size[ijk]);
@@ -306,8 +281,8 @@ inline double DistributionBase<Trajectory>::BinCent(int ijk, int bin) const
 \param[in] bin Bin number
 \return Largest value for this bin
 */
-template <typename Trajectory>
-inline double DistributionBase<Trajectory>::BinRght(int ijk, int bin) const
+template <typename HConfig>
+inline double DistributionBase<HConfig>::BinRght(int ijk, int bin) const
 {
    if ((bin < 0) || (bin >= n_bins[ijk])) return 0.0;
    if (log_bins[ijk]) return pow(10.0, limits[0][ijk] + (bin + 1) * bin_size[ijk]);
@@ -319,8 +294,8 @@ inline double DistributionBase<Trajectory>::BinRght(int ijk, int bin) const
 \date 10/30/2019
 \return Total number of events
 */
-template <typename Trajectory>
-inline int DistributionBase<Trajectory>::NEvents(void) const
+template <typename HConfig>
+inline int DistributionBase<HConfig>::NEvents(void) const
 {
    return n_events;
 };
@@ -330,8 +305,8 @@ inline int DistributionBase<Trajectory>::NEvents(void) const
 \date 12/02/2022
 \return Total number of records
 */
-template <typename Trajectory>
-inline int DistributionBase<Trajectory>::NRecords(void) const
+template <typename HConfig>
+inline int DistributionBase<HConfig>::NRecords(void) const
 {
    return values_record.size();
 };
@@ -341,8 +316,8 @@ inline int DistributionBase<Trajectory>::NRecords(void) const
 \date 06/10/2022
 \param[in] n_events_in Total number of events
 */
-template <typename Trajectory>
-inline void DistributionBase<Trajectory>::SetNEvents(int n_events_in)
+template <typename HConfig>
+inline void DistributionBase<HConfig>::SetNEvents(int n_events_in)
 {
    n_events = n_events_in;
 };
@@ -353,8 +328,8 @@ inline void DistributionBase<Trajectory>::SetNEvents(int n_events_in)
 \param[in] bin Bin multi-index
 \return Number of events in the bin
 */
-template <typename Trajectory>
-inline int DistributionBase<Trajectory>::GetEvents(const MultiIndex& bin) const
+template <typename HConfig>
+inline int DistributionBase<HConfig>::GetEvents(const MultiIndex& bin) const
 {
    return counts[n_bins.LinIdx(bin)];
 };
@@ -364,8 +339,8 @@ inline int DistributionBase<Trajectory>::GetEvents(const MultiIndex& bin) const
 \date 12/02/2022
 \return keep_records variable
 */
-template <typename Trajectory>
-inline bool DistributionBase<Trajectory>::GetKeepRecords(void)
+template <typename HConfig>
+inline bool DistributionBase<HConfig>::GetKeepRecords(void)
 {
    return keep_records;
 };
@@ -375,8 +350,8 @@ inline bool DistributionBase<Trajectory>::GetKeepRecords(void)
 \date 09/18/2020
 \return Pointer to the counts storage
 */
-template <typename Trajectory>
-inline int* DistributionBase<Trajectory>::GetCountsAddress(void)
+template <typename HConfig>
+inline int* DistributionBase<HConfig>::GetCountsAddress(void)
 {
    return counts.data();
 };
@@ -386,8 +361,8 @@ inline int* DistributionBase<Trajectory>::GetCountsAddress(void)
 \date 12/02/2022
 \return Pointer to the counts storage
 */
-template <typename Trajectory>
-inline GeoVector* DistributionBase<Trajectory>::GetValuesRecordAddress(void)
+template <typename HConfig>
+inline GeoVector* DistributionBase<HConfig>::GetValuesRecordAddress(void)
 {
    return values_record.data();
 };

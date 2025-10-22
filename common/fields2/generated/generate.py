@@ -64,13 +64,22 @@ class Field:
     components of a formatted SPECTRUM variable, or field.
     """
 
-    def __init__(self, name, datatype, description, R, S, printed_name=None):
+    def __init__(self, name, datatype, description, R, S, printed_name=None, normof=None, hatof=None, hasdiv = None, hascurl = None, delof = None, dotof = None):
         self.name = name
         self.datatype = datatype
         self.description = description
         self.R = R
         self.S = S
+        self.D = 1 if delof is not None else 2 if dotof is not None else 0
         self.printed_name = printed_name
+        self.normof = normof
+        self.hatof = hatof
+        if normof is not None and hatof is not None:
+            raise ValueError
+        self.hasdiv = hasdiv
+        self.hascurl = hascurl
+        self.delof = delof
+        self.dotof = dotof
 
     def fieldtype(self):
         if self.datatype == 'Scalar':
@@ -104,35 +113,46 @@ else:
     fields = [
         # Geometric fields:
         Field("Pos", "GeoVector", "Position in space", R=0, S=0),
+        Field("Rad", "Scalar", "Radial spatial coordinate", R=0, S=0, normof="Pos"),
         Field("Time", "Scalar", "Time", R=0, S=0),
         # Fluid fields:
         Field("Den", "Scalar", "Density field", R = 1, S = 1),
-        Field("Prs", "Scalar", "Pressure field", R = 1, S = 1),
+        Field("Prs", "Scalar", "Pressure field", R = 1, S = 0),
         Field("Enr", "Scalar", "Energy field", R = 1, S = 1),
-        Field("Vel", "GeoVector", "Velocity field", R = 1, S = 0),
-        Field("Mom", "GeoVector", "Momentum field", R = 1, S = 0),
-        Field("FlxDen", "Scalar", "Fluid density flux function", R = 1, S = 1),
-        Field("FlxMom", "GeoVector", "Fluid momentum flux function", R = 1, S = 0),
+        Field("Fluv", "GeoVector", "Fluid Flow Velocity field", R = 1, S = 0, hascurl=True, hasdiv=True),
+        Field("Flum", "GeoVector", "Fluid Flow Momentum field", R = 1, S = 1),
+        Field("FlxDen", "Scalar", "Fluid density flux function", R = 1, S = 0),
         Field("FlxEnr", "Scalar", "Fluid energy flux function", R = 1, S = 0),
+        Field("FlxFlum", "GeoVector", "Fluid flow momentum flux function", R = 1, S = 0),
+        Field("AbsFluv", "Scalar", "Fluid Flow Velocity field magnitude", R=0, S=0, normof="Fluv"),
+        Field("HatFluv", "GeoVector", "Direction of fluid flow velocity", R = 0, S = 0, hatof="Fluv"),
+        Field("AbsFlum", "Scalar", "Fluid Flow Momentum field magnitude", R=0, S=0, normof="Flum"),
+        Field("HatFlum", "GeoVector", "Direction of fluid flow momentum", R = 0, S = 0, hatof="Flum"),
         # MHD fields (extending Fluid fields):
-        Field("Mag", "GeoVector", "Magnetic field", R = 1, S = 0),
+        Field("Mag", "GeoVector", "Magnetic field", R = 1, S = 0, hascurl=True, hasdiv=True),
         Field("FlxMag", "GeoVector", "Magnetic field flux function", R = 1, S = 0),
         Field("Glm", "Scalar", "Lagrange multiplier field of GLM MHD", R = 1, S = 0),
         Field("FlxGlm", "Scalar", "Lagrange mutlipler flux function of GLM MHD", R = 1, S = 0),
-        # Tracer fields:
-        Field("Elc", "GeoVector", "Electric field", R = 1, S = 0),
-        Field("AbsMag", "Scalar", "Magnetic field magnitude", R = 1, S = 0),
-        Field("HatMag", "GeoVector", "Magnetic field direction", R = 1, S = 0),
-        Field("DelVel", "GeoMatrix", "Gradient of velocity field", R = 1, S = 0),
-        Field("DelElc", "GeoMatrix", "Gradient of electric field", R = 1, S = 0),
-        Field("DelMag", "GeoMatrix", "Gradient of magnetic field", R = 1, S = 0),
-        Field("DelAbsMag", "GeoVector", "Gradient of magnetic field magnitude", R = 1, S = 0),
-        Field("DelHatMag", "GeoMatrix", "Gradient of magnetic field direction ", R = 1, S = 0),
-        Field("DotVel", "GeoVector", "Time derivative of velocity field", R = 1, S = 0),
-        Field("DotElc", "GeoVector", "Time derivative of electric field", R = 1, S = 0),
-        Field("DotMag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0),
-        Field("DotAbsMag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0),
-        Field("DotHatMag", "GeoVector", "Time derivative of magnetic field direction", R = 1, S = 0),
+        # Tracer background fields:
+        Field("Mom", "GeoVector", "Particle Momentum", R = 0, S = 0),
+        Field("AbsMom", "Scalar", "Magnitude of momentum", R = 0, S = 0, normof="Mom"),
+        Field("HatMom", "GeoVector", "Direction of momentum", R = 0, S = 0, hatof="Mom"),
+        Field("Vel", "GeoVector", "Particle Velocity", R = 0, S = 0),
+        Field("AbsVel", "Scalar", "Magnitude of velocity", R = 0, S = 0, normof="Vel"),
+        Field("HatVel", "GeoVector", "Direction of velocity", R = 0, S = 0, hatof="Vel"),
+        Field("Elc", "GeoVector", "Electric field", R = 1, S = 0, hascurl=True, hasdiv=True),
+        Field("AbsElc", "Scalar", "Electric field magnitude", R = 1, S = 0, normof="Elc"),
+        Field("HatElc", "GeoVector", "Electric field direction", R = 1, S = 0, hatof="Elc"),
+        Field("AbsMag", "Scalar", "Magnetic field magnitude", R = 1, S = 0, normof="Mag"),
+        Field("HatMag", "GeoVector", "Magnetic field direction", R = 1, S = 0, hatof="Mag"),
+        Field("DelFluv", "GeoMatrix", "Gradient of fluid flow velocity field", R = 1, S = 0, delof = "Fluv"),
+        Field("DelElc", "GeoMatrix", "Gradient of electric field", R = 1, S = 0, delof = "Elc"),
+        Field("DelMag", "GeoMatrix", "Gradient of magnetic field", R = 1, S = 0, delof = "Mag"),
+        Field("DelAbsMag", "GeoVector", "Gradient of magnetic field magnitude", R = 1, S = 0, delof = "AbsMag"),
+        Field("DotFluv", "GeoVector", "Time derivative of fluid flow velocity field", R = 1, S = 0, dotof = "Fluv"),
+        Field("DotElc", "GeoVector", "Time derivative of electric field", R = 1, S = 0, dotof = "Elc"),
+        Field("DotMag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0, dotof = "Mag"),
+        Field("DotAbsMag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0, dotof = "AbsMag"),
         # Indicator Fields/Variables:
         Field("Iv0", "Scalar", "Zeroth (general purpose) Indicator variable", R=0, S=0),
         Field("Iv1", "Scalar", "First (general purpose) Indicator variable", R=0, S=0),
@@ -283,7 +303,7 @@ namespace Spectrum {
     x = file_header(fname) + field_types_parts[0]
     for field in fields:
         x += f"/*!\n\\brief {field.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
-        x += f"using {field.name}_t = {field.fieldtype()}<Field::Id::{field.name}, {field.R}, {field.S}>;\n\n"
+        x += f"using {field.name}_t = {field.fieldtype()}<Field::Id::{field.name}, {field.R}, {field.S}, {field.D}>;\n\n"
     x += field_types_parts[1]
 
     with open(fname, 'w') as f:
@@ -380,6 +400,77 @@ def get_injectee(injectee_label, named):
             description = field.description
             datatype = field.datatype if field.datatype != "Scalar" else "double"
             x += f"""
+
+/*!
+\\brief Whether {name} ({description}) is in the data type.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   static constexpr bool {name}_found(void) {{
+      return ({name}_offset != Type_not_found);
+   }};
+
+"""
+            if field.normof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   {datatype}& {name}(void) {{
+      if constexpr ({name}_found())
+         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+      else
+            if constexpr (FConfig::{field.normof}_radial)
+               return {field.normof}()[0];
+            else
+               return {field.normof}().Norm();
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type, as const rvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   const {datatype}& {name}(void) const {{
+      if constexpr ({name}_found())
+         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+      else
+         if constexpr (FConfig::{field.normof}_radial)
+            return {field.normof}()[0];
+         else
+            return {field.normof}().Norm();
+   }};
+"""
+            elif field.hatof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   {datatype}& {name}(void) {{
+      if constexpr ({name}_found())
+         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+      else
+         return UnitVec({field.hatof}());
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type, as const rvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   const {datatype}& {name}(void) const {{
+      if constexpr ({name}_found())
+         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+      else
+         return UnitVec({field.hatof}());
+   }};
+"""
+            else:
+                x += f"""
 /*!
 \\brief Get {name} ({description}) from the data type, as lvalue.
 \\author Lucius Schoenbaum
@@ -397,17 +488,38 @@ def get_injectee(injectee_label, named):
    const {datatype}& {name}(void) const {{
       return reinterpret_cast<const {datatype}&>(*(data + {name}_offset));
    }};
-
+   
+"""
+            if field.hasdiv:
+                x+= f"""
 
 /*!
-\\brief Whether {name} ({description}) is in the data type.
+\\author Juan G Alonso Guzman
 \\author Lucius Schoenbaum
-\\date 3/25/2025
+\\date 10/12/2025
+\\return Divergence of {name}
 */
-   static constexpr bool {name}_found(void) {{
-      return ({name}_offset != Type_not_found);
+   inline double Div{name}(void)
+   {{
+      return Del{name}().Trace();
    }};
-   
+    
+"""
+            if field.hascurl:
+                x+= f"""
+
+/*!
+\\author Juan G Alonso Guzman
+\\author Lucius Schoenbaum
+\\date 10/12/2025
+\\return Divergence of {name}
+*/
+   inline GeoVector Curl{name}(void)
+   {{
+      GeoMatrix G = Del{name}();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   }};
+
 """
         x += """
 /*!
@@ -427,7 +539,23 @@ For a conversion operation, use Convert().
 """
         for field in fieldlist:
             name = field.name
-            x += f"""      if constexpr (Fields::{name}_found()) {{
+            if field.normof is not None:
+                x += f"""      if constexpr (Fields::{name}_found()) {{
+         if constexpr (ParentFields::{name}_found())
+            out.{name}() = fields.{name}();
+         else
+            if constexpr (ParentFields::{field.normof}_found()) {{
+               if constexpr (ParentFields::FConfig::{field.normof}_radial)
+                  out.{name}() = fields.{field.normof}[0];
+               else
+                  out.{name}() = fields.{field.normof}.Norm();
+            }}
+            else
+                out.{name}() = {name}_t();
+      }}
+"""
+            else:
+                x += f"""      if constexpr (Fields::{name}_found()) {{
          if constexpr (ParentFields::{name}_found())
             out.{name}() = fields.{name}();
          else

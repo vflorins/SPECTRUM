@@ -13,7 +13,7 @@ int main(void)
 {
 
    using Fields = Fields<Vel_t, Mag_t, Elc_t>;
-   using Background = BackgroundSolarWind<Fields>;
+   using Background = BackgroundSolarWind<HConfig>;
 
    Background background;
    Fields fields;

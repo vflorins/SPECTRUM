@@ -20,11 +20,12 @@ namespace Spectrum {
 /*!
 \brief Plasma background interface to a uniform Cartesian grid server
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 Parameters: (BackgroundServer)
 */
-template <typename HConfig_>
-class BackgroundServerCartesian : public BackgroundServer<HConfig_> {
+template <typename HConfig_, typename ServerFront_>
+class BackgroundServerCartesian : public BackgroundServer<HConfig_, ServerFront_> {
 private:
 
 //! Readable name of the class
@@ -33,7 +34,9 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using ServerFront = ServerFront_;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundServerCartesian<HConfig, ServerFront>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -43,15 +46,12 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
-   using BackgroundServer = BackgroundServer<HConfig>;
+   using BackgroundServer = BackgroundServer<HConfig, ServerFront>;
 
 
 public:
@@ -66,7 +66,7 @@ public:
    BackgroundServerCartesian(const BackgroundServerCartesian& other);
 
 //! Destructor
-   ~BackgroundServerCartesian() override = default;
+   ~BackgroundServerCartesian() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundServerCartesian);

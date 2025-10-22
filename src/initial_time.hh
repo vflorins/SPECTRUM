@@ -17,26 +17,26 @@ namespace Spectrum {
 // InitialTimeFixed class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialTimeFixed class
-const std::string init_name_time_fixed = "InitialTimeFixed";
-
 /*!
 \brief Starting points at a fixed time
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), double inittime
 */
-template <typename Trajectory_>
-class InitialTimeFixed : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialTimeFixed : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialTimeFixed";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_t;
+   using InitialBase::_coords;
 
 protected:
 
@@ -65,26 +65,27 @@ public:
 // InitialTimeInterval class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialTimeInterval class
-const std::string init_name_time_interval = "InitialTimeInterval";
-
 /*!
 \brief Uniformly distributed starting times on an interval
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), double starttime, double endtime, int n_intervals
 */
-template <typename Trajectory_>
-class InitialTimeInterval : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialTimeInterval : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialTimeInterval";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_t;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -102,7 +103,7 @@ protected:
    double increment;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialTimeInterval(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialTimeInterval(const std::string& name_in, uint16_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -126,27 +127,28 @@ public:
 // InitialTimeTable class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialTimeTable class
-const std::string init_name_time_table = "InitialTimeTable";
-
 /*!
 \brief Starting times from a table
 \author Juan G Alonso Guzman
 
 Parameters: (InitialTable)
 */
-template <typename Trajectory_>
-class InitialTimeTable : public InitialTable<Trajectory_, double> {
+template <typename HConfig_>
+class InitialTimeTable : public InitialTable<HConfig_, double> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialTimeTable";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialTable = InitialTable<Trajectory, double>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_t;
+   using InitialBase::_coords;
+   using InitialTable = InitialTable<HConfig, double>;
+
    using InitialBase::rng;
 
    using InitialTable::random;

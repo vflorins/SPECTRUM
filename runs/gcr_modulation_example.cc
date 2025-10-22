@@ -26,8 +26,8 @@ int main(int argc, char** argv)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    using Fields = Fields<Vel_t, Mag_t, HatMag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DelVel_t>;
-   using Trajectory = TrajectoryParker<Fields>;
-   using Background = BackgroundSolarWind<Fields>;
+   using Trajectory = TrajectoryParker<HConfig>;
+   using Background = BackgroundSolarWind<HConfig>;
 
    using Simulation = SimulationWorker<Trajectory>;
    using InitialTime = InitialTimeFixed<Trajectory>;
@@ -129,11 +129,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double momentum1 = Mom(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum1 = Mom<specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum1);
 
 // Upper bound for momentum
-   double momentum2 = Mom(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum2 = Mom<specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum2);
 
 // Log bias

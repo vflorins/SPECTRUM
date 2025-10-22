@@ -28,7 +28,7 @@ namespace Spectrum {
 \date 05/14/2024
 */
 DistanceBase::DistanceBase(void)
-            : Params("", 0, STATE_NONE)
+            : Params("", STATE_NONE)
 {
 };
 
@@ -36,11 +36,10 @@ DistanceBase::DistanceBase(void)
 \author Vladimir Florinski
 \date 05/14/2024
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-DistanceBase::DistanceBase(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-            : Params(name_in, specie_in, status_in)
+DistanceBase::DistanceBase(const std::string& name_in, uint16_t status_in)
+            : Params(name_in, status_in)
 {
 };
 
@@ -145,7 +144,7 @@ double DistanceBase::GetDerivative(double ref)
 \date 05/15/2024
 */
 DistanceExponential::DistanceExponential(void)
-                   : DistanceBase(distance_name_exponential, 0, STATE_NONE)
+                   : DistanceBase(distance_name_exponential, STATE_NONE)
 {
 };
 
@@ -194,7 +193,7 @@ void DistanceExponential::EvaluateDistance(void)
 \date 05/14/2024
 */
 DistancePowerLaw::DistancePowerLaw(void)
-                : DistanceBase(distance_name_power_law, 0, STATE_NONE)
+                : DistanceBase(distance_name_power_law, STATE_NONE)
 {
 };
 
@@ -245,7 +244,7 @@ void DistancePowerLaw::EvaluateDistance(void)
 \date 08/22/2024
 */
 DistanceLinearExp::DistanceLinearExp(void)
-                 : DistanceBase(distance_name_linear_exp, 0, STATE_NONE)
+                 : DistanceBase(distance_name_linear_exp, STATE_NONE)
 {
 };
 

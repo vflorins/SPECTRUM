@@ -28,13 +28,14 @@ template <typename HConfig_>
 class BackgroundUniform : public BackgroundBase<HConfig_> {
 private:
 
-   //! Readable name of the BackgroundUniform class
-   static constexpr std::string bg_name = "BackgroundUniform";
+   //! Readable name of the class
+   static constexpr std::string_view bg_name = "BackgroundUniform";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundUniform<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -44,14 +45,13 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundConfig::derivative_method;
 
 protected:
 
@@ -59,15 +59,15 @@ protected:
    GeoVector E0;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -78,7 +78,7 @@ public:
    BackgroundUniform(const BackgroundUniform& other);
 
 //! Destructor
-   ~BackgroundUniform() override = default;
+   ~BackgroundUniform() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundUniform);

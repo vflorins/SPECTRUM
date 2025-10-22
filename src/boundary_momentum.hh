@@ -2,6 +2,8 @@
 \file boundary_momentum.hh
 \brief Declares several classes representing momentum boundaries
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -24,19 +26,23 @@ namespace Spectrum {
 
 Parameters: (BoundaryBase), double momentum
 */
-template <typename Trajectory_>
-class BoundaryMomentum : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMomentum : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMomentum";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
    using BoundaryBase::container;
-   using BoundaryBase::_mom;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
    using BoundaryBase::_delta;
-//   using BoundaryBase::max_crossings;
+   using BoundaryBase::max_crossings;
 
 protected:
 
@@ -53,7 +59,7 @@ protected:
    BoundaryMomentum(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryMomentum(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryMomentum(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BoundaryMomentum(const BoundaryMomentum& other);
@@ -68,26 +74,29 @@ public:
 // BoundaryMomentumInject class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentumInject class
-const std::string bnd_name_momentum_inject = "BoundaryMomentumInject";
-
 /*!
 \brief Absorbing (injection) momentum boundary
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryMomentum)
 */
-template <typename Trajectory_>
-class BoundaryMomentumInject : public BoundaryMomentum<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMomentumInject : public BoundaryMomentum<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMomentumInject";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryMomentum = BoundaryMomentum<Trajectory>;
-
-   using BoundaryBase::_status;
-   using BoundaryBase::max_crossings;
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using BoundaryMomentum = BoundaryMomentum<HConfig>;
+   using BoundaryMomentum::_status;
+   using BoundaryMomentum::container;
+   using BoundaryMomentum::_coords;
+   using BoundaryMomentum::_fields;
+   using BoundaryMomentum::max_crossings;
 
 protected:
 
@@ -100,7 +109,7 @@ public:
    BoundaryMomentumInject(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryMomentumInject(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   BoundaryMomentumInject(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    BoundaryMomentumInject(const BoundaryMomentumInject& other);
@@ -116,25 +125,29 @@ public:
 // BoundaryMomentumPass class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentumPass class
-const std::string bnd_name_momentum_pass = "BoundaryMomentumPass";
-
 /*!
 \brief Passive momentum boundary
 \author Juan G Alonso Guzman
 
 Parameters: (BoundaryMomentum)
 */
-template <typename Trajectory_>
-class BoundaryMomentumPass : public BoundaryMomentum<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMomentumPass : public BoundaryMomentum<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMomentumPass";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryMomentum = BoundaryMomentum<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryMomentum = BoundaryMomentum<HConfig>;
+
    using BoundaryBase::max_crossings;
 
 protected:
@@ -161,26 +174,29 @@ public:
 // BoundaryMomentumInjectRestrictSlab class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentumInjectRestrictSlab class
-const std::string bnd_name_momentum_inject_restrict_slab = "BoundaryMomentumInjectRestrictSlab";
-
 /*!
 \brief Absorbing (injection) momentum boundary restricted to space between two parallel planes
 \author Vladimir Florinski
 
 Parameters: (BoundaryMomentumInject), GeoVector r0, GeoVector r1, GeoVector normal 
 */
-template <typename Trajectory_>
-class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentumInject<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMomentumInjectRestrictSlab : public BoundaryMomentumInject<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMomentumInjectRestrictSlab";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryMomentumInject = BoundaryMomentumInject<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using BoundaryBase::_status;
    using BoundaryBase::container;
-   using BoundaryBase::_pos;
+   using BoundaryBase::_coords;
+   using BoundaryBase::_fields;
+   using BoundaryMomentumInject = BoundaryMomentumInject<HConfig>;
+
    using BoundaryBase::_delta;
    using BoundaryBase::_delta_old;
 
@@ -220,28 +236,30 @@ public:
 // BoundaryMomentumInjectRestrictShell class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMomentumInjectRestrictShell class
-const std::string bnd_name_momentum_inject_restrict_shell = "BoundaryMomentumInjectRestrictShell";
-
 /*!
 \brief Absorbing (injection) momentum boundary restricted to space between two concentric spheres
 \author Vladimir Florinski
 
 Parameters: (BoundaryMomentumInject), GeoVector r0, double r1, double r2 
 */
-template <typename Trajectory_>
-class BoundaryMomentumInjectRestrictShell : public BoundaryMomentumInject<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMomentumInjectRestrictShell : public BoundaryMomentumInject<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMomentumInjectRestrictShell";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using BoundaryMomentumInject = BoundaryMomentumInject<Trajectory>;
-
-   using BoundaryBase::container;
-   using BoundaryBase::_pos;
-   using BoundaryBase::_delta;
-   using BoundaryBase::_delta_old;
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using BoundaryMomentumInject = BoundaryMomentumInject<HConfig>;
+   using BoundaryMomentumInject::_status;
+   using BoundaryMomentumInject::container;
+   using BoundaryMomentumInject::_coords;
+   using BoundaryMomentumInject::_fields;
+   using BoundaryMomentumInject::_delta;
+   using BoundaryMomentumInject::_delta_old;
 
 protected:
 
@@ -280,30 +298,32 @@ public:
 // BoundaryMirror class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the BoundaryMirror class
-const std::string bnd_name_mirror = "BoundaryMirror";
-
 /*!
 \brief Mirroring event counter.
 \author Vladimir Florinski
 
 Parameters: (BoundaryBase)
 */
-template <typename Trajectory_>
-class BoundaryMirror : public BoundaryBase<Trajectory_> {
+template <typename HConfig_>
+class BoundaryMirror : public BoundaryBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryMirror";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using BoundaryBase = BoundaryBase<HConfig>;
    using BoundaryBase::_status;
-   using BoundaryBase::max_crossings;
-   using BoundaryBase::_delta;
-   using BoundaryBase::_mom;
+   using BoundaryBase::container;
+   using BoundaryBase::_coords;
    using BoundaryBase::_fields;
 
-   static_assert(!(std::same_as<Trajectory, TrajectoryParker<Fields>> || std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>), "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
+   using BoundaryBase::max_crossings;
+   using BoundaryBase::_delta;
+
+   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
 
 protected:
 

@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServerCartesian methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,8 +20,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 07/19/2023
 */
-template <typename HConfig>
-BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(void)
+template <typename HConfig, typename ServerFront>
+BackgroundServerCartesian<HConfig, ServerFront>::BackgroundServerCartesian(void)
                          : BackgroundServer(bg_name, MODEL_STATIC)
 {
 };
@@ -28,8 +30,8 @@ BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(void)
 \author Juan G Alonso Guzman
 \date 07/27/2023
 */
-template <typename HConfig>
-BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(const std::string& name_in, uint16_t status_in)
+template <typename HConfig, typename ServerFront>
+BackgroundServerCartesian<HConfig, ServerFront>::BackgroundServerCartesian(const std::string& name_in, uint16_t status_in)
                          : BackgroundServer(name_in, status_in)
 {
 };
@@ -41,8 +43,8 @@ BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(const std::string&
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HConfig>
-BackgroundServerCartesian<HConfig>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
+template <typename HConfig, typename ServerFront>
+BackgroundServerCartesian<HConfig, ServerFront>::BackgroundServerCartesian(const BackgroundServerCartesian& other)
                          : BackgroundServer(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);

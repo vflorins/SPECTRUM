@@ -25,8 +25,8 @@ namespace Spectrum {
 
 Parameters: (BackgroundServerCartesian)
 */
-template <typename HConfig_>
-class BackgroundServerBATL : public BackgroundServerCartesian<HConfig_> {
+template <typename HConfig_, typename ServerFront_>
+class BackgroundServerBATL : public BackgroundServerCartesian<HConfig_, ServerFront_> {
 private:
 
 //! Readable name of the class
@@ -35,7 +35,9 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using ServerFront = ServerFront_;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundServerBATL<HConfig, ServerFront>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -45,15 +47,12 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::EvaluateBackground;
-   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
-   using BackgroundServerCartesian = BackgroundServerCartesian<HConfig>;
+   using BackgroundServerCartesian = BackgroundServerCartesian<HConfig, ServerFront>;
 
 public:
 
@@ -64,7 +63,7 @@ public:
    BackgroundServerBATL(const BackgroundServerBATL& other);
 
 //! Destructor
-   ~BackgroundServerBATL() override = default;
+   ~BackgroundServerBATL() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundServerBATL);

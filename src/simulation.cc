@@ -22,8 +22,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 01/15/2024
 */
-template <typename Trajectory>
-SimulationWorker<Trajectory>::SimulationWorker(void)
+template <typename HConfig, typename Trajectory>
+SimulationWorker<HConfig, Trajectory>::SimulationWorker(void)
 {
 // Check to make sure that there is at least one worker in the simulation. Otherwise, the simulation cannot happen and the program will exit immediately.
    if (MPI_Config::n_workers < 1) {
@@ -54,8 +54,8 @@ SimulationWorker<Trajectory>::SimulationWorker(void)
 \date 08/01/2022
 \param[in] file_name
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::DistroFileName(const std::string& file_name)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::DistroFileName(const std::string& file_name)
 {
 };
 
@@ -67,8 +67,8 @@ void SimulationWorker<Trajectory>::DistroFileName(const std::string& file_name)
 \param[in] batch_size_in          Unused
 \param[in] max_traj_per_worker_in Unused
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
 {
 };
 
@@ -77,29 +77,10 @@ void SimulationWorker<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, in
 \date 10/27/2022
 \return name of trajectory type
 */
-template <typename Trajectory>
-std::string SimulationWorker<Trajectory>::GetTrajectoryName(void) const
+template <typename HConfig, typename Trajectory>
+std::string SimulationWorker<HConfig, Trajectory>::GetTrajectoryName(void) const
 {
    return trajectory->GetName();
-};
-
-/*!
-\author Vladimir Florinski
-\date 05/27/2022
-\param[in] specie_in Index of the particle species defined in physics.hh
-*/
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::SetSpecie(unsigned int specie_in)
-{
-   if ((specie_in < 0) || (specie_in >= MAX_PARTICLE_SPECIES)) {
-      PrintError(__FILE__, __LINE__, "Invalid particle specie", MPI_Config::is_master);
-      return;
-   };
-
-// The "trajectory" object will set the specie for its sub-classes
-   specie = specie_in;
-   trajectory->SetSpecie(specie_in);
-   PrintMessage(__FILE__, __LINE__, "Particle specie added", MPI_Config::is_master);
 };
 
 /*!
@@ -109,8 +90,8 @@ void SimulationWorker<Trajectory>::SetSpecie(unsigned int specie_in)
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-//template <typename Trajectory>
-//void SimulationWorker<Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
+//template <typename HConfig, typename Trajectory>
+//void SimulationWorker<HConfig, Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
 //{
 //   local_distros.push_back(distribution_in.Clone());
 //   local_distros.back()->SetSpecie(specie);
@@ -127,8 +108,8 @@ void SimulationWorker<Trajectory>::SetSpecie(unsigned int specie_in)
 \param[in] container_in     Data container for initializating the background object
 \param[in] fname_pattern_in Unused
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
 {
    trajectory->AddBackground(background_in, container_in);
    PrintMessage(__FILE__, __LINE__, "Background object added", MPI_Config::is_master);
@@ -141,8 +122,8 @@ void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-//template <typename Trajectory, typename Boundary>
-//void SimulationWorker<Trajectory>::AddBoundary(const Boundary& boundary_in, const DataContainer& container_in)
+//template <typename HConfig, typename Boundary>
+//void SimulationWorker<HConfig, Trajectory>::AddBoundary(const Boundary& boundary_in, const DataContainer& container_in)
 //{
 //   trajectory->AddBoundary(boundary_in, container_in);
 //   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
@@ -154,8 +135,8 @@ void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-//template <typename Trajectory, typename Initial>
-//void SimulationWorker<Trajectory>::AddInitial(const Initial& initial_in, const DataContainer& container_in)
+//template <typename HConfig, typename Initial>
+//void SimulationWorker<HConfig, Trajectory>::AddInitial(const Initial& initial_in, const DataContainer& container_in)
 //{
 //   trajectory->AddInitial(initial_in, container_in);
 //   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
@@ -167,8 +148,8 @@ void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \param[in] diffusion_in Diffusion object for type recognition
 \param[in] container_in Data container for initializating the diffusion object
 */
-//template <typename Trajectory, typename Diffusion>
-//void SimulationWorker<Trajectory>::AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in)
+//template <typename HConfig, typename Diffusion>
+//void SimulationWorker<HConfig, Trajectory>::AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in)
 //{
 //   trajectory->AddDiffusion(diffusion_in, container_in);
 //   PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
@@ -178,8 +159,8 @@ void SimulationWorker<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \author Juan G Alonso Guzman
 \date 09/14/2022
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::SendDataToMaster(void)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::SendDataToMaster(void)
 {
    int n_events_local, n_records_local;
    size_t distro_size, w_records_size;
@@ -215,8 +196,8 @@ void SimulationWorker<Trajectory>::SendDataToMaster(void)
 \author Juan G Alonso Guzman
 \date 04/28/2021
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::WorkerStart(void)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::WorkerStart(void)
 {
 // Reset quantities
    for (int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
@@ -241,8 +222,8 @@ void SimulationWorker<Trajectory>::WorkerStart(void)
 \author Juan G Alonso Guzman
 \date 05/25/2021
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::WorkerFinish(void)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::WorkerFinish(void)
 {
 // Print last trajectory
    if (print_last_trajectory) {
@@ -270,8 +251,8 @@ void SimulationWorker<Trajectory>::WorkerFinish(void)
 \author Vladimir Florinski
 \date 06/09/2022
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::WorkerDuties(void)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::WorkerDuties(void)
 {
 // Iterate over all trajectories in the batch and record average time per trajectory
    int traj_count = 0;
@@ -318,8 +299,8 @@ void SimulationWorker<Trajectory>::WorkerDuties(void)
 \author Juan G Alonso Guzman
 \date 04/28/2021
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::MainLoop(void)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::MainLoop(void)
 {
    WorkerStart();
    while (current_batch_size) WorkerDuties();
@@ -331,8 +312,8 @@ void SimulationWorker<Trajectory>::MainLoop(void)
 \date 11/03/2022
 \param[in] distro which distribution to restore
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::RestoreDistro(int distro)
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::RestoreDistro(int distro)
 {
 };
 
@@ -345,8 +326,8 @@ void SimulationWorker<Trajectory>::RestoreDistro(int distro)
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const
 {
 };
 
@@ -360,8 +341,8 @@ void SimulationWorker<Trajectory>::PrintDistro1D(int distro, int ijk, const std:
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const
 {
 };
 
@@ -372,8 +353,8 @@ void SimulationWorker<Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2,
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationWorker<Trajectory>::PrintRecords(int distro, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::PrintRecords(int distro, const std::string& file_name, bool phys_units) const
 {
 };
 
@@ -386,8 +367,8 @@ void SimulationWorker<Trajectory>::PrintRecords(int distro, const std::string& f
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Trajectory>
-SimulationServer<Trajectory>::SimulationServer(void)
+template <typename HConfig, typename Trajectory>
+SimulationServer<HConfig, Trajectory>::SimulationServer(void)
               : SimulationWorker()
 {
 };
@@ -400,8 +381,8 @@ SimulationServer<Trajectory>::SimulationServer(void)
 \param[in] container_in     Data container for initializating the background object
 \param[in] fname_pattern_in File naming pattern for the server
 */
-template <typename Trajectory>
-void SimulationServer<Trajectory>::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
+template <typename HConfig, typename Trajectory>
+void SimulationServer<HConfig, Trajectory>::AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
 {
 // Create a unique server backend object based on the user preference stored in "server_config.hh".
 #ifdef NEED_SERVER
@@ -417,8 +398,8 @@ void SimulationServer<Trajectory>::AddBackground(const BackgroundBase& backgroun
 \author Vladimir Florinski
 \date 10/26/2022
 */
-template <typename Trajectory>
-void SimulationServer<Trajectory>::ServerStart(void)
+template <typename HConfig, typename Trajectory>
+void SimulationServer<HConfig, Trajectory>::ServerStart(void)
 {
 // Set the number of workers that are initially active in our node and start the server backend
 #ifdef NEED_SERVER
@@ -434,8 +415,8 @@ void SimulationServer<Trajectory>::ServerStart(void)
 \author Juan G Alonso Guzman
 \date 07/01/2022
 */
-template <typename Trajectory>
-void SimulationServer<Trajectory>::ServerFinish(void)
+template <typename HConfig, typename Trajectory>
+void SimulationServer<HConfig, Trajectory>::ServerFinish(void)
 {
 // Stop the server backend
 #ifdef NEED_SERVER
@@ -456,8 +437,8 @@ void SimulationServer<Trajectory>::ServerFinish(void)
 \author Juan G Alonso Guzman
 \date 04/28/2021
 */
-template <typename Trajectory>
-void SimulationServer<Trajectory>::ServerDuties(void)
+template <typename HConfig, typename Trajectory>
+void SimulationServer<HConfig, Trajectory>::ServerDuties(void)
 {
 #ifdef NEED_SERVER // This needs to be here to avoid a compilation error when NEED_SERVER is not defined
    int workers_stopped;
@@ -470,8 +451,8 @@ void SimulationServer<Trajectory>::ServerDuties(void)
 \author Juan G Alonso Guzman
 \date 10/25/2022
 */
-template <typename Trajectory>
-void SimulationServer<Trajectory>::MainLoop(void)
+template <typename HConfig, typename Trajectory>
+void SimulationServer<HConfig, Trajectory>::MainLoop(void)
 {
    ServerStart();
 
@@ -494,8 +475,8 @@ void SimulationServer<Trajectory>::MainLoop(void)
 \author Juan G Alonso Guzman
 \date 04/28/2021
 */
-template <typename Trajectory>
-SimulationMaster<Trajectory>::SimulationMaster(void)
+template <typename HConfig, typename Trajectory>
+SimulationMaster<HConfig, Trajectory>::SimulationMaster(void)
                 : SimulationServer()
 {
 // If simulation is parallel, initialize batches assigned array and cpu available requests array
@@ -515,8 +496,8 @@ SimulationMaster<Trajectory>::SimulationMaster(void)
 \date 08/01/2022
 \param[in] file_name
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::DistroFileName(const std::string& file_name)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::DistroFileName(const std::string& file_name)
 {
    distro_file_name = file_name;
 };
@@ -529,8 +510,8 @@ void SimulationMaster<Trajectory>::DistroFileName(const std::string& file_name)
 \param[in] batch_size_in          Size (trajectory count) of one batch
 \param[in] max_traj_per_worker_in Maximum trajectories per worker, 0 (default) means no maximum
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in)
 {
    if (n_traj_in < 0) n_traj_in = 0;
    if ((batch_size_in < 1) || (batch_size_in > n_traj_in)) batch_size_in = fmin(1, n_traj_in);
@@ -549,8 +530,8 @@ void SimulationMaster<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, in
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-//template <typename Trajectory, typename Distribution>
-//void SimulationMaster<Trajectory>::AddDistribution(const Distribution& distribution_in, const DataContainer& container_in)
+//template <typename HConfig, typename Distribution>
+//void SimulationMaster<HConfig, Trajectory>::AddDistribution(const Distribution& distribution_in, const DataContainer& container_in)
 //{
 //// TODO this should use make_unique instead of shared
 //   partial_distros.push_back(distribution_in.Clone());
@@ -566,8 +547,8 @@ void SimulationMaster<Trajectory>::SetTasks(int n_traj_in, int batch_size_in, in
 \author Juan G Alonso Guzman
 \date 07/20/2022
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::PrintMPICommsInfo(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::PrintMPICommsInfo(void)
 {
    std::cerr << "========== MPI Communicators Info ==========" << std::endl;
    std::cerr << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
@@ -582,8 +563,8 @@ void SimulationMaster<Trajectory>::PrintMPICommsInfo(void)
 \date 04/28/2021
 Only master has this function so only master can decrement batch counter
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::DecrementTrajectoryCount(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::DecrementTrajectoryCount(void)
 {
    long int n_trajectories_remaining, percentage_work_new, distro;
    long int remaining_alloc_time, sim_time_left;
@@ -647,8 +628,8 @@ void SimulationMaster<Trajectory>::DecrementTrajectoryCount(void)
 \date 08/11/2024
 \param[in] cpu which cpu from which to receive data
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::RecvDataFromWorker(int cpu)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::RecvDataFromWorker(int cpu)
 {
    int n_events_partial, n_records_partial;
    double shortest_sim_time_cpu, longest_sim_time_cpu;
@@ -697,8 +678,8 @@ void SimulationMaster<Trajectory>::RecvDataFromWorker(int cpu)
 \author Juan G Alonso Guzman
 \date 08/11/2024
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::MasterStart(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::MasterStart(void)
 {
 // Print info message
    PrintMPICommsInfo();
@@ -742,8 +723,8 @@ void SimulationMaster<Trajectory>::MasterStart(void)
 \author Juan G Alonso Guzman
 \date 01/04/2024
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::MasterDuties(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::MasterDuties(void)
 {
    int cpu, cpu_ind, next_batch_size;
 
@@ -774,8 +755,8 @@ void SimulationMaster<Trajectory>::MasterDuties(void)
 \author Vladimir Florinski
 \date 06/09/2022
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::MasterFinish(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::MasterFinish(void)
 {
    int distro, cpu;
    std::chrono::seconds sim_time_elapsed;
@@ -820,8 +801,8 @@ void SimulationMaster<Trajectory>::MasterFinish(void)
 \author Vladimir Florinski
 \date 06/09/2022
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::MainLoop(void)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::MainLoop(void)
 {
    MasterStart();
 
@@ -845,8 +826,8 @@ void SimulationMaster<Trajectory>::MainLoop(void)
 \date 11/03/2022
 \param[in] distro which distribution to restore
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::RestoreDistro(int distro)
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::RestoreDistro(int distro)
 {
    restore_distros[distro] = true;
 };
@@ -860,8 +841,8 @@ void SimulationMaster<Trajectory>::RestoreDistro(int distro)
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const
 {
    local_distros[distro]->Print1D(ijk, file_name, phys_units);
 };
@@ -876,8 +857,8 @@ void SimulationMaster<Trajectory>::PrintDistro1D(int distro, int ijk, const std:
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const
 {
    local_distros[distro]->Print2D(ijk1, ijk2, file_name, phys_units);
 };
@@ -889,8 +870,8 @@ void SimulationMaster<Trajectory>::PrintDistro2D(int distro, int ijk1, int ijk2,
 \param[in] file_name filename
 \param[in] phys_units whether to print in physical units or not
 */
-template <typename Trajectory>
-void SimulationMaster<Trajectory>::PrintRecords(int distro, const std::string& file_name, bool phys_units) const
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::PrintRecords(int distro, const std::string& file_name, bool phys_units) const
 {
    local_distros[distro]->PrintRecords(file_name, phys_units);
 };
@@ -906,15 +887,15 @@ void SimulationMaster<Trajectory>::PrintRecords(int distro, const std::string& f
 \param[in] argc Number of command line arguments
 \param[in] argv Command line arguments
 */
-template <typename Trajectory>
-std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv)
+template <typename HConfig, typename Trajectory>
+std::unique_ptr<SimulationWorker<HConfig, Trajectory>> CreateSimulation(int argc, char** argv)
 {
 // Initialize a single instance of "MPI_Config" that will persist until the program terminates
    static MPI_Config mpicfg(argc, argv);
 
-   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<Trajectory>>();
-   else if (MPI_Config::is_server) return std::make_unique<SimulationServer<Trajectory>>();
-   else return std::make_unique<SimulationWorker<Trajectory>>();
+   if (MPI_Config::is_master) return std::make_unique<SimulationMaster<HConfig, Trajectory>>();
+   else if (MPI_Config::is_server) return std::make_unique<SimulationServer<HConfig, Trajectory>>();
+   else return std::make_unique<SimulationWorker<HConfig, Trajectory>>();
 };
 
 };

@@ -1,5 +1,6 @@
 
 #include "common/fields.hh"
+#include "simulation.config.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
@@ -26,9 +27,10 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Vel_t, Mag_t, HatMag_t, AbsMag_t, DelVel_t, DelAbsMag_t>;
-   using Trajectory = TrajectoryParker<Fields>;
-   using Background = BackgroundUniform<Fields>;
+   using HConfig = SimulationDefault;
+
+   using Background = BackgroundUniform<HConfig>;
+   using Trajectory = TrajectoryParker<Background, Diffusion>;
 
    using Simulation = SimulationWorker<Trajectory>;
    using InitialTime = InitialTimeFixed<Trajectory>;
@@ -48,7 +50,7 @@ int main(int argc, char** argv)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    std::unique_ptr<Simulation> simulation;
-   simulation = CreateSimulation<Trajectory>(argc, argv);
+   simulation = CreateSimulation<HConfig, Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Particle type
@@ -82,7 +84,7 @@ int main(int argc, char** argv)
    double dmax = 0.1;
    container.Insert(dmax);
 
-   simulation->AddBackground(Background(), container);
+   simulation->AddBackground<Background>(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -113,7 +115,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum = Mom<specie>(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    simulation->AddInitial(InitialMomentum(), container);
@@ -125,7 +127,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Perpendicular diffusion coefficient
-   double D0 = Sqr(LarmorRadius(momentum,Bmag,specie)) * CyclotronFrequency(Vel(momentum),Bmag,specie);
+   double D0 = Sqr(LarmorRadius<specie>(momentum, Bmag)) * CyclotronFrequency<specie>(Vel<specie>(momentum), Bmag);
    container.Insert(D0);
 
 // Parallel diffusion coefficient

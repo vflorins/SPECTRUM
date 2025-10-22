@@ -35,7 +35,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSolarWind<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -48,12 +49,17 @@ public:
    // todo review (solar wind is the only background using this)
    using BackgroundBase::t0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundConfig::derivative_method;
+   using BackgroundConfig::solarwind_speed_latitude_profile;
+   using BackgroundConfig::solarwind_current_sheet;
+   using BackgroundConfig::solarwind_sectored_region;
+   using BackgroundConfig::solarwind_polar_correction;
 
 protected:
 
@@ -146,7 +152,7 @@ protected:
    double fsl_mns;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
 //! Modify radial flow (if necessary)
    virtual void ModifyUr(const double r, double &ur_mod);
@@ -155,15 +161,16 @@ protected:
    virtual double TimeLag(const double r);
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(BackgroundCoordinates&) override;
+   template <typename Coordinates>
+   void EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -177,7 +184,7 @@ public:
    BackgroundSolarWind(const BackgroundSolarWind& other);
 
 //! Destructor
-   ~BackgroundSolarWind() override = default;
+   ~BackgroundSolarWind() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundSolarWind);

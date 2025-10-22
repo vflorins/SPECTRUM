@@ -19,9 +19,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceFixed<Trajectory>::InitialSpaceFixed(void)
-                 : InitialBase(init_name_space_fixed, 0, INITIAL_SPACE | INITIAL_POINT)
+template <typename HConfig>
+InitialSpaceFixed<HConfig>::InitialSpaceFixed(void)
+                 : InitialBase(init_name, INITIAL_SPACE | INITIAL_POINT)
 {
 };
 
@@ -32,8 +32,8 @@ InitialSpaceFixed<Trajectory>::InitialSpaceFixed(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceFixed<Trajectory>::InitialSpaceFixed(const InitialSpaceFixed& other)
+template <typename HConfig>
+InitialSpaceFixed<HConfig>::InitialSpaceFixed(const InitialSpaceFixed& other)
                  : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -48,25 +48,25 @@ InitialSpaceFixed<Trajectory>::InitialSpaceFixed(const InitialSpaceFixed& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceFixed<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceFixed<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(initpos);
 
-// Pre-assign "_pos" so that it never needs to change
-   _pos = initpos;
+// Pre-assign "_coords.Pos()" so that it never needs to change
+   _coords.Pos() = initpos;
 };
 
 /*!
 \author Vladimir Florinski
 \date 12/16/2021
 */
-template <typename Trajectory>
-void InitialSpaceFixed<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceFixed<HConfig>::EvaluateInitial(void)
 {
-// Nothing to do - the value of "_pos" was assigned in "Setupinitial()"
+// Nothing to do - the value of "_coords.Pos()" was assigned in "Setupinitial()"
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,9 +77,9 @@ void InitialSpaceFixed<Trajectory>::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceLine<Trajectory>::InitialSpaceLine(void)
-                : InitialBase(init_name_space_line, 0, INITIAL_SPACE | INITIAL_CURVE)
+template <typename HConfig>
+InitialSpaceLine<HConfig>::InitialSpaceLine(void)
+                : InitialBase(init_name, INITIAL_SPACE | INITIAL_CURVE)
 {
 };
 
@@ -87,12 +87,11 @@ InitialSpaceLine<Trajectory>::InitialSpaceLine(void)
 \author Vladimir Florinski
 \date 09/16/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-InitialSpaceLine<Trajectory>::InitialSpaceLine(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                : InitialBase(name_in, specie_in, status_in)
+template <typename HConfig>
+InitialSpaceLine<HConfig>::InitialSpaceLine(const std::string& name_in, uint16_t status_in)
+                : InitialBase(name_in, status_in)
 {
 };
 
@@ -103,8 +102,8 @@ InitialSpaceLine<Trajectory>::InitialSpaceLine(const std::string& name_in, unsig
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceLine<Trajectory>::InitialSpaceLine(const InitialSpaceLine& other)
+template <typename HConfig>
+InitialSpaceLine<HConfig>::InitialSpaceLine(const InitialSpaceLine& other)
                 : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -119,8 +118,8 @@ InitialSpaceLine<Trajectory>::InitialSpaceLine(const InitialSpaceLine& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceLine<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceLine<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -134,7 +133,7 @@ void InitialSpaceLine<Trajectory>::SetupInitial(bool construct)
    else {
       randompos = false;
       increment = (endpos - startpos) / (double)n_intervals;
-      _pos = startpos - 0.5 * increment;
+      _coords.Pos() = startpos - 0.5 * increment;
    };
 };
 
@@ -142,11 +141,11 @@ void InitialSpaceLine<Trajectory>::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 04/04/2023
 */
-template <typename Trajectory>
-void InitialSpaceLine<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceLine<HConfig>::EvaluateInitial(void)
 {
-   if (randompos) _pos = startpos + (endpos - startpos) * rng->GetUniform();
-   else _pos += increment;
+   if (randompos) _coords.Pos() = startpos + (endpos - startpos) * rng->GetUniform();
+   else _coords.Pos() += increment;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -157,9 +156,9 @@ void InitialSpaceLine<Trajectory>::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 10/11/2023
 */
-template <typename Trajectory>
-InitialSpaceCircle<Trajectory>::InitialSpaceCircle(void)
-                  : InitialBase(init_name_space_circle, 0, INITIAL_SPACE | INITIAL_CURVE)
+template <typename HConfig>
+InitialSpaceCircle<HConfig>::InitialSpaceCircle(void)
+                  : InitialBase(init_name, INITIAL_SPACE | INITIAL_CURVE)
 {
 };
 
@@ -167,12 +166,11 @@ InitialSpaceCircle<Trajectory>::InitialSpaceCircle(void)
 \author Juan G Alonso Guzman
 \date 10/11/2023
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-InitialSpaceCircle<Trajectory>::InitialSpaceCircle(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                  : InitialBase(name_in, specie_in, status_in)
+template <typename HConfig>
+InitialSpaceCircle<HConfig>::InitialSpaceCircle(const std::string& name_in, uint16_t status_in)
+                  : InitialBase(name_in, status_in)
 {
 };
 
@@ -183,8 +181,8 @@ InitialSpaceCircle<Trajectory>::InitialSpaceCircle(const std::string& name_in, u
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceCircle<Trajectory>::InitialSpaceCircle(const InitialSpaceCircle& other)
+template <typename HConfig>
+InitialSpaceCircle<HConfig>::InitialSpaceCircle(const InitialSpaceCircle& other)
                   : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -199,8 +197,8 @@ InitialSpaceCircle<Trajectory>::InitialSpaceCircle(const InitialSpaceCircle& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceCircle<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceCircle<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -218,13 +216,13 @@ void InitialSpaceCircle<Trajectory>::SetupInitial(bool construct)
 \author Juan G Alonso Guzman
 \date 10/11/2023
 */
-template <typename Trajectory>
-void InitialSpaceCircle<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceCircle<HConfig>::EvaluateInitial(void)
 {
    double phi;
 
    phi = M_2PI * rng->GetUniform();
-   _pos = origin + radius_x * cos(phi) + radius_y * sin(phi);
+   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -235,9 +233,9 @@ void InitialSpaceCircle<Trajectory>::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 09/16/2022
 */
-template <typename Trajectory>
-InitialSpaceBox<Trajectory>::InitialSpaceBox(void)
-               : InitialSpaceLine(init_name_space_box, 0, INITIAL_SPACE | INITIAL_VOLUME)
+template <typename HConfig>
+InitialSpaceBox<HConfig>::InitialSpaceBox(void)
+               : InitialSpaceLine(init_name, INITIAL_SPACE | INITIAL_VOLUME)
 {
 };
 
@@ -248,8 +246,8 @@ InitialSpaceBox<Trajectory>::InitialSpaceBox(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceBox<Trajectory>::InitialSpaceBox(const InitialSpaceBox& other)
+template <typename HConfig>
+InitialSpaceBox<HConfig>::InitialSpaceBox(const InitialSpaceBox& other)
                : InitialSpaceLine(other)
 {
    LOWER_BITS(_status, INITIAL_CURVE);
@@ -261,10 +259,10 @@ InitialSpaceBox<Trajectory>::InitialSpaceBox(const InitialSpaceBox& other)
 \author Vladimir Florinski
 \date 09/16/2022
 */
-template <typename Trajectory>
-void InitialSpaceBox<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceBox<HConfig>::EvaluateInitial(void)
 {
-   for (auto xyz = 0; xyz < 3; xyz++) _pos[xyz] = startpos[xyz] + (endpos[xyz] - startpos[xyz]) * rng->GetUniform();
+   for (auto xyz = 0; xyz < 3; xyz++) _coords.Pos()[xyz] = startpos[xyz] + (endpos[xyz] - startpos[xyz]) * rng->GetUniform();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -275,9 +273,9 @@ void InitialSpaceBox<Trajectory>::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceSphere<Trajectory>::InitialSpaceSphere(void)
-                  : InitialBase(init_name_space_sphere, 0, INITIAL_SPACE | INITIAL_SURFACE)
+template <typename HConfig>
+InitialSpaceSphere<HConfig>::InitialSpaceSphere(void)
+                  : InitialBase(init_name, INITIAL_SPACE | INITIAL_SURFACE)
 {
 };
 
@@ -285,9 +283,9 @@ InitialSpaceSphere<Trajectory>::InitialSpaceSphere(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceSphere<Trajectory>::InitialSpaceSphere(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                  : InitialBase(name_in, specie_in, status_in)
+template <typename HConfig>
+InitialSpaceSphere<HConfig>::InitialSpaceSphere(const std::string& name_in, uint16_t status_in)
+                  : InitialBase(name_in, status_in)
 {
 };
 
@@ -298,8 +296,8 @@ InitialSpaceSphere<Trajectory>::InitialSpaceSphere(const std::string& name_in, u
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceSphere<Trajectory>::InitialSpaceSphere(const InitialSpaceSphere& other)
+template <typename HConfig>
+InitialSpaceSphere<HConfig>::InitialSpaceSphere(const InitialSpaceSphere& other)
                   : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -314,8 +312,8 @@ InitialSpaceSphere<Trajectory>::InitialSpaceSphere(const InitialSpaceSphere& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceSphere<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceSphere<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -327,8 +325,8 @@ void InitialSpaceSphere<Trajectory>::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-void InitialSpaceSphere<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceSphere<HConfig>::EvaluateInitial(void)
 {
    double st, ct, phi;
 
@@ -337,7 +335,7 @@ void InitialSpaceSphere<Trajectory>::EvaluateInitial(void)
    st = sqrt(1.0 - Sqr(ct));
    phi = M_2PI * rng->GetUniform();
 
-   _pos = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
+   _coords.Pos() = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -348,9 +346,9 @@ void InitialSpaceSphere<Trajectory>::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceSphereSector<Trajectory>::InitialSpaceSphereSector(void)
-                        : InitialSpaceSphere(init_name_space_sphere_sector, 0, INITIAL_SPACE | INITIAL_SURFACE)
+template <typename HConfig>
+InitialSpaceSphereSector<HConfig>::InitialSpaceSphereSector(void)
+                        : InitialSpaceSphere(init_name, INITIAL_SPACE | INITIAL_SURFACE)
 {
 };
 
@@ -361,8 +359,8 @@ InitialSpaceSphereSector<Trajectory>::InitialSpaceSphereSector(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceSphereSector<Trajectory>::InitialSpaceSphereSector(const InitialSpaceSphereSector& other)
+template <typename HConfig>
+InitialSpaceSphereSector<HConfig>::InitialSpaceSphereSector(const InitialSpaceSphereSector& other)
                         : InitialSpaceSphere(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -378,8 +376,8 @@ InitialSpaceSphereSector<Trajectory>::InitialSpaceSphereSector(const InitialSpac
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceSphereSector<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceSphereSector<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialSpaceSphere::SetupInitial(false);
@@ -406,8 +404,8 @@ void InitialSpaceSphereSector<Trajectory>::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 06/28/2022
 */
-template <typename Trajectory>
-void InitialSpaceSphereSector<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceSphereSector<HConfig>::EvaluateInitial(void)
 {
    double st, ct, phi;
 
@@ -416,7 +414,7 @@ void InitialSpaceSphereSector<Trajectory>::EvaluateInitial(void)
    st = sqrt(1.0 - Sqr(ct));
    phi = phi1 + (phi2 - phi1) * rng->GetUniform();
 
-   _pos = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
+   _coords.Pos() = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -427,9 +425,9 @@ void InitialSpaceSphereSector<Trajectory>::EvaluateInitial(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory>
-InitialSpaceRankineHalfBody<Trajectory>::InitialSpaceRankineHalfBody(void)
-                           : InitialBase(init_name_space_rankine_half_body, 0, INITIAL_SPACE | INITIAL_SURFACE)
+template <typename HConfig>
+InitialSpaceRankineHalfBody<HConfig>::InitialSpaceRankineHalfBody(void)
+                           : InitialBase(init_name, INITIAL_SPACE | INITIAL_SURFACE)
 {
 };
 
@@ -440,8 +438,8 @@ InitialSpaceRankineHalfBody<Trajectory>::InitialSpaceRankineHalfBody(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceRankineHalfBody<Trajectory>::InitialSpaceRankineHalfBody(const InitialSpaceRankineHalfBody& other)
+template <typename HConfig>
+InitialSpaceRankineHalfBody<HConfig>::InitialSpaceRankineHalfBody(const InitialSpaceRankineHalfBody& other)
                            : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -457,8 +455,8 @@ InitialSpaceRankineHalfBody<Trajectory>::InitialSpaceRankineHalfBody(const Initi
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceRankineHalfBody<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceRankineHalfBody<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -477,8 +475,8 @@ void InitialSpaceRankineHalfBody<Trajectory>::SetupInitial(bool construct)
 \author Vladimir Florinski
 \date 06/28/2022
 */
-template <typename Trajectory>
-void InitialSpaceRankineHalfBody<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceRankineHalfBody<HConfig>::EvaluateInitial(void)
 {
    double costheta, r, z, s, phi;
 
@@ -489,7 +487,7 @@ void InitialSpaceRankineHalfBody<Trajectory>::EvaluateInitial(void)
    s = sqrt(Sqr(r) - Sqr(z));
    phi = M_2PI * rng->GetUniform();
 
-   _pos = origin + GeoVector(s * cos(phi), s * sin(phi), z);
+   _coords.Pos() = origin + GeoVector(s * cos(phi), s * sin(phi), z);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -500,9 +498,9 @@ void InitialSpaceRankineHalfBody<Trajectory>::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 04/09/2023
 */
-template <typename Trajectory>
-InitialSpaceTable<Trajectory>::InitialSpaceTable(void)
-                 : InitialTable(init_name_space_table, 0, INITIAL_SPACE | INITIAL_POINT)
+template <typename HConfig>
+InitialSpaceTable<HConfig>::InitialSpaceTable(void)
+                 : InitialTable(init_name, INITIAL_SPACE | INITIAL_POINT)
 {
 };
 
@@ -513,8 +511,8 @@ InitialSpaceTable<Trajectory>::InitialSpaceTable(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceTable<Trajectory>::InitialSpaceTable(const InitialSpaceTable& other)
+template <typename HConfig>
+InitialSpaceTable<HConfig>::InitialSpaceTable(const InitialSpaceTable& other)
                  : InitialTable(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -526,8 +524,8 @@ InitialSpaceTable<Trajectory>::InitialSpaceTable(const InitialSpaceTable& other)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-template <typename Trajectory>
-void InitialSpaceTable<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceTable<HConfig>::EvaluateInitial(void)
 {
    if (random) {
 
@@ -535,12 +533,12 @@ void InitialSpaceTable<Trajectory>::EvaluateInitial(void)
       table_counter = rng->GetUniform() * initquant.size();
 
 // Pull position in randomly selected place on the table
-      _pos = initquant[table_counter];
+      _coords.Pos() = initquant[table_counter];
    }
    else {
 
 // Pull next position on the table
-      _pos = initquant[table_counter++];
+      _coords.Pos() = initquant[table_counter++];
 
 // If all positions have been sampled, reset the counter
       if (table_counter == initquant.size()) table_counter = 0;
@@ -555,9 +553,9 @@ void InitialSpaceTable<Trajectory>::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 05/16/2023
 */
-template <typename Trajectory>
-InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(void)
-                    : InitialBase(init_name_space_cylinder, 0, INITIAL_SPACE | INITIAL_SURFACE)
+template <typename HConfig>
+InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(void)
+                    : InitialBase(init_name, INITIAL_SPACE | INITIAL_SURFACE)
 {
 };
 
@@ -565,9 +563,9 @@ InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(void)
 \author Juan G Alonso Guzman
 \date 05/16/2023
 */
-template <typename Trajectory>
-InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                    : InitialBase(name_in, specie_in, status_in)
+template <typename HConfig>
+InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const std::string& name_in, uint16_t status_in)
+                    : InitialBase(name_in, status_in)
 {
 };
 
@@ -578,8 +576,8 @@ InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(const std::string& name_i
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(const InitialSpaceCylinder& other)
+template <typename HConfig>
+InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const InitialSpaceCylinder& other)
                     : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -594,8 +592,8 @@ InitialSpaceCylinder<Trajectory>::InitialSpaceCylinder(const InitialSpaceCylinde
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceCylinder<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceCylinder<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
@@ -610,15 +608,15 @@ void InitialSpaceCylinder<Trajectory>::SetupInitial(bool construct)
 \author Juan G Alonso Guzman
 \date 05/16/2023
 */
-template <typename Trajectory>
-void InitialSpaceCylinder<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceCylinder<HConfig>::EvaluateInitial(void)
 {
    double z, phi;
 
    z = rng->GetUniform();
    phi = M_2PI * rng->GetUniform();
 
-   _pos = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
+   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -629,9 +627,9 @@ void InitialSpaceCylinder<Trajectory>::EvaluateInitial(void)
 \author Juan G Alonso Guzman
 \date 05/16/2023
 */
-template <typename Trajectory>
-InitialSpaceCylinderSector<Trajectory>::InitialSpaceCylinderSector(void)
-                          : InitialSpaceCylinder(init_name_space_cylinder_sector, 0, INITIAL_SPACE | INITIAL_SURFACE)
+template <typename HConfig>
+InitialSpaceCylinderSector<HConfig>::InitialSpaceCylinderSector(void)
+                          : InitialSpaceCylinder(init_name, INITIAL_SPACE | INITIAL_SURFACE)
 {
 };
 
@@ -642,8 +640,8 @@ InitialSpaceCylinderSector<Trajectory>::InitialSpaceCylinderSector(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialSpaceCylinderSector<Trajectory>::InitialSpaceCylinderSector(const InitialSpaceCylinderSector& other)
+template <typename HConfig>
+InitialSpaceCylinderSector<HConfig>::InitialSpaceCylinderSector(const InitialSpaceCylinderSector& other)
                           : InitialSpaceCylinder(other)
 {
    RAISE_BITS(_status, INITIAL_SPACE);
@@ -658,8 +656,8 @@ InitialSpaceCylinderSector<Trajectory>::InitialSpaceCylinderSector(const Initial
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialSpaceCylinderSector<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialSpaceCylinderSector<HConfig>::SetupInitial(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialSpaceCylinder::SetupInitial(false);
@@ -676,15 +674,15 @@ void InitialSpaceCylinderSector<Trajectory>::SetupInitial(bool construct)
 \author Juan G Alonso Guzman
 \date 05/16/2023
 */
-template <typename Trajectory>
-void InitialSpaceCylinderSector<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialSpaceCylinderSector<HConfig>::EvaluateInitial(void)
 {
    double z, phi;
 
    z = rng->GetUniform();
    phi = phi1 + (phi2 - phi1) * rng->GetUniform();
 
-   _pos = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
+   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
 };
 
 };

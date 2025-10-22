@@ -24,26 +24,22 @@ The class is optimized for convenience, not speed. All distributions are treated
 Parameters: MultiIndex n_bins, GeoVector minval, GeoVector maxval, MultiIndex log_bins, MultiIndex bin_outside, distroClass unit_distro,
             GeoVector unit_val
 */
-template <typename Trajectory_, class distroClass>
-class DistributionTemplated : public DistributionBase<Trajectory_> {
+template <typename HConfig_, class distroClass>
+class DistributionTemplated : public DistributionBase<HConfig_> {
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using DistributionBase = DistributionBase<Trajectory>;
+   using HConfig = HConfig_;
+   using DistributionBase = DistributionBase<HConfig>;
 
 protected:
 
-   using DistributionBase::_t;
-   using DistributionBase::_t2;
-   using DistributionBase::_pos;
-   using DistributionBase::_pos2;
-   using DistributionBase::_mom;
-   using DistributionBase::_mom2;
-   using DistributionBase::_fields;
+   using DistributionBase::_coords1;
+   using DistributionBase::_fields1;
+   using DistributionBase::_coords2;
    using DistributionBase::_fields2;
-   using DistributionBase::_edata;
+   using DistributionBase::_edata1;
    using DistributionBase::_edata2;
+   //
    using DistributionBase::container;
    using DistributionBase::unit_val;
    using DistributionBase::_status;
@@ -86,7 +82,7 @@ protected:
    DistributionTemplated(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionTemplated(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   DistributionTemplated(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionTemplated(const DistributionTemplated& other);

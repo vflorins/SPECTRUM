@@ -10,7 +10,7 @@ using namespace Spectrum;
 int main(int argc, char** argv)
 {
    using Fields = Fields<Mag_t>;
-   using Background = BackgroundDipole<Fields>;
+   using Background = BackgroundDipole<HConfig>;
 
    Background background;
    DataContainer container;

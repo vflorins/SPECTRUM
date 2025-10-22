@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundServerBATL methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,8 +21,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 10/05/2022
 */
-template <typename HConfig>
-BackgroundServerBATL<HConfig>::BackgroundServerBATL(void)
+template <typename HConfig, typename ServerFront>
+BackgroundServerBATL<HConfig, ServerFront>::BackgroundServerBATL(void)
                     : BackgroundServerCartesian(bg_name, MODEL_STATIC)
 {
 };
@@ -32,8 +34,8 @@ BackgroundServerBATL<HConfig>::BackgroundServerBATL(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
 */
-template <typename HConfig>
-BackgroundServerBATL<HConfig>::BackgroundServerBATL(const BackgroundServerBATL& other)
+template <typename HConfig, typename ServerFront>
+BackgroundServerBATL<HConfig, ServerFront>::BackgroundServerBATL(const BackgroundServerBATL& other)
                     : BackgroundServerCartesian(other)
 {
    RAISE_BITS(_status, MODEL_STATIC);

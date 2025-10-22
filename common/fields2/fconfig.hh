@@ -16,16 +16,23 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 template <
+      SpecieId specieid = SpecieId::proton_core,
       CoordinateSystem Pos_sys_ = CoordinateSystem::cartesian,
       CoordinateSystem Mom_sys_ = CoordinateSystem::cartesian
 >
 class FConfig {
-
+   static constexpr auto specie = Specie<specieid>();
    static constexpr auto Pos_sys = Pos_sys_;
    static constexpr auto Mom_sys = Mom_sys_;
-
+   static constexpr auto Vel_sys = Mom_sys_;
+   // A CoordinateSystem is 'radial' if the 0th component is the radial component.
+   static constexpr bool Pos_radial = (Pos_sys == CoordinateSystem::polar || Pos_sys == CoordinateSystem::spherical);
+   static constexpr bool Mom_radial = (Mom_sys == CoordinateSystem::polar || Mom_sys == CoordinateSystem::spherical || Mom_sys == CoordinateSystem::pitchangle);
+   static  constexpr bool Vel_radial = Mom_radial;
+   static constexpr bool Mag_radial = false;
+   static constexpr bool Flum_radial = false;
+   static constexpr bool Fluv_radial = false;
 };
-
 
 }
 

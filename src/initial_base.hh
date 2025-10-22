@@ -43,29 +43,6 @@ const uint16_t INITIAL_VOLUME = 0x0400;
 //! Clone function pattern
 #define CloneFunctionInitial(T) std::unique_ptr<InitialBase> Clone(void) const override {return std::make_unique<T>();};
 
-//! Forward-declare Trajectory base types
-template <typename Trajectory, typename HConfig>
-class TrajectoryFieldlineBase;
-template <typename Trajectory, typename HConfig>
-class TrajectoryGuidingBase;
-//! Forward-declare Trajectory types
-template <typename Fields, typename Trace_t>
-class TrajectoryFieldline;
-template <typename Fields>
-class TrajectoryFocused;
-template <typename Fields>
-class TrajectoryGuiding;
-template <typename Fields>
-class TrajectoryGuidingDiff;
-template <typename Fields>
-class TrajectoryGuidingDiffScatt;
-template <typename Fields>
-class TrajectoryGuidingScatt;
-template <typename Fields>
-class TrajectoryLorentz;
-template <typename Fields>
-class TrajectoryParker;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // InitialBase class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,15 +55,23 @@ The InitialXXXXX" classes describe initial phase space coordinates for trajector
 
 Parameters:
 */
-template <typename Trajectory_>
+template <typename HConfig_>
 class InitialBase : public Params {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialBase";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using Trajectory::specie;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::TrajectoryConfig::TrajectoryCoordinates;
+   using HConfig::specie;
 
 protected:
+
+//! Coordinates
+   Coordinates _coords;
 
 //! Preferred direction (transient). We don't want a persistent argument because the direction could change if we have variable initial position.
    GeoVector axis;
@@ -146,13 +131,17 @@ public:
 
 Parameters: (InitialBase), std::string init_file_name, double scale, bool random
 */
-template <typename Trajectory_, class tableClass>
-class InitialTable : public InitialBase<Trajectory_> {
+template <typename HConfig_, class tableClass>
+class InitialTable : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialTable";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -175,7 +164,7 @@ protected:
    InitialTable(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialTable(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    InitialTable(const InitialTable& other);
@@ -190,8 +179,8 @@ protected:
 \date 07/01/2024
 \return True if the class describes initial condition in time
 */
-template <typename Trajectory>
-inline bool InitialBase<Trajectory>::IsInitialTime(void) const
+template <typename HConfig>
+inline bool InitialBase<HConfig>::IsInitialTime(void) const
 {
    return BITS_RAISED(_status, INITIAL_TIME);
 };
@@ -201,8 +190,8 @@ inline bool InitialBase<Trajectory>::IsInitialTime(void) const
 \date 10/01/2021
 \return True if the class describes initial condition in space
 */
-template <typename Trajectory>
-inline bool InitialBase<Trajectory>::IsInitialSpace(void) const
+template <typename HConfig>
+inline bool InitialBase<HConfig>::IsInitialSpace(void) const
 {
    return BITS_RAISED(_status, INITIAL_SPACE);
 };
@@ -212,8 +201,8 @@ inline bool InitialBase<Trajectory>::IsInitialSpace(void) const
 \date 10/01/2021
 \return True if the class describes initial condition in momentum
 */
-template <typename Trajectory>
-inline bool InitialBase<Trajectory>::IsInitialMomentum(void) const
+template <typename HConfig>
+inline bool InitialBase<HConfig>::IsInitialMomentum(void) const
 {
    return BITS_RAISED(_status, INITIAL_MOMENTUM);
 };

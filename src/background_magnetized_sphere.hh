@@ -33,7 +33,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundMagnetizedSphere<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -44,22 +45,23 @@ public:
    using BackgroundBase::B0;
    // methods
    using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HConfig>;
-   using BackgroundSphericalObstacle::EvaluateBmag;
+   using BackgroundSphericalObstacle::EvaluateAbsMag;
    using BackgroundSphericalObstacle::EvaluateDmax;
    using BackgroundSphericalObstacle::GetDmax;
-   using BackgroundSphericalObstacle::NumericalDerivatives;
    using BackgroundSphericalObstacle::StopServerFront;
    using BackgroundSphericalObstacle::SetupBackground;
+
+   using BackgroundConfig::derivative_method;
 
 protected:
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 

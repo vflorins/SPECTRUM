@@ -18,9 +18,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 01/26/2021
 */
-template <typename Trajectory>
-BoundaryTime<Trajectory>::BoundaryTime(void)
-            : BoundaryBase("", BOUNDARY_TIME)
+template <typename HConfig>
+BoundaryTime<HConfig>::BoundaryTime(void)
+            : BoundaryBase(bdy_name, BOUNDARY_TIME)
 {
 };
 
@@ -28,11 +28,10 @@ BoundaryTime<Trajectory>::BoundaryTime(void)
 \author Vladimir Florinski
 \date 01/25/2021
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-BoundaryTime<Trajectory>::BoundaryTime(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+BoundaryTime<HConfig>::BoundaryTime(const std::string& name_in, uint16_t status_in)
             : BoundaryBase(name_in, status_in)
 {
 };
@@ -44,8 +43,8 @@ BoundaryTime<Trajectory>::BoundaryTime(const std::string& name_in, uint16_t stat
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBoundary()" with the argument of "true".
 */
-template <typename Trajectory>
-BoundaryTime<Trajectory>::BoundaryTime(const BoundaryTime& other)
+template <typename HConfig>
+BoundaryTime<HConfig>::BoundaryTime(const BoundaryTime& other)
             : BoundaryBase(other)
 {
    RAISE_BITS(_status, BOUNDARY_TIME);
@@ -59,8 +58,8 @@ BoundaryTime<Trajectory>::BoundaryTime(const BoundaryTime& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void BoundaryTime<Trajectory>::SetupBoundary(bool construct)
+template <typename HConfig>
+void BoundaryTime<HConfig>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryBase::SetupBoundary(false);
@@ -71,10 +70,10 @@ void BoundaryTime<Trajectory>::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/26/2021
 */
-template <typename Trajectory>
-void BoundaryTime<Trajectory>::EvaluateBoundary(void)
+template <typename HConfig>
+void BoundaryTime<HConfig>::EvaluateBoundary(void)
 {
-   _delta = _t - timemark;
+   _delta = _coords.Time() - timemark;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,9 +84,9 @@ void BoundaryTime<Trajectory>::EvaluateBoundary(void)
 \author Vladimir Florinski
 \date 01/26/2021
 */
-template <typename Trajectory>
-BoundaryTimeExpire<Trajectory>::BoundaryTimeExpire(void)
-                  : BoundaryTime(bnd_name_time_expire, 0, BOUNDARY_TIME | BOUNDARY_TERMINAL)
+template <typename HConfig>
+BoundaryTimeExpire<HConfig>::BoundaryTimeExpire(void)
+                  : BoundaryTime(bdy_name, BOUNDARY_TIME | BOUNDARY_TERMINAL)
 {
    max_crossings = 1;
 };
@@ -99,8 +98,8 @@ BoundaryTimeExpire<Trajectory>::BoundaryTimeExpire(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBoundary()" with the argument of "true".
 */
-template <typename Trajectory>
-BoundaryTimeExpire<Trajectory>::BoundaryTimeExpire(const BoundaryTimeExpire& other)
+template <typename HConfig>
+BoundaryTimeExpire<HConfig>::BoundaryTimeExpire(const BoundaryTimeExpire& other)
                   : BoundaryTime(other)
 {
    RAISE_BITS(_status, BOUNDARY_TERMINAL);
@@ -115,8 +114,8 @@ BoundaryTimeExpire<Trajectory>::BoundaryTimeExpire(const BoundaryTimeExpire& oth
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void BoundaryTimeExpire<Trajectory>::SetupBoundary(bool construct)
+template <typename HConfig>
+void BoundaryTimeExpire<HConfig>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryTime::SetupBoundary(false);
@@ -131,9 +130,9 @@ void BoundaryTimeExpire<Trajectory>::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 01/27/2021
 */
-template <typename Trajectory>
-BoundaryTimePass<Trajectory>::BoundaryTimePass(void)
-                : BoundaryTime(bnd_name_time_pass, 0, BOUNDARY_TIME)
+template <typename HConfig>
+BoundaryTimePass<HConfig>::BoundaryTimePass(void)
+                : BoundaryTime(bdy_name, BOUNDARY_TIME)
 {
    max_crossings = -1;
 };
@@ -145,8 +144,8 @@ BoundaryTimePass<Trajectory>::BoundaryTimePass(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBoundary()" with the argument of "true".
 */
-template <typename Trajectory>
-BoundaryTimePass<Trajectory>::BoundaryTimePass(const BoundaryTimePass& other)
+template <typename HConfig>
+BoundaryTimePass<HConfig>::BoundaryTimePass(const BoundaryTimePass& other)
                 : BoundaryTime(other)
 {
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBoundary(true);
@@ -160,8 +159,8 @@ BoundaryTimePass<Trajectory>::BoundaryTimePass(const BoundaryTimePass& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void BoundaryTimePass<Trajectory>::SetupBoundary(bool construct)
+template <typename HConfig>
+void BoundaryTimePass<HConfig>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryTime::SetupBoundary(false);
@@ -176,9 +175,9 @@ void BoundaryTimePass<Trajectory>::SetupBoundary(bool construct)
 \author Vladimir Florinski
 \date 05/12/2022
 */
-template <typename Trajectory>
-BoundaryTimeRecurrent<Trajectory>::BoundaryTimeRecurrent(void)
-                     : BoundaryTime(bnd_name_time_pass, 0, BOUNDARY_TIME | BOUNDARY_RECURRENT)
+template <typename HConfig>
+BoundaryTimeRecurrent<HConfig>::BoundaryTimeRecurrent(void)
+                     : BoundaryTime(bdy_name, BOUNDARY_TIME | BOUNDARY_RECURRENT)
 {
 };
 
@@ -189,8 +188,8 @@ BoundaryTimeRecurrent<Trajectory>::BoundaryTimeRecurrent(void)
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBoundary()" with the argument of "true".
 */
-template <typename Trajectory>
-BoundaryTimeRecurrent<Trajectory>::BoundaryTimeRecurrent(const BoundaryTimeRecurrent& other)
+template <typename HConfig>
+BoundaryTimeRecurrent<HConfig>::BoundaryTimeRecurrent(const BoundaryTimeRecurrent& other)
                      : BoundaryTime(other)
 {
    RAISE_BITS(_status, BOUNDARY_RECURRENT);
@@ -204,8 +203,8 @@ BoundaryTimeRecurrent<Trajectory>::BoundaryTimeRecurrent(const BoundaryTimeRecur
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void BoundaryTimeRecurrent<Trajectory>::SetupBoundary(bool construct)
+template <typename HConfig>
+void BoundaryTimeRecurrent<HConfig>::SetupBoundary(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) BoundaryTime::SetupBoundary(false);
@@ -216,10 +215,10 @@ void BoundaryTimeRecurrent<Trajectory>::SetupBoundary(bool construct)
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory>
-void BoundaryTimeRecurrent<Trajectory>::EvaluateBoundary(void)
+template <typename HConfig>
+void BoundaryTimeRecurrent<HConfig>::EvaluateBoundary(void)
 {
-   _delta = _t - (CrossingsMade() + 1) * timemark;
+   _delta = _coords.Time() - (CrossingsMade() + 1) * timemark;
 };
 
 };

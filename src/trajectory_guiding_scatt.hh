@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_SCATT_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_SCATT_HH
 
-#include "trajectory_guiding_base.hh"
+#include "trajectory_guiding.hh"
 
 namespace Spectrum {
 
@@ -23,21 +23,27 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename HConfig_>
-class TrajectoryGuidingScatt : public TrajectoryGuidingBase<TrajectoryGuidingScatt<HConfig_>, HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_, Background_> {
 
-//! Readable name of the TrajectoryGuidingScatt class
+//! Readable name of the class
    static constexpr std::string_view traj_name = "TrajectoryGuidingScatt";
 
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
+   using HConfig::TrajectoryConfig::split_scatt;
+   using HConfig::TrajectoryConfig::split_scatt_fraction;
+   using HConfig::TrajectoryConfig::stochastic_method_mu;
+   using HConfig::TrajectoryConfig::const_dmumax;
+   using HConfig::TrajectoryConfig::cfl_pitchangle;
 
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingScatt<HConfig>, HConfig>;
+   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
 
 protected:
 
@@ -48,6 +54,12 @@ protected:
    using TrajectoryBase::dt;
    using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
+   using TrajectoryBase::records;
+
+   using typename TrajectoryBase::DiffusionCoordinates;
+   using typename TrajectoryBase::DiffusionFields;
+   using typename TrajectoryBase::DiffusionFieldsRemainder;
+   using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
 //   using TrajectoryBase::_status;
 //   using TrajectoryBase::_t;
@@ -72,19 +84,18 @@ protected:
    using TrajectoryBase::slope_mom;
 //   // methods:
    using TrajectoryBase::Load;
-   using TrajectoryBase::Store;
+//   using TrajectoryBase::Store;
    using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::StoreLocal;
    using TrajectoryBase::RKSlopes;
    using TrajectoryBase::RKStep;
    using TrajectoryBase::HandleBoundaries;
-   using TrajectoryBase::CommonFields;
    using TrajectoryBase::MomentumCorrection;
    using TrajectoryBase::SpaceTerminateCheck;
 
-   using TrajectoryGuidingBase::DriftCoeff;
-   using TrajectoryGuidingBase::Slopes;
-   using TrajectoryGuidingBase::ConvertMomentum;
+   using TrajectoryGuiding::DriftCoeff;
+   using TrajectoryGuiding::Slopes;
+//   using TrajectoryGuiding::ConvertMomentum;
 
 
 protected:
@@ -95,10 +106,8 @@ protected:
 //! Rate of change of Dmumu with mu (transient)
    double Vmu;
 
-#ifdef GEO_DEBUG
 //! Number of times |mu| > 1
    int Nabsmugt1 = 0;
-#endif
 
 //! Computes the pitch angle diffusion coefficient
    virtual void DiffusionCoeff(void);
@@ -135,15 +144,12 @@ public:
 //! Clone function
    CloneFunctionTrajectory(TrajectoryGuidingScatt);
 
-#ifdef GEO_DEBUG
-
 //! Return number of |mu| = 1 crossings
    int fabsmugt1(void) const;
 
 //! Reset number of |mu| = 1 crossings
    void ResetNabsmugt1(void);
 
-#endif
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -157,8 +163,8 @@ public:
 \date 05/03/2022
 \return Number of |mu| = 1 crossings
 */
-template <typename Fields>
-inline int TrajectoryGuidingScatt<Fields>::fabsmugt1(void) const
+template <typename HConfig>
+inline int TrajectoryGuidingScatt<HConfig>::fabsmugt1(void) const
 {
    return Nabsmugt1;
 };
@@ -167,8 +173,8 @@ inline int TrajectoryGuidingScatt<Fields>::fabsmugt1(void) const
 \author Juan G Alonso Guzman
 \date 05/03/2022
 */
-template <typename Fields>
-inline void TrajectoryGuidingScatt<Fields>::ResetNabsmugt1(void)
+template <typename HConfig>
+inline void TrajectoryGuidingScatt<HConfig>::ResetNabsmugt1(void)
 {
    Nabsmugt1 = 0;
 };

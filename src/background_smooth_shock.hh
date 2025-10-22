@@ -34,7 +34,8 @@ public:
 
    using HConfig = HConfig_;
    using BackgroundShock = BackgroundShock<HConfig>;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSmoothShock<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -44,21 +45,21 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
 
    using BackgroundShock::u1;
    using BackgroundShock::B1;
    using BackgroundShock::n_shock;
    using BackgroundShock::v_shock;
 
-//! Scaling factor to better match shock width when using smooth shock (tanh)
+   using BackgroundConfig::derivative_method;
+   using BackgroundConfig::smooth_discontinuity_order;
+
+   //! Scaling factor to better match shock width when using smooth shock (tanh)
    const double tanh_width_factor = 4.0;
 
 protected:
@@ -79,18 +80,19 @@ protected:
    double ShockTransitionDerivative(double x);
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
    //! Compute the maximum distance per time step
-   void EvaluateDmax(BackgroundCoordinates&) override;
+   template <typename Coordinates>
+   void EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -101,7 +103,7 @@ public:
    BackgroundSmoothShock(const BackgroundSmoothShock& other);
 
 //! Destructor
-   ~BackgroundSmoothShock() override = default;
+   ~BackgroundSmoothShock() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundSmoothShock);

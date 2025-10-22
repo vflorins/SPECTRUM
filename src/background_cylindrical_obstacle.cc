@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundCylindricalObstacle methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -84,17 +86,17 @@ void BackgroundCylindricalObstacle<HConfig>::SetupBackground(bool construct)
 Compute the internal u, B, and E fields
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 
    GeoVector posprime = coords.Pos() - r0;
    posprime.SubtractParallel(axis);
    double posprimenorm = posprime.Norm();
 
-   if constexpr (Fields::Vel_found())
-      fields.Vel() = gv_zeros;
-   if constexpr (Fields::Mag_found()) {
+   if constexpr (RequestedFields::Fluv_found())
+      fields.Fluv() = gv_zeros;
+   if constexpr (RequestedFields::Mag_found()) {
       if (posprimenorm < r_cylinder)
          fields.Mag() = gv_zeros;
       else {
@@ -102,9 +104,9 @@ void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(BackgroundCoordi
          fields.Mag() = B0 - Sqr(r_cylinder) / s2 * (2.0 * (posprime * B0) / s2 * posprime - B0);
       };
    };
-   if constexpr (Fields::Elc_found())
+   if constexpr (RequestedFields::Elc_found())
       fields.Elc() = gv_zeros;
-   if constexpr (Fields::Iv1_found()) {
+   if constexpr (RequestedFields::Iv1_found()) {
       if (posprimenorm < r_cylinder) fields.Iv1() = 0.0;
       else fields.Iv1() = 1.0;
    }
@@ -118,30 +120,30 @@ void BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(BackgroundCoordi
 \date 09/08/2025
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates&) coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
       GeoVector posprime = coords.Pos() - r0;
       posprime.SubtractParallel(axis);
       double posprimenorm = posprime.Norm();
 
-      if constexpr (Fields::DelVel_found())
-         fields.DelVel() = gm_zeros;
-      if constexpr (Fields::DelMag_found()) {
+      if constexpr (RequestedFields::DelFluv_found())
+         fields.DelFluv() = gm_zeros;
+      if constexpr (RequestedFields::DelMag_found()) {
          if (posprimenorm < r_cylinder)
             fields.DelMag() = gm_zeros;
          else {
 // TODO: complete
          };
       };
-      if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
-      if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
-      if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
-      if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
+      if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
+      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
+      if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
+      if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives(coords, fields);
+      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    }
 };
 
@@ -151,6 +153,7 @@ void BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(Backg
 \date 08/06/2025
 */
 template <typename HConfig>
+template <typename Coordinates>
 void BackgroundCylindricalObstacle<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    GeoVector posprime = coords.Pos() - r0;

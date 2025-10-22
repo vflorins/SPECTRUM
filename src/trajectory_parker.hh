@@ -20,8 +20,8 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-template <typename HConfig_>
-class TrajectoryParker : public TrajectoryBase<TrajectoryParker<HConfig_>, HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryParker : public TrajectoryBase<HConfig_, Background_> {
 
    //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryParker";
@@ -29,12 +29,11 @@ class TrajectoryParker : public TrajectoryBase<TrajectoryParker<HConfig_>, HConf
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
-
-   using DiffusionFields = HConfig::DiffusionFields;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -45,13 +44,17 @@ public:
    using TrajectoryBase::dt_physical;
 
    using TrajectoryBase::diffusion;
+   using typename TrajectoryBase::DiffusionCoordinates;
+   using typename TrajectoryBase::DiffusionFields;
+   using typename TrajectoryBase::DiffusionFieldsRemainder;
+
    using TrajectoryBase::background;
    using TrajectoryBase::rng;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
 
    using TrajectoryBase::Load;
-   using TrajectoryBase::Store;
+//   using TrajectoryBase::Store;
    using TrajectoryBase::StoreLocal;
    using TrajectoryBase::RKSlopes;
    using TrajectoryBase::RKStep;
@@ -59,6 +62,7 @@ public:
    using TrajectoryBase::CommonFields;
    using TrajectoryBase::ConnectRNG;
    using TrajectoryBase::TimeBoundaryProximityCheck;
+   using TrajectoryBase::records;
 
 // todo: the list of checks is not exhausive
    static_assert(TrajectoryFields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
@@ -144,8 +148,8 @@ public:
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Fields>
-inline void TrajectoryParker<Fields>::ReverseMomentum(void)
+template <typename Background, typename Diffusion>
+inline void TrajectoryParker<Background, Diffusion>::ReverseMomentum(void)
 {
 };
 

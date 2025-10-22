@@ -2683,7 +2683,7 @@ public:
 \date 10/18/2022
 \return Divergence of U
 */
-   inline double divU(void)
+   inline double DivVel(void)
    {
       return DelVel().Trace();
    };
@@ -2693,7 +2693,7 @@ public:
 \date 10/18/2022
 \return Divergence of B
 */
-   inline double divB(void)
+   inline double DivMag(void)
    {
       return DelMag().Trace();
    };
@@ -2728,7 +2728,7 @@ public:
 \date 10/18/2022
 \return Curl of B
 */
-   inline GeoVector curlB(void)
+   inline GeoVector CurlMag(void)
    {
       GeoVector vec_tmp;
       GeoMatrix G = DelMag();
@@ -2743,7 +2743,7 @@ public:
 \date 10/18/2022
 \return Curl of E
 */
-   inline GeoVector curlE(void)
+   inline GeoVector CurlElc(void)
    {
       GeoVector vec_tmp;
       GeoMatrix G = DelElc();
@@ -2761,12 +2761,12 @@ public:
 \return Divergence of bhat
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
-   double divbhat()
+   double DivHatMag()
    {
       auto bhat = DotMag();
       auto Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
-      auto Bdiv = divB();
+      auto Bdiv = DivMag();
       double x1 = gradBmag * bhat;
       auto x2 = Bdiv - x1;
       auto x3 = x2/Bmag;
@@ -2779,13 +2779,13 @@ public:
 \return Curl of bhat
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
-   GeoVector curlbhat()
+   GeoVector CurlHatMag()
    {
       auto bhat = HatMag();
       // todo fix when using auto or MmagT to set type
       double Bmag = AbsMag();
       auto gradBmag = DelAbsMag();
-      return (curlB() - (gradBmag ^ bhat)) / Bmag;
+      return (CurlMag() - (gradBmag ^ bhat)) / Bmag;
    };
 
 /*!
@@ -2794,7 +2794,7 @@ public:
 \return Gradient of bhat
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
-   GeoMatrix gradbhat()
+   GeoMatrix DelHatMag()
    {
       auto bhat = HatMag();
       double Bmag = AbsMag();
@@ -2811,7 +2811,7 @@ public:
 \date 07/02/2024
 \return Time derivative of bhat
 */
-   GeoVector dbhatdt()
+   GeoVector DotHatMag()
    {
       auto dBvecdt = DotMag();
       auto dBmagdt = DotAbsMag();

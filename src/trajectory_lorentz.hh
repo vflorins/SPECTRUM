@@ -18,8 +18,8 @@ namespace Spectrum {
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
 \author Vladimir Florinski
 */
-template <typename HConfig_>
-class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<HConfig_>, HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryLorentz : public TrajectoryBase<HConfig_, Background_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryLorentz";
@@ -27,9 +27,10 @@ class TrajectoryLorentz : public TrajectoryBase<TrajectoryLorentz<HConfig_>, HCo
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
 
    using TrajectoryBase::_status;
@@ -54,7 +55,7 @@ protected:
    double t_mirror;
 
 //! Conversion from (p_x,p_y,p_z) to (p,mu,phi)
-   GeoVector ConvertMomentum(void) const override;
+//   GeoVector ConvertMomentum(void) const override;
 
 //! Compute the RK slopes
    void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
@@ -87,16 +88,16 @@ public:
 // TrajectoryLorentz inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\date 09/02/2022
-\return A vector in the (p,mu,phi) format
-*/
-template <typename Fields>
-inline GeoVector TrajectoryLorentz<Fields>::ConvertMomentum(void) const
-{
-   return GeoVector(_coords.Mom().Norm(), (_coords.Mom() * _fields.HatMag()) / _coords.Mom().Norm(), 0.0);
-};
+///*!
+//\author Vladimir Florinski
+//\date 09/02/2022
+//\return A vector in the (p,mu,phi) format
+//*/
+//template <typename Background, typename Diffusion>
+//inline GeoVector TrajectoryLorentz<Background, Diffusion>::ConvertMomentum(void) const
+//{
+//   return GeoVector(_coords.Mom().Norm(), (_coords.Mom() * _fields.HatMag()) / _coords.Mom().Norm(), 0.0);
+//};
 
 
 };

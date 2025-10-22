@@ -21,9 +21,9 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/27/2021
 */
-template <typename Trajectory>
-InitialBase<Trajectory>::InitialBase(void)
-           : Params("", STATE_NONE)
+template <typename HConfig>
+InitialBase<HConfig>::InitialBase(void)
+           : Params(init_name, STATE_NONE)
 {
 };
 
@@ -31,11 +31,10 @@ InitialBase<Trajectory>::InitialBase(void)
 \author Vladimir Florinski
 \date 06/14/2021
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-InitialBase<Trajectory>::InitialBase(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+InitialBase<HConfig>::InitialBase(const std::string& name_in, uint16_t status_in)
            : Params(name_in, status_in)
 {
 };
@@ -48,8 +47,8 @@ InitialBase<Trajectory>::InitialBase(const std::string& name_in, uint16_t status
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory>
-InitialBase<Trajectory>::InitialBase(const InitialBase& other)
+template <typename HConfig>
+InitialBase<HConfig>::InitialBase(const InitialBase& other)
            : Params(other)
 {
 // Params' constructor sets the state to "STATE_NONE"
@@ -63,8 +62,8 @@ InitialBase<Trajectory>::InitialBase(const InitialBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupInitial()" method.
 */
-template <typename Trajectory>
-void InitialBase<Trajectory>::SetupObject(const DataContainer& cont_in)
+template <typename HConfig>
+void InitialBase<HConfig>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupInitial(false);
@@ -77,8 +76,8 @@ void InitialBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void InitialBase<Trajectory>::SetupInitial(bool construct)
+template <typename HConfig>
+void InitialBase<HConfig>::SetupInitial(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -91,8 +90,8 @@ void InitialBase<Trajectory>::SetupInitial(bool construct)
 \date 12/27/2021
 \note This is only a stub
 */
-template <typename Trajectory>
-void InitialBase<Trajectory>::EvaluateInitial(void)
+template <typename HConfig>
+void InitialBase<HConfig>::EvaluateInitial(void)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -104,14 +103,14 @@ void InitialBase<Trajectory>::EvaluateInitial(void)
 \return Initial time from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-template <typename Trajectory>
-double InitialBase<Trajectory>::GetTimeSample(void)
+template <typename HConfig>
+double InitialBase<HConfig>::GetTimeSample(void)
 {
 // Evaluate internal distribution.
    EvaluateInitial();
 
 // Return the internal time.
-   return _t;
+   return _coords.Time();
 };
 
 /*!
@@ -121,14 +120,14 @@ double InitialBase<Trajectory>::GetTimeSample(void)
 \return Initial position from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-template <typename Trajectory>
-GeoVector InitialBase<Trajectory>::GetPosSample(void)
+template <typename HConfig>
+GeoVector InitialBase<HConfig>::GetPosSample(void)
 {
 // Evaluate internal distribution.
    EvaluateInitial();
 
 // Return the internal position.
-   return _pos;
+   return _coords.Pos();
 };
 
 /*!
@@ -139,15 +138,15 @@ GeoVector InitialBase<Trajectory>::GetPosSample(void)
 \return Initial momentum from internal distribution
 \note This is a common routine that the derived classes should not change.
 */
-template <typename Trajectory>
-GeoVector InitialBase<Trajectory>::GetMomSample(const GeoVector& axis_in)
+template <typename HConfig>
+GeoVector InitialBase<HConfig>::GetMomSample(const GeoVector& axis_in)
 {
 // Evaluate internal distribution. The only possible error is if "axis" is zero, so we don't throw an exception here.
    axis = UnitVec(axis_in);
    EvaluateInitial();
 
 // Return the internal momentum.
-   return _mom;
+   return _coords.Mom();
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -158,9 +157,9 @@ GeoVector InitialBase<Trajectory>::GetMomSample(const GeoVector& axis_in)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 */
-template <typename Trajectory, class tableClass>
-InitialTable<Trajectory, tableClass>::InitialTable(void)
-                        : InitialBase("", 0, INITIAL_POINT)
+template <typename HConfig, class tableClass>
+InitialTable<HConfig, tableClass>::InitialTable(void)
+                        : InitialBase(init_name, INITIAL_POINT)
 {
 };
 
@@ -168,12 +167,11 @@ InitialTable<Trajectory, tableClass>::InitialTable(void)
 \author Juan G Alonso Guzman
 \date 12/27/2023
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory, class tableClass>
-InitialTable<Trajectory, tableClass>::InitialTable(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                        : InitialBase(name_in, specie_in, status_in)
+template <typename HConfig, class tableClass>
+InitialTable<HConfig, tableClass>::InitialTable(const std::string& name_in, uint16_t status_in)
+                        : InitialBase(name_in, status_in)
 {
 };
 
@@ -184,8 +182,8 @@ InitialTable<Trajectory, tableClass>::InitialTable(const std::string& name_in, u
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
 */
-template <typename Trajectory, class tableClass>
-InitialTable<Trajectory, tableClass>::InitialTable(const InitialTable& other)
+template <typename HConfig, class tableClass>
+InitialTable<HConfig, tableClass>::InitialTable(const InitialTable& other)
                         : InitialBase(other)
 {
    RAISE_BITS(_status, INITIAL_POINT);
@@ -199,8 +197,8 @@ InitialTable<Trajectory, tableClass>::InitialTable(const InitialTable& other)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory, class tableClass>
-void InitialTable<Trajectory, tableClass>::SetupInitial(bool construct)
+template <typename HConfig, class tableClass>
+void InitialTable<HConfig, tableClass>::SetupInitial(bool construct)
 {
    std::string init_file_name, coord_type;
    std::ifstream init_file;

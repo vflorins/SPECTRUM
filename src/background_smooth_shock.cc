@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothShock methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,25 +51,25 @@ template <typename HConfig>
 double BackgroundSmoothShock<HConfig>::ShockTransition(double x)
 {
    double y = x + 0.5;
-   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+   if constexpr (smooth_discontinuity_order == 0) {
       // not continous
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return y;
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+   else if constexpr (smooth_discontinuity_order == 1){
       // differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Sqr(y) * (3.0 - 2.0 * y);
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+   else if constexpr (smooth_discontinuity_order == 2) {
       // twice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+   else if constexpr (smooth_discontinuity_order == 3) {
       // thrice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
@@ -89,22 +91,22 @@ template <typename HConfig>
 double BackgroundSmoothShock<HConfig>::ShockTransitionDerivative(double x)
 {
    double y = x + 0.5;
-   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+   if constexpr (smooth_discontinuity_order == 0) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 1.0;
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+   else if constexpr (smooth_discontinuity_order == 1){
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 6.0 * y * (1.0 - y);
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+   else if constexpr (smooth_discontinuity_order == 2) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+   else if constexpr (smooth_discontinuity_order == 3) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
@@ -137,8 +139,8 @@ void BackgroundSmoothShock<HConfig>::SetupBackground(bool construct)
 \date 05/14/2025
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
    ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
@@ -147,10 +149,10 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackground(BackgroundCoordinates& c
    a2 = 1.0 - a1;
 
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
-   if constexpr (Fields::Vel_found()) fields.Vel() = u0 * a1 + u1 * a2;
-   if constexpr (Fields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
-   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
-   if constexpr (Fields::Iv0_found()) fields.Ev0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u0 * a1 + u1 * a2;
+   if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -160,37 +162,34 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackground(BackgroundCoordinates& c
 \date 10/20/2023
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      if constexpr (Fields::DelVel_found()) {
-         fields.gradUvec.Dyadic(n_shock, u0 - u1);
-         fields.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
+      if constexpr (RequestedFields::DelFluv_found()) {
+         fields.DelFluv().Dyadic(n_shock, u0 - u1);
+         fields.DelFluv() *= ShockTransitionDerivative(ds_shock) / width_shock;
       };
-      if constexpr (Fields::DelMag_found()) {
+      if constexpr (RequestedFields::DelMag_found()) {
          fields.DelMag().Dyadic(n_shock, B0 - B1);
          fields.DelMag() *= ShockTransitionDerivative(ds_shock) / width_shock;
-         GeoVector bhat;
-         if constexpr (Fields::HatMag_found()) bhat = fields.HatMag();
-         else bhat = fields.Mag() / fields.Mag().Norm();
-         fields.DelMag() = fields.DelMag() * bhat;
+         fields.DelMag() = fields.DelMag() * fields.HatMag();
       };
-      if constexpr (Fields::DelElc_found()) {
-         fields.gradEvec = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
+      if constexpr (RequestedFields::DelElc_found()) {
+         fields.DelElc() = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (Fields::DotVel_found()) {
-         fields.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+      if constexpr (RequestedFields::DotFluv_found()) {
+         fields.DotFluv() = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
       };
-      if constexpr (Fields::DotMag_found()) {
-         fields.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
+      if constexpr (RequestedFields::DotMag_found()) {
+         fields.DotMag() = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
       };
-      if constexpr (Fields::DotElc_found()) {
-         fields.dEvecdt = -((fields.DotVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DotMag())) / c_code;
+      if constexpr (RequestedFields::DotElc_found()) {
+         fields.DotElc() = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
       };
    }
    else {
-      NumericalDerivatives(coords, fields);
+      NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 
@@ -198,8 +197,9 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoo
 \author Juan G Alonso Guzman
 \date 02/28/2025
 */
-template <typename Fields>
-void BackgroundSmoothShock<Fields>::EvaluateDmax(BackgroundCoordinates& coords)
+template <typename HConfig>
+template <typename Coordinates>
+void BackgroundSmoothShock<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

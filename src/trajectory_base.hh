@@ -19,6 +19,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/rk_lists.hh"
 #include "trajectory_records.hh"
 
+#include "common/fields2/field_ops.hh"
+
 namespace Spectrum {
 
 //! The trajectory will end after the step is completed
@@ -144,30 +146,43 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-template <typename Trajectory_, typename HConfig_>
+template <typename Background_, typename Diffusion_>
 class TrajectoryBase : public Params {
 
 public:
 
-   using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
-   using HConfig::specie;
-   using ButcherTable = ButcherTable<HConfig::rk_integrator>;
-   using Records = Records<Coordinates, specie, HConfig::record_mag_extrema, HConfig::record_trajectory>;
-   using BackgroundBase = BackgroundBase<HConfig>;
+   using Background = Background_;
+   using HConfig = Background::HConfig_;
+   using Diffusion = Diffusion_;
+   using TrajectoryConfig = Cond<std::same_as<typename HConfig::TrajectoryConfig, Default>, TrajectoryDefault<TrajectoryBase<Background, Diffusion>>, typename HConfig::TrajectoryConfig>;
+   using TrajectoryCoordinates = TrajectoryConfig::Coordinates;
+   using RecordCoordinates = TrajectoryConfig::RecordCoordinates;
+   // todo setify received fields in all base types _________
+   using TrajectoryFields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
+   // todo this cannot be resolved here without a Cond. Should we apply another Cond here? .....there is no other choice, we need coords, fields, remainder.
 
-   // Trajectory-dependent classes
-   using Trajectory = Trajectory_;
-   using DistributionBase = DistributionBase<Trajectory>;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using BoundaryBase = BoundaryBase<Trajectory>;
-   using InitialBase = InitialBase<Trajectory>;
+   using DiffusionConfig = Cond<std::same_as<typename HConfig::DiffusionConfig, Default>, DiffusionDefault<Diffusion>, typename HConfig::DiffusionConfig>;
+   using DiffusionCoordinates = typename DiffusionConfig::Coordinates;
+   using DiffusionFields = typename FieldOps::Set<typename DiffusionConfig::Fields>;
+   using DiffusionFieldsRemainder = typename FieldOps::Difference<DiffusionFields, TrajectoryFields>;
+
+   using HConfig::specie;
+   using ButcherTable = ButcherTable<HConfig::TrajectoryConfig::rk_integrator>;
+   using Records = Records<RecordCoordinates, specie, HConfig::TrajectoryConfig::record_mag_extrema, HConfig::TrajectoryConfig::record_trajectory>;
+
+// todo: AB-test polymorphism
+   using DiffusionBase = Diffusion;
+//   using DiffusionBase = DiffusionBase<HConfig>;
+
+// Polymorphic base types
+   using DistributionBase = DistributionBase<HConfig>;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using InitialBase = InitialBase<HConfig>;
 
 protected:
 
-   //! Background object (persistent)
-   std::unique_ptr<BackgroundBase> background = nullptr;
+//! Background object (persistent)
+   std::unique_ptr<Background> background = nullptr;
 
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
@@ -193,13 +208,13 @@ protected:
 //! Initial condition in momentum (persistent)
    std::unique_ptr<InitialBase> icond_m = nullptr;
 
-   Coordinates _coords;
+   TrajectoryCoordinates _coords;
 
-   ButcherTable the_new_butcher_table;
+   ButcherTable butcher_table;
 
    Records records;
 
-   Coordinates local_coords;
+   TrajectoryCoordinates local_coords;
 
 //! Background-dependent dmax (transient)
    double _dmax;
@@ -246,7 +261,7 @@ protected:
    double nearest_bnd_dist;
 
 //! Coordinates at the start of the trajectory (needed for distributions)
-   Coordinates coords0;
+   TrajectoryCoordinates coords0;
 
 //! Field values at the start of the trajectory (needed for distributions)
    TrajectoryFields fields0;
@@ -269,7 +284,7 @@ protected:
    void UpdateAllBoundaries(void);
 
 //! Load the last trajectory point
-   virtual void Load(void);
+//   virtual void Load(void);
 
 //! Add the current postion and momentum to the end of the trajectory (typically at the end of a time step)
    void Store(void);
@@ -281,7 +296,7 @@ protected:
    void StoreLocal(void);
 
 //! Conversion of momentum from "native" to (p,mu,phi) coordinates
-   virtual GeoVector ConvertMomentum(void) const;
+//   virtual GeoVector ConvertMomentum(void) const;
 
 //! Momentum transformation on reflection at a boundary
    virtual void ReverseMomentum(void);
@@ -292,11 +307,9 @@ protected:
 //! Fast test for any spatial boundary overshot
    bool SpaceTerminateCheck(void);
 
-//! Compute the common fields ("Uvec", etc.) and their dependencies ("Bmag", etc.)
-   void CommonFields(void);
-
-//! Overloaded CommonFields for custom time and position, and output field
-   void CommonFields(Coordinates& coords, TrajectoryFields& fields);
+//! CommonFields for time and position, and output fields
+   template <typename Coordinates, typename Fields, typename RequestedFields = Fields>
+   void CommonFields(Coordinates&, Fields&);
 
 //! Compute the RK slopes
    virtual void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) = 0;
@@ -337,7 +350,7 @@ public:
    virtual std::unique_ptr<TrajectoryBase> Clone(void) const = 0;
 
    //! Add a background object
-   void AddBackground(const BackgroundBase& background_in, const DataContainer& container_in);
+   void AddBackground(const DataContainer& container_in);
 
    //! Connect to an existing distribution object
    void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
@@ -400,8 +413,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Background, typename Diffusion>
+inline void TrajectoryBase<Background, Diffusion>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -412,8 +425,8 @@ inline void TrajectoryBase<Trajectory, HConfig>::ConnectDistribution(const std::
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename Background, typename Diffusion>
+inline void TrajectoryBase<Background, Diffusion>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -423,72 +436,73 @@ inline void TrajectoryBase<Trajectory, HConfig>::ReplaceDistribution(int distro,
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::DisconnectDistribution(int distro)
+template <typename Background, typename Diffusion>
+inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
 
-/*!
-\author Vladimir Florinski
-\date 09/25/2020
-*/
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::Load(void)
-{
-   _coords.Vel() = Vel<specie>(_coords.Mom());
-};
+///*!
+//\author Vladimir Florinski
+//\date 09/25/2020
+//*/
+//template <typename Background, typename Diffusion>
+//inline void TrajectoryBase<HConfig, Baclground>::Load(void)
+//{
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
+//};
 
-/*!
-\author Vladimir Florinski
-\date 09/25/2020
-*/
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::Store(void)
-{
-   records.Store(_coords);
-};
+// todo deprecated
+///*!
+//\author Vladimir Florinski
+//\date 09/25/2020
+//*/
+//template <typename Background, typename Diffusion>
+//inline void TrajectoryBase<HConfig, Baclground>::Store(void)
+//{
+//   records.Store(_coords);
+//};
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 05/10/2022
-*/
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::LoadLocal(void)
-{
-   _coords = local_coords;
-};
+///*!
+//\author Vladimir Florinski
+//\author Juan G Alonso Guzman
+//\date 05/10/2022
+//*/
+//template <typename Background, typename Diffusion>
+//inline void TrajectoryBase<HConfig, Baclground>::LoadLocal(void)
+//{
+//   _coords = local_coords;
+//};
+//
+///*!
+//\author Vladimir Florinski
+//\author Juan G Alonso Guzman
+//\date 05/10/2022
+//*/
+//template <typename Background, typename Diffusion>
+//inline void TrajectoryBase<HConfig, Baclground>::StoreLocal(void)
+//{
+//   local_coords = _coords;
+//};
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 05/10/2022
-*/
-template <typename Trajectory, typename HConfig>
-inline void TrajectoryBase<Trajectory, HConfig>::StoreLocal(void)
-{
-   local_coords = _coords;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 06/12/2024
-\return Momentum in (p,mu,phi) coordinates
-*/
-template <typename Trajectory, typename HConfig>
-inline GeoVector TrajectoryBase<Trajectory, HConfig>::ConvertMomentum(void) const
-{
-   return _coords.Mom();
-};
+///*!
+//\author Juan G Alonso Guzman
+//\date 06/12/2024
+//\return Momentum in (p,mu,phi) coordinates
+//*/
+//template <typename Background, typename Diffusion>
+//inline GeoVector TrajectoryBase<HConfig, Baclground>::ConvertMomentum(void) const
+//{
+//   return _coords.Mom();
+//};
 
 /*!
 \author Vladimir Florinski
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-template <typename Trajectory, typename HConfig>
-inline double TrajectoryBase<Trajectory, HConfig>::ElapsedTime(void) const
+template <typename Background, typename Diffusion>
+inline double TrajectoryBase<Background, Diffusion>::ElapsedTime(void) const
 {
    return _coords.Time() - coords0.Time();
 };

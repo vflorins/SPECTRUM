@@ -13,6 +13,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundVLISMBochum methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -82,7 +84,7 @@ void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 
    sin_theta_B0 = fmax(sp_tiny, sqrt(1.0 - Sqr(UnitVec(B0) * eprime[2])));
 
-   if constexpr (HConfig::VLISMBochum_mod_type == 3) {
+   if constexpr (mod_type == 3) {
       double ht = Sqr(scB / sin_theta_B0) * (Sqr(ztr) - 1.0);
       fzoom = sqrt((ht - 1.0) / (ht - Sqr(ztr)));
    }
@@ -99,7 +101,7 @@ void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 template <typename HConfig>
 double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
 {
-   if constexpr (HConfig::VLISMBochum_mod_type == 0) {
+   if constexpr (mod_type == 0) {
       return 1.0;
    }
 
@@ -107,7 +109,7 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
    double zev;
 
 // If "mod_rpos" is zero, the scaling is done with respect to the intersection point of the isochrone with the z-axis (s=0). To find "zev" the nonlinear equaiton zev+(1/2)ln[(zev-1)/(zev+1)]=zeta is solved via Newton iterations.
-   if constexpr (HConfig::VLISMBochum_mod_rpos == 0) {
+   if constexpr (mod_rpos == 0) {
       // Current error of iterator loop
       double f0, f1, delta = 1.0;
 
@@ -128,16 +130,16 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
       zev = zeta;
    }
 
-   if constexpr (HConfig::VLISMBochum_mod_type == 1) {
+   if constexpr (mod_type == 1) {
       // No modification for zev>ztr, zero for zev<ztr
       return (zev > ztr ? 1.0 : 0.0);
    }
-   else if constexpr (HConfig::VLISMBochum_mod_type == 2) {
+   else if constexpr (mod_type == 2) {
       // No modification for zev>ztr, constant for zev<ztr
       if (fabs(sin_theta_B0) < sp_tiny) return 1.0;
       else return (zev > ztr ? 1.0 : RelBtrans(ztr) / RelBtrans(zev));
    }
-   else if constexpr (HConfig::VLISMBochum_mod_type == 3) {
+   else if constexpr (mod_type == 3) {
       // No modification for zev>ztr, scaled to reach scB at the nose for zev<ztr
       if ((fabs(sin_theta_B0) < sp_tiny) || (zev > ztr)) return 1.0;
       else return RelBtrans(fzoom * zev) / RelBtrans(fzoom * ztr) / RelBtrans(zev) * RelBtrans(ztr);
@@ -156,8 +158,8 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
 \date 07/26/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
    GeoVector posprime = coords.Pos() - r0;
@@ -188,8 +190,8 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& c
    else fields.Iv0() = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
-   fields.Vel() = (posprime / r3 - gv_nz) * u0.Norm();
-   fields.Vel().ChangeFromBasis(eprime);
+   fields.Fluv() = (posprime / r3 - gv_nz) * u0.Norm();
+   fields.Fluv().ChangeFromBasis(eprime);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -210,7 +212,7 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& c
       }
       else {
 
-         if constexpr (HConfig::VLISMBochum_mod_type == 3 && HConfig::VLISMBochum_mod_rpos == 0) {
+         if constexpr (mod_type == 3 && mod_rpos == 0) {
             // GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
             wus = 0.0;
             fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
@@ -300,7 +302,7 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& c
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
+   fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -311,10 +313,10 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(BackgroundCoordinates& c
 \date 10/17/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   NumericalDerivatives(coords, fields);
+   NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
 };
 
 };

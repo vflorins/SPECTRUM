@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// TrajectoryFieldline methods
+// TrajectoryFieldlineBase methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -20,11 +20,52 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename HConfig, typename Field_t>
-TrajectoryFieldline<HConfig, Field_t>::TrajectoryFieldline(void)
-                   : TrajectoryFieldlineBase(traj_name, STATE_NONE)
+template <typename Background, typename Diffusion, typename Field_t>
+TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(void)
+                   : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
+
+/*!
+\author Vladimir Florinski
+\date 01/28/2022
+\param[in] name_in   Readable name of the class
+\param[in] status_in Initial status
+*/
+template <typename Background, typename Diffusion, typename Field_t>
+TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(const std::string& name_in, uint16_t status_in)
+      : TrajectoryBase(name_in, status_in)
+{
+};
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 08/16/2025
+*/
+template <typename Background, typename Diffusion, typename Field_t>
+void TrajectoryFieldline<HConfig, Background, Field_t>::SetStart(void)
+{
+// Call the base version of this function.
+   TrajectoryBase::SetStart();
+};
+
+
+/*!
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 08/16/2025
+*/
+template <typename Background, typename Diffusion, typename Field_t>
+void TrajectoryFieldline<HConfig, Background, Field_t>::PhysicalStep(void)
+{
+   constexpr double cfl_adv = HConfig::cfl_advection;
+   // todo review - what is Vel_sys ----> check
+   dt_physical = cfl_adv * _dmax / fabs(_coords.VelPara());
+};
+
 
 /*!
 \author Vladimir Florinski
@@ -33,25 +74,37 @@ TrajectoryFieldline<HConfig, Field_t>::TrajectoryFieldline(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename HConfig, typename Field_t>
-void TrajectoryFieldline<HConfig, Field_t>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename Background, typename Diffusion, typename Field_t>
+void TrajectoryFieldline<HConfig, Background, Field_t>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
-   if constexpr (std::same_as<Field_t, Vel_t>) {
-      slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Vel());
+   // todo VelPara
+   if constexpr (std::same_as<Field_t, Fluv_t>) {
+      slope_pos_istage = _coords.VelPara() * _fields.HatFluv();
    }
    else if constexpr (std::same_as<Field_t, Mag_t>) {
-      if constexpr(TrajectoryFields::HatMag_found())
-         slope_pos_istage = _coords.Vel()[2] * _fields.HatMag();
-      else
-         slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Mag());
+      slope_pos_istage = _coords.VelPara() * _fields.HatMag();
    }
    else if constexpr (std::same_as<Field_t, Elc_t>) {
-      slope_pos_istage = _coords.Vel()[2] * UnitVec(_fields.Elc());
+      slope_pos_istage = _coords.VelPara() * _fields.HatElc();
    }
    else {
       slope_pos_istage = gv_zeros;
    }
    slope_mom_istage = gv_zeros;
+};
+
+/*!
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 08/16/2025
+\return True if a step was taken
+
+If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
+*/
+template <typename Background, typename Diffusion, typename Field_t>
+bool TrajectoryFieldline<HConfig, Background, Field_t>::Advance(void)
+{
+   return RKAdvance();
 };
 
 };

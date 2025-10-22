@@ -24,252 +24,329 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Pos_t = VectorField<Field::Id::Pos, 0, 0>;
+using Pos_t = VectorField<Field::Id::Pos, 0, 0, 0>;
+
+/*!
+\brief Radial spatial coordinate type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using Rad_t = ScalarField<Field::Id::Rad, 0, 0, 0>;
 
 /*!
 \brief Time type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Time_t = ScalarField<Field::Id::Time, 0, 0>;
+using Time_t = ScalarField<Field::Id::Time, 0, 0, 0>;
 
 /*!
 \brief Density field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Den_t = ScalarField<Field::Id::Den, 1, 1>;
+using Den_t = ScalarField<Field::Id::Den, 1, 1, 0>;
 
 /*!
 \brief Pressure field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Prs_t = ScalarField<Field::Id::Prs, 1, 1>;
+using Prs_t = ScalarField<Field::Id::Prs, 1, 0, 0>;
 
 /*!
 \brief Energy field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Enr_t = ScalarField<Field::Id::Enr, 1, 1>;
+using Enr_t = ScalarField<Field::Id::Enr, 1, 1, 0>;
 
 /*!
-\brief Velocity field type with a formatted name
+\brief Fluid Flow Velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Vel_t = VectorField<Field::Id::Vel, 1, 0>;
+using Fluv_t = VectorField<Field::Id::Fluv, 1, 0, 0>;
 
 /*!
-\brief Momentum field type with a formatted name
+\brief Fluid Flow Momentum field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Mom_t = VectorField<Field::Id::Mom, 1, 0>;
+using Flum_t = VectorField<Field::Id::Flum, 1, 1, 0>;
 
 /*!
 \brief Fluid density flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FlxDen_t = ScalarField<Field::Id::FlxDen, 1, 1>;
-
-/*!
-\brief Fluid momentum flux function type with a formatted name
-\author Lucius Schoenbaum
-\date 03/25/2025
-*/
-using FlxMom_t = VectorField<Field::Id::FlxMom, 1, 0>;
+using FlxDen_t = ScalarField<Field::Id::FlxDen, 1, 0, 0>;
 
 /*!
 \brief Fluid energy flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FlxEnr_t = ScalarField<Field::Id::FlxEnr, 1, 0>;
+using FlxEnr_t = ScalarField<Field::Id::FlxEnr, 1, 0, 0>;
+
+/*!
+\brief Fluid flow momentum flux function type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using FlxFlum_t = VectorField<Field::Id::FlxFlum, 1, 0, 0>;
+
+/*!
+\brief Fluid Flow Velocity field magnitude type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using AbsFluv_t = ScalarField<Field::Id::AbsFluv, 0, 0, 0>;
+
+/*!
+\brief Direction of fluid flow velocity type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using HatFluv_t = VectorField<Field::Id::HatFluv, 0, 0, 0>;
+
+/*!
+\brief Fluid Flow Momentum field magnitude type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using AbsFlum_t = ScalarField<Field::Id::AbsFlum, 0, 0, 0>;
+
+/*!
+\brief Direction of fluid flow momentum type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using HatFlum_t = VectorField<Field::Id::HatFlum, 0, 0, 0>;
 
 /*!
 \brief Magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Mag_t = VectorField<Field::Id::Mag, 1, 0>;
+using Mag_t = VectorField<Field::Id::Mag, 1, 0, 0>;
 
 /*!
 \brief Magnetic field flux function type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FlxMag_t = VectorField<Field::Id::FlxMag, 1, 0>;
+using FlxMag_t = VectorField<Field::Id::FlxMag, 1, 0, 0>;
 
 /*!
 \brief Lagrange multiplier field of GLM MHD type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Glm_t = ScalarField<Field::Id::Glm, 1, 0>;
+using Glm_t = ScalarField<Field::Id::Glm, 1, 0, 0>;
 
 /*!
 \brief Lagrange mutlipler flux function of GLM MHD type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using FlxGlm_t = ScalarField<Field::Id::FlxGlm, 1, 0>;
+using FlxGlm_t = ScalarField<Field::Id::FlxGlm, 1, 0, 0>;
+
+/*!
+\brief Particle Momentum type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using Mom_t = VectorField<Field::Id::Mom, 0, 0, 0>;
+
+/*!
+\brief Magnitude of momentum type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using AbsMom_t = ScalarField<Field::Id::AbsMom, 0, 0, 0>;
+
+/*!
+\brief Direction of momentum type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using HatMom_t = VectorField<Field::Id::HatMom, 0, 0, 0>;
+
+/*!
+\brief Particle Velocity type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using Vel_t = VectorField<Field::Id::Vel, 0, 0, 0>;
+
+/*!
+\brief Magnitude of velocity type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using AbsVel_t = ScalarField<Field::Id::AbsVel, 0, 0, 0>;
+
+/*!
+\brief Direction of velocity type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using HatVel_t = VectorField<Field::Id::HatVel, 0, 0, 0>;
 
 /*!
 \brief Electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Elc_t = VectorField<Field::Id::Elc, 1, 0>;
+using Elc_t = VectorField<Field::Id::Elc, 1, 0, 0>;
+
+/*!
+\brief Electric field magnitude type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using AbsElc_t = ScalarField<Field::Id::AbsElc, 1, 0, 0>;
+
+/*!
+\brief Electric field direction type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using HatElc_t = VectorField<Field::Id::HatElc, 1, 0, 0>;
 
 /*!
 \brief Magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using AbsMag_t = ScalarField<Field::Id::AbsMag, 1, 0>;
+using AbsMag_t = ScalarField<Field::Id::AbsMag, 1, 0, 0>;
 
 /*!
 \brief Magnetic field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using HatMag_t = VectorField<Field::Id::HatMag, 1, 0>;
+using HatMag_t = VectorField<Field::Id::HatMag, 1, 0, 0>;
 
 /*!
-\brief Gradient of velocity field type with a formatted name
+\brief Gradient of fluid flow velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelVel_t = MatrixField<Field::Id::DelVel, 1, 0>;
+using DelFluv_t = MatrixField<Field::Id::DelFluv, 1, 0, 1>;
 
 /*!
 \brief Gradient of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelElc_t = MatrixField<Field::Id::DelElc, 1, 0>;
+using DelElc_t = MatrixField<Field::Id::DelElc, 1, 0, 1>;
 
 /*!
 \brief Gradient of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelMag_t = MatrixField<Field::Id::DelMag, 1, 0>;
+using DelMag_t = MatrixField<Field::Id::DelMag, 1, 0, 1>;
 
 /*!
 \brief Gradient of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelAbsMag_t = VectorField<Field::Id::DelAbsMag, 1, 0>;
+using DelAbsMag_t = VectorField<Field::Id::DelAbsMag, 1, 0, 1>;
 
 /*!
-\brief Gradient of magnetic field direction  type with a formatted name
+\brief Time derivative of fluid flow velocity field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelHatMag_t = MatrixField<Field::Id::DelHatMag, 1, 0>;
-
-/*!
-\brief Time derivative of velocity field type with a formatted name
-\author Lucius Schoenbaum
-\date 03/25/2025
-*/
-using DotVel_t = VectorField<Field::Id::DotVel, 1, 0>;
+using DotFluv_t = VectorField<Field::Id::DotFluv, 1, 0, 2>;
 
 /*!
 \brief Time derivative of electric field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DotElc_t = VectorField<Field::Id::DotElc, 1, 0>;
+using DotElc_t = VectorField<Field::Id::DotElc, 1, 0, 2>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DotMag_t = VectorField<Field::Id::DotMag, 1, 0>;
+using DotMag_t = VectorField<Field::Id::DotMag, 1, 0, 2>;
 
 /*!
 \brief Time derivative of magnetic field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DotAbsMag_t = ScalarField<Field::Id::DotAbsMag, 1, 0>;
-
-/*!
-\brief Time derivative of magnetic field direction type with a formatted name
-\author Lucius Schoenbaum
-\date 03/25/2025
-*/
-using DotHatMag_t = VectorField<Field::Id::DotHatMag, 1, 0>;
+using DotAbsMag_t = ScalarField<Field::Id::DotAbsMag, 1, 0, 2>;
 
 /*!
 \brief Zeroth (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv0_t = ScalarField<Field::Id::Iv0, 0, 0>;
+using Iv0_t = ScalarField<Field::Id::Iv0, 0, 0, 0>;
 
 /*!
 \brief First (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv1_t = ScalarField<Field::Id::Iv1, 0, 0>;
+using Iv1_t = ScalarField<Field::Id::Iv1, 0, 0, 0>;
 
 /*!
 \brief Second (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv2_t = ScalarField<Field::Id::Iv2, 0, 0>;
+using Iv2_t = ScalarField<Field::Id::Iv2, 0, 0, 0>;
 
 /*!
 \brief Third (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv3_t = ScalarField<Field::Id::Iv3, 0, 0>;
+using Iv3_t = ScalarField<Field::Id::Iv3, 0, 0, 0>;
 
 /*!
 \brief Fourth (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv4_t = ScalarField<Field::Id::Iv4, 0, 0>;
+using Iv4_t = ScalarField<Field::Id::Iv4, 0, 0, 0>;
 
 /*!
 \brief Fifth (general purpose) Indicator variable type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Iv5_t = ScalarField<Field::Id::Iv5, 0, 0>;
+using Iv5_t = ScalarField<Field::Id::Iv5, 0, 0, 0>;
 
 /*!
 \brief LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using IvLISM_t = ScalarField<Field::Id::IvLISM, 0, 0>;
+using IvLISM_t = ScalarField<Field::Id::IvLISM, 0, 0, 0>;
 
 /*!
 \brief magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using IvBmix_t = ScalarField<Field::Id::IvBmix, 0, 0>;
+using IvBmix_t = ScalarField<Field::Id::IvBmix, 0, 0, 0>;
 
 /*!
 \brief solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT) type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using IvSolarCycle_t = ScalarField<Field::Id::IvSolarCycle, 0, 0>;
+using IvSolarCycle_t = ScalarField<Field::Id::IvSolarCycle, 0, 0, 0>;
 
 };
 

@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#ifndef SPECTRUM_EXTREMA_DATA_HH
-#define SPECTRUM_EXTREMA_DATA_HH
+#ifndef SPECTRUM_TRAJECTORY_RECORDS_HH
+#define SPECTRUM_TRAJECTORY_RECORDS_HH
 
 
 #include <vector>
@@ -87,6 +87,10 @@ struct MagExtremaRecords<true> {
       return {Mag_min, Mag_max};
    }
 
+   MagExtrema GetMagInitial() {
+      return {Mag_initial, Mag_initial};
+   }
+
 };
 
 
@@ -106,7 +110,7 @@ public:
       n_segs = 0;
    }
 
-   void Store() {
+   void Store(Coordinates& coords) {
       ++n_segs;
    }
 
@@ -409,6 +413,13 @@ struct Records: public MagExtremaRecords<record_mag_extrema>, TrajectoryRecords<
    MagExtrema GetMagExtrema() {
       if constexpr (record_mag_extrema)
          return MagExtremaRecords::GetMagExtrema();
+      else
+         return {0.0,0.0};
+   }
+
+   MagExtrema GetMagInitial() {
+      if constexpr (record_mag_extrema)
+         return MagExtremaRecords::GetMagInitial();
       else
          return {0.0,0.0};
    }

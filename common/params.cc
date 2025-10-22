@@ -20,7 +20,6 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 09/08/2025
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
 Params::Params(const std::string_view& name_in, uint16_t status_in)

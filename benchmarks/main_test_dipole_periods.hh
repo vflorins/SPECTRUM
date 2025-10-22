@@ -107,32 +107,32 @@ std::ratio<1,1>(),
 ////! Heliospheric current sheet (0: disabled, 1: flat, 2: wavy (Jokipii-Thomas 1981) and static, 3: wavy and time-dependent).
 ////#define SOLARWIND_CURRENT_SHEET 0
 ////   [test_parker_spiral.cc] Make sure that "SOLARWIND_CURRENT_SHEET" and SOLARWIND_POLAR_CORRECTION are (#)defined as 0 in src/background_solarwind.hh.
-//SolarWindOptions::CurrentSheet solarwind_current_sheet_,
-SolarWindOptions::CurrentSheet::disabled,
+//CurrentSheet solarwind_current_sheet_,
+CurrentSheet::disabled,
 ////! Magnetic topology region (0: nowhere, 1: same as HCS)
 ////#define SOLARWIND_SECTORED_REGION 0
-//SolarWindOptions::SectoredRegion solarwind_sectored_region_,
-SolarWindOptions::SectoredRegion::nowhere,
+//SectoredRegion solarwind_sectored_region_,
+SectoredRegion::nowhere,
 ////! Correction to Parker Spiral, mainly for polar regions (0: none, 1: Smith-Bieber 1991, 2: Zurbuchen et al. 1997, 3: Schwadron-McComas 2003)
 ////#define SOLARWIND_POLAR_CORRECTION 0
-//SolarWindOptions::PolarCorrection solarwind_polar_correction_,
-SolarWindOptions::PolarCorrection::none,
+//PolarCorrection solarwind_polar_correction_,
+PolarCorrection::none,
 ////! Latitudinal profile for bulk speed (0: constant, 1: linear step, 2: smooth step)
 ////#define SOLARWIND_SPEED_LATITUDE_PROFILE 0
-//SolarWindOptions::SpeedLatitudeProfile solarwind_speed_latitude_profile_,
-SolarWindOptions::SpeedLatitudeProfile::constant,
+//SpeedLatitudeProfile solarwind_speed_latitude_profile_,
+SpeedLatitudeProfile::constant,
 ////! Integer exponent of decrease of solar wind speed beyond the termination shock
 ////#define SOLARWIND_TERMSHOCK_SPEED_EXPONENT 2
-//SolarWindOptions::TermShockSpeedExponent solarwind_termshock_speed_exponent_,
-SolarWindOptions::TermShockSpeedExponent::one,
+//TermShockSpeedExponent solarwind_termshock_speed_exponent_,
+TermShockSpeedExponent::one,
 ////! What function to use within 'get_ampfactor' (0 = none, 1 = zero, 2 = constant, 3 = scaled)
 ////#define MOD_TYPE 3
-//VLISMBochumOptions::ModType VLISMBochum_mod_type_,
-VLISMBochumOptions::ModType::constant,
+//ModType mod_type_,
+ModType::constant,
 ////! Whether to scale relative to s=0 (0) or s=+inf (1)
 ////#define MOD_RPOS 0
-//VLISMBochumOptions::ModRPos VLISMBochum_mod_rpos_,
-VLISMBochumOptions::ModRPos::scale_rel_inf,
+//ModRPos mod_rpos_,
+ModRPos::scale_rel_inf,
 //// ----- Trajectory ----- //
 //////! Whether to record magnetic field extrema
 //bool record_mag_extrema_,

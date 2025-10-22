@@ -19,34 +19,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace DiffusionOptions;
+
 //! The diffusion model is independent of the background
 constexpr uint16_t DIFF_NOBACKGROUND = 0x0010;
 
 //! Clone function pattern
 #define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
-
-//! Forward-declare Trajectory base types
-template <typename Trajectory, typename HConfig>
-class TrajectoryFieldlineBase;
-template <typename Trajectory, typename HConfig>
-class TrajectoryGuidingBase;
-//! Forward-declare Trajectory types
-template <typename HConfig, typename Trace_t>
-class TrajectoryFieldline;
-template <typename HConfig>
-class TrajectoryFocused;
-template <typename HConfig>
-class TrajectoryGuiding;
-template <typename HConfig>
-class TrajectoryGuidingDiff;
-template <typename HConfig>
-class TrajectoryGuidingDiffScatt;
-template <typename HConfig>
-class TrajectoryGuidingScatt;
-template <typename HConfig>
-class TrajectoryLorentz;
-template <typename HConfig>
-class TrajectoryParker;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionBase class declaration
@@ -60,34 +39,22 @@ The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. 
 
 Parameters:
 */
-template <typename Trajectory_>
+template <typename HConfig_>
 class DiffusionBase : public Params {
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
-   using BackgroundFields = HConfig::BackgroundFields;
-   using Trajectory::specie;
-
-   using TrajectoryParker = TrajectoryParker<HConfig>;
+   using HConfig = HConfig_;
+   using DiffusionCoordinates = HConfig::DiffusionConfig::Coordinates;
+   using DiffusionFields = HConfig::DiffusionConfig::Fields;
+   using HConfig::specie;
 
 protected:
 
-// todo Time_t, Pos_t, Mom*_t <--- Mom* in field coords
 //! Coordinates (transient)
    DiffusionCoordinates _coords;
 
 //! Fields data (transient)
    DiffusionFields _fields;
-
-//! Velocity magnitude (transient)
-   double vmag;
-
-//! Pitch angle cosine (transient)
-   double mu;
 
 //! Square of the pitch angle sine (transient)
    double st2;
@@ -111,7 +78,7 @@ protected:
    virtual void SetupDiffusion(bool construct);
 
 //! Compute the diffusion coefficients
-   virtual void EvaluateDiffusion(int comp);
+   virtual void EvaluateDiffusion(Component comp);
 
 public:
 
@@ -125,16 +92,17 @@ public:
    void SetupObject(const DataContainer& cont_in);
 
 //! Stage at target coordinates for any kind of diffusion evaluation
-   void Stage(const BackgroundCoordinates& coords, const BackgroundFields& fields);
+   void Stage(const DiffusionCoordinates& coords, const DiffusionFields& fields);
 
 //! Evaluate and return one diffusion component
-   double GetComponent(int comp);
+   double Get(Component comp);
 
 //! Compute derivative of diffusion coefficient in position or time. By default, it is computed numerically, but specific classes can override with analytic expressions.
-   virtual double GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata);
+   virtual double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata);
 
 //! Compute derivative of diffusion coefficient in mu. By default, it is computed numerically, but specific classes can override with analytic expressions.
-   virtual double GetMuDerivative(int comp);
+   virtual double GetMuDerivative(Component comp);
+
 };
 
 };

@@ -19,54 +19,35 @@ namespace Spectrum {
 // InitialMomentumFixed class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumFixed class
-const std::string init_name_momentum_fixed = "InitialMomentumFixed";
-
-//! Flag to inidicate coordinates for initial momentum: 0 = Cartesian, 1 = spherical
-#define INITIAL_MOM_FIXED_COORD 0
-
 /*!
 \brief Fixed initial momentum vector (relative to a preferred direction)
 \author Vladimir Florinski
 
 Parameters: (InitialBase), GeoVector initmom, or double p0, double theta0, double phi0
 */
-template <typename Trajectory_>
-class InitialMomentumFixed : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumFixed : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumFixed";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
 
-   static_assert(std::same_as<Trajectory, TrajectoryLorentz<Fields>> || std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
+   static_assert(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
-#if INITIAL_MOM_FIXED_COORD == 0
 //! Momentum (persistent)
    GeoVector initmom;
-#else
-//! Magnitude of momentum (persistent)
-   double p0;
-
-//! Pitch angle cosine (persistent)
-   double mu0;
-
-//! Sine of the pitch angle (persistent)
-   double st0;
-
-//! Sine of the azimuthal angle (persistent)
-   double sp0;
-
-//! Cosine of the azimuthal angle (persistent)
-   double cp0;
-#endif
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -93,31 +74,33 @@ public:
 // InitialMomentumBeam class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumBeam class
-const std::string init_name_momentum_beam = "InitialMomentumBeam";
-
 /*!
 \brief Cold beam initial distribution
 \author Vladimir Florinski
 
 Parameters: (InitialBase), double p0
 */
-template <typename Trajectory_>
-class InitialMomentumBeam : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumBeam : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumBeam";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+
    // methods:
    using InitialBase::GetMomSample;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>, "InitialMomentumBeam initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) && !(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -149,30 +132,32 @@ public:
 // InitialMomentumRing class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumRing class
-const std::string init_name_momentum_ring = "InitialMomentumRing";
-
 /*!
 \brief Ring initial distribution
 \author Vladimir Florinski
 
 Parameters: (InitialBase), double p0, double theta0
 */
-template <typename Trajectory_>
-class InitialMomentumRing : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumRing : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumRing";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+
    using InitialBase::rng;
 
-   static_assert(!std::same_as<Trajectory, TrajectoryParker<Fields>> && !std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>, "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) && !(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -210,27 +195,29 @@ public:
 // InitialMomentumShell class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumShell class
-const std::string init_name_momentum_shell = "InitialMomentumShell";
-
 /*!
 \brief Isotropic non-drifting shell distribution
 \author Vladimir Florinski
 
 Parameters: (InitialBase), double p0
 */
-template <typename Trajectory_>
-class InitialMomentumShell : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumShell : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumShell";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+
    using InitialBase::rng;
 
 protected:
@@ -263,27 +250,29 @@ public:
 // InitialMomentumThickShell class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumThickShell class
-const std::string init_name_momentum_thickshell = "InitialMomentumThickShell";
-
 /*!
 \brief Uniform and isotropic thick shell distribution
 \author Vladimir Florinski
 
 Parameters: (InitialBase), double p1, double p2, bool log_bias
 */
-template <typename Trajectory_>
-class InitialMomentumThickShell : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumThickShell : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumThickShell";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+
    using InitialBase::rng;
 
 protected:
@@ -322,28 +311,30 @@ public:
 // InitialMomentumTable class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumTable class
-const std::string init_name_momentum_table = "InitialMomentumTable";
-
 /*!
 \brief Starting points from a table
 \author Juan G Alonso Guzman
 
 Parameters: (InitialTable)
 */
-template <typename Trajectory_>
-class InitialMomentumTable : public InitialTable<Trajectory_, GeoVector> {
+template <typename HConfig_>
+class InitialMomentumTable : public InitialTable<HConfig_, GeoVector> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumTable";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialTable = InitialTable<Trajectory, GeoVector>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+   using InitialTable = InitialTable<HConfig, GeoVector>;
+
    using InitialBase::rng;
 
    using InitialTable::table_counter;
@@ -373,27 +364,29 @@ public:
 // InitialMomentumMaxwell class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialMomentumMaxwell class
-const std::string init_name_momentum_maxwell = "InitialMomentumMaxwell";
-
 /*!
 \brief Non-relativistic bi-Maxwellian
 \author Vladimir Florinski
 
 Parameters: (InitialBase), double p0, double dp_para, double dp_perp
 */
-template <typename Trajectory_>
-class InitialMomentumMaxwell : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialMomentumMaxwell : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialMomentumMaxwell";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
 
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_mom;
+   using InitialBase::_coords;
    using InitialBase::axis;
+
    using InitialBase::rng;
 
 protected:

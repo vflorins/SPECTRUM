@@ -22,22 +22,22 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Trajectory, class distroClass>
-DistributionTemplated<Trajectory, distroClass>::DistributionTemplated(void)
+template <typename HConfig, class distroClass>
+DistributionTemplated<HConfig, distroClass>::DistributionTemplated(void)
                                   : DistributionBase()
 {
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 10/14/2025
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory, class distroClass>
-DistributionTemplated<Trajectory, distroClass>::DistributionTemplated(const std::string& name_in, unsigned int specie_in, uint16_t status_in)
-                                  : DistributionBase(name_in, specie_in, status_in)
+template <typename HConfig, class distroClass>
+DistributionTemplated<HConfig, distroClass>::DistributionTemplated(const std::string& name_in, uint16_t status_in)
+                                  : DistributionBase(name_in, status_in)
 {
 };
 
@@ -48,8 +48,8 @@ DistributionTemplated<Trajectory, distroClass>::DistributionTemplated(const std:
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDistribution()" with the argument of "true".
 */
-template <typename Trajectory, class distroClass>
-DistributionTemplated<Trajectory, distroClass>::DistributionTemplated(const DistributionTemplated& other)
+template <typename HConfig, class distroClass>
+DistributionTemplated<HConfig, distroClass>::DistributionTemplated(const DistributionTemplated& other)
                                   : DistributionBase(other)
 {
 // Params' constructor resets all flags
@@ -60,8 +60,8 @@ DistributionTemplated<Trajectory, distroClass>::DistributionTemplated(const Dist
 \author Juan G Alonso Guzman
 \date 09/15/2022
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::ReadUnitDistro(void)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::ReadUnitDistro(void)
 {
    if constexpr (std::same_as<distroClass, double>)
 // This template method should only work for <double> because of &
@@ -82,8 +82,8 @@ void DistributionTemplated<Trajectory, distroClass>::ReadUnitDistro(void)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::SetupDistribution(bool construct)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::SetupDistribution(bool construct)
 {
    int ijk;
 
@@ -135,8 +135,8 @@ void DistributionTemplated<Trajectory, distroClass>::SetupDistribution(bool cons
 \author Juan G Alonso Guzman
 \date 08/27/2024
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::AddEvent(void)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::AddEvent(void)
 {
    int ijk, lin_bin;
    MultiIndex bin = mi_zeros;
@@ -178,8 +178,8 @@ void DistributionTemplated<Trajectory, distroClass>::AddEvent(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::AddRecord(void)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::AddRecord(void)
 {
    values_record.push_back(_value);
    weights_record.push_back(_weight);
@@ -191,8 +191,8 @@ void DistributionTemplated<Trajectory, distroClass>::AddRecord(void)
 \param[in] bin Bin multi-index
 \return Processed distribution value for this bin
 */
-template <typename Trajectory, class distroClass>
-distroClass DistributionTemplated<Trajectory, distroClass>::operator [](const MultiIndex& bin) const
+template <typename HConfig, class distroClass>
+distroClass DistributionTemplated<HConfig, distroClass>::operator [](const MultiIndex& bin) const
 {
    if constexpr (std::same_as<distroClass, double>) {
 // This template method should only work for <double> because of 0.0
@@ -225,8 +225,8 @@ distroClass DistributionTemplated<Trajectory, distroClass>::operator [](const Mu
 \author Juan G Alonso Guzman
 \date 05/04/2022
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::ResetDistribution(void)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::ResetDistribution(void)
 {
    if constexpr (std::same_as<distroClass, double>) {
 // This template method should only work for <double> because of 0.0
@@ -255,8 +255,8 @@ void DistributionTemplated<Trajectory, distroClass>::ResetDistribution(void)
 \author Juan G Alonso Guzman
 \date 09/13/2022
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::ResetRecords(void)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::ResetRecords(void)
 {
    values_record.clear();
    weights_record.clear();
@@ -268,11 +268,11 @@ void DistributionTemplated<Trajectory, distroClass>::ResetRecords(void)
 \param[in] other Second distribution
 \return Reference to this object
 */
-template <typename Trajectory, class distroClass>
-DistributionBase<Trajectory>& DistributionTemplated<Trajectory, distroClass>::operator +=(const DistributionBase& other)
+template <typename HConfig, class distroClass>
+DistributionBase<HConfig>& DistributionTemplated<HConfig, distroClass>::operator +=(const DistributionBase& other)
 {
 // We need to cast from the base class to the derived class because the non-templated DistributionBase does not have "distro"
-   const DistributionTemplated<Trajectory, distroClass>& other_cast = dynamic_cast<const DistributionTemplated<Trajectory, distroClass>&>(other);
+   const DistributionTemplated<HConfig, distroClass>& other_cast = dynamic_cast<const DistributionTemplated<HConfig, distroClass>&>(other);
    std::transform(distro.begin(), distro.end(), other_cast.distro.begin(), distro.begin(), std::plus<distroClass>{});
    std::transform(counts.begin(), counts.end(), other_cast.counts.begin(), counts.begin(), std::plus<int>{});
    n_events += other_cast.n_events;
@@ -284,11 +284,11 @@ DistributionBase<Trajectory>& DistributionTemplated<Trajectory, distroClass>::op
 \date 09/13/2022
 \param[in] other Second distribution
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::CopyRecords(const DistributionBase& other)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::CopyRecords(const DistributionBase& other)
 {
    // We need to cast from the base class to the derived class because the non-templated DistributionBase does not have "distro"
-   const DistributionTemplated<Trajectory, distroClass>& other_cast = dynamic_cast<const DistributionTemplated<Trajectory, distroClass>&>(other);
+   const DistributionTemplated<HConfig, distroClass>& other_cast = dynamic_cast<const DistributionTemplated<HConfig, distroClass>&>(other);
    values_record.insert(values_record.end(), other_cast.values_record.begin(), other_cast.values_record.end());
    weights_record.insert(weights_record.end(), other_cast.weights_record.begin(), other_cast.weights_record.end());
 };
@@ -298,8 +298,8 @@ void DistributionTemplated<Trajectory, distroClass>::CopyRecords(const Distribut
 \date 09/13/2022
 \param[in] n_records_in Total number of events
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::SetNRecords(int n_records_in)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::SetNRecords(int n_records_in)
 {
    values_record.resize(n_records_in);
    weights_record.resize(n_records_in);
@@ -311,8 +311,8 @@ void DistributionTemplated<Trajectory, distroClass>::SetNRecords(int n_records_i
 \param[out] size Size of an element of the "distro" array
 \return Pointer to the distribution storage
 */
-template <typename Trajectory, class distroClass>
-void* DistributionTemplated<Trajectory, distroClass>::GetDistroAddress(size_t& size)
+template <typename HConfig, class distroClass>
+void* DistributionTemplated<HConfig, distroClass>::GetDistroAddress(size_t& size)
 {
    size = sizeof(distroClass);
    return distro.data();
@@ -324,8 +324,8 @@ void* DistributionTemplated<Trajectory, distroClass>::GetDistroAddress(size_t& s
 \param[out] size Size of an element of the "weights_record" array
 \return Pointer to the weights storage
 */
-template <typename Trajectory, class distroClass>
-void* DistributionTemplated<Trajectory, distroClass>::GetWeightsRecordAddress(size_t& size)
+template <typename HConfig, class distroClass>
+void* DistributionTemplated<HConfig, distroClass>::GetWeightsRecordAddress(size_t& size)
 {
    size = sizeof(distroClass);
    return weights_record.data();
@@ -337,8 +337,8 @@ void* DistributionTemplated<Trajectory, distroClass>::GetWeightsRecordAddress(si
 \date 05/17/2022
 \param[in] action_in Action index from "ActionTable"
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::EvaluateWeight(int action_in)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::EvaluateWeight(int action_in)
 {
    if constexpr (std::same_as<distroClass, double>) {
 // This template method should only work for <double> because of 0.0
@@ -382,8 +382,8 @@ void DistributionTemplated<Trajectory, distroClass>::EvaluateWeight(int action_i
 \date 07/27/2022
 \param[in] file_name Distribution file name
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::Dump(const std::string& file_name) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::Dump(const std::string& file_name) const
 {
    unsigned int datalen, datasize;
 
@@ -421,8 +421,8 @@ void DistributionTemplated<Trajectory, distroClass>::Dump(const std::string& fil
 \date 07/27/2022
 \param[in] file_name Distribution file name
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::Restore(const std::string& file_name)
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::Restore(const std::string& file_name)
 {
    unsigned int datalen, datasize;
 
@@ -466,8 +466,8 @@ void DistributionTemplated<Trajectory, distroClass>::Restore(const std::string& 
 \param[in] sum_distro Total distro after collapsing dimensions
 \param[in] phys_units Use physical units for output
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::PrintSumDistro(std::ofstream& distfile, long sum_counts, distroClass sum_distro, bool phys_units) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::PrintSumDistro(std::ofstream& distfile, long sum_counts, distroClass sum_distro, bool phys_units) const
 {
    if constexpr (std::same_as<distroClass, double>) {
 // This template method should only work for <double> because of 0.0
@@ -533,8 +533,8 @@ void DistributionTemplated<Trajectory, distroClass>::PrintSumDistro(std::ofstrea
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::Print1D(int ijk, const std::string& dist_name, bool phys_units) const
 {
    int ijk1, ijk2;
    long lin_bin, sum_counts;
@@ -578,8 +578,8 @@ void DistributionTemplated<Trajectory, distroClass>::Print1D(int ijk, const std:
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::Print2D(int ijk1, int ijk2, const std::string& dist_name, bool phys_units) const
 {
    int ijk;
    long lin_bin, sum_counts;
@@ -630,8 +630,8 @@ void DistributionTemplated<Trajectory, distroClass>::Print2D(int ijk1, int ijk2,
 \param[in] record     Which record to print
 \param[in] phys_units Use physical units for output
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
 {
    if constexpr (std::same_as<distroClass, double>) {
 // This template method should only work for <double>
@@ -661,8 +661,8 @@ void DistributionTemplated<Trajectory, distroClass>::PrintWeight(std::ofstream& 
 \param[in] dist_name  Distribution file name
 \param[in] phys_units Use physical units for output
 */
-template <typename Trajectory, class distroClass>
-void DistributionTemplated<Trajectory, distroClass>::PrintRecords(const std::string& dist_name, bool phys_units) const
+template <typename HConfig, class distroClass>
+void DistributionTemplated<HConfig, distroClass>::PrintRecords(const std::string& dist_name, bool phys_units) const
 {
    int i, j;
    std::ofstream distfile(dist_name.c_str());
@@ -675,13 +675,13 @@ void DistributionTemplated<Trajectory, distroClass>::PrintRecords(const std::str
    };
 };
 
-//template<typename Trajectory>
+//template<typename HConfig>
 //class DistributionTemplated<Trajectory, double>;
 //
-//template <typename Trajectory>
+//template <typename HConfig>
 //class DistributionTemplated<Trajectory, GeoVector>;
 //
-//template <typename Trajectory>
+//template <typename HConfig>
 //class DistributionTemplated<Trajectory, GeoMatrix>;
 
 };

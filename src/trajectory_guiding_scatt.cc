@@ -21,8 +21,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(void)
+template <typename Background, typename Diffusion>
+TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -33,8 +33,8 @@ TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename HConfig>
-TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in)
+template <typename Background, typename Diffusion>
+TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -43,8 +43,8 @@ TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(const std::string& name_
 \author Vladimir Florinski
 \date 05/27/2022
 */
-template <typename HConfig>
-bool TrajectoryGuidingScatt<HConfig>::IsSimulationReady(void) const
+template <typename Background, typename Diffusion>
+bool TrajectoryGuidingScatt<Background, Diffusion>::IsSimulationReady(void) const
 {
    if (!TrajectoryBase::IsSimulationReady()) return false;
 
@@ -59,13 +59,18 @@ bool TrajectoryGuidingScatt<HConfig>::IsSimulationReady(void) const
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-void TrajectoryGuidingScatt<HConfig>::DiffusionCoeff(void)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingScatt<Background, Diffusion>::DiffusionCoeff(void)
 try {
-   Dmumu = diffusion->GetComponent(2, _t, _pos, ConvertMomentum(), _fields);
+
+   auto dcoords = DiffusionCoordinates::Convert(_coords);
+   DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
+   CommonFields_Diffusion(dcoords, dfields);
+   diffusion->Stage(dcoords, dfields);
+   Dmumu = diffusion->Get(Component::mu);
 
 // Compute the derivative in mu
-   Vmu = diffusion->GetMuDerivative();
+   Vmu = diffusion->GetMuDerivative(Component::mu);
 }
 
 catch(ExFieldError& exception) {
@@ -80,13 +85,21 @@ catch(ExFieldError& exception) {
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-template <typename HConfig>
-void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingScatt<Background, Diffusion>::EulerPitchAngleScatt(bool second)
 {
    double mu_new, dt_local;
-   GeoVector mom_conv = ConvertMomentum();
+   /*
+    *
+    * Reminder:
+    * received Mom() is in coords: perp, para
+    * converted Mom() is in coords: p, mu
+    *
+    */
+   auto dcoords = DiffusionCoordinates::Convert(_coords);
 
-   if constexpr (HConfig::split_scatt) {
+   if constexpr (split_scatt) {
+      auto alpha = split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -96,16 +109,18 @@ void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
    do {
 // Vmu is always added because the contribution from this term is outside of the DriftCoeff() function and the "drift_vel" GeoVector
-      mu_new = mom_conv[1] + Vmu * dt_local + sqrt(2.0 * Dmumu * dt_local) * rng->GetNormal();
+      mu_new = dcoords.MomMu() + Vmu * dt_local + sqrt(2.0 * Dmumu * dt_local) * rng->GetNormal();
 
       if constexpr (HConfig::build_mode == BuildMode::debug) {
          if (fabs(mu_new) > 1.0) Nabsmugt1 += 1;
       }
    } while (fabs(mu_new) > 1.0);
 
-   _coords.Mom()[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
-   _coords.Mom()[2] = mom_conv[0] * mu_new;
-   _coords.Vel() = Vel(_coords.Mom(), specie);
+   _coords = TrajectoryCoordinates::Convert(dcoords);
+   // todo review: it performs these
+//   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
+//   _coords.MomPara() = mom_conv[0] * mu_new;
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
@@ -114,14 +129,25 @@ void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-template <typename HConfig>
-void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingScatt<Background, Diffusion>::MilsteinPitchAngleScatt(bool second)
 {
-   double mu_new, dmu, mu = _coords.Mom()[2] / _coords.Mom().Norm();
-   double dt_local, b, b1, dW, Dmumu_new;
-   GeoVector mom_conv = ConvertMomentum();
+// Calculate Dmumu_new
+   auto dcoords = DiffusionCoordinates::Convert(_coords);
 
-   if constexpr (HConfig::split_scatt) {
+   double dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
+   dcoords.MomMu() += dmu;
+   DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
+   CommonFields_Diffusion(dcoords, dfields);
+   diffusion->Stage(dcoords, dfields);
+   // todo: fields/coords ---- this code is invalid as-is. mom_conv is created and *then* modified, _coords is left as-is - review and fix
+   double Dmumu_new = diffusion->Get(Component::mu);
+
+   double mu_new;
+   double dt_local, b, b1, dW;
+
+   if constexpr (split_scatt) {
+      auto alpha = split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -130,25 +156,24 @@ void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
 
 // Get diffusion slope and derivative of diffusion slope
    b = sqrt(2.0 * Dmumu);
-   dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
-   mom_conv[1] += dmu;
-   Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields);
    b1 = (sqrt(2.0 * Dmumu_new) - b) / dmu;
 
 // TODO The loop ensures that "mu" does not become larger than 1, but a simple reflection might be sufficient
    do {
       dW = sqrt(dt_local) * rng->GetNormal();
 // Vmu is always added because the contribution from this term is outside of the DriftCoeff() function and the "drift_vel" GeoVector
-      mu_new = mu + Vmu * dt_local + b * dW + 0.5 * b * b1 * (Sqr(dW) - dt_local);
+      mu_new = dcoords.MomMu() + Vmu * dt_local + b * dW + 0.5 * b * b1 * (Sqr(dW) - dt_local);
 
       if constexpr (HConfig::build_mode == BuildMode::debug) {
          if (fabs(mu_new) > 1.0) Nabsmugt1 += 1;
       }
    } while (fabs(mu_new) > 1.0);
 
-   _coords.Mom()[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
-   _coords.Mom()[2] = mom_conv[0] * mu_new;
-   _coords.Vel() = Vel(_coords.Mom(), specie);
+   _coords = TrajectoryCoordinates::Convert(dcoords);
+   // todo review: it performs these
+//   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
+//   _coords.MomPara() = mom_conv[0] * mu_new;
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
@@ -158,16 +183,23 @@ void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
 
 Computes RK stochastic step with 2 evaluations of the drift term, 3 evaluations of the variance term, and 1 derivative of the variance term
 */
-template <typename HConfig>
-void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingScatt<Background, Diffusion>::RK2PitchAngleScatt(bool second)
 {
+// todo review after spdata/fields
    double slope_Vmu[2], slope_Dmumu[3];
    double gambar = 1.0 / sqrt(3.0);
-   double dmu, mu_new, mu = _coords.Mom()[2] / _coords.Mom().Norm();
-   double Dmumu_new, dfit, dW, dt_local;
-   GeoVector mom_conv = ConvertMomentum();
+   double dmu, mu_new;
+   auto dcoords = DiffusionCoordinates::Convert(_coords);
+   auto dcoords_orig = dcoords;
+   auto dfields = DiffusionCoordinates();
 
-   if constexpr (HConfig::split_scatt) {
+//   double mu = _coords.MomPara() / _coords.AbsMom();
+//   GeoVector mom_conv = ConvertMomentum();
+   double Dmumu_new, dfit, dW, dt_local;
+
+   if constexpr (split_scatt) {
+      auto alpha = split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -185,7 +217,7 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
       dW = sqrt(dt_local) * rng->GetNormal();
 
 // Compute second slope for Vmu
-      mu_new = mu + slope_Dmumu[0] * dW;
+      mu_new = dcoords.MomMu() + slope_Dmumu[0] * dW;
       mu_new += slope_Vmu[0] * dt_local;
       if (fabs(mu_new) > 1.0) {
          if constexpr (HConfig::build_mode == BuildMode::debug) {
@@ -194,17 +226,23 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
+      dcoords.MomMu() = mu_new;
+      CommonFields(dcoords, dfields);
+      diffusion->Stage(dcoords, dfields);
+      Dmumu = diffusion->Get(Component::mu);
 
-      dmu = sp_small * (mom_conv[1] + sp_small < 1.0 ? 1.0 : -1.0);
-      mom_conv[1] += dmu;
+      dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
+      dcoords.MomMu() += dmu;
+      dcoords.Time() += dt_local; // todo review _______
 
-      Dmumu_new = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
+      CommonFields(dcoords, dfields);
+      diffusion->Stage(dcoords, dfields);
+      Dmumu_new = diffusion->Get(Component::mu);
       slope_Vmu[1] = (Dmumu_new - Dmumu) / dmu;
 
 // Compute second slope for Dmumu
-      mu_new = mu + gambar * slope_Dmumu[0] * dW;
+      dcoords = dcoords_orig;
+      mu_new = dcoords.MomMu() + gambar * slope_Dmumu[0] * dW;
       mu_new += slope_Vmu[0] * dt_local;
       if (fabs(mu_new) > 1.0) {
          if constexpr (HConfig::build_mode == BuildMode::debug) {
@@ -213,12 +251,16 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
+      dcoords.MomMu() = mu_new;
+      dcoords.Time() += dt_local;
+      CommonFields(dcoords, dfields);
+      diffusion->Stage(dcoords, dfields);
+      Dmumu = diffusion->Get(Component::mu);
       slope_Dmumu[1] = sqrt(2.0 * Dmumu);
 
 // Compute third slope for Dmumu
-      mu_new = mu - slope_Dmumu[0] / (3.0 * gambar) * dW;
+      dcoords = dcoords_orig;
+      mu_new = dcoords.MomMu() - slope_Dmumu[0] / (3.0 * gambar) * dW;
       mu_new += slope_Vmu[0] * dt_local;
       if (fabs(mu_new) > 1.0) {
          if constexpr (HConfig::build_mode == BuildMode::debug)
@@ -226,18 +268,24 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      mom_conv[1] = mu_new;
-      Dmumu = diffusion->GetComponent(2, _t + dt_local, _pos, mom_conv, _fields);
+      dcoords.MomMu() = mu_new;
+      dcoords.Time() += dt_local;
+      CommonFields(dcoords, dfields);
+      diffusion->Stage(dcoords, dfields);
+      Dmumu = diffusion->Get(Component::mu);
       slope_Dmumu[2] = sqrt(2.0 * Dmumu);
 
 // Compute additional fit term
-      dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
-      mom_conv[1] = mu + dmu;
-      Dmumu_new = diffusion->GetComponent(2, _t, _pos, mom_conv, _fields);
+      dcoords = dcoords_orig;
+      dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
+      dcoords.MomMu() += dmu;
+      CommonFields(dcoords, dfields);
+      diffusion->Stage(dcoords, dfields);
+      Dmumu_new = diffusion->Get(Component::mu);
       dfit = (sqrt(2.0 * Dmumu_new) - slope_Dmumu[0]) / dmu;
 
 // Add all the stuff
-      mu_new = mu + (0.5 * slope_Dmumu[0] + (slope_Dmumu[1] + 3.0 * Sqr(gambar) * slope_Dmumu[2]) / (2.0 + 6.0 * Sqr(gambar)) ) * dW;
+      mu_new = dcoords_orig.MomMu() + (0.5 * slope_Dmumu[0] + (slope_Dmumu[1] + 3.0 * Sqr(gambar) * slope_Dmumu[2]) / (2.0 + 6.0 * Sqr(gambar)) ) * dW;
       mu_new += 0.5 * dt_local * (slope_Vmu[0] + slope_Vmu[1]);
       mu_new += 0.5 * slope_Dmumu[0] * dfit * (Sqr(dW) - dt_local);
 
@@ -246,9 +294,12 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
       }
    } while (fabs(mu_new) > 1.0);
 
-   _coords.Mom()[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
-   _coords.Mom()[2] = mom_conv[0] * mu_new;
-   _coords.Vel() = Vel(_coords.Mom(), specie);
+   dcoords.MomMu() = mu_new;
+   _coords = TrajectoryCoordinates::Convert(dcoords);
+   // todo review: it performs these
+//   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
+//   _coords.MomPara() = mom_conv[0] * mu_new;
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
@@ -256,12 +307,17 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-void TrajectoryGuidingScatt<HConfig>::PhysicalStep(void)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingScatt<Background, Diffusion>::PhysicalStep(void)
 {
-   constexpr double cfl_pa = HConfig::cfl_pitchangle;
-   if constexpr (HConfig::const_dmumax == TrajectoryOptions::ConstDmumax::constant_dtheta_max) {
-      double dmumax = sqrt(1 - fabs(_coords.Mom()[2] / _coords.Mom().Norm())) * dthetamax + 0.5 * fabs(_coords.Mom()[2] / _coords.Mom().Norm()) * Sqr(dthetamax);
+   constexpr double cfl_pa = cfl_pitchangle;
+   double dmumax;
+   if constexpr (const_dmumax == TrajectoryOptions::ConstDmumax::constant_dtheta_max) {
+      double dthetamax = 2.0*M_PI/180.0;
+      dmumax = sqrt(1 - fabs(_coords.MomPara() / _coords.AbsMom())) * dthetamax + 0.5 * fabs(_coords.MomPara() / _coords.AbsMom()) * Sqr(dthetamax);
+   }
+   else {
+      dmumax = 0.02;
    }
    dt_physical = fmin(dt_physical, cfl_pa * Sqr(dmumax) / Dmumu);
    dt_physical = fmin(dt_physical, cfl_pa * dmumax / fabs(Vmu));
@@ -275,17 +331,15 @@ void TrajectoryGuidingScatt<HConfig>::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename HConfig>
-bool TrajectoryGuidingScatt<HConfig>::Advance(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryGuidingScatt<Background, Diffusion>::Advance(void)
 {
-// Retrieve latest point of the trajectory
-   Load();
 
 // Compute drift and diffusion coefficients (including PA advection term) for physical step computation
    DiffusionCoeff();
    DriftCoeff();
 
-   TrajectoryGuidingBase::PhysicalStep();
+   TrajectoryGuiding::PhysicalStep();
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);
    TimeBoundaryProximityCheck();
@@ -295,13 +349,13 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Perform first half of PA scattering
-   if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+   if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
       EulerPitchAngleScatt(0);
    }
-   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+   else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
       MilsteinPitchAngleScatt(0);
    }
-   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+   else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
       RK2PitchAngleScatt(0);
    }
 
@@ -326,7 +380,8 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
 // If adaptive method error is unacceptable, exit advance function with false (step was not taken)
    if (RKStep()) return false;
 
-   if constexpr (HConfig::split_scatt) {
+   // todo replace bool split_scatt with check whether fraction < 1
+   if constexpr (split_scatt) {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Second half of stochastic pitch angle contribution and advection term
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,17 +390,17 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
       if (SpaceTerminateCheck()) return true;
 
 // Compute diffusion coefficients (including PA advection term)
-      CommonFields();
+      CommonFields(_coords, _fields);
       DiffusionCoeff();
 
 // Perform second half of PA scattering
-      if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+      if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
          EulerPitchAngleScatt(1);
       }
-      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+      else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
          MilsteinPitchAngleScatt(1);
       }
-      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+      else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
          RK2PitchAngleScatt(1);
       }
    }
@@ -357,12 +412,12 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
 
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
    if (BITS_LOWERED(_status, TRAJ_FINISH)) {
-      CommonFields();
+      CommonFields(_coords, _fields);
       MomentumCorrection();
    };
 
 // Add the new point to the trajectory.
-   Store();
+   records.Store(_coords);
 
    return true;
 };

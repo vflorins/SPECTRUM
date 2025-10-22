@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 
-#include "trajectory_guiding_base.hh"
+#include "trajectory_guiding.hh"
 #include "diffusion_base.hh"
 
 namespace Spectrum {
@@ -24,8 +24,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename HConfig_>
-class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGuidingDiff<HConfig_>, HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<HConfig_, Background_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiff";
@@ -33,12 +33,13 @@ class TrajectoryGuidingDiff : virtual public TrajectoryGuidingBase<TrajectoryGui
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
 
-   using TrajectoryGuidingBase = TrajectoryGuidingBase<TrajectoryGuidingDiff<HConfig>, HConfig>;
+   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -48,15 +49,20 @@ public:
    using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
 
+   using typename TrajectoryBase::DiffusionCoordinates;
+   using typename TrajectoryBase::DiffusionFields;
+   using typename TrajectoryBase::DiffusionFieldsRemainder;
+   using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
    using TrajectoryBase::diffusion;
    using TrajectoryBase::background;
    using TrajectoryBase::rng;
+   using TrajectoryBase::records;
    using TrajectoryBase::SpaceTerminateCheck;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
    using TrajectoryBase::Load;
-   using TrajectoryBase::Store;
+//   using TrajectoryBase::Store;
    using TrajectoryBase::StoreLocal;
    using TrajectoryBase::CommonFields;
    using TrajectoryBase::TimeBoundaryProximityCheck;
@@ -65,10 +71,10 @@ public:
    using TrajectoryBase::HandleBoundaries;
 
    using TrajectoryBase::local_coords;
-   using TrajectoryGuidingBase::drift_vel;
+   using TrajectoryGuiding::drift_vel;
 
-   using TrajectoryGuidingBase::ConvertMomentum;
-   using TrajectoryGuidingBase::MomentumCorrection;
+//   using TrajectoryGuiding::ConvertMomentum;
+   using TrajectoryGuiding::MomentumCorrection;
 
 
 protected:

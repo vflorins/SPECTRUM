@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundDipole methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,13 +66,13 @@ void BackgroundDipole<HConfig>::SetupBackground(bool construct)
 \date 03/25/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDipole<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundDipole<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
-   if constexpr (Fields::Vel_found()) {
-      fields.Vel() = gv_zeros;
+   if constexpr (RequestedFields::Fluv_found()) {
+      fields.Fluv() = gv_zeros;
    }
-   if constexpr (Fields::Mag_found()) {
+   if constexpr (RequestedFields::Mag_found()) {
       GeoVector posprime = coords.Pos() - r0;
       double r2 = posprime.Norm();
       double r5 = Cube(r2);
@@ -78,10 +80,10 @@ void BackgroundDipole<HConfig>::EvaluateBackground(BackgroundCoordinates& coords
       r5 *= r2;
       fields.Mag() = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
    }
-   if constexpr (Fields::Elc_found()) {
+   if constexpr (RequestedFields::Elc_found()) {
       fields.Elc() = gv_zeros;
    }
-   if constexpr (Fields::Iv0_found()) {
+   if constexpr (RequestedFields::Iv0_found()) {
       fields.Iv0() = 1.0;
    }
 
@@ -94,13 +96,13 @@ void BackgroundDipole<HConfig>::EvaluateBackground(BackgroundCoordinates& coords
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      if constexpr (Fields::DelVel_found())
-         fields.DelVel() = gm_zeros;
-      if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
+      if constexpr (RequestedFields::DelFluv_found())
+         fields.DelFluv() = gm_zeros;
+      if constexpr (RequestedFields::DelMag_found() || RequestedFields::DelAbsMag_found()) {
          GeoVector posprime = coords.Pos() - r0;
          double r2 = posprime.Norm();
          double r5 = Cube(r2);
@@ -113,26 +115,25 @@ void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordina
 
          auto DelMag = 3.0 * (mr + rm + (M * posprime) * (gm_unit - 5.0 * rr / r2)) / r5;
 
-         if constexpr (Fields::DelMag_found())
+         if constexpr (RequestedFields::DelMag_found())
             fields.DelMag() = DelMag;
-         if constexpr (Fields::DelAbsMag_found()) {
-            auto bhat = fields.Mag() / fields.Mag().Norm();
-            fields.DelAbsMag() = DelMag * bhat;
+         if constexpr (RequestedFields::DelAbsMag_found()) {
+            fields.DelAbsMag() = DelMag * fields.HatMag();
          }
       };
-      if constexpr (Fields::DelElc_found())
+      if constexpr (RequestedFields::DelElc_found())
          fields.DelElc() = gm_zeros;
-      if constexpr (Fields::DotVel_found())
-         fields.DotVel() = gv_zeros;
-      if constexpr (Fields::DotMag_found())
+      if constexpr (RequestedFields::DotFluv_found())
+         fields.DotFluv() = gv_zeros;
+      if constexpr (RequestedFields::DotMag_found())
          fields.DotMag() = gv_zeros;
-      if constexpr (Fields::DotAbsMag_found())
+      if constexpr (RequestedFields::DotAbsMag_found())
          fields.DotAbsMag() = 0.0;
-      if constexpr (Fields::DotElc_found())
+      if constexpr (RequestedFields::DotElc_found())
          fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives(coords, fields);
+      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 
@@ -141,6 +142,7 @@ void BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordina
 \date 03/25/2022
 */
 template <typename HConfig>
+template <typename Coordinates>
 void BackgroundDipole<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);

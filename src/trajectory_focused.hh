@@ -20,8 +20,8 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
-template <typename HConfig_>
-class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<HConfig_>, HConfig_> {
+template <typename HConfig_, typename Background_>
+class TrajectoryFocused : public TrajectoryBase<HConfig_, Background_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryFocused";
@@ -29,9 +29,10 @@ class TrajectoryFocused : public TrajectoryBase<TrajectoryFocused<HConfig_>, HCo
 public:
 
    using HConfig = HConfig_;
+   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<TrajectoryFocused<HConfig>, HConfig>;
+   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
    using HConfig::specie;
 
    using TrajectoryBase::_status;
@@ -47,13 +48,7 @@ public:
 
    using TrajectoryBase::local_coords;
 
-   static_assert(TrajectoryFields::template found<Vel_t>(), "Vel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<DelMag_t>(), "DelMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<DelVel_t>(), "DelVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<DotVel_t>(), "DotVel must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(TrajectoryCoordinates::FConfig::Mom_Sys == CoordinateSystem::pitchangle, "Momentum coordinates must use `pitchangle` coordinate system.");
 
 protected:
 
@@ -61,7 +56,7 @@ protected:
 // todo Mom() and Mom_t is momentum...
    double mag_mom;
 
-//! Drift elocity (transient)
+//! Drift velocity (transient)
    GeoVector drift_vel;
 
 //! mu^2 (transient)
@@ -71,7 +66,7 @@ protected:
    double st2;
 
 //! Load the last trajectory point
-   void Load(void) override;
+//   void Load(void) override;
 
 //! Load the local trajectory point
    void LoadLocal(void) override;
@@ -119,39 +114,40 @@ public:
 // TrajectoryFocused inline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 10/06/2023
-*/
-template <typename Fields>
-inline void TrajectoryFocused<Fields>::Load(void)
-{
-   _coords.Vel()[0] = Vel(_coords.Mom()[0], specie);
-   _coords.Vel()[1] = _coords.Mom()[1];
-   _coords.Vel()[2] = 0.0;
-};
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 10/06/2023
-*/
-template <typename Fields>
-inline void TrajectoryFocused<Fields>::LoadLocal(void)
-{
-   _coords = local_coords;
-   _coords.Vel()[0] = Vel(_coords.Mom()[0], specie);
-   _coords.Vel()[1] = _coords.Mom()[1];
-   _coords.Vel()[2] = 0.0;
-};
+///*!
+//\author Juan G Alonso Guzman
+//\author Vladimir Florinski
+//\date 10/06/2023
+//*/
+//template <typename HConfig>
+//inline void TrajectoryFocused<HConfig>::Load(void)
+//{
+//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
+//   _coords.Vel()[1] = _coords.Mom()[1];
+//   _coords.Vel()[2] = 0.0;
+//};
+
+///*!
+//\author Juan G Alonso Guzman
+//\author Vladimir Florinski
+//\date 10/06/2023
+//*/
+//template <typename HConfig>
+//inline void TrajectoryFocused<HConfig>::LoadLocal(void)
+//{
+//   _coords = local_coords;
+//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
+//   _coords.Vel()[1] = _coords.Mom()[1];
+//   _coords.Vel()[2] = 0.0;
+//};
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 08/07/2023
 */
-template <typename Fields>
-inline void TrajectoryFocused<Fields>::ReverseMomentum(void)
+template <typename Background, typename Diffusion>
+inline void TrajectoryFocused<Background, Diffusion>::ReverseMomentum(void)
 {
    _coords.Mom()[1] = -_coords.Mom()[1];
 };

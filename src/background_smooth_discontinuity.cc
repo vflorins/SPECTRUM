@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothDiscontinuity methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,25 +51,25 @@ template <typename HConfig>
 double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
 {
    double y = x + 0.5;
-   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+   if constexpr (smooth_discontinuity_order == 0) {
       // not continous
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return y;
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+   else if constexpr (smooth_discontinuity_order == 1){
       // differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Sqr(y) * (3.0 - 2.0 * y);
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+   else if constexpr (smooth_discontinuity_order == 2) {
       // twice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+   else if constexpr (smooth_discontinuity_order == 3) {
       // thrice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
@@ -89,22 +91,22 @@ template <typename HConfig>
 double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransitionDerivative(double x)
 {
    double y = x + 0.5;
-   if constexpr (HConfig::smooth_discontinuity_order == 0) {
+   if constexpr (smooth_discontinuity_order == 0) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 1.0;
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 1){
+   else if constexpr (smooth_discontinuity_order == 1){
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 6.0 * y * (1.0 - y);
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 2) {
+   else if constexpr (smooth_discontinuity_order == 2) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
    }
-   else if constexpr (HConfig::smooth_discontinuity_order == 3) {
+   else if constexpr (smooth_discontinuity_order == 3) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
@@ -137,8 +139,8 @@ void BackgroundSmoothDiscontinuity<HConfig>::SetupBackground(bool construct)
 \date 05/14/2025
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
    ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
@@ -146,10 +148,10 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordi
    a1 = DiscontinuityTransition(ds_discont);
    a2 = 1.0 - a1;
 
-   if constexpr (Fields::Vel_found()) fields.Vel() = u0 * a1 + u1 * a2;
-   if constexpr (Fields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
-   if constexpr (Fields::Elc_found()) fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
-   if constexpr (Fields::Iv0_found()) fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u0 * a1 + u1 * a2;
+   if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -159,39 +161,36 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(BackgroundCoordi
 \date 10/20/2023
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      if constexpr (Fields::DelVel_found()) {
-         fields.DelVel().Dyadic(n_discont, u0 - u1);
-         fields.DelVel() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
+      if constexpr (RequestedFields::DelFluv_found()) {
+         fields.DelFluv().Dyadic(n_discont, u0 - u1);
+         fields.DelFluv() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
       };
-      if constexpr (Fields::DelMag_found()) {
+      if constexpr (RequestedFields::DelMag_found()) {
          fields.DelMag().Dyadic(n_discont, B0 - B1);
          fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
       }
-      if constexpr (Fields::DelAbsMag_found()) {
-         GeoVector bhat;
-         if constexpr (Fields::HatMag_found) bhat = fields.HatMag();
-         else bhat = fields.Mag() / fields.Mag().Norm();
-         fields.DelAbsMag() = fields.DelMag() * bhat;
+      if constexpr (RequestedFields::DelAbsMag_found()) {
+         fields.DelAbsMag() = fields.DelMag() * fields.HatMag();
       };
-      if constexpr (Fields::DelElc_found()) {
-         fields.DelElc() = -((fields.DelVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DelMag())) / c_code;
+      if constexpr (RequestedFields::DelElc_found()) {
+         fields.DelElc() = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (Fields::DotVel_found()) {
-         fields.DotVel() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+      if constexpr (RequestedFields::DotFluv_found()) {
+         fields.DotFluv() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
       };
-      if constexpr (Fields::DotMag_found()) {
+      if constexpr (RequestedFields::DotMag_found()) {
          fields.DotMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
       };
-      if constexpr (Fields::DotElc_found()) {
-         fields.DotElc() = -((fields.DotVel() ^ fields.Mag()) + (fields.Vel() ^ fields.DotMag())) / c_code;
+      if constexpr (RequestedFields::DotElc_found()) {
+         fields.DotElc() = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
       };
    }
    else {
-      NumericalDerivatives(coords, fields);
+      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 
@@ -200,7 +199,8 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Backg
 \date 02/28/2025
 */
 template <typename HConfig>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
+template <typename Coordinates>
+void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

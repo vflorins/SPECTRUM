@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSphericalObstacle methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -72,14 +74,14 @@ void BackgroundSphericalObstacle<HConfig>::SetupBackground(bool construct)
 \date 03/25/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    GeoVector posprime = coords.Pos() - r0;
    double posprimenorm = posprime.Norm();
 
-   if constexpr (Fields::Vel_found()) fields.Vel() = gv_zeros;
-   if constexpr (Fields::Mag_found()) {
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = gv_zeros;
+   if constexpr (RequestedFields::Mag_found()) {
       if (posprimenorm < r_sphere) fields.Mag() = gv_zeros;
       else {
          double r2 = Sqr(posprimenorm);
@@ -87,8 +89,8 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(BackgroundCoordina
          fields.Mag() = B0 - (3.0 * (posprime * M) * posprime - r2 * M) / r5;
       };
    };
-   if constexpr (Fields::Elc_found()) fields.Elc() = gv_zeros;
-   if constexpr (Fields::Iv0_found()) {
+   if constexpr (RequestedFields::Elc_found()) fields.Elc() = gv_zeros;
+   if constexpr (RequestedFields::Iv0_found()) {
       if (posprimenorm < r_sphere) fields.Iv0() = 0.0;
       else fields.Iv0() = 1.0;
    }
@@ -101,18 +103,18 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(BackgroundCoordina
 \date 10/14/2022
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
       GeoVector posprime = coords.Pos() - r0;
       double posprimenorm = posprime.Norm();
 
-      if constexpr (Fields::DelVel_found()) fields.DelVel() = gm_zeros;
-      if constexpr (Fields::DelMag_found() || Fields::DelAbsMag_found()) {
+      if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+      if constexpr (RequestedFields::DelMag_found() || Fields::DelAbsMag_found()) {
          if (posprimenorm < r_sphere) {
-            if constexpr (Fields::DelMag_found()) fields.DelMag() = gm_zeros;
-            if constexpr (Fields::DelAbsMag_found()) fields.DelAbsMag() = 0.0;
+            if constexpr (RequestedFields::DelMag_found()) fields.DelMag() = gm_zeros;
+            if constexpr (RequestedFields::DelAbsMag_found()) fields.DelAbsMag() = 0.0;
          }
          else {
             double r2 = Sqr(posprimenorm);
@@ -124,23 +126,19 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Backgro
             rr.Dyadic(posprime);
 
             auto DelMag = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
-            if constexpr (Fields::DelMag_found())
+            if constexpr (RequestedFields::DelMag_found())
                fields.DelMag() = DelMag;
-            if constexpr (Fields::DelAbsMag_found()) {
-               GeoVector bhat;
-               if constexpr (Fields::HatMag_found) bhat = fields.HatMag();
-               else bhat = fields.Mag() / fields.Mag().Norm();
-               fields.DelAbsMag() = DelMag * bhat;
-            }
+            if constexpr (RequestedFields::DelAbsMag_found())
+               fields.DelAbsMag() = DelMag * fields.HatMag();
          };
       };
-      if constexpr (Fields::DelElc_found()) fields.DelElc() = gm_zeros;
-      if constexpr (Fields::DotVel_found()) fields.DotVel() = gv_zeros;
-      if constexpr (Fields::DotMag_found()) fields.DotMag() = gv_zeros;
-      if constexpr (Fields::DotElc_found()) fields.DotElc() = gv_zeros;
+      if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
+      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
+      if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
+      if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
    }
    else {
-      NumericalDerivatives(coords, fields);
+      NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 
@@ -149,7 +147,8 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Backgro
 \date 03/25/2022
 */
 template <typename HConfig>
-void BackgroundSphericalObstacle<HConfig>::EvaluateDmax(BackgroundCoordinates& coords)
+template <typename Coordinates>
+void BackgroundSphericalObstacle<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

@@ -45,29 +45,6 @@ const std::string boundary_type_names[3] = {"time", "space", "momentum"};
 //! Clone function pattern
 #define CloneFunctionBoundary(T) std::unique_ptr<BoundaryBase> Clone(void) const override {return std::make_unique<T>();};
 
-//! Forward-declare Trajectory base types
-template <typename Trajectory, typename HConfig>
-class TrajectoryFieldlineBase;
-template <typename Trajectory, typename HConfig>
-class TrajectoryGuidingBase;
-//! Forward-declare Trajectory types
-template <typename Fields, typename Trace_t>
-class TrajectoryFieldline;
-template <typename Fields>
-class TrajectoryFocused;
-template <typename Fields>
-class TrajectoryGuiding;
-template <typename Fields>
-class TrajectoryGuidingDiff;
-template <typename Fields>
-class TrajectoryGuidingDiffScatt;
-template <typename Fields>
-class TrajectoryGuidingScatt;
-template <typename Fields>
-class TrajectoryLorentz;
-template <typename Fields>
-class TrajectoryParker;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -106,13 +83,19 @@ The "BoundaryXXXXX" classes describe generic boundary condisions in time, space,
 
 Parameters: int max_crossings, VEC_INT actions
 */
-template <typename Trajectory_>
+template <typename HConfig_>
 class BoundaryBase : public Params {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view bdy_name = "BoundaryBase";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using Trajectory::specie;
+   using HConfig = HConfig_;
+   using Coordinates = HConfig::TrajectoryConfig::TrajectoryCoordinates;
+   using Fields = HConfig::TrajectoryConfig::TrajectoryFields;
+   using HConfig::specie;
 
 protected:
 
@@ -139,6 +122,9 @@ protected:
 
 //! Crossing times stored here (transient)
    std::vector<double> _cross_t;
+
+//! Coordinates
+   Coordinates _coords;
 
 //! Magnetic field direction (transient) and region indicator variables (transient)
    Fields _fields;
@@ -188,10 +174,10 @@ public:
    void DecrCrossingsLeft(void);
 
 //! Reset the crossings count and set the initial delta. The function should be called once, before starting a new trajectory.
-   void ResetBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in);
+   void ResetBoundary(const Coordinates& coords, const Fields& fields_in);
 
 //! Set the state and evaluate the boundary. Call this near the end of each time step, before the BC handler.
-   void ComputeBoundary(double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const Fields& fields_in);
+   void ComputeBoundary(const Coordinates& coords, const Fields& fields_in);
 
 // Update the state of the boundary with the current PSCs. Should be used at the very end of each time step.
    void RecordBoundary(void);
@@ -216,8 +202,8 @@ public:
 \date 07/25/2022
 \param[in] action_in Action to assign
 */
-template <typename Trajectory>
-inline void BoundaryBase<Trajectory>::SetAction(int action_in)
+template <typename HConfig>
+inline void BoundaryBase<HConfig>::SetAction(int action_in)
 {
    actions.push_back(action_in);
 };
@@ -228,8 +214,8 @@ inline void BoundaryBase<Trajectory>::SetAction(int action_in)
 \date 07/25/2022
 \return Current action
 */
-template <typename Trajectory>
-inline int BoundaryBase<Trajectory>::GetAction(int distro) const
+template <typename HConfig>
+inline int BoundaryBase<HConfig>::GetAction(int distro) const
 {
    return actions[distro];
 };
@@ -239,8 +225,8 @@ inline int BoundaryBase<Trajectory>::GetAction(int distro) const
 \date 04/13/2022
 \params[in] scale_in Typical time, space or momentum scale of the problem
 */
-template <typename Trajectory>
-inline void BoundaryBase<Trajectory>::SetScale(double scale_in)
+template <typename HConfig>
+inline void BoundaryBase<HConfig>::SetScale(double scale_in)
 {
    delta_scale = fabs(scale_in);
 };
@@ -250,8 +236,8 @@ inline void BoundaryBase<Trajectory>::SetScale(double scale_in)
 \date 01/26/2021
 \return Number of crossings
 */
-template <typename Trajectory>
-inline int BoundaryBase<Trajectory>::CrossingsMade(void) const
+template <typename HConfig>
+inline int BoundaryBase<HConfig>::CrossingsMade(void) const
 {
    return max_crossings - _crossings_left;
 };
@@ -263,8 +249,8 @@ inline int BoundaryBase<Trajectory>::CrossingsMade(void) const
 
 This function could be used to figure out if the traectory should terminate ("_crossings_left" is zero). For negative "_max_crossings" the value of "_crossings_left" will be negative until it wraps around after some 2 billion crossings (so a test for zero might succeed, however unlikely).
 */
-template <typename Trajectory>
-inline int BoundaryBase<Trajectory>::CrossingsLeft(void) const
+template <typename HConfig>
+inline int BoundaryBase<HConfig>::CrossingsLeft(void) const
 {
    return _crossings_left;
 };
@@ -273,8 +259,8 @@ inline int BoundaryBase<Trajectory>::CrossingsLeft(void) const
 \author Juan G Alonso Guzman
 \date 06/23/2023
 */
-template <typename Trajectory>
-inline void BoundaryBase<Trajectory>::DecrCrossingsLeft(void)
+template <typename HConfig>
+inline void BoundaryBase<HConfig>::DecrCrossingsLeft(void)
 {
    _crossings_left--;
 };
@@ -284,8 +270,8 @@ inline void BoundaryBase<Trajectory>::DecrCrossingsLeft(void)
 \date 02/10/2022
 \return Distance to the boundary
 */
-template <typename Trajectory>
-inline double BoundaryBase<Trajectory>::GetDelta(void) const
+template <typename HConfig>
+inline double BoundaryBase<HConfig>::GetDelta(void) const
 {
    return _delta;
 };
@@ -295,8 +281,8 @@ inline double BoundaryBase<Trajectory>::GetDelta(void) const
 \date 02/10/2022
 \return Normal to the boundary
 */
-template <typename Trajectory>
-inline GeoVector BoundaryBase<Trajectory>::GetNormal(void) const
+template <typename HConfig>
+inline GeoVector BoundaryBase<HConfig>::GetNormal(void) const
 {
    return _normal;
 };
@@ -307,8 +293,8 @@ inline GeoVector BoundaryBase<Trajectory>::GetNormal(void) const
 \params[in] crs Index of the crossing
 \return Time of crossing
 */
-template <typename Trajectory>
-inline double BoundaryBase<Trajectory>::GetRecord(int crs) const
+template <typename HConfig>
+inline double BoundaryBase<HConfig>::GetRecord(int crs) const
 {
    if ((crs < 0) || (std::abs(crs) >= _cross_t.size())) return 0.0;
    else return _cross_t[crs];

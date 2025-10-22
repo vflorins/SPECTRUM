@@ -18,26 +18,26 @@ namespace Spectrum {
 // InitialSpaceFixed class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceFixed class
-const std::string init_name_space_fixed = "InitialSpaceFixed";
-
 /*!
 \brief Starting points at a fixed position
 \author Vladimir Florinski
 
 Parameters: (InitialBase), GeoVector initpos
 */
-template <typename Trajectory_>
-class InitialSpaceFixed : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceFixed : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceFixed";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
 
 protected:
 
@@ -66,26 +66,27 @@ public:
 // InitialSpaceLine class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceLine class
-const std::string init_name_space_line = "InitialSpaceLine";
-
 /*!
 \brief Uniformly distributed starting points on a line segment
 \author Vladimir Florinski
 
 Parameters: (InitialBase), GeoVector startpos, GeoVector endpos, int n_intervals
 */
-template <typename Trajectory_>
-class InitialSpaceLine : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceLine : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceLine";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -103,7 +104,7 @@ protected:
    GeoVector increment;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceLine(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialSpaceLine(const std::string& name_in, uint16_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -127,26 +128,27 @@ public:
 // InitialSpaceCircle class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceCircle class
-const std::string init_name_space_circle = "InitialSpaceCircle";
-
 /*!
 \brief Uniformly distributed starting points on a circle
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), GeoVector center, GeoVector normal, double radius
 */
-template <typename Trajectory_>
-class InitialSpaceCircle : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceCircle : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceCircle";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -161,7 +163,7 @@ protected:
    GeoVector radius_y;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceCircle(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialSpaceCircle(const std::string& name_in, uint16_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -185,27 +187,28 @@ public:
 // InitialSpaceBox class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceBox class
-const std::string init_name_space_box = "InitialSpaceBox";
-
 /*!
 \brief Starting points uniformly distributed over the volume of a box
 \author Vladimir Florinski
 
 Parameters: (InitialSpaceLine)
 */
-template <typename Trajectory_>
-class InitialSpaceBox : public InitialSpaceLine<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceBox : public InitialSpaceLine<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceBox";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialSpaceLine = InitialSpaceLine<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+   using InitialSpaceLine = InitialSpaceLine<HConfig>;
+
    using InitialBase::rng;
 
    using InitialSpaceLine::startpos;
@@ -234,26 +237,27 @@ public:
 // InitialSpaceSphere class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceSphere class
-const std::string init_name_space_sphere = "InitialSpaceSphere";
-
 /*!
 \brief Uniformly distributed starting points on a sphere
 \author Vladimir Florinski
 
 Parameters: (InitialBase), GeoVector origin, double radius
 */
-template <typename Trajectory_>
-class InitialSpaceSphere : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceSphere : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceSphere";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -276,7 +280,7 @@ public:
    InitialSpaceSphere(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceSphere(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialSpaceSphere(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    InitialSpaceSphere(const InitialSpaceSphere& other);
@@ -289,27 +293,28 @@ public:
 // InitialSpaceSphereSector class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceSphereSector class
-const std::string init_name_space_sphere_sector = "InitialSpaceSphereSector";
-
 /*!
 \brief Uniformly distributed starting points on a sphere
 \author Vladimir Florinski
 
 Parameters: (InitialSpaceSphere), theta1, theta2, phi1, phi2
 */
-template <typename Trajectory_>
-class InitialSpaceSphereSector : public InitialSpaceSphere<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceSphereSector : public InitialSpaceSphere<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceSphereSector";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialSpaceSphere = InitialSpaceSphere<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+   using InitialSpaceSphere = InitialSpaceSphere<HConfig>;
+
    using InitialBase::rng;
 
    using InitialSpaceSphere::origin;
@@ -348,9 +353,6 @@ public:
 // InitialSpaceRankineHalfBody class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceRankineHalfBody class
-const std::string init_name_space_rankine_half_body = "InitialSpaceRankineHalfBody";
-
 /*!
 \brief Starting points on Rankine Half Body
 \author Vladimir Florinski
@@ -358,17 +360,21 @@ const std::string init_name_space_rankine_half_body = "InitialSpaceRankineHalfBo
 
 Parameters: (InitialBase), GeoVector origin, GeoVector axis, double z_nose, double radius
 */
-template <typename Trajectory_>
-class InitialSpaceRankineHalfBody : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceRankineHalfBody : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceRankineHalfBody";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -410,27 +416,28 @@ public:
 // InitialSpaceTable class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceTable class
-const std::string init_name_space_table = "InitialSpaceTable";
-
 /*!
 \brief Starting points from a table
 \author Juan G Alonso Guzman
 
 Parameters: (InitialTable)
 */
-template <typename Trajectory_>
-class InitialSpaceTable : public InitialTable<Trajectory_, GeoVector> {
+template <typename HConfig_>
+class InitialSpaceTable : public InitialTable<HConfig_, GeoVector> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceTable";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialTable = InitialTable<Trajectory, GeoVector>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+   using InitialTable = InitialTable<HConfig, GeoVector>;
+
    using InitialBase::rng;
 
    using InitialTable::random;
@@ -459,26 +466,27 @@ public:
 // InitialSpaceCylinder class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceCylinder class
-const std::string init_name_space_cylinder = "InitialSpaceCylinder";
-
 /*!
 \brief Uniformly distributed starting points on a cylinder (just the curved portion, not the top and bottom circular surfaces)
 \author Juan G Alonso Guzman
 
 Parameters: (InitialBase), GeoVector origin, GeoVector height, GeoVector radius_x
 */
-template <typename Trajectory_>
-class InitialSpaceCylinder : public InitialBase<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceCylinder : public InitialBase<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceCylinder";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+
    using InitialBase::rng;
 
 protected:
@@ -507,7 +515,7 @@ public:
    InitialSpaceCylinder(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceCylinder(const std::string& name_in, unsigned int specie_in, uint16_t status_in);
+   InitialSpaceCylinder(const std::string& name_in, uint16_t status_in);
 
 //! Copy constructor
    InitialSpaceCylinder(const InitialSpaceCylinder& other);
@@ -520,27 +528,28 @@ public:
 // InitialSpaceCylinderSector class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Readable name of the InitialSpaceCylinderSector class
-const std::string init_name_space_cylinder_sector = "InitialSpaceCylinderSector";
-
 /*!
 \brief Uniformly distributed starting points on a cylindrical sector (just the curved portion, not the top and bottom wedge surfaces)
 \author Juan G Alonso Guzman
 
 Parameters: (InitialSpaceCylinder), phi1, phi2
 */
-template <typename Trajectory_>
-class InitialSpaceCylinderSector : public InitialSpaceCylinder<Trajectory_> {
+template <typename HConfig_>
+class InitialSpaceCylinderSector : public InitialSpaceCylinder<HConfig_> {
+private:
+
+   //! Readable name of the class
+   static constexpr std::string_view init_name = "InitialSpaceCylinderSector";
+
 public:
 
-   using Trajectory = Trajectory_;
-   using Fields = Trajectory::Fields;
-   using InitialBase = InitialBase<Trajectory>;
-   using InitialSpaceCylinder = InitialSpaceCylinder<Trajectory>;
-
+   using HConfig = HConfig_;
+   using InitialBase = InitialBase<HConfig>;
    using InitialBase::_status;
    using InitialBase::container;
-   using InitialBase::_pos;
+   using InitialBase::_coords;
+   using InitialSpaceCylinder = InitialSpaceCylinder<HConfig>;
+
    using InitialBase::rng;
 
    using InitialSpaceCylinder::origin;

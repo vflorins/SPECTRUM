@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 
    using Fields = Fields<Mag_t>;
    using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
-   using Background = BackgroundWaves<Fields>;
+   using Background = BackgroundWaves<HConfig>;
 
    using InitialTime = InitialTimeFixed<Trajectory>;
    using InitialSpace = InitialSpaceBox<Trajectory>;
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
 // Effective "mesh" resolution
    double enr = 100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
-   double R_L = LarmorRadius(Mom(enr, specie), Bmag, specie);
+   double R_L = LarmorRadius<specie>(Mom<specie>(enr), Bmag);
    double dmax = 0.1 * R_L;
    container.Insert(dmax);
 
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom(enr, specie);
+   double momentum = Mom<specie>(enr);
    GeoVector init_mom(0.0, 0.0, momentum);
 
    container.Insert(init_mom);

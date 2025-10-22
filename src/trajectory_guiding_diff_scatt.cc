@@ -21,8 +21,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-TrajectoryGuidingDiffScatt<HConfig>::TrajectoryGuidingDiffScatt(void)
+template <typename Background, typename Diffusion>
+TrajectoryGuidingDiffScatt<Background, Diffusion>::TrajectoryGuidingDiffScatt(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ TrajectoryGuidingDiffScatt<HConfig>::TrajectoryGuidingDiffScatt(void)
 \author Vladimir Florinski
 \date 05/27/2022
 */
-template <typename HConfig>
-bool TrajectoryGuidingDiffScatt<HConfig>::IsSimulationReady(void) const
+template <typename Background, typename Diffusion>
+bool TrajectoryGuidingDiffScatt<Background, Diffusion>::IsSimulationReady(void) const
 {
    return TrajectoryGuidingDiff::IsSimulationReady();
 };
@@ -42,8 +42,8 @@ bool TrajectoryGuidingDiffScatt<HConfig>::IsSimulationReady(void) const
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-void TrajectoryGuidingDiffScatt<HConfig>::DiffusionCoeff(void)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingDiffScatt<Background, Diffusion>::DiffusionCoeff(void)
 try {
    TrajectoryGuidingDiff::DiffusionCoeff();
    TrajectoryGuidingScatt::DiffusionCoeff();
@@ -60,8 +60,8 @@ catch (ExFieldError &exception) {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename HConfig>
-void TrajectoryGuidingDiffScatt<HConfig>::PhysicalStep(void)
+template <typename Background, typename Diffusion>
+void TrajectoryGuidingDiffScatt<Background, Diffusion>::PhysicalStep(void)
 {
    TrajectoryGuidingDiff::PhysicalStep();
    TrajectoryGuidingScatt::PhysicalStep();
@@ -75,12 +75,9 @@ void TrajectoryGuidingDiffScatt<HConfig>::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename HConfig>
-bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
+template <typename Background, typename Diffusion>
+bool TrajectoryGuidingDiffScatt<Background, Diffusion>::Advance(void)
 {
-// Retrieve latest point of the trajectory
-   Load();
-
 // Compute drift and diffusion coefficients for physical step computation
    DiffusionCoeff();
    DriftCoeff();
@@ -173,11 +170,11 @@ bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
 // If trajectory is not finished (in particular, spatial boundary not crossed), the fields can be computed and momentum corrected
    if (BITS_LOWERED(_status, TRAJ_FINISH)) {
       CommonFields(_coords, _fields);
-      TrajectoryGuidingBase::MomentumCorrection();
+      TrajectoryGuiding::MomentumCorrection();
    };
 
 // Add the new point to the trajectory.
-   Store();
+   records.Store(_coords);
 
    return true;
 };

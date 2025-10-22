@@ -9,7 +9,7 @@
 #include "src/initial_momentum.hh"
 // todo when all trajectories are updated
 //#include "src/trajectory.hh"
-#include "src/trajectory_guiding.hh"
+#include "src/trajectory_guiding_.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -24,12 +24,25 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
-   using Trajectory = TrajectoryGuiding<Fields>;
-   using Background = BackgroundDipole<Fields>;
+//   using HConfig = HConfigDefault;
 
-   using InitialTime = InitialTimeFixed<Trajectory>;
-   using InitialSpace = InitialSpaceFixed<Trajectory>;
+   using HConfig = HConfig<
+         BuildMode::debug,
+         SpecieId::proton_core,
+         1,1
+         ,
+         MyTrajectory,
+         BackgroundDefault,
+         DiffusionDefault,
+         DistributionDefault
+      >;
+
+//   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
+   using Trajectory = TrajectoryGuiding<HConfig>;
+   using Background = BackgroundDipole<HConfig>;
+
+   using InitialTime = InitialTimeFixed<HConfig>;
+   using InitialSpace = InitialSpaceFixed<HConfig>;
    using InitialMomentum = InitialMomentumRing<Trajectory>;
 //   using Diffusion = DiffusionIsotropicConstant<Trajectory>;
 
@@ -126,7 +139,7 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 1.0;
-   container.Insert(Mom(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie));
+   container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
    double theta_eq = DegToRad(30.0);
    container.Insert(theta_eq);

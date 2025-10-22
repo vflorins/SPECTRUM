@@ -36,7 +36,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundVLISMBochum<HConfig>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -46,27 +47,28 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-//   using BackgroundBase::EvaluateBackground;
-//   using BackgroundBase::EvaluateBackgroundDerivatives;
-   using BackgroundBase::NumericalDerivatives;
+
+   using BackgroundConfig::derivative_method;
+   using BackgroundConfig::mod_rpos;
+   using BackgroundConfig::mod_type;
 
 private:
 
-   static_assert(!(HConfig::VLISMBochum_mod_rpos != 0 && HConfig::VLISMBochum_mod_rpos != 1), "Invalid mod_rpos");
-   static_assert(!(HConfig::VLISMBochum_mod_type == 1 && HConfig::VLISMBochum_mod_rpos != 1), "Invalid combination of mod_rpos and mod_type");
-   static_assert(!((HConfig::VLISMBochum_mod_type == 2 || HConfig::VLISMBochum_mod_type == 3) && HConfig::VLISMBochum_mod_rpos != 0), "Invalid combination of mod_rpos and mod_type");
+   static_assert(!(mod_rpos != 0 && mod_rpos != 1), "Invalid mod_rpos");
+   static_assert(!(mod_type == 1 && mod_rpos != 1), "Invalid combination of mod_rpos and mod_type");
+   static_assert(!((mod_type == 2 || mod_type == 3) && mod_rpos != 0), "Invalid combination of mod_rpos and mod_type");
 
    static constexpr double Getztr() {
-      if constexpr (HConfig::VLISMBochum_mod_type == 1)
+      if constexpr (mod_type == 1)
          return -5.0;
-      else if constexpr (HConfig::VLISMBochum_mod_type == 2)
+      else if constexpr (mod_type == 2)
          return 1.3;
-      else if constexpr (HConfig::VLISMBochum_mod_type == 3)
+      else if constexpr (mod_type == 3)
          return 1.3;
       else
          return 1.0;
@@ -101,15 +103,15 @@ protected:
    double GetAmpFactor(double zeta) const;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -120,7 +122,7 @@ public:
    BackgroundVLISMBochum(const BackgroundVLISMBochum& other);
 
 //! Destructor
-   ~BackgroundVLISMBochum() override = default;
+   ~BackgroundVLISMBochum() = default;
 
 //! Clone function
    CloneFunctionBackground(BackgroundVLISMBochum);

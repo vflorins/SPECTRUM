@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace DiffusionOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionBase methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,8 +21,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 05/06/2022
 */
-template <typename Trajectory>
-DiffusionBase<Trajectory>::DiffusionBase(void)
+template <typename HConfig>
+DiffusionBase<HConfig>::DiffusionBase(void)
              : Params("", STATE_NONE)
 {
 };
@@ -29,11 +31,10 @@ DiffusionBase<Trajectory>::DiffusionBase(void)
 \author Vladimir Florinski
 \date 05/06/2022
 \param[in] name_in   Readable name of the class
-\param[in] specie_in Particle's specie
 \param[in] status_in Initial status
 */
-template <typename Trajectory>
-DiffusionBase<Trajectory>::DiffusionBase(const std::string& name_in,  uint16_t status_in)
+template <typename HConfig>
+DiffusionBase<HConfig>::DiffusionBase(const std::string& name_in,  uint16_t status_in)
              : Params(name_in, status_in)
 {
 };
@@ -45,8 +46,8 @@ DiffusionBase<Trajectory>::DiffusionBase(const std::string& name_in,  uint16_t s
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
 */
-template <typename Trajectory>
-DiffusionBase<Trajectory>::DiffusionBase(const DiffusionBase& other)
+template <typename HConfig>
+DiffusionBase<HConfig>::DiffusionBase(const DiffusionBase& other)
              : Params(other)
 {
 // Params' constructor resets all flags
@@ -60,8 +61,8 @@ DiffusionBase<Trajectory>::DiffusionBase(const DiffusionBase& other)
 
 This is the default method to set up an object. It should only be defined in the base class (XXXXBase). Derived classes should _not_ modify it! This version always calls the correct virtual "SetupDiffusion()" method.
 */
-template <typename Trajectory>
-void DiffusionBase<Trajectory>::SetupObject(const DataContainer& cont_in)
+template <typename HConfig>
+void DiffusionBase<HConfig>::SetupObject(const DataContainer& cont_in)
 {
    Params::SetContainer(cont_in);
    SetupDiffusion(false);
@@ -74,8 +75,8 @@ void DiffusionBase<Trajectory>::SetupObject(const DataContainer& cont_in)
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
-template <typename Trajectory>
-void DiffusionBase<Trajectory>::SetupDiffusion(bool construct)
+template <typename HConfig>
+void DiffusionBase<HConfig>::SetupDiffusion(bool construct)
 {
 // Only needed in the parent version
    container.Reset();
@@ -91,8 +92,8 @@ void DiffusionBase<Trajectory>::SetupDiffusion(bool construct)
 \date 05/09/2022
 \note This is only a stub.
 */
-template <typename Trajectory>
-void DiffusionBase<Trajectory>::EvaluateDiffusion(int comp)
+template <typename HConfig>
+void DiffusionBase<HConfig>::EvaluateDiffusion(Component comp)
 {
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -102,23 +103,33 @@ void DiffusionBase<Trajectory>::EvaluateDiffusion(int comp)
 \author Vladimir Florinski
 \author Lucius Schoenbaum
 \date 09/21/2025
-\param[in] coords     Coordinates (what is needed by diffusion)
-\param[in] fields       Coordinate-dependent fields (what is needed by diffusion)
+\param[in] coords     Coordinates managed by trajectory type
+\param[in] fields       Coordinate-dependent fields managed by trajectory type
 \note This is a common routine that the derived classes should not change.
-It must be called prior to all diffusion computations if the target coordinates have changed.
+This method must be called prior to all diffusion computations on 'new' coordinates.
+After that, methods Get, GetDirectionalDerivative, and GetMuDerivative
+can be called any number of times. To use a particular diffusion type,
+the trajectory fields and coordinates must be convertible to that diffusion
+type's fields and coordinates. Conversion is performed by the caller to Stage()
+because situations exist where the coordinates are most easily adjusted after conversion, not before.
+Note that fields passed by the caller to Stage() are *inputs* to diffusion class,
+that can only be evaluated once coordinates are known, so here, too, the
+caller should make use of the Diffusion class's fields type and populate it with the values
+required by the diffusion coefficient computation. This is normally done by calling the background,
+but it is not necessarily the case that the fields need to be computed at the point of staging,
+so the caller is again given the responsibility to prepare the argument.
 */
-template <typename Trajectory>
-void DiffusionBase<Trajectory>::Stage(const BackgroundCoordinates& coords, const BackgroundFields& fields)
+template <typename HConfig>
+void DiffusionBase<HConfig>::Stage(const DiffusionCoordinates& coords, const DiffusionFields& fields)
 {
-   _coords = DiffusionCoordinates::Get(coords);
-   _fields = DiffusionFields::Get(fields);
-   vmag = Vel(_coords.Mom()[0], Trajectory::specie);
-   Omega = CyclotronFrequency(vmag, _fields.AbsMag(), Trajectory::specie);
-
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
-      mu = _coords.Mom()[1];
-      st2 = 1.0 - Sqr(mu);
-   }
+   _coords = coords;
+   _fields = fields;
+   // todo this is in Convert
+   // todo MomMu, VelMu, MomSt2, VelSt2
+//   vmag = Vel<specie>(coords.AbsMom());
+   Omega = CyclotronFrequency<specie>(_coords.AbsVel(), _fields.AbsMag());
+   // todo review
+   st2 = 1.0 - Sqr(_coords.MomMu());
 };
 
 
@@ -130,10 +141,10 @@ void DiffusionBase<Trajectory>::Stage(const BackgroundCoordinates& coords, const
 \param[in] comp      Which component to evaluate
 \return One diffusion component
 \note This is a common routine that the derived classes should not change.
- \note This must be called after Stage() if the target coordinates have changed.
+\note This must be called after Stage() if the target coordinates have changed.
 */
-template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetComponent(int comp)
+template <typename HConfig>
+double DiffusionBase<HConfig>::Get(Component comp)
 {
    EvaluateDiffusion(comp);
    return Kappa[comp];
@@ -142,15 +153,16 @@ double DiffusionBase<Trajectory>::GetComponent(int comp)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 07/12/2024
+\author Lucius Schoenbaum
+\date 08/12/2025
 \param[in] comp Which component to evaluate
 \param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
 \param[in] ddata_in Derivative data from computing background fields (read only)
 \return Directional derivative
 \note This must be called after Stage() if the target coordinates have changed.
 */
-template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetDirectionalDerivative(int comp, int xyz, const DerivativeData& ddata)
+template <typename HConfig>
+double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata)
 {
    double _t_saved, Bmag_saved, derivative, _dr, _dt;
    GeoVector _pos_saved, Bvec_saved, Kappa_saved, Kappa_forw, Kappa_back;
@@ -246,21 +258,17 @@ double DiffusionBase<Trajectory>::GetDirectionalDerivative(int comp, int xyz, co
 \return Derivative in mu
 \note This must be called after Stage() if the target coordinates have changed.
 */
-template <typename Trajectory>
-double DiffusionBase<Trajectory>::GetMuDerivative(int comp)
+template <typename HConfig>
+double DiffusionBase<HConfig>::GetMuDerivative(Component comp)
 {
 // Save diffusion and field values at "current" position
-   double mu_saved = mu;
+   double mu_saved = _coords.MomMu();
    GeoVector Kappa_saved = Kappa;
-   double dmu, derivative;
+   double derivative;
+   double dmu = sp_small * (mu_saved + sp_small < 1.0 ? 1.0 : -1.0);
 
-// Mu derivative (momentum is in (p,mu,phi) coordinates)
-   dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
-
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
-      mu += dmu;
-      st2 = 1.0 - Sqr(mu);
-   }
+   _coords.MomMu() += dmu;
+   st2 = 1.0 - Sqr(_coords.MomMu());
 
    EvaluateDiffusion(comp);
    derivative = (Kappa[comp] - Kappa_saved[comp]) / dmu;
@@ -268,12 +276,12 @@ double DiffusionBase<Trajectory>::GetMuDerivative(int comp)
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
 
-   if constexpr (!std::same_as<Trajectory, TrajectoryParker>) {
-      mu = mu_saved;
-      st2 = 1.0 - Sqr(mu);
-   }
+   _coords.MomMu() = mu_saved;
+   st2 = 1.0 - Sqr(mu_saved);
 
    return derivative;
 };
 
 };
+
+

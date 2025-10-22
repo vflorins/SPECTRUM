@@ -26,8 +26,8 @@ int main(int argc, char** argv)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    using Fields = Fields<Vel_t, Mag_t, AbsMag_t, HatMag_t, DelAbsMag_t, DelMag_t, DelVel_t, DotVel_t, DotMag_t>;
-   using Trajectory = TrajectoryFocused<Fields>;
-   using Background = BackgroundUniform<Fields>;
+   using Trajectory = TrajectoryFocused<HConfig>;
+   using Background = BackgroundUniform<HConfig>;
 
    using SimulationWorker = SimulationWorker<Trajectory>;
    using InitialTime = InitialTimeInterval<Trajectory>;
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum = Mom<specie>(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    double theta = DegToRad(90.0);

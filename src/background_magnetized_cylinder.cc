@@ -10,6 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace BackgroundOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundMagnetizedCylinder methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,11 +46,12 @@ BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(const Backgr
 \date 02/13/2024
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
-   BackgroundCylindricalObstacle::EvaluateBackground(coords, fields);
-   if constexpr (Fields::Mag_found()) fields.Mag() = B0 - fields.Mag();
+   BackgroundCylindricalObstacle::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
+   if constexpr (RequestedFields::Mag_found())
+      fields.Mag() = B0 - fields.Mag();
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -58,15 +61,15 @@ void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(BackgroundCoordin
 \date 03/11/2024
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(BackgroundCoordinates& coords, Fields& fields)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (HConfig::derivative_method == DerivativeMethod::analytic) {
-      BackgroundCylindricalObstacle::EvaluateBackgroundDerivatives(coords, fields);
-      if constexpr (Fields::DelMag_found()) fields.DelMag() *= -1.0;
+   if constexpr (derivative_method == DerivativeMethod::analytic) {
+      BackgroundCylindricalObstacle::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+      if constexpr (RequestedFields::DelMag_found()) fields.DelMag() *= -1.0;
    }
    else {
-      NumericalDerivatives(coords, fields);
+      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 

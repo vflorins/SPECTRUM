@@ -23,7 +23,7 @@ namespace Spectrum {
 
 Parameters: (BackgroundBase)
 */
-template <typename HConfig_>
+template <typename HConfig_, typename ServerFront_>
 class BackgroundServer : public BackgroundBase<HConfig_> {
 private:
 
@@ -33,7 +33,9 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundCoordinates = HConfig::BackgroundCoordinates;
+   using ServerFront = ServerFront_;
+   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundServer<HConfig, ServerFront>>, typename HConfig::BackgroundConfig>;
+   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;
@@ -43,31 +45,30 @@ public:
    using BackgroundBase::u0;
    using BackgroundBase::B0;
    // methods
-   using BackgroundBase::EvaluateBmag;
+   using BackgroundBase::EvaluateAbsMag;
    using BackgroundBase::EvaluateDmax;
    using BackgroundBase::GetDmax;
    using BackgroundBase::StopServerFront;
    using BackgroundBase::SetupBackground;
-   using BackgroundBase::NumericalDerivatives;
 
 protected:
 
 //! Pointer to a server object
-   std::unique_ptr<ServerFrontType> server_front = nullptr;
+   std::unique_ptr<ServerFront> server_front = nullptr;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct) override;
+   void SetupBackground(bool construct);
 
    //! Calculate magnetic field magnitude
-   void EvaluateBmag(void) override;
+   void EvaluateAbsMag(void);
 
 //! Compute the internal u, B, and E fields
-   template <typename Fields>
-   void EvaluateBackground(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
-   template <typename Fields>
-   void EvaluateBackgroundDerivatives(BackgroundCoordinates&, Fields&);
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 //! Default constructor (protected, class not designed to be instantiated)
    BackgroundServer(void);
@@ -81,10 +82,10 @@ protected:
 public:
 
 //! Destructor
-   ~BackgroundServer() override = default;
+   ~BackgroundServer() = default;
 
 //! Signal the backend this client no longer needs its service
-   void StopServerFront(void) override;
+   void StopServerFront(void);
 
 //! Return the vector to one of the corners of the block
    GeoVector GetDomainMin(void) const;
@@ -99,8 +100,8 @@ public:
 \date 07/19/2023
 \return Coordinates closest to the origin
 */
-template <typename Fields>
-inline GeoVector BackgroundServer<Fields>::GetDomainMin(void) const
+template <typename HConfig, typename ServerFront>
+inline GeoVector BackgroundServer<HConfig, ServerFront>::GetDomainMin(void) const
 {
    if (server_front) return server_front->GetDomainMin();
    else return gv_zeros;
@@ -111,8 +112,8 @@ inline GeoVector BackgroundServer<Fields>::GetDomainMin(void) const
 \date 07/19/2023
 \return Coordinates farthest from the origin
 */
-template <typename Fields>
-inline GeoVector BackgroundServer<Fields>::GetDomainMax(void) const
+template <typename HConfig, typename ServerFront>
+inline GeoVector BackgroundServer<HConfig, ServerFront>::GetDomainMax(void) const
 {
    if (server_front) return server_front->GetDomainMax();
    else return gv_zeros;

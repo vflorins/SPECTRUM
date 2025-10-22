@@ -12,4 +12,4 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <common/fields2/partially_generated/fields.hh>
 #include <common/fields2/generated/field_types.hh>
-
+#include <common/fields2/field_ops.hh>
