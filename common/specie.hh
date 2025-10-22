@@ -5,13 +5,14 @@
 #ifndef SPECTRUM_SPECIE_HH
 #define SPECTRUM_SPECIE_HH
 
-#ifdef USE_GSL
-#include <gsl/gsl_const_cgsm.h>
-#endif
-
 #include <array>
 #include <string_view>
 
+#include "config.h"
+
+#ifdef USE_GSL
+#include <gsl/gsl_const_cgsm.h>
+#endif
 
 //! The largest number of species (distinct particle mass and charge).
 #define MAX_PARTICLE_SPECIES 16
