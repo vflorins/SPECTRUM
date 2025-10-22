@@ -109,9 +109,7 @@ try {
       for (j = 0; j < 3; j++) {
 // Forward evaluation
          dcoords.Pos()[j] += delta;
-         //\\ The position has changed, so the CommonFields method must be called for all dfields.
          CommonFields(dcoords, dfields);
-         //> Stage diffusion again.
          diffusion->Stage(dcoords, dfields);
          Kperp_forw = diffusion->Get(Component::perp);
          Kpara_forw = diffusion->Get(Component::para);
@@ -239,7 +237,7 @@ void TrajectoryParker<Background, Diffusion>::PhysicalStep(void)
       dt_physical = cfl_adv * _dmax / (drift_vel - divK).Norm();
    }
    dt_physical = fmin(dt_physical, cfl_dif * Sqr(_dmax) / fmax(Kperp, Kpara));
-   dt_physical = fmin(dt_physical, cfl_acc * 3.0 * dlnpmax / fabs(_fields.DivVel()));
+   dt_physical = fmin(dt_physical, cfl_acc * 3.0 * dlnpmax / fabs(_fields.DivFluv()));
 };
 
 /*!
@@ -266,7 +264,7 @@ void TrajectoryParker<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage
    }
 
 // Momentum slopes
-   slope_mom_istage[0] = -_coords.Mom()[0] * _fields.DivVel() / 3.0;
+   slope_mom_istage[0] = -_coords.Mom()[0] * _fields.DivFluv() / 3.0;
    slope_mom_istage[1] = 0.0;
    slope_mom_istage[2] = 0.0;
 };

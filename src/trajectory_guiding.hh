@@ -20,8 +20,8 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
-template <typename HConfig_, typename Background_>
-class TrajectoryGuiding : public TrajectoryBase<HConfig_, Background_> {
+template <typename Background_, typename Diffusion_>
+class TrajectoryGuiding : public TrajectoryBase<Background_, Diffusion_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuiding";

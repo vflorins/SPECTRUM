@@ -30,7 +30,6 @@ class TrajectoryFields<TrajectoryId::Fieldline, specieid> {
    /* Unused */
    using type = Fields<FConfig<specieid>>;
 };
-// TODO DONE
 
 
 template <SpecieId specieid>
@@ -41,7 +40,6 @@ template <SpecieId specieid>
 class TrajectoryFields<TrajectoryId::Lorentz, specieid> {
    using type = Fields<FConfig<specieid>, Mag_t, Elc_t>;
 };
-// TODO DONE
 
 
 template <SpecieId specieid>
@@ -52,7 +50,6 @@ template <SpecieId specieid>
 class TrajectoryFields<TrajectoryId::Focused, specieid> {
    using type = Fields<FConfig<specieid>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelFluv_t, DelAbsMag_t, DelMag_t, DotFluv_t>;
 };
-// TODO DONE
 
 
 
@@ -62,7 +59,7 @@ class TrajectoryCoordinates<TrajectoryId::Guiding, specieid> {
 };
 template <SpecieId specieid>
 class TrajectoryFields<TrajectoryId::Guiding, specieid> {
-   using type = Fields<FConfig<specieid>, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using type = Fields<FConfig<specieid>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
 };
 
 
@@ -73,7 +70,7 @@ class TrajectoryCoordinates<TrajectoryId::Parker, specieid> {
 };
 template <SpecieId specieid>
 class TrajectoryFields<TrajectoryId::Parker, specieid> {
-   using type = Fields<FConfig<specieid>, Todo_t>;
+   using type = Fields<FConfig<specieid>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t>;
 };
 
 
@@ -83,75 +80,40 @@ class TrajectoryFields<TrajectoryId::Parker, specieid> {
 \date 09/05/2025
 */
 template<
-      SpecieId specieid,
-      TrajectoryId trajectoryid,
-      typename TrajectoryFields,
-      typename RecordCoordinates_,
-      TrajectoryOptions::TimeFlow time_flow_,
-      RKIntegrator rk_integrator_,
-//! Whether to record magnetic field extrema
-    bool record_mag_extrema_,
-//! Whether to record segments
-    bool record_trajectory_,
-//! Default initial size of trajectory segment record
-      size_t record_trajectory_segment_presize_,
-//! Trajectory advance safety level: 0 means no checks, 1 means check dt only, 2 means check dt, number of segments, and time adaptations per step.
-      TrajectoryOptions::SafetyLevel trajectory_adv_safety_level_,
-//! Largest length for single trajectory
-      int max_trajectory_steps_,
-//! Largest number of time step adaptations for a single time step
-      int max_time_adaptations_,
-//! Upper limit on the number of steps in debug mode
-//! use -1 for unlimited
-      int n_max_calls_,
-//! CFL condition for advection
-    Ratio cfl_advection_,
-//! CFL condition for diffusion
-    Ratio cfl_diffusion_,
-//! CFL condition for acceleration
-    Ratio cfl_acceleration_,
-//! CFL condition for pitch angle scattering
-      Ratio cfl_pitchangle_,
-//! Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-      Ratio drift_safety_,
-//! How many time steps to allow before recording a mirror event
-      int mirror_threshold_,
-//// Switch controlling how to calculate mu. "0" means computing it at the end of the step from magnetic moment conservation. "1" means advancing it in time according to the scheme (does not guarantee conservation of MM, but can be used with non-adiabatic terms).
-      TrajectoryOptions::PPerpMethod pperp_method_,
-//! Flag to use gradient and curvature drifts in drift velocity calculation
-      TrajectoryOptions::UseBDrifts use_B_drifts_,
-//! Which stochastic method to use for PA scattering, 0 = Euler, 1 = Milstein, 2 = RK2
-//! Which stochastic method to use for perpendicular diffusion, 0 = Euler, 1 = Milstein, 2 = RK2
-    TrajectoryOptions::StochasticMethod stochastic_method_,
-    TrajectoryOptions::StochasticMethod stochastic_method_mu_,
-    TrajectoryOptions::StochasticMethod stochastic_method_perp_,
-//! Whether to split the diffusive advance into two (one before and one after the advection).
-// #define SPLIT_SCATT
-      bool split_scatt_,
-//#ifdef SPLIT_SCATT
-//! Fraction of stochastic step to take before deterministic step
-//const double alpha = 0.5;
-//#endif
-      Ratio split_scatt_fraction_,
-//#if CONST_DMUMAX == 1
-//! Desired accuracy in pitch angle cosine
-//const double dmumax = 0.02;
-//#else
-//! Desired accuracy in pitch angle (deg x [deg to rad conversion factor])
-//const double dthetamax = 2.0 * M_PI / 180.0;
-//#endif
-      TrajectoryOptions::ConstDmumax const_dmumax_,
-//! Number of time steps per one orbit
-    int steps_per_orbit_,
-//! Which method of computation to use for divK: 0 = using direct central FD, 1 = using _spdata.grad quantities
-    TrajectoryOptions::DivkMethod divk_method_,
-//! Maximum allowed fraction of momentum change per step
-      Ratio dlnp_max_
+   SpecieId specieid,
+   TrajectoryId trajectoryid,
+   typename Fields_,
+   typename RecordCoordinates_,
+   TrajectoryOptions::TimeFlow time_flow_,
+   RKIntegrator rk_integrator_,
+   bool record_mag_extrema_,
+   bool record_trajectory_,
+   size_t record_trajectory_segment_presize_,
+   TrajectoryOptions::SafetyLevel trajectory_adv_safety_level_,
+   int max_trajectory_steps_,
+   int max_time_adaptations_,
+   int n_max_calls_,
+   Ratio cfl_advection_,
+   Ratio cfl_diffusion_,
+   Ratio cfl_acceleration_,
+   Ratio cfl_pitchangle_,
+   Ratio drift_safety_,
+   int mirror_threshold_,
+   TrajectoryOptions::PPerpMethod pperp_method_,
+   TrajectoryOptions::UseBDrifts use_B_drifts_,
+   TrajectoryOptions::StochasticMethod stochastic_method_,
+   TrajectoryOptions::StochasticMethod stochastic_method_mu_,
+   TrajectoryOptions::StochasticMethod stochastic_method_perp_,
+   Ratio split_scatt_fraction_,
+   TrajectoryOptions::ConstDmumax const_dmumax_,
+   int steps_per_orbit_,
+   TrajectoryOptions::DivkMethod divk_method_,
+   Ratio dlnp_max_
 >
 struct TrajectoryConfig {
 
    using Coordinates = TrajectoryCoordinates<trajectoryid, specieid>;
-   using Fields = TrajectoryFields;
+   using Fields = Cond<std::same_as<Fields_, Default>, TrajectoryFields<trajectoryid, specieid>, Fields_>;
    using RecordCoordinates = RecordCoordinates_;
 
    static constexpr auto time_flow = time_flow_;
@@ -174,7 +136,6 @@ struct TrajectoryConfig {
    static constexpr auto stochastic_method = stochastic_method_;
    static constexpr auto stochastic_method_mu = stochastic_method_mu_;
    static constexpr auto stochastic_method_perp = stochastic_method_perp_;
-   static constexpr auto split_scatt = split_scatt_;
    static constexpr auto split_scatt_fraction = get_fp<split_scatt_fraction_>();
    static constexpr auto const_dmumax = const_dmumax_;
    static constexpr auto steps_per_orbit = steps_per_orbit_;

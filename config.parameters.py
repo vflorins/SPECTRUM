@@ -1,7 +1,26 @@
-# File config.baseline.py Created by Lucius Schoenbaum October 20, 2025
+# File config.parameters.py Created by Lucius Schoenbaum October 20, 2025
 
+"""
+This file contains a specification of all (hyper)parameters
+for the SPECTRUM test particle trajectory solver.
+It provides type information, possible ranges in some cases,
+a docstring, and a globally-defined fallthrough default value.
 
+***Notes for Developers***
 
+New parameters can be added to this file. In order to do so,
+be sure to make note of the interoperability requirement between
+the lists here, and the template arguments defined in config.hh files
+(background.config.hh, trajectory.config.hh, diffusion.config.hh)
+in the C++ source. Once these files are all in agreement, the main
+`config.py` script can be run to generate new default values,
+incorporating physical defaults defined in `config.physical.py`.
+
+Similarly, in order to "install" any updates to physical defaults (in `config.physical.py`)
+or to definitions of any values in this file, you must run the main
+`config.py` configuration script.
+
+"""
 
 
 
@@ -65,17 +84,17 @@ class ParameterInfo:
 
 
 parameters_general = {
-    'trajectory': ParameterInfo(
-        name = 'trajectory',
-        description = "The trajectory type used for simulation",
-        default = "Lorentz",
-        possible_values=trajectories,
-    ),
     'background': ParameterInfo(
         name = 'background',
         description = "The background type used for simulation",
         default = "Dipole",
         possible_values=backgrounds,
+    ),
+    'trajectory': ParameterInfo(
+        name = 'trajectory',
+        description = "The trajectory type used for simulation",
+        default = "Lorentz",
+        possible_values=trajectories,
     ),
     'diffusion': ParameterInfo(
         name = 'diffusion',
@@ -83,19 +102,24 @@ parameters_general = {
         default = "Uniform",
         possible_values=diffusions,
     ),
-    # ----- General ----- #
+    'specieid': ParameterInfo(
+        name = 'specieid',
+        description = "The specie (particle species) used for simulation",
+        default = "proton_core",
+        possible_values=["proton_core", "electron_core"], # todo
+    ),
+    'trajectoryid': ParameterInfo(
+        name = 'trajectoryid',
+        description = "The trajectory family used for simulation",
+        default = "Lorentz",
+        possible_values=["Guiding", "Lorentz"], # todo
+    ),
     'build_mode': ParameterInfo(
         name = 'build_mode',
         description = "The build mode used for simulation",
         default = "release",
         possible_values=["release", "debug"],
         parameter_type="BuildMode",
-    ),
-    'specie': ParameterInfo(
-        name = 'specie',
-        description = "The specie (particle species) used for simulation",
-        default = "proton_core",
-        possible_values=["proton_core", "electron_core"], # todo
     ),
     'num_trajectories': ParameterInfo(
         name = 'num_trajectories',
@@ -110,7 +134,7 @@ parameters_general = {
 }
 
 
-# entries must match list-wise with those in background.config.hh
+# entries must match as a list with lists in background.config.hh
 parameters_background = {
     'derivative_method': ParameterInfo(
         name = 'derivative_method',
@@ -199,12 +223,12 @@ parameters_background = {
 }
 
 
-# entries must match list-wise with those in trajectory.config.hh
+# entries must match as a list with lists in trajectory.config.hh
 parameters_trajectory = {
     'TrajectoryFields': ParameterInfo(
         name = 'TrajectoryFields',
         description = "The fields needed to advance the trajectory during simulation.",
-        default = "Fields<FConfig<>>",
+        default = "Default",
     ),
     'RecordCoordinates': ParameterInfo(
         name = 'RecordCoordinates',
@@ -222,133 +246,152 @@ parameters_trajectory = {
         name = 'rk_integrator',
         description = "The discretization scheme used for simulation, a Runge-Kutta scheme",
         default = "DormandPrince_54E",
-        # todo extend list
-        possible_values=["Euler1E", "Euler1I", "Midpoint_2I", "Midpoint_2E", "RungeKutta_4E", "Kutta38_4E", "RungeKuttaFehlberg_54E", "CashKarp_54E", "DormandPrince_54E", "RungeKuttaFehlberg65E", "RungeKuttaFehlberg76E", "RungeKuttaFehlberg_87E"],
+        possible_values=["Euler1E", "Euler1I", "Midpoint_2I", "Midpoint_2E", "RungeKutta_4E", "Kutta38_4E", "RungeKuttaFehlberg_54E", "CashKarp_54E", "DormandPrince_54E", "RungeKuttaFehlberg65E", "RungeKuttaFehlberg76E", "RungeKuttaFehlberg_87E", "...others (see source)"],
         parameter_type="RKIntegrator",
     ),
     'record_mag_extrema': ParameterInfo(
         name = 'record_mag_extrema',
-        description = "vcx",
-        default = "vcx",
+        description = "Whether to record magnetic field extrema",
+        default = False,
     ),
     'record_trajectory': ParameterInfo(
         name = 'record_trajectory',
-        description = "vcx",
-        default = "vcx",
+        description = "Whether to record segments",
+        default = False,
     ),
     'record_trajectory_segment_presize': ParameterInfo(
         name = 'record_trajectory_segment_presize',
-        description = "vcx",
-        default = "vcx",
+        description = "Default initial size of trajectory segment record",
+        default = 10000,
     ),
     'trajectory_adv_safety_level': ParameterInfo(
         name = 'trajectory_adv_safety_level',
-        description = "vcx",
-        default = "vcx",
+        description = "Trajectory advance safety level",
+        possible_values=["0: no checks", "1: check dt only", "2: check dt, number of segments, and time adaptations per step"],
+        default = 0,
+        parameter_type="TrajectoryOptions::SafetyLevel"
     ),
     'max_trajectory_steps': ParameterInfo(
         name = 'max_trajectory_steps',
-        description = "vcx",
+        description = "Largest length for single trajectory",
         default = "vcx",
     ),
     'max_time_adaptations': ParameterInfo(
         name = 'max_time_adaptations',
-        description = "vcx",
+        description = "Largest number of time step adaptations for a single time step",
         default = "vcx",
     ),
     'n_max_calls': ParameterInfo(
         name = 'n_max_calls',
-        description = "vcx",
-        default = "vcx",
+        description = "Upper limit on the number of steps in debug mode",
+        possible_values=["-1: unlimited", "n ≥ 0: limited, upper bound n"],
+        default = -1,
     ),
     'cfl_advection': ParameterInfo(
         name = 'cfl_advection',
-        description = "vcx",
-        default = "vcx",
+        description = "CFL condition for advection",
+        default = 0.5,
+        parameter_type=float,
     ),
     'cfl_diffusion': ParameterInfo(
         name = 'cfl_diffusion',
-        description = "vcx",
-        default = "vcx",
+        description = "CFL condition for diffusion",
+        default = 0.5,
+        parameter_type=float,
     ),
     'cfl_acceleration': ParameterInfo(
         name = 'cfl_acceleration',
-        description = "vcx",
-        default = "vcx",
+        description = "CFL condition for acceleration",
+        default = 0.5,
+        parameter_type=float,
     ),
     'cfl_pitchangle': ParameterInfo(
         name = 'cfl_pitchangle',
-        description = "vcx",
-        default = "vcx",
+        description = "CFL condition for pitch angle scattering",
+        default = 0.5,
+        parameter_type=float,
     ),
     'drift_safety': ParameterInfo(
         name = 'drift_safety',
-        description = "vcx",
-        default = "vcx",
+        description = "Safety factor for drift-based time step (to modify \"drift_vel\" with a small fraction of the particle's velocity)",
+        default = 0.5,
+        parameter_type=float,
     ),
     'mirror_threshold': ParameterInfo(
         name = 'mirror_threshold',
-        description = "vcx",
+        description = "How many time steps to allow before recording a mirror event",
         default = "vcx",
     ),
     'pperp_method': ParameterInfo(
         name = 'pperp_method',
-        description = "vcx",
-        default = "vcx",
+        description = "Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.",
+        possible_values=["moment_cons: compute mu from magnetic moment conservation", "scheme: update according to scheme"],
+        default = "moment_cons",
+        parameter_type="TrajectoryOptions::PPerpMethod",
     ),
     'use_B_drifts': ParameterInfo(
         name = 'use_B_drifts',
-        description = "vcx",
+        description = "Flag to use gradient and curvature drifts in drift velocity calculation",
         default = "vcx",
+        parameter_type="TrajectoryOptions::UseBDrifts",
     ),
     'stochastic_method': ParameterInfo(
         name = 'stochastic_method',
-        description = "vcx",
-        default = "vcx",
+        description = "Which stochastic method to use for scattering",
+        possible_values=["Euler", "Milstein", "RK2"],
+        default = "Euler",
+        parameter_type="TrajectoryOptions::StochasticMethod",
     ),
     'stochastic_method_mu': ParameterInfo(
         name = 'stochastic_method_mu',
-        description = "vcx",
-        default = "vcx",
+        description = "which stochastic method to use for pitch angle scattering",
+        possible_values=["Euler", "Milstein", "RK2"],
+        default = "Euler",
+        parameter_type="TrajectoryOptions::StochasticMethod",
     ),
     'stochastic_method_perp': ParameterInfo(
         name = 'stochastic_method_perp',
-        description = "vcx",
-        default = "vcx",
-    ),
-    'split_scatt': ParameterInfo(
-        name = 'split_scatt',
-        description = "vcx",
-        default = "vcx",
+        description = "Which stochastic method to use for perpendicular diffusion",
+        possible_values=["Euler", "Milstein", "RK2"],
+        default = "Euler",
+        parameter_type="TrajectoryOptions::StochasticMethod",
     ),
     'split_scatt_fraction': ParameterInfo(
         name = 'split_scatt_fraction',
-        description = "vcx",
-        default = "vcx",
+        description = "Whether to split the diffusive advance into two (one before and one after the advection).",
+        possible_values=["0.0: do not split", ">0.0: fraction of stochastic step to take before deterministic step"],
+        default = 0.0,
+        parameter_type=float,
     ),
+    # todo fix
     'const_dmumax': ParameterInfo(
         name = 'const_dmumax',
-        description = "vcx",
-        default = "vcx",
+        description = "Desired accuracy in pitch angle cosine or in pitch angle mu",
+        possible_values=["constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor)", "constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)"],
+        default = "constant_dmumax",
+        parameter_type="TrajectoryOptions::ConstDmumax",
     ),
     'steps_per_orbit': ParameterInfo(
         name = 'steps_per_orbit',
-        description = "vcx",
+        description = "Number of time steps per one orbit",
         default = "vcx",
     ),
     'divk_method': ParameterInfo(
         name = 'divk_method',
-        description = "vcx",
-        default = "vcx",
+        description = "Which method of computation to use for divK",
+        possible_values=["direct: using direct central finite differences", "gradients: using background-computed gradient quantities"],
+        default = "gradients",
+        parameter_type="TrajectoryOptions::DivkMethod",
     ),
     'dlnp_max': ParameterInfo(
         name = 'dlnp_max',
-        description = "vcx",
+        description = "Maximum allowed fraction of momentum change per step",
         default = "vcx",
+        parameter_type=float,
     ),
 }
 
-# entries must match list-wise with those in diffusion.config.hh
+# entries must match as a list with lists in diffusion.config.hh
 parameters_diffusion = {
     'use_qlt_scatt': ParameterInfo(
         name = 'use_qlt_scatt',

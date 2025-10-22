@@ -18,8 +18,8 @@ namespace Spectrum {
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
 \author Vladimir Florinski
 */
-template <typename HConfig_, typename Background_>
-class TrajectoryLorentz : public TrajectoryBase<HConfig_, Background_> {
+template <typename Background_, typename Diffusion_>
+class TrajectoryLorentz : public TrajectoryBase<Background_, Diffusion_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryLorentz";

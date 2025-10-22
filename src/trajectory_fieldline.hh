@@ -27,7 +27,7 @@ i.e., the "field" in Fieldline.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
 template <typename HConfig_, typename Background_, typename Field_t_>
-class TrajectoryFieldline : public TrajectoryBase<HConfig_, Background_> {
+class TrajectoryFieldline : public TrajectoryBase<Background_, Diffusion_> {
 
    static constexpr std::string_view traj_name = "TrajectoryFieldline";
 

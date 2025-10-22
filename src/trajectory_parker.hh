@@ -20,16 +20,18 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-template <typename HConfig_, typename Background_>
-class TrajectoryParker : public TrajectoryBase<HConfig_, Background_> {
+template <typename Background_, typename Diffusion_>
+class TrajectoryParker : public TrajectoryBase<Background_, Diffusion_> {
 
    //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryParker";
 
 public:
 
-   using HConfig = HConfig_;
    using Background = Background_;
+   using Diffusion = Diffusion_;
+   using HConfig = Background::HConfig;
+   // todo Traj'yConfig
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
    using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
@@ -63,11 +65,6 @@ public:
    using TrajectoryBase::ConnectRNG;
    using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::records;
-
-// todo: the list of checks is not exhausive
-   static_assert(TrajectoryFields::template found<HatMag_t>(), "HatMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(TrajectoryFields::template found<DelAbsMag_t>(), "DelAbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

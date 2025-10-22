@@ -23,7 +23,7 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename HConfig_, typename Background_>
+template <typename Background_, typename Diffusion_>
 class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_, Background_> {
 
 //! Readable name of the class

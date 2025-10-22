@@ -129,14 +129,14 @@ void TrajectoryFocused<Background, Diffusion>::Slopes(GeoVector& slope_pos_istag
    bhat_cdUvecdt = 2.0 * bhat * cdUvecdt / _coords.Vel()[0];
 
    slope_mom_istage[0] = 0.5 * _coords.Mom()[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec
-                                         - st2 * _fields.DivVel() - _coords.Mom()[1] * bhat_cdUvecdt);
+                                         - st2 * _fields.DivFluv() - _coords.Mom()[1] * bhat_cdUvecdt);
 
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[1] = 0.0;
    }
    else if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
       slope_mom_istage[1] = 0.5 * st2 * ( _coords.Vel()[0] * _fields.DivHatMag() - bhat_cdUvecdt
-                                          + _coords.Mom()[1] * (_fields.DivVel() - 3.0 * bhatbhat_gradUvec) );
+                                          + _coords.Mom()[1] * (_fields.DivFluv() - 3.0 * bhatbhat_gradUvec) );
    }
    
    slope_mom_istage[2] = 0.0;
