@@ -6,20 +6,23 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "domain_partition.hh"
-#include "fluid/variables.hh"
+#include "geodesic/domain_partition.hh"
+
+#ifdef USE_SILO
+#include <pmpio.h>
+#endif
 
 namespace Spectrum {
 
 /*!
 \author Vladimir Florinski
-\date 06/20/2024
+\date 03/21/2025
 \param[in[ n_shells   Total number of shells
 \param[in[ dist_map   Distance scaling function
 \param[in[ face_div   Face division
 */
-template <typename datatype, typename blocktype>
-DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::shared_ptr<DistanceBase> dist_map, double face_div)
+template <typename blocktype>
+DomainPartition<blocktype>::DomainPartition(int n_shells, const std::shared_ptr<DistanceBase> dist_map, double face_div)
 {
    int shells_per_slab, sector_width, bidx;
    double slab_height_fp;
@@ -33,13 +36,13 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 // Perform domain decomposition based on sector size
    slab_height_fp = n_shells_global;
+   sector_division = 0;
    sector_width = Pow2(face_division - sector_division);
    n_sectors = tesselation.NFaces(sector_division);
-   sector_division = 0;
    n_slabs = 1;
-   
+
 // This adjusts the sector and slab sizes to find the optimal values (roughly equal number of zones in each dimension)
-   while ((n_sectors * n_slabs < MPI_Config::n_workers) && (slab_height_fp >= min_block_height) && (sector_width >= min_block_width)) {
+   while ((n_sectors * n_slabs < MPI_Config::n_workers) && (slab_height_fp >= min_height_to_ghost * GHOST_HEIGHT) && (sector_width >= min_width_to_ghost * GHOST_WIDTH)) {
       if (sector_width < slab_height_fp) {
          n_slabs++;
          slab_height_fp = n_shells_global / n_slabs;
@@ -57,14 +60,16 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 // Allocate space for slab interfaces and set up the radial limits
    slab_interfaces = new double[n_slabs + 1];
-   slab_interfaces[0] = distance_map->GetPhysical(0.0);
-   slab_interfaces[n_slabs] = distance_map->GetPhysical(1.0);
+   slab_interfaces[0] = 0.0;
+   slab_interfaces[n_slabs] = 1.0;
    for (auto slab_i = 1; slab_i < n_slabs; slab_i++) {
       shells_per_slab = (slab_i <= n_thinner_slabs ? thinner_slab_height : thinner_slab_height + 1);
       slab_interfaces[slab_i] = slab_interfaces[slab_i - 1] + (double)shells_per_slab / (double)n_shells_global;
    };
 
    block_ranks = new int[n_blocks];
+   blocks_in_rank = new int[MPI_Config::work_comm_size];
+   memset(blocks_in_rank, 0x0, MPI_Config::work_comm_size * sizeof(int));
    int* face_index;
    int* vert_index;
    GeoVector* vcart;
@@ -80,14 +85,14 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
          block_ranks[bidx] = MakePeriodic(bidx, MPI_Config::work_comm_size);
          if (block_ranks[bidx] == MPI_Config::work_comm_rank) {
             blocks_local.emplace_back();
-            blocks_local.back().SetDimensions(sector_width, GHOST_WIDTH, shells_per_slab, GHOST_HEIGHT, false);
             blocks_local.back().SetIndex(bidx);
+            blocks_local.back().SetDimensions(sector_width, GHOST_WIDTH, shells_per_slab, GHOST_HEIGHT, false);
 
 // Inefficient to allocate/delete memory for each block, but we must obtain the array sizes from the block. In principle this can accommodate blocks of different sizes.
             face_index = new int[blocks_local.back().TotalFaces()];
             vert_index = new int[blocks_local.back().TotalVerts()];
             vcart = new GeoVector[blocks_local.back().TotalVerts()];
-            
+
             tesselation.GetAllInsideFaceNative(sector_division, sector, face_division, GHOST_WIDTH, face_index, vert_index, corners);
             tesselation.FillVertCoordArrays(blocks_local.back().TotalVerts(), vert_index, vcart);
             blocks_local.back().AssociateMesh(slab_interfaces[slab], slab_interfaces[slab + 1], corners, borders, vcart, distance_map, false);
@@ -96,7 +101,7 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
             delete[] vert_index;
             delete[] vcart;
          };
-         bidx++;
+         blocks_in_rank[block_ranks[bidx++]]++;
       };
    };
 
@@ -120,29 +125,30 @@ DomainPartition<datatype, blocktype>::DomainPartition(int n_shells, const std::s
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 03/14/2025
 */
-template <typename datatype, typename blocktype>
-DomainPartition<datatype, blocktype>::~DomainPartition()
+template <typename blocktype>
+DomainPartition<blocktype>::~DomainPartition()
 {
    delete[] slab_interfaces;
    delete[] block_ranks;
+   delete[] blocks_in_rank;
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2024
+\date 03/14/2025
 \param[in] pos Vector position
 \return The block global index, -1 if vector is outside the boundaries
 */
-template <typename datatype, typename blocktype>
-int DomainPartition<datatype, blocktype>::LocateBlock(const GeoVector& pos) const
+template <typename blocktype>
+int DomainPartition<blocktype>::LocateBlock(const GeoVector& pos) const
 {
    int slab, sect;
    
 // Locate the slab
    slab = LocateInArray(0, n_slabs, slab_interfaces, pos.Norm(), false);
-   if(slab < 0) return -1;
+   if (slab < 0) return -1;
 
 // Locate the sector using the tesselation
    sect = tesselation.Locate(sector_division, UnitVec(pos));
@@ -151,10 +157,12 @@ int DomainPartition<datatype, blocktype>::LocateBlock(const GeoVector& pos) cons
 
 /*!
 \author Vladimir Florinski
-\date 06/28/2024
+\author Lucius Schoenbaum
+\date 03/14/2025
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::CreateExchangeSites(void)
 {
    int sector_width, n_slab_parts_actual, n_sect_parts_actual, buf_size, sidx, part;
 
@@ -180,8 +188,8 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
    for (auto slab_i = 0; slab_i <= n_slabs; slab_i++) {
 
 // Boundaries
-      if ((slab_i == 0) || (slab_i == n_slabs)) n_slab_parts_actual = n_slab_parts[GEONBR_TFACE] - 1;
-      else n_slab_parts_actual = n_slab_parts[GEONBR_TFACE];
+      n_slab_parts_actual = n_slab_parts[GEONBR_TFACE];
+      if ((slab_i == 0) || (slab_i == n_slabs)) n_slab_parts_actual--;
 
 // Loop on faces
       for (auto face = 0; face < tesselation.NFaces(sector_division); face++) {
@@ -378,17 +386,18 @@ void DomainPartition<datatype, blocktype>::SetUpExchangeSites(void)
 \author Vladimir Florinski
 \date 07/02/2024
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::ExportExchangeSites(void)
 {
    int slab, sector, sidx, n_sites_sect;
    int edges[verts_per_face], verts[verts_per_face];
    std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites_block;
 
 // This loop generates an array "exch_sites_block" for each block in this process from the global "exch_sites" array.
-   for (auto block = 0; block < blocks_local.size(); block++) {
-      slab = GetSlab(blocks_local[block].GetIndex());
-      sector = GetSector(blocks_local[block].GetIndex());
+   for (auto& block : blocks_local) {
+      slab = GetSlab(block.GetIndex());
+      sector = GetSector(block.GetIndex());
 
 // TFACE
       exch_sites_block.clear();
@@ -396,51 +405,33 @@ void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
          sidx = (slab + is) * tesselation.NFaces(sector_division) + sector;
          exch_sites_block.push_back(exch_sites[GEONBR_TFACE][sidx]);
       };
-      blocks_local[block].ImportExchangeSites(GEONBR_TFACE, exch_sites_block);
+      block.ImportExchangeSites(GEONBR_TFACE, exch_sites_block);
 
-// RFACE
-      exch_sites_block.clear();
+// RFACE and TEDGE
       n_sites_sect = tesselation.EdgeNeighborsOfFace(sector_division, sector, edges);
-      for (auto is = 0; is < n_slab_parts[GEONBR_RFACE]; is++) {
-         for (auto ie = 0; ie < n_sites_sect; ie++) {
-            sidx = (slab + is) * tesselation.NEdges(sector_division) + edges[ie];
-            exch_sites_block.push_back(exch_sites[GEONBR_RFACE][sidx]);
+      for (auto ntype : {GEONBR_RFACE, GEONBR_TEDGE}) {
+         exch_sites_block.clear();
+         for (auto is = 0; is < n_slab_parts[ntype]; is++) {
+            for (auto ie = 0; ie < n_sites_sect; ie++) {
+               sidx = (slab + is) * tesselation.NEdges(sector_division) + edges[ie];
+               exch_sites_block.push_back(exch_sites[ntype][sidx]);
+            };
          };
+         block.ImportExchangeSites(ntype, exch_sites_block);
       };
-      blocks_local[block].ImportExchangeSites(GEONBR_RFACE, exch_sites_block);
 
-// TEDGE
-      exch_sites_block.clear();
-      n_sites_sect = tesselation.EdgeNeighborsOfFace(sector_division, sector, edges);
-      for (auto is = 0; is < n_slab_parts[GEONBR_TEDGE]; is++) {
-         for (auto ie = 0; ie < n_sites_sect; ie++) {
-            sidx = (slab + is) * tesselation.NEdges(sector_division) + edges[ie];
-            exch_sites_block.push_back(exch_sites[GEONBR_TEDGE][sidx]);
-         };
-      };
-      blocks_local[block].ImportExchangeSites(GEONBR_TEDGE, exch_sites_block);
-
-// REDGE
-      exch_sites_block.clear();
+// REDGE and VERTX
       n_sites_sect = tesselation.VertNeighborsOfFace(sector_division, sector, verts);
-      for (auto is = 0; is < n_slab_parts[GEONBR_REDGE]; is++) {
-         for (auto iv = 0; iv < n_sites_sect; iv++) {
-            sidx = (slab + is) * tesselation.NVerts(sector_division) + verts[iv];
-            exch_sites_block.push_back(exch_sites[GEONBR_REDGE][sidx]);
+      for (auto ntype : {GEONBR_REDGE, GEONBR_VERTX}) {
+         exch_sites_block.clear();
+         for (auto is = 0; is < n_slab_parts[ntype]; is++) {
+            for (auto iv = 0; iv < n_sites_sect; iv++) {
+               sidx = (slab + is) * tesselation.NVerts(sector_division) + verts[iv];
+               exch_sites_block.push_back(exch_sites[ntype][sidx]);
+            };
          };
+         block.ImportExchangeSites(ntype, exch_sites_block);
       };
-      blocks_local[block].ImportExchangeSites(GEONBR_REDGE, exch_sites_block);
-      
-// VERTX
-      exch_sites_block.clear();
-      n_sites_sect = tesselation.VertNeighborsOfFace(sector_division, sector, verts);
-      for (auto is = 0; is < n_slab_parts[GEONBR_VERTX]; is++) {
-         for (auto iv = 0; iv < n_sites_sect; iv++) {
-            sidx = (slab + is) * tesselation.NVerts(sector_division) + verts[iv];
-            exch_sites_block.push_back(exch_sites[GEONBR_VERTX][sidx]);
-         };
-      };
-      blocks_local[block].ImportExchangeSites(GEONBR_VERTX, exch_sites_block);
    };
 };
 
@@ -448,17 +439,148 @@ void DomainPartition<datatype, blocktype>::ExportExchangeSites(void)
 \author Vladimir Florinski
 \date 06/27/2024
 */
-template <typename datatype, typename blocktype>
-void DomainPartition<datatype, blocktype>::ExchangeAll(void)
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::ExchangeAll(int test_block)
 {
    for (auto ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) {
 
 // Pack the buffers - loop location should allow for some parallelism
-      for (auto block = 0; block < blocks_local.size(); block++) blocks_local[block].PackBuffers(ntype);
+      for (auto& block : blocks_local) block.PackBuffers(ntype, test_block);
       
 // Perform the exchange
-      for (auto sidx : exch_sites_local[ntype]) {
-         exch_sites[ntype][sidx]->Exchange();
+      for (auto sidx : exch_sites_local[ntype]) exch_sites[ntype][sidx]->Exchange();
+
+// Unpack the buffers - test with a different loop location
+      for (auto& block : blocks_local) block.UnPackBuffers(ntype, test_block);
+   };
+};
+
+#ifdef USE_SILO
+
+/*!
+\author Vladimir Florinski
+\date 03/14/2025
+*/
+template <typename blocktype>
+void DomainPartition<blocktype>::Save(int stamp)
+{
+// Character strings holding the numerical values of the time slice, file, directory, and block indices
+   char time_num[time_length + 1];
+   char file_num[file_length + 1];
+   char dirc_num[dirc_length + 1];
+   std::string file_name, dirc_name;
+
+// Initialize the SILO parallel subsystem
+   DBfile* data_file;
+   PMPIO_baton_t* bat = PMPIO_Init(n_silofiles, PMPIO_WRITE, MPI_Config::work_comm, pmpio_wtag, PMPIO_DefaultCreate, PMPIO_DefaultOpen, PMPIO_DefaultClose, NULL);
+
+// Compose the file and directory names based on our PMPIO group and time stamp
+   sprintf(time_num, time_format.c_str(), stamp);
+   sprintf(file_num, file_format.c_str(), PMPIO_GroupRank(bat, MPI_Config::work_comm_rank));
+   sprintf(dirc_num, dirc_format.c_str(), PMPIO_RankInGroup(bat, MPI_Config::work_comm_rank));
+   file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
+   dirc_name = dirc_base + dirc_num;
+
+   data_file = (DBfile*)PMPIO_WaitForBaton(bat, file_name.c_str(), dirc_name.c_str());
+
+// Each process writes its blocks sequentially
+   for (auto& block : blocks_local) block.WriteSilo(data_file, false);
+   PMPIO_HandOffBaton(bat, data_file);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Generate the SILO assembly file
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Name arrays used for both multimeshes and multivars
+   DBfile* assembly_file;
+   char** mmvnames;
+   int* mmvtypes;
+   char blck_num[blck_length + 1];
+   std::string assembled_name, long_name;
+   
+   if (MPI_Config::is_master) {
+      mmvnames = new char*[n_blocks];
+      for (auto bidx = 0; bidx < n_blocks; bidx++) mmvnames[bidx] = new char[path_length];
+      mmvtypes = new int[n_blocks];
+
+// Form block, directory, and file names
+      for (auto bidx = 0; bidx < n_blocks; bidx++) {
+         sprintf(file_num, file_format.c_str(), PMPIO_GroupRank(bat, block_ranks[bidx]));
+         sprintf(dirc_num, dirc_format.c_str(), PMPIO_RankInGroup(bat, block_ranks[bidx]));
+         sprintf(blck_num, blck_format.c_str(), bidx);
+         file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
+         dirc_name = dirc_base + dirc_num;
+         long_name = file_name + ":/" + dirc_name + "/" + um_base + "_" + blck_num;
+         strcpy(mmvnames[bidx], long_name.c_str());
+         mmvtypes[bidx] = DB_UCDMESH;
+      };
+
+      assembled_name = assembled_base + time_num + geofile_ext;
+      assembly_file = DBCreate(assembled_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
+      DBPutMultimesh(assembly_file, asmb_mesh_name.c_str(), n_blocks, mmvnames, mmvtypes, NULL);
+
+// Form block, directory, and file names
+      for (auto bidx = 0; bidx < n_blocks; bidx++) {
+         sprintf(file_num, file_format.c_str(), PMPIO_GroupRank(bat, block_ranks[bidx]));
+         sprintf(dirc_num, dirc_format.c_str(), PMPIO_RankInGroup(bat, block_ranks[bidx]));
+         sprintf(blck_num, blck_format.c_str(), bidx);
+         file_name = datafile_base + file_num + ft_separator + time_num + geofile_ext;
+         dirc_name = dirc_base + dirc_num;
+         long_name = file_name + ":/" + dirc_name + "/" + um_base + "_" + blck_num;
+         strcpy(mmvnames[bidx], long_name.c_str());
+         mmvtypes[bidx] = DB_UCDVAR;
+      };
+
+      DBPutMultivar(assembly_file, asmb_var_name.c_str(), n_blocks, mmvnames, mmvtypes, NULL);
+      DBClose(assembly_file);
+
+      for (auto bidx = 0; bidx < n_blocks; bidx++) delete[] mmvnames[bidx];
+      delete[] mmvnames;
+      delete[] mmvtypes;
+   };
+
+// Close the PMPIO subsystem. One could in principle do this right after the blocks have been written, but then we would not have the PMPIO ranks and groups that are used to name the meshes and variables that are entered into the assembly file.
+   PMPIO_Finish(bat);
+};
+
+#endif
+
+#ifdef GEO_DEBUG
+
+/*!
+\author Vladimir Florinski
+\date 03/16/2025
+*/
+template <typename blocktype>
+void DomainPartition<blocktype>::PrintTopology(void) const
+{
+   for (auto proc = 0; proc < MPI_Config::work_comm_size; proc++) {
+      if (proc == MPI_Config::work_comm_rank) {
+         std::cerr << "Printing process " << proc << " topology\n";
+         for (auto& block : blocks_local) {
+            std::cerr << "   Block index " << block.GetIndex() << std::endl;
+         };
+      };
+      MPI_Barrier(MPI_Config::work_comm);
+   };
+};
+
+/*!
+\author Vladimir Florinski
+\date 03/20/2025
+*/
+template <typename blocktype>
+template <typename datatype, std::enable_if_t<!std::is_void<datatype>::value, bool>>
+void DomainPartition<blocktype>::PrintExchSites(void) const
+{
+   if (!MPI_Config::is_master) return;
+   for (auto ntype = GEONBR_TFACE; ntype <= GEONBR_VERTX; GEO_INCR(ntype, NeighborType)) { 
+      std::cerr << "Printing exchange sites of type " << neighbor_text[ntype] << ":\n";
+      for (const auto& site : exch_sites[ntype]) {
+         std::cerr << "   Site " << std::setw(5) << site->GetIndex() << ": ";
+         std::cerr << std::setw(5) << site->GetPartCount() << " parts ";
+         std::cerr << std::setw(5) << site->GetCommSize() << " processes\n";
       };
 
 // Unpack the buffers - test with a different loop location
@@ -466,6 +588,15 @@ void DomainPartition<datatype, blocktype>::ExchangeAll(void)
    };
 };
 
-template class DomainPartition<ConservedVariables, BufferedBlock<VERTS_PER_FACE, ConservedVariables>>;
+//template void DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>::PrintExchSites(void) const;
+
+#endif
+
+//template class DomainPartition<GridBlock<VERTS_PER_FACE>>;
+template class DomainPartition<StenciledBlock<VERTS_PER_FACE>>;
+//template class DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>;
+//template void DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>::CreateExchangeSites(void);
+//template void DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>::ExportExchangeSites(void);
+//template void DomainPartition<BufferedBlock<VERTS_PER_FACE, int>>::ExchangeAll(int test_block);
 
 };

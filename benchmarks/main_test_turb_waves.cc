@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
    container.Insert(actions);
    
 // Duration of the trajectory
-   double maxtime = 100.0 / unit_time_fluid;
+   double maxtime = 1000.0 / unit_time_fluid;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTimeExpire(), container);
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
    
-   std::string trajectory_file = "output_data/main_test_turb_waves_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_turb_waves_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "TURBULENCE VIA SUPERPOSITION OF WAVES" << std::endl;
    std::cout << "=========================================================" << std::endl;

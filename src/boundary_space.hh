@@ -136,7 +136,7 @@ const std::string bnd_name_plane_pass = "BoundaryPlanePass";
 \brief Plane crossing recording boundary (event)
 \author Vladimir Florinski
 
-Parameters: (BoundaryPlane), int max_crossings
+Parameters: (BoundaryPlane)
 */
 class BoundaryPlanePass : public BoundaryPlane {
 

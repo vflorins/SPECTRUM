@@ -414,6 +414,18 @@ SPECTRUM_DEVICE_FUNC inline int LocateInArray(int l1, int l2, const T* array, T 
 };
 
 /*!
+\brief Number of edges at a vertex in an infinite tesselation
+\author Vladimir Florinski
+\date 07/02/2024
+\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC static constexpr int EdgesAtVert(void)
+{
+   return 2 * verts_per_face / (verts_per_face - 2);
+};
+
+/*!
 \brief Solve a quadratic equation (real roots only)
 \author Vladimir Florinski
 \date 08/11/2022
@@ -554,6 +566,26 @@ SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
    int n = x / period;
    if (x < 0.0) return x - (n - 1) * period;
    else return x - n * period;
+};
+
+/*!
+\brief Average values in array using arithmetic or geometric mean
+\author Juan G Alonso Guzman
+\date 01/29/2025
+\param[in] size  Size of array
+\param[in] x     Array of values to average
+\param[in] arith Whether to calculate the arithmetic or geometric average
+\return Average of values in array
+\note The geometric average is done by exponentiating the average of the logged values for numerical stability
+*/
+template <typename T>
+SPECTRUM_DEVICE_FUNC inline T Average(int size, const T* x, bool arith)
+{
+   int i;
+   T avg = 0.0;
+   for (i = 0; i < size; i++) avg += (arith ? x[i] : log(x[i]));
+   avg /= size;
+   return (arith ? avg : exp(avg));
 };
 
 };

@@ -109,6 +109,12 @@ protected:
 //! Record of values (transient)
    std::vector <GeoVector> values_record;
 
+//! Amplitude of stochastic trajectory integration (transient)
+   double _amp;
+
+//! Weight of stochastic trajectory integration (transient). This quantity is tracked via its logarithm through code execution and converted with an exponential prior to binning.
+   double _logwgt;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Default constructor (protected, class not designed to be instantiated)
@@ -203,7 +209,7 @@ public:
 //! Analyze the trajectory outcome and record it in the distribution (generic)
    void ProcessTrajectory(double t1, const GeoVector& pos1, const GeoVector& mom1, const SpatialData& spdata1,
                           double t2, const GeoVector& pos2, const GeoVector& mom2, const SpatialData& spdata2,
-                          int action_in);
+                          double amp2, double logwgt2, int action_in);
 
 //! Dump the complete distribution to a file (stub)
    virtual void Dump(const std::string& file_name) const;

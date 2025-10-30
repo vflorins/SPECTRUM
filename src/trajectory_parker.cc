@@ -91,8 +91,8 @@ try {
    double delta = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
 
 // TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
-   spdata_forw._mask = BACKGROUND_B;
-   spdata_back._mask = BACKGROUND_B;
+   spdata_forw._mask = BACKGROUND_U | BACKGROUND_B;
+   spdata_back._mask = BACKGROUND_U | BACKGROUND_B;
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
    Kperp = diffusion->GetComponent(0, _t, _pos, _mom, _spdata);
    Kpara = diffusion->GetComponent(1, _t, _pos, _mom, _spdata);
@@ -226,7 +226,7 @@ void TrajectoryParker::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryParker::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    DriftCoeff();
    DiffusionCoeff();
@@ -260,7 +260,7 @@ bool TrajectoryParker::Advance(void)
 
 // The commomn fields and "dmax" have been computed at the end of Advance() or in SetStart() before the first step.
 // Compute the slopes. The first two components for momentum are always zero for GC (the perpendicular momentum is determined from conservation of magnetic moment).
-   Slopes(slope_pos[0], slope_mom[0]);
+   Slopes(slope_pos[0], slope_mom[0], slope_amp[0], slope_wgt[0]);
 
    PhysicalStep();
    dt = fmin(dt_physical, dt_adaptive);

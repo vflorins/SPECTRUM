@@ -189,7 +189,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   double zeta, sinphi, cosphi, lambda, kappa, arg1, arg2, ellintF, ellintE, calT, Bs_inf, Bp_inf, Bs, Bp, Bz, wus;
+   double zeta, sinphi, cosphi, lambda, kappa, arg1, arg2, calT, Bs_inf, Bp_inf, Bs, Bp, Bz, wus;
    bool small_s_eval = false;
 
    a = sqrt(a2);
@@ -261,7 +261,7 @@ void BackgroundVLISMBochum::EvaluateBackground(void)
       Bp = Bp_inf / a1s1;
       Bz = Bs_inf * (calT * (z / r3 - 1.0) + a2s2 * Sqr(z) / r3) / a;
 
-// Build isochone label. The points (s,z) and (inf,zeta) are on the same isochrone.
+// Build isochrone label. The points (s,z) and (inf,zeta) are on the same isochrone.
       zeta = z - 2.0 * lambda * sqrt((1.0 - Sqr(lambda * kappa)) / (1.0 - Sqr(lambda)))
              - (2.0 * kappa - 1.0 / kappa) * ellintF + 2.0 * kappa * ellintE;
 

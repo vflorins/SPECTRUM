@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// TrajectoryLorentz methods
+// TrajectoryFieldline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -54,7 +54,7 @@ void TrajectoryFieldline::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryFieldline::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryFieldline::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    if (BITS_RAISED(which_field_to_follow, BACKGROUND_U)) slope_pos_istage = _vel[2] * UnitVec(_spdata.Uvec);
    else if (BITS_RAISED(which_field_to_follow, BACKGROUND_B)) slope_pos_istage = _vel[2] * _spdata.bhat;

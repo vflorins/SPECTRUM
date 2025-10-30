@@ -106,7 +106,7 @@ void TrajectoryGuiding::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-void TrajectoryGuiding::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+void TrajectoryGuiding::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    DriftCoeff();
    slope_pos_istage = drift_vel;

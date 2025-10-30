@@ -232,7 +232,7 @@ public:
 
 #ifdef GEO_DEBUG
 //! Testing routine
-void PrintDistanceMaps(DistanceBase* dist_map, bool as_phys);
+void PrintDistanceMaps(DistanceBase* dist_map, double powl, bool as_phys);
 #endif
 
 };

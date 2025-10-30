@@ -1,3 +1,3 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = tests runs benchmarks
+SUBDIRS = runs tests benchmarks

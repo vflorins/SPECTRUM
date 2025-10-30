@@ -48,7 +48,9 @@ Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
 class TrajectoryParker : public TrajectoryBase {
 
-//! Drift elocity (transient)
+protected:
+
+//! Drift velocity (transient)
    GeoVector drift_vel;
 
 //! The field aligned coordinate system unit vectors (transient)
@@ -79,7 +81,7 @@ class TrajectoryParker : public TrajectoryBase {
    void DriftCoeff(void);
 
 //! Compute the RK slopes
-   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage) override;
+   void Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage) override;
 
 //! Compute the physical time step
    void PhysicalStep(void) override;

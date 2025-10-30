@@ -24,7 +24,7 @@ namespace Spectrum {
 
 The output is a series of curves that when visualized on an XY plot represent the great circle arcs that are edges of the tesselation.
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool opaque, double rot_z, double rot_x, bool smooth) const
 {
    int edge, ipt, nint, n_drawn;
@@ -92,7 +92,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 \author Vladimir Florinski
 \date 08/30/2019
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 {
    int div, face, edge, iv;
@@ -104,9 +104,9 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
    int memtot = 5 * nverts[max_division] * SZDBL;
 
    std::cerr << std::endl;
-   std::cerr << "╭─────┬─────────┬─────────┬─────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮\n";
-   std::cerr << "│ Div │ Vertices│   Edges │   Faces │ Min edge │ Avg edge │ Max edge │ Min angl │ Avg angl │ Max angl │ Min area │ Avg area │ Max area │\n";
-   std::cerr << "├─────┼─────────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤\n";
+   std::cerr << "╭─────┬─────────┬─────────┬─────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────┬──────────╮\n";
+   std::cerr << "│ Div │ Vertices│   Edges │   Faces │ Min edge │ Avg edge │ Max edge │ Edge rat │ Min angl │ Avg angl │ Max angl │ Angl rat │ Min area │ Avg area │ Max area │ Area rat │\n";
+   std::cerr << "├─────┼─────────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┼──────────┤\n";
 
 // Compute mesh statistics
    for (div = 0; div <= max_division; div++) {
@@ -172,16 +172,20 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
                 << std::fixed << std::setw(8) << RadToDeg(edge_length_min)   << "° │"
                 << std::fixed << std::setw(8) << RadToDeg(edge_length_mean)  << "° │"
                 << std::fixed << std::setw(8) << RadToDeg(edge_length_max)   << "° │"
+                << std::fixed << std::setw(8) << edge_length_max / edge_length_min   << "  │"
                 << std::fixed << std::setw(8) << RadToDeg(vertex_angle_min)  << "° │"
                 << std::fixed << std::setw(8) << RadToDeg(vertex_angle_mean) << "° │"
                 << std::fixed << std::setw(8) << RadToDeg(vertex_angle_max)  << "° │"
+                << std::fixed << std::setw(8) << vertex_angle_max / vertex_angle_min << "  │"
                 << std::setprecision(7)
                 << std::fixed << std::setw(10) << face_area_min  * 10.0 << "│"
                 << std::fixed << std::setw(10) << face_area_mean * 10.0 << "│"
                 << std::fixed << std::setw(10) << face_area_max  * 10.0 << "│"
+                << std::setprecision(4)
+                << std::fixed << std::setw(8) << face_area_max / face_area_min       << "  │"
                 << std::endl;
    };
-   std::cerr << "╰─────┴─────────┴─────────┴─────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────╯\n";
+   std::cerr << "╰─────┴─────────┴─────────┴─────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────┴──────────╯\n";
    std::cerr << "Memory used for tesselation is " << memtot << " bytes\n\n";
 };
 
@@ -192,7 +196,7 @@ void DrawableTesselation<poly_type, max_division>::PrintStats(void) const
 \date 04/15/2020
 \param[in] div Division
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::TestConnectivity(int div) const
 try {
 
@@ -281,7 +285,7 @@ catch(const TessError& err) {
 
 The type is one of the folloing: 1 is vertex-vertex, 2 is vertex-edge, 3 is vertex-face, 4 is edge-vertex, 6 is edge-face, 7 is face-vertex, 8 is face-edge,9 is face-face.
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 void DrawableTesselation<poly_type, max_division>::PrintConn(int div, int type) const
 {
    switch (type) {
@@ -330,16 +334,22 @@ void DrawableTesselation<poly_type, max_division>::PrintConn(int div, int type) 
 
 #endif
 
-template class DrawableTesselation<POLY_TETRAHEDRON, 3>;
-template class DrawableTesselation<POLY_HEXAHEDRON, 3>;
-template class DrawableTesselation<POLY_OCTAHEDRON, 3>;
-template class DrawableTesselation<POLY_DODECAHEDRON, 3>;
-template class DrawableTesselation<POLY_ICOSAHEDRON, 3>;
-
+template class DrawableTesselation<POLY_TETRAHEDRON, 5>;
 template class DrawableTesselation<POLY_HEXAHEDRON, 5>;
+template class DrawableTesselation<POLY_OCTAHEDRON, 5>;
+template class DrawableTesselation<POLY_DODECAHEDRON, 5>;
 template class DrawableTesselation<POLY_ICOSAHEDRON, 5>;
 
+template class DrawableTesselation<POLY_TETRAHEDRON, 6>;
 template class DrawableTesselation<POLY_HEXAHEDRON, 6>;
+template class DrawableTesselation<POLY_OCTAHEDRON, 6>;
+template class DrawableTesselation<POLY_DODECAHEDRON, 6>;
 template class DrawableTesselation<POLY_ICOSAHEDRON, 6>;
+
+template class DrawableTesselation<POLY_TETRAHEDRON, 7>;
+template class DrawableTesselation<POLY_HEXAHEDRON, 7>;
+template class DrawableTesselation<POLY_OCTAHEDRON, 7>;
+template class DrawableTesselation<POLY_DODECAHEDRON, 7>;
+template class DrawableTesselation<POLY_ICOSAHEDRON, 7>;
 
 };

@@ -232,9 +232,10 @@ void InitialTable<tableClass>::SetupInitial(bool construct)
    initquant.resize(size);
    for (i = 0; i < size; i++) {
       init_file >> entry;
+// TODO: the existing code didn't do what was intended - need to rewrite to operate on GeoVectors only
 // The redundant conversion to GeoVector type is necessary due to the templated nature of this class.
-      if (coord_type == "RTP") GeoVector(entry).RTP_XYZ();
-      initquant[i] = entry * scale;
+//      if (coord_type == "RTP") GeoVector(entry).RTP_XYZ();
+//      initquant[i] = entry * scale;
    };
    init_file.close();
 

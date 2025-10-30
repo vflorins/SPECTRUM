@@ -30,7 +30,7 @@ const uint16_t DIFF_NOBACKGROUND = 0x0010;
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief Base class to perform a test for a boundary crossing event
+\brief Base class to calculate diffusion coefficients
 \author Vladimir Florinski
 
 The "DiffusionXXXXX" classes calculate diffusion coefficients in a broad sense. These could be pitch-angle scattering, spatial diffusion, gyrophase diffusion, momentum diffusion, etc. This class is required to be fast, so many of the checks performed by larger classes are not done. This class uses the momentum vector in the form (p,mu,phi).

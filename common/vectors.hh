@@ -83,24 +83,6 @@ struct GeoVector : public SimpleArray<double, 3>
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//! Polar angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Theta(void) const;
-
-//! Azimuthal angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Phi(void) const;
-
-//! Converts a position vector from r,theta,phi to x,y,z
-   SPECTRUM_DEVICE_FUNC void RTP_XYZ(void);
-
-//! Converts a position vector from x,y,z to r,theta,phi
-   SPECTRUM_DEVICE_FUNC void XYZ_RTP(void);
-
-//! Converts a vector to spherical coordinates
-   SPECTRUM_DEVICE_FUNC void ToSpherical(double sintheta, double costheta, double sinphi, double cosphi);
-
-//! Converts a vector to Cartesian coordinates
-   SPECTRUM_DEVICE_FUNC void ToCartesian(double sintheta, double costheta, double sinphi, double cosphi);
-
 //! Rotate about a given unit vector
    SPECTRUM_DEVICE_FUNC void Rotate(const GeoVector& n, double sina, double cosa);
 

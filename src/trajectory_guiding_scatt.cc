@@ -302,7 +302,7 @@ bool TrajectoryGuidingScatt::Advance(void)
 
 // The commomn fields and "dmax" have been computed at the end of Advance() or in SetStart() before the first step.
 // Compute the slopes. The first two components for momentum are always zero for GC (the perpendicular momentum is determined from conservation of magnetic moment).
-   Slopes(slope_pos[0], slope_mom[0]);
+   Slopes(slope_pos[0], slope_mom[0], slope_amp[0], slope_wgt[0]);
 
 // If trajectory terminated (or is invalid) while computing slopes, exit advance function with true (step was taken)
    if (RKSlopes()) return true;

@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    simulation->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Number of bins
-   MultiIndex n_bins(1, 100, 1);
+   MultiIndex n_bins(1, 100, 0);
    container.Insert(n_bins);
    
 // Smallest value
@@ -452,7 +452,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "output_data/main_test_pa_distro_isotrop_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "main_test_pa_distro_isotrop_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();

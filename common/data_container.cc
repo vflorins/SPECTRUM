@@ -245,17 +245,17 @@ void DataContainer::Read(std::vector<T>& arg)
 */ 
 void DataContainer::Print(void)
 {
-   std::cout << "Number of records: " << n_records << std::endl;
-   std::cout << "Total length in bytes: " << total_size << std::endl;
-   std::cout << "Data: " << std::endl;
+   std::cerr << "Number of records: " << n_records << std::endl;
+   std::cerr << "Total length in bytes: " << total_size << std::endl;
+   std::cerr << "Data: " << std::endl;
    _param = storage;
 
 // Print the byte decimal representation of the parameters
-   std::cout << std::hex;
-   std::cout << std::setfill('0');
+   std::cerr << std::hex;
+   std::cerr << std::setfill('0');
    for (size_t i = 0; i < n_records; i++) {
-      for (uint8_t j = 1; j <= *_param; j++) std::cout << " " << std::setw(2) << (int)_param[j];
-      std::cout << std::endl;
+      for (uint8_t j = 1; j <= *_param; j++) std::cerr << " " << std::setw(2) << (int)_param[j];
+      std::cerr << std::endl;
       _param += *_param + 1;
    };
 };

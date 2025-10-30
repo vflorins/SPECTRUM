@@ -9,46 +9,53 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DOMAIN_PARTITION_HH
 #define SPECTRUM_DOMAIN_PARTITION_HH
 
-#include "geodesic/traversable_tesselation.hh"
-#include "geodesic/buffered_block.hh"
+#include <memory>
+
+#include "config.h"
+
 #include "common/exchange_site.hh"
+#include "geodesic/stenciled_block.hh"
+#include "geodesic/traversable_tesselation.hh"
+#include "geodesic/neighbors.hh"
 
 namespace Spectrum {
 
 // TODO these should be set by configure
 #define POLY_TYPE POLY_ICOSAHEDRON
-#define MAX_FACE_DIVISION 5
-
-#if (POLY_TYPE == POLY_HEXAHEDRON)
-#define VERTS_PER_FACE 4
-#else
-#define VERTS_PER_FACE 3
-#endif
-
+#define MAX_FACE_DIVISION 6
 #define GHOST_WIDTH 2
 #define GHOST_HEIGHT 2
 
-// TODO Put all SILO stuff in a derived class
+constexpr int VERTS_PER_FACE = (POLY_TYPE == POLY_HEXAHEDRON ? 4 : 3);
 
 #ifdef USE_SILO
 
 //! The number of files for PMPIO
-const int n_silofiles = 4;
+constexpr int n_silofiles = 4;
+
+//! Write tag for PMPIO
+constexpr int pmpio_wtag = 1001;
+
+//! Read tag for PMPIO
+constexpr int pmpio_rtag = 1002;
 
 //! The length, in characters,  of the time stamp
-const int time_length = 3;
+constexpr int time_length = 3;
 
 //! The length, in characters, of the file index
-const int file_length = 3;
+constexpr int file_length = 3;
 
 //! The length, in characters, of the directory index
-const int dirc_length = 5;
+constexpr int dirc_length = 5;
+
+//! Full path name length
+constexpr int path_length = 256;
+
+//! The separator of file and time indices
+constexpr char ft_separator = '_';
 
 //! File name prefix
 const std::string datafile_base = "pltf";
-
-//! The separator of file and time indices
-const char ft_separator = '_';
 
 //! File name extension
 const std::string geofile_ext = ".silo";
@@ -62,14 +69,8 @@ const std::string assembled_base = "imgf";
 //! The assembled mesh name
 const std::string asmb_mesh_name = "geomesh";
 
-//! Write tag for PMPIO
-const int pmpio_wtag = 1001;
-
-//! Read tag for PMPIO
-const int pmpio_rtag = 1002;
-
-//! Full path name length
-const int path_length = 256;
+//! The assembled variable name
+const std::string asmb_var_name = "geovar";
 
 //! The format for the time stamp
 const std::string time_format = "%0" + std::to_string(time_length) + 'i';
@@ -102,7 +103,7 @@ SPECTRUM_DEVICE_FUNC inline std::pair<int, int> DistributeEvenly(int n, int m)
 
 This is a base class of a simulation control program. It assembles the mesh out of individual grid blocks and tells the blocks which data operations to perform. Only a single instance per process is permitted.
 */
-template <typename datatype, typename blocktype>
+template <typename blocktype>
 class DomainPartition
 {
 protected:
@@ -116,11 +117,8 @@ protected:
 //! Number of edges meeting at a vertex
    static constexpr int edges_per_vert = EdgesAtVert<verts_per_face>();
 
-//! Number of participating slabs per site (= number of exchange sites per slab)
-   const int n_slab_parts[N_NBRTYPES] = {2, 1, 2, 1, 2};
-
 //! Number of participating sectors per site
-   const int n_sect_parts[N_NBRTYPES] = {1, 2, 2, edges_per_vert, edges_per_vert};
+   static constexpr int n_sect_parts[N_NBRTYPES] = {1, 2, 2, edges_per_vert, edges_per_vert};
 
 //! Sector division
    int sector_division;
@@ -155,11 +153,22 @@ protected:
 //! Ranks of processes owning each block
    int* block_ranks = nullptr;
 
-//! Global array of exchange sites
-   std::vector<std::shared_ptr<ExchangeSite<datatype>>> exch_sites[N_NBRTYPES];
+//! Number of blocks in each rank
+   int* blocks_in_rank = nullptr;
 
-//! Local simulation blocks 
+//! Global array of exchange sites. This works even if "datatype" is void because "ExchangeSite" is specialized to do nothing in that case.
+   std::vector<std::shared_ptr<ExchangeSite<typename blocktype::datatype>>> exch_sites[N_NBRTYPES];
+
+//! Local blocks
    std::vector<blocktype> blocks_local;
+
+#if RUNTYPE == PARTICLES
+
+   std::vector<blocktype>* blocks_ptrs;
+
+   void GetBlockPtrs(void);
+
+#endif
 
 //! Local exchange sites indices
    std::vector<int> exch_sites_local[N_NBRTYPES];
@@ -196,17 +205,37 @@ public:
 //! Destructor
    ~DomainPartition();
 
-//! Set up block geometric properties
-   void SetUpBlockGeometry(void);
+//! Create the exchange sites (only enabled if "datatype" is available)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
+   void CreateExchangeSites(void);
 
-//! Set up the exchange sites
-   void SetUpExchangeSites(void);
-
-//! Assign exchange site objects to blocks
+//! Assign exchange site objects to blocks (only enabled if "datatype" is available)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
    void ExportExchangeSites(void);
 
-//! Perform the exchange
-   void ExchangeAll(void);
+//! Perform the exchange (only enabled if "datatype" is available)
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
+   void ExchangeAll(int test_block = -1);
+
+//! Return the number of blocks
+   int GetNBlocks(void) const {return blocks_local.size();};
+
+//! Save the data
+   void Save(int stamp);
+
+#ifdef GEO_DEBUG
+
+//! Print the block assignment to ranks
+   void PrintTopology(void) const;
+
+//! Print information about every exchange site
+   template <typename datatype = blocktype::datatype, std::enable_if_t<!std::is_void<datatype>::value, bool> = true>
+   void PrintExchSites(void) const;
+
+//! Return reference to the block
+   blocktype& GetBlock(int block) {return blocks_local[block];};
+
+#endif
 };
 
 /*!
@@ -214,8 +243,8 @@ public:
 \param[in] sector Sector index
 \return The global block index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetBlockIndex(int slab, int sector) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetBlockIndex(int slab, int sector) const
 {
    return slab * n_sectors + sector;
 };
@@ -224,18 +253,18 @@ inline int DomainPartition<datatype, blocktype>::GetBlockIndex(int slab, int sec
 \param[in] bidx Block index
 \return Slab index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetSlab(int bidx) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetSlab(int bidx) const
 {
-   return bidx / n_slabs;
+   return bidx / n_sectors;
 };
 
 /*!
 \param[in] bidx Block index
 \return Sector index
 */
-template <typename datatype, typename blocktype>
-inline int DomainPartition<datatype, blocktype>::GetSector(int bidx) const
+template <typename blocktype>
+inline int DomainPartition<blocktype>::GetSector(int bidx) const
 {
    return bidx % n_sectors;
 };
@@ -243,4 +272,3 @@ inline int DomainPartition<datatype, blocktype>::GetSector(int bidx) const
 };
 
 #endif
-

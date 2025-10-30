@@ -166,6 +166,18 @@ void SimulationWorker::AddDiffusion(const DiffusionBase& diffusion_in, const Dat
 
 /*!
 \author Juan G Alonso Guzman
+\date 07/14/2025
+\param[in] source_in Source object for type recognition
+\param[in] container_in Data container for initializating the source object
+*/
+void SimulationWorker::AddSource(const SourceBase& source_in, const DataContainer& container_in)
+{
+   trajectory->AddSource(source_in, container_in);
+   PrintMessage(__FILE__, __LINE__, "Source term added", MPI_Config::is_master);
+};
+
+/*!
+\author Juan G Alonso Guzman
 \date 09/14/2022
 */
 void SimulationWorker::SendDataToMaster(void)
@@ -237,7 +249,6 @@ void SimulationWorker::WorkerFinish(void)
       std::string size_str = std::to_string(MPI_Config::work_comm_size);
       rank_str.insert(0, size_str.size() - rank_str.size(), '0');
       std::string traj_name = "trajectory_rank_" + rank_str + ".lines";
-//      trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08, 0, 1.0 / unit_time_fluid);
       trajectory->PrintCSV(traj_name, false, 1);
       trajectory->InterpretStatus();
    };
@@ -263,6 +274,9 @@ void SimulationWorker::WorkerDuties(void)
    int traj_count = 0;
    double traj_elapsed_time, batch_elapsed_time;
    auto start = std::chrono::system_clock::now();
+   static int traj_discard = 0;
+   std::string traj_name;
+
    while (traj_count < current_batch_size) {
       try {
          trajectory->SetStart();
@@ -280,6 +294,14 @@ void SimulationWorker::WorkerDuties(void)
       catch (std::exception& exception) {
          std::cerr << "Trajectory discarded by worker with rank " << MPI_Config::work_comm_rank
                    << ": " << exception.what() << std::endl;
+
+// Print trajectory for debugging
+         if (print_failed_trajectory) {
+            traj_discard++;
+            traj_name = "trajectory_rank_" + std::to_string(MPI_Config::work_comm_rank) 
+                      + "_discard_" + std::to_string(traj_discard) + ".dat";
+            trajectory->PrintTrajectory(traj_name, true, 0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80);
+         };
       }
    };
    auto end = std::chrono::system_clock::now();
@@ -554,9 +576,13 @@ Only master has this function so only master can decrement batch counter
 */
 void SimulationMaster::DecrementTrajectoryCount(void)
 {
-   long int n_trajectories_remaining, percentage_work_new, distro;
-   long int remaining_alloc_time, sim_time_left;
+   int percentage_work_new, distro;
+   long int n_trajectories_processing, n_trajectories_remaining, n_trajectories_completed;
+   long int wm_alloc_time, sim_time_left, avg_integ_time, sim_time_integ;
+   std::chrono::seconds sim_time_elapsed;
+   std::chrono::system_clock::time_point sim_current_time;
 
+// This is the number of unassigned trajectories
    n_trajectories -= current_batch_size;
    if (n_trajectories < current_batch_size) current_batch_size = n_trajectories;
    
@@ -564,50 +590,74 @@ void SimulationMaster::DecrementTrajectoryCount(void)
    std::cerr << "Trajectories left unassigned: " + std::to_string(n_trajectories) << std::endl;
 #endif
 
+// Compute percentage of work done
    if (is_parallel) {
-      n_trajectories_remaining = n_trajectories + std::accumulate(worker_processing.begin(), worker_processing.end(), 0);
-      percentage_work_new = 100 - (100 * n_trajectories_remaining) / n_trajectories_total; 
+// trajectories remaining (to complete) = unassigned trajectories + trajectories in progress
+      n_trajectories_processing = std::accumulate(worker_processing.begin() + 1, worker_processing.end(), 0);
+      n_trajectories_remaining = n_trajectories + n_trajectories_processing;
    }
    else {
-      percentage_work_new = 100 - (100 * n_trajectories) / n_trajectories_total;
-   };   
+// In a serial run, there should be no trajectories currently in progress at this stage
+      n_trajectories_remaining = n_trajectories;
+   };
+   n_trajectories_completed = n_trajectories_total - n_trajectories_remaining;
+   percentage_work_new = 100 * n_trajectories_completed / n_trajectories_total;
 
+// Report the percentage of work done and most/least trajectories done by any single process
    if (percentage_work_new > percentage_work_done) {
       percentage_work_done = percentage_work_new;
-
-// Report the percentage of work done
-      std::cerr << std::endl;
-      std::cerr << "Checkpoint reached: " << percentage_work_done << "% of work completed.\n";
-      if (is_parallel) {
-         std::cerr << "Best performing process: "  << *std::max_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
-                   << " trajectories\n";
-         std::cerr << "Worst performing process: " << *std::min_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
-                   << " trajectories\n";
-      };
 
 // Save the partial distributions
       for (distro = 0; distro < local_distros.size(); distro++) {
          local_distros[distro]->Dump(distro_file_name + std::to_string(distro) + ".out");
       };
 
-// Estimate the remaining silumation time
+// Estimate the remaining simulation time and time spent integrating trajectories
+      sim_current_time = std::chrono::system_clock::now();
+      sim_time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(sim_current_time - sim_start_time);
       if (is_parallel) {
-// time_left [s] = n_traj_rem [traj] x total_time_spent_integ [ms] x 0.001 [s/ms] / traj_completed [traj] / n_active_workers
-         sim_time_left = n_trajectories_remaining * std::accumulate(time_spent_processing.begin(), time_spent_processing.end(), 0.0) * 0.001
-                                                  / (std::accumulate(trajectories_assigned.begin(), trajectories_assigned.end(), 0)
-                                                    - std::accumulate(worker_processing.begin(), worker_processing.end(), 0))
-                                                    / (active_workers + (active_workers == 0 ? 1 : 0));
+// time spent integrating (average) [s] = 0.001 [s/ms] x total time integrating [ms] / number of processors
+         sim_time_integ = 0.001 * std::accumulate(time_spent_processing.begin() + 1, time_spent_processing.end(), 0.0) / MPI_Config::n_workers;
       }
       else {
-         sim_time_left = n_trajectories * elapsed_time * 0.001 / (n_trajectories_total - n_trajectories);
+// In a serial run, `elapsed_time` tracks the time spend integrating trajectories (in ms)
+         sim_time_integ = 0.001 * elapsed_time;
       };
-      std::cerr << "Approx time left to complete simulation: " << std::setw(20) << sim_time_left << " seconds." << std::endl;
+// time left = trajectories remaining x time elapsed (+ 1 for small times) / trajectories completed
+      sim_time_left = n_trajectories_remaining * (sim_time_elapsed.count() + 1) / n_trajectories_completed;
 
 // Estimate whether remaining allocated time is enough for the rest of the work
-      remaining_alloc_time = workload_manager_handler.GetRemAllocTime();
-      if (remaining_alloc_time == -1) std::cerr << "No workload manager. Unbounded time allocation." << std::endl;
-      else std::cerr << "Remaining time allocated for simulation: " << std::setw(20) << remaining_alloc_time << " seconds." << std::endl;
+      wm_alloc_time = workload_manager_handler.GetRemAllocTime();
+
+// Print simulation status
       std::cerr << std::endl;
+      std::cerr << "Trajectories completed: "
+                << std::setw(20) << percentage_work_done << " %"
+                << std::endl;
+      std::cerr << "Est. time to finish:    "
+                << std::setw(20) << sim_time_left << " seconds"
+                << std::endl;
+      std::cerr << "Time allocated for job: ";
+      if (wm_alloc_time == -1) std::cerr << std::setw(20) << "inf" << " (No WM)";
+      else std::cerr << std::setw(20) << wm_alloc_time << " seconds";
+      std::cerr << std::endl;
+
+// Print simulation statistics
+      std::cerr << "SIMULATION EFFICIENCY: "
+                << std::endl
+                << "    " << 100 * sim_time_integ / (sim_time_elapsed.count() + 1) << " %"
+                << " of time was spent computing trajectories."
+                << std::endl;
+      if (is_parallel) {
+         std::cerr << "LOAD BALANCING: "
+                   << std::endl
+                   << "    Fastest process has tallied " 
+                   << *std::max_element(trajectories_assigned.begin() + 1, trajectories_assigned.end()) << " trajectories."
+                   << std::endl
+                   << "    Slowest process has tallied "
+                   << *std::min_element(trajectories_assigned.begin() + 1, trajectories_assigned.end()) << " trajectories."
+                   << std::endl;
+      };
    };
 };
 

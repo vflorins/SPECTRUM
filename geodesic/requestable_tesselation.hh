@@ -21,7 +21,7 @@ namespace Spectrum {
 \brief A tesselation class with added functionality to find neighbors/children/parents and locate a position
 \author Vladimir Florinski
 */
-template <int poly_type, int max_division>
+template <PolyType poly_type, int max_division>
 class RequestableTesselation : public SphericalTesselation<poly_type, max_division>
 {
 protected:
@@ -31,8 +31,6 @@ protected:
    using SphericalTesselation<poly_type, max_division>::verts_per_face;
    using SphericalTesselation<poly_type, max_division>::edges_per_vert;
    using SphericalTesselation<poly_type, max_division>::children_per_face;
-   using SphericalTesselation<poly_type, max_division>::vert_lat;
-   using SphericalTesselation<poly_type, max_division>::vert_lon;
    using SphericalTesselation<poly_type, max_division>::vert_cart;
    using SphericalTesselation<poly_type, max_division>::vf_con;
    using SphericalTesselation<poly_type, max_division>::ef_con;

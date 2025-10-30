@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_EXCHANGE_SITE_HH
 #define SPECTRUM_EXCHANGE_SITE_HH
 
-#include <common/communication_site.hh>
+#include "common/communication_site.hh"
 
 #ifdef USE_MPI
 
@@ -63,6 +63,9 @@ public:
 #endif
 
 };
+
+//! Dummy specialization for void datatype
+template <> class ExchangeSite<void> {};
 
 /*!
 \author Vladimir Florinski

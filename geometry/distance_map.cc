@@ -299,11 +299,12 @@ void DistanceLinearExp::EvaluateDistance(void)
 
 /*!
 \author Vladimir Florinski
-\date 08/23/2024
+\date 01/26/2025
 \param [in] dist_map An object derived from "DistanceBase"
+\param [in] powl     Power law parameter for "DistancePowerLaw" and "DistanceLinearExp" classes
 \param [in] as_phys  Print the physical distance as first column
 */
-void PrintDistanceMaps(DistanceBase* dist_map, bool as_phys)
+void PrintDistanceMaps(DistanceBase* dist_map, double powl, bool as_phys)
 {
    const double n = 640;
 
@@ -311,14 +312,12 @@ void PrintDistanceMaps(DistanceBase* dist_map, bool as_phys)
    const double rmin = 30.0;
    const double rmed = 250.0;
    const double rmax = 1000.0;
-   const double powl = 2.0;
    const double frac = 0.4;
    const double logy = 10.0;
 */
    const double rmin = 1.0;
    const double rmed = 10.0;
    const double rmax = 100.0;
-   const double powl = 10.0;
    const double frac = 0.4;
    const double logy = 10.0;
 

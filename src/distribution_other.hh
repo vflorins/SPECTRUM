@@ -196,6 +196,54 @@ public:
    CloneFunctionDistribution(DistributionMomentumUniform);
 };
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionPositionMomentumUniform class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionPositionMomentumUniform class
+const std::string dist_name_position_momentum_uniform = "DistributionPositionMomentumUniform";
+
+/*!
+\brief A uniform function of the position and momentum
+\author Juan G Alonso Guzman
+
+Type: 2D position-momentum
+Parameters: (DistributionUniform), int val_time, int pos_idx, int mom_idx
+*/
+class DistributionPositionMomentumUniform : public DistributionUniform<double> {
+
+protected:
+
+//! Which coordinates to use for value: 0 initial, 1 final (persistent)
+   int val_time;
+
+//! Which component of position to use for value[0] (persistent)
+   int pos_idx;
+
+//! Which component of momentum to use for value[1] (persistent)
+   int mom_idx;
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Determine the value to be binned from a phase space position and other arguments
+   void EvaluateValue(void) override;
+
+public:
+
+//! Default constructor
+   DistributionPositionMomentumUniform(void);
+
+//! Copy constructor
+   DistributionPositionMomentumUniform(const DistributionPositionMomentumUniform& other);
+
+//! Destructor
+   ~DistributionPositionMomentumUniform() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionPositionMomentumUniform);
+};
+
 #if TRAJ_TYPE == TRAJ_LORENTZ
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -515,6 +563,60 @@ public:
 
 //! Clone function
    CloneFunctionDistribution(DistributionLossCone);
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// DistributionDivergenceFlowPowerLaw class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//! Readable name of the DistributionDivergenceFlowPowerLaw class
+const std::string dist_name_divergence_flow_power_law = "DistributionDivergenceFlowPowerLaw";
+
+/*!
+\brief A power law of the divergence of the flow
+\author Juan G Alonso Guzman
+
+Type: 1D momentum
+Parameters: (DistributionTemplated), double A0, double pow_law, double val_cold
+*/
+class DistributionDivergenceFlowPowerLaw : public DistributionTemplated<double> {
+
+protected:
+
+//! Normalization for the "hot" boundary (persistent)
+   double A0;
+
+//! Power law index (persistent)
+   double pow_law;
+
+//! Constant value for the "cold" condition (persistent)
+   double val_cold;
+
+//! Set up the distribution accumulator based on "params"
+   void SetupDistribution(bool construct) override;
+
+//! Determine the value to be binned from a phase space position and other arguments
+   void EvaluateValue(void) override;
+
+//! Weight from a "hot" boundary
+   void DivergenceFlowPowerLawHot(void);
+
+//! Weight from a "cold" boundary
+   void DivergenceFlowPowerLawCold(void);
+
+public:
+
+//! Default constructor
+   DistributionDivergenceFlowPowerLaw(void);
+
+//! Copy constructor
+   DistributionDivergenceFlowPowerLaw(const DistributionDivergenceFlowPowerLaw& other);
+
+//! Destructor
+   ~DistributionDivergenceFlowPowerLaw() override = default;
+
+//! Clone function
+   CloneFunctionDistribution(DistributionDivergenceFlowPowerLaw);
 };
 
 };

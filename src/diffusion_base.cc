@@ -110,7 +110,7 @@ double DiffusionBase::GetComponent(int comp, double t_in, const GeoVector& pos_i
    _spdata = spdata_in;
    Omega = CyclotronFrequency(vmag, _spdata.Bmag, specie);
 
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
    mu = _mom[1];
    st2 = 1.0 - Sqr(mu);
 #endif
@@ -234,7 +234,7 @@ double DiffusionBase::GetMuDerivative(void)
 
 // Mu derivative (momentum is in (p,mu,phi) coordinates)
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
    mu += dmu;
    st2 = 1.0 - Sqr(mu);
 #endif
@@ -244,7 +244,7 @@ double DiffusionBase::GetMuDerivative(void)
 
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
-#if TRAJ_TYPE != TRAJ_PARKER
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
    mu = mu_saved;
    st2 = 1.0 - Sqr(mu);
 #endif

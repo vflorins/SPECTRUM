@@ -87,6 +87,16 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 };
 
 /*!
+\author Juan G Alonso Guzman
+\date 07/24/2025
+\param[in] basis A matrix whose components are new basis vectors
+*/
+SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoVector* basis)
+{
+// TODO
+};
+
+/*!
 \author Vladimir Florinski
 \date 08/31/2022
 \param[in] basis A matrix whose rows are new basis vectors
@@ -94,6 +104,20 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeFromBasis(const GeoMatrix& basis)
 {
    for (auto uvw = 0; uvw < 3; uvw++) row[uvw].ChangeFromBasis(basis.VectorArray());
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 07/24/2025
+\param[in] basis A matrix whose components are new basis vectors
+*/
+SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeFromBasis(const GeoVector* basis)
+{
+   GeoMatrix mat_tmp;
+   memcpy(mat_tmp.linear, linear, 9 * SZDBL);
+   for (auto xyz = 0; xyz < 3; xyz++) {
+      for (auto uvw = 0; uvw < 3; uvw++) row[xyz][uvw] = basis[xyz] * mat_tmp * basis[uvw];
+   }
 };
 
 /*!

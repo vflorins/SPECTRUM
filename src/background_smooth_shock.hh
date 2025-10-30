@@ -1,6 +1,6 @@
 /*!
 \file background_smooth_shock.hh
-\brief Declares a smooth shock field background
+\brief Declares a smooth MHD shock field background
 \author Juan G Alonso Guzman
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a SHOCK coverage of the surface of a sphere.
@@ -14,13 +14,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Flag to control smoothness of shock
-#define SMOOTH_SHOCK_ORDER 1
+#define SMOOTH_SHOCK_ORDER 4
 
-//! Method for computing derivatives (0: analytical, 1: Numerical)
-#define SMOOTHSHOCK_DERIVATIVE_METHOD 1
+//! Method for computing derivatives (0: analytical, 1: numerical)
+#define SMOOTHSHOCK_DERIVATIVE_METHOD 0
 
 //! Scaling factor to better match shock width when using smooth shock (tanh)
-const double tanh_width_factor = 4.0;
+const double tanh_width_factor = 8.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundSmoothShock class declaration
@@ -30,10 +30,10 @@ const double tanh_width_factor = 4.0;
 const std::string bg_name_smooth_shock = "BackgroundSmoothShock";
 
 /*!
-\brief Constant EM field with a smooth transition region
+\brief Planar MHD shock with a smooth transition region
 \author Juan G Alonso Guzman
 
-Parameters: (BackgroundShock), width_shock
+Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
 class BackgroundSmoothShock : public BackgroundShock {
 
@@ -41,6 +41,9 @@ protected:
 
 //! Width of shock transition region (persistent)
    double width_shock;
+
+//! Fraction of the shock width to assign to dmax near shock (persistent)
+   double dmax_fraction;
 
 //! Relative distance to shock (transient)
    double ds_shock;
@@ -59,6 +62,9 @@ protected:
 
 //! Compute the internal u, B, and E derivatives
    void EvaluateBackgroundDerivatives(void) override;
+
+//! Compute the maximum distance per time step
+   void EvaluateDmax(void) override;
 
 public:
 

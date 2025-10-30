@@ -227,8 +227,6 @@ void BackgroundBase::DirectionalDerivative(int xyz)
 */
 void BackgroundBase::NumericalDerivatives(void)
 {
-   int xyz, n_rot;
-
 // Save the mask, u, B, E, region, and scalar quantities. This is quicker than using the copy assignment based on _mask.
 // Note: any background computing a gradXvec or dXvecdt should also have the flag for computing X itself active, otherwise the derivatives will be wrong
    _spdata_tmp._mask = _spdata._mask;
@@ -257,7 +255,7 @@ void BackgroundBase::NumericalDerivatives(void)
       fa_basis.row[1] = fa_basis.row[2] ^ fa_basis.row[0];
 
 // Compute derivatives in field-aligned basis
-      for (xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+      for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
@@ -269,12 +267,13 @@ void BackgroundBase::NumericalDerivatives(void)
       if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec = rot_mat * _spdata.gradEvec;
 
 #if BACKGROUND_NUM_GRAD_EVALS > 1
+
 // Repeat for any additional rotations
-      for (n_rot = 1; n_rot < BACKGROUND_NUM_GRAD_EVALS; n_rot++) {
+      for (auto n_rot = 1; n_rot < BACKGROUND_NUM_GRAD_EVALS; n_rot++) {
          fa_basis[0].Rotate(fa_basis.row[2], sin_lra, cos_lra);
          fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
-         for (xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
+         for (auto xyz = 0; xyz < 3; xyz++) DirectionalDerivative(xyz);
 
          rot_mat.Transpose(fa_basis);
          if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata_tmp.gradUvec += rot_mat * _spdata.gradUvec;
@@ -292,7 +291,9 @@ void BackgroundBase::NumericalDerivatives(void)
          _spdata_tmp.gradBmag /= BACKGROUND_NUM_GRAD_EVALS;
       };
       if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata_tmp.gradEvec /= BACKGROUND_NUM_GRAD_EVALS;
+
 #endif
+
    };
 
 // Time derivatives. The mask shifting is done to limit the evaluation of the variable to those that require a time derivative.

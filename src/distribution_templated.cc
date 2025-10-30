@@ -107,7 +107,7 @@ void DistributionTemplated<distroClass>::SetupDistribution(bool construct)
    container.Read(unit_val);
    container.Read(keep_records);
 
-// The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addresing possible. Active dimensions are flagged as bits in "dims".
+// The number of bins in active dimensions cannot be less than one. Set the value to 0 or a negative number for each ignorable dimension. Internally, the code changes that number to 1 to make linear addressing possible. Active dimensions are flagged as bits in "dims".
    dims = 0;
    for (ijk = 0; ijk < 3; ijk++) {
       if (n_bins[ijk] > 0) RAISE_BITS(dims, 1 << ijk);
@@ -146,20 +146,28 @@ void DistributionTemplated<distroClass>::AddEvent(void)
 {
    int ijk, lin_bin;
    MultiIndex bin = mi_zeros;
+   double val;
 
 // The event has been already processed and "_values" and "_weight" computed
    for (ijk = 0; ijk < 3; ijk++) {
 
 // Skip if dimension is ignorable
       if (BITS_LOWERED(dims, 1 << ijk)) continue;
-      bin[ijk] = ((log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk]) / bin_size[ijk];
 
-// Check for outlying events
-      if (bin[ijk] < 0) {
+// Shift value relative to lower limit
+      val = (log_bins[ijk] ? log10(_value[ijk]) : _value[ijk]) - limits[0][ijk];
+     
+// Check for "left" outlier event
+      if (val < 0.0) {
          if (bin_outside[ijk]) bin[ijk] = 0;
          else return;
-      }
-      else if (bin[ijk] >= n_bins[ijk]) {
+      };
+
+// Compute bin for shifted value. Bin will not be negative but could be >= "n_bins".
+      bin[ijk] = val / bin_size[ijk];
+
+// Check for "right" outlier events
+      if (bin[ijk] >= n_bins[ijk]) {
          if (bin_outside[ijk]) bin[ijk] = n_bins[ijk] - 1;
          else return;
       };
@@ -167,7 +175,7 @@ void DistributionTemplated<distroClass>::AddEvent(void)
 
 // Update the counts
    lin_bin = n_bins.LinIdx(bin);
-   distro[lin_bin] += _weight;
+   distro[lin_bin] += _weight * exp(_logwgt) + _amp;
    counts[lin_bin]++;
    n_events++;
 };
@@ -676,5 +684,9 @@ void DistributionTemplated<distroClass>::PrintRecords(const std::string& dist_na
       distfile << std::endl;
    };
 };
+
+template class DistributionTemplated<double>;
+template class DistributionTemplated<GeoVector>;
+template class DistributionTemplated<GeoMatrix>;
 
 };

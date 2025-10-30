@@ -91,7 +91,7 @@ protected:
    int max_crossings;
 
 //! Actions to perform when recording events, -1 for no action (persistent)
-   std::vector <int> actions;
+   std::vector<int> actions;
 
 //! A typical value of "_delta", typically the expected dt, dx, or dp (transient)
    double delta_scale;
@@ -109,7 +109,7 @@ protected:
    double _delta_old;
 
 //! Crossing times stored here (transient)
-   std::vector <double> _cross_t;
+   std::vector<double> _cross_t;
 
 //! Magnetic field direction (transient)
    GeoVector bhat;

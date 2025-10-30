@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = Specie::proton;
+   int specie = SPECIES_PROTON_BEAM;
    trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,9 +67,8 @@ int main(int argc, char** argv)
    double dmax = dmax_fraction * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(dmax);
 
-// solar rotation vector
-   // double w0 = 4.63e-7 * unit_time_fluid; // linear frequency
-   double w0 = 2.7e-6 * unit_time_fluid; // angular frequency
+// Solar rotation vector
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 
@@ -171,7 +170,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "output_data/main_test_parker_spiral_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_parker_spiral_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
    std::cout << "=========================================================" << std::endl;
