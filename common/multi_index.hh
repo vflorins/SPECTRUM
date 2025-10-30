@@ -34,22 +34,22 @@ struct MultiIndex : public SimpleArray<int, 3>
    using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC MultiIndex(void) {};
+   SPECTRUM_DEVICE_FUNC constexpr MultiIndex(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit MultiIndex(int a);
+   SPECTRUM_DEVICE_FUNC explicit constexpr MultiIndex(int a);
 
 //! Constructor from an array
-   SPECTRUM_DEVICE_FUNC explicit MultiIndex(const int* other);
+   SPECTRUM_DEVICE_FUNC explicit constexpr MultiIndex(const int* other);
 
 //! Constructor from indices
    SPECTRUM_DEVICE_FUNC constexpr MultiIndex(int i_in, int j_in, int k_in);
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC MultiIndex(const SimpleArray<int, 3>& other);
+   SPECTRUM_DEVICE_FUNC constexpr MultiIndex(const SimpleArray<int, 3>& other);
 
 //! Compute a linear index in a 3D array using a second multi-index
-   SPECTRUM_DEVICE_FUNC long LinIdx(const MultiIndex& other) const;
+   SPECTRUM_DEVICE_FUNC size_t LinIdx(const MultiIndex& other) const;
 
 //! Switch the first and third index
    SPECTRUM_DEVICE_FUNC void Flip(void);
@@ -90,7 +90,7 @@ struct MultiIndex : public SimpleArray<int, 3>
 \date 03/09/2024
 \param[in] a Number to be asigned to each index
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int a)
+SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(int a)
 {
    i = j = k = a;
 };
@@ -100,7 +100,7 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(int a)
 \date 03/10/2024
 \param[in] other Array to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const int* other)
+SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(const int* other)
 {
    memcpy(data, other, 3 * sizeof(int));
 };
@@ -124,7 +124,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(int i_in, int j_in,
 \date 03/13/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const SimpleArray<int, 3>& other)
+SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(const SimpleArray<int, 3>& other)
 {
    memcpy(data, other.data, 3 * sizeof(int));
 };
@@ -135,7 +135,7 @@ SPECTRUM_DEVICE_FUNC inline MultiIndex::MultiIndex(const SimpleArray<int, 3>& ot
 \param[in] other A multi-index corresponding to a triplet of coordinate indices
 \return Linear index in a 3D contiguous array
 */
-SPECTRUM_DEVICE_FUNC inline long MultiIndex::LinIdx(const MultiIndex& other) const
+SPECTRUM_DEVICE_FUNC inline size_t MultiIndex::LinIdx(const MultiIndex& other) const
 {
    return k * (j * other.i + other.j) + other.k;
 };
@@ -252,10 +252,10 @@ SPECTRUM_DEVICE_FUNC inline bool operator !=(const MultiIndex& left, const Multi
 };
 
 //! A multi-index with zero components
-constexpr MultiIndex mi_zeros(0, 0, 0);
+SPECTRUM_CONSTEXPR MultiIndex mi_zeros = {0, 0, 0};
 
 //! A multi-index with unit components
-constexpr MultiIndex mi_ones(1, 1, 1);
+SPECTRUM_CONSTEXPR MultiIndex mi_ones = {1, 1, 1};
 
 };
 

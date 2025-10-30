@@ -9,9 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMPLEX_VECTORS_HH
 #define SPECTRUM_COMPLEX_VECTORS_HH
 
-#include "common/simple_array.hh"
 #include "common/vectors.hh"
-#include "common/print_warn.hh"
 
 namespace Spectrum {
 
@@ -26,7 +24,7 @@ namespace Spectrum {
 struct ComplexVector : public SimpleArray<std::complex<double>, 3>
 {
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC ComplexVector(void) {};
+   SPECTRUM_DEVICE_FUNC constexpr ComplexVector(void) {};
 
 //! Constructor from a single value
    SPECTRUM_DEVICE_FUNC explicit constexpr ComplexVector(std::complex<double> val);
@@ -35,7 +33,7 @@ struct ComplexVector : public SimpleArray<std::complex<double>, 3>
    SPECTRUM_DEVICE_FUNC constexpr ComplexVector(std::complex<double> x_in, std::complex<double> y_in, std::complex<double> z_in);
 
 //! Constructor from a GeoVector
-   SPECTRUM_DEVICE_FUNC ComplexVector(const GeoVector& other);
+   SPECTRUM_DEVICE_FUNC constexpr ComplexVector(const GeoVector& other);
 
 //! Computes the norm of this vector
    SPECTRUM_DEVICE_FUNC double Norm(void) const;
@@ -86,7 +84,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr ComplexVector::ComplexVector(std::complex<
 \date 12/06/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline ComplexVector::ComplexVector(const GeoVector& other)
+SPECTRUM_DEVICE_FUNC inline constexpr ComplexVector::ComplexVector(const GeoVector& other)
 {
    x = other.x;
    y = other.y;

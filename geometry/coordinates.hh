@@ -52,12 +52,15 @@ public:
 
 //! Scale factors 
    SPECTRUM_DEVICE_FUNC static GeoVector ScaleFactors(const GeoVector& pos) {return gv_ones;};
+
+//! Jacobian 
+   SPECTRUM_DEVICE_FUNC static double Jacobian(const GeoVector& pos) {return 1.0;};
 };
 
 /*!
 \author Vladimir Florinski
 \date 10/13/2025
-\param[in] pos Position in Caretesian coordinates
+\param[in] pos Position in Cartesian coordinates
 \return Position in Cylindrical coordinates
 */
 template <>
@@ -71,7 +74,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::Pos
 /*!
 \author Vladimir Florinski
 \date 10/13/2025
-\param[in] pos Position in Caretesian coordinates
+\param[in] pos Position in Cartesian coordinates
 \return Position in Spherical coordinates
 */
 template <>
@@ -119,7 +122,7 @@ SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Spherical>::PosToCurv(
 \author Vladimir Florinski
 \date 10/13/2025
 \param[in] pos Position in Cylindrical coordinates
-\return Position in Caretesian coordinates
+\return Position in Cartesian coordinates
 */
 template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::PosToCart(const GeoVector& pos)
@@ -131,7 +134,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::Pos
 \author Vladimir Florinski
 \date 10/13/2025
 \param[in] pos Position in Spherical coordinates
-\return Position in Caretesian coordinates
+\return Position in Cartesian coordinates
 */
 template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::PosToCart(const GeoVector& pos)
@@ -176,7 +179,7 @@ SPECTRUM_DEVICE_FUNC inline void Metric<CoordinateSystem::Spherical>::PosToCart(
 \author Vladimir Florinski
 \date 10/14/2025
 \param[in] pos Position vector in Cylindrical coordinates
-\param[in] comp Components of a vector in Caretesian coordinates
+\param[in] comp Components of a vector in Cartesian coordinates
 \return Components of the vector in Cylindrical coordinates
 */
 template <>
@@ -191,7 +194,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::Com
 \author Vladimir Florinski
 \date 10/14/2025
 \param[in] pos Position vector in Spherical coordinates
-\param[in] comp Components of a vector in Caretesian coordinates
+\param[in] comp Components of a vector in Cartesian coordinates
 \return Components of the vector in Spherical coordinates
 */
 template <>
@@ -210,7 +213,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::CompT
 \date 10/14/2025
 \param[in] pos Position vector in Cylindrical coordinates
 \param[in] comp Components of a vector in Cylindrical coordinates
-\return Components of the vector in Caretesian coordinates
+\return Components of the vector in Cartesian coordinates
 */
 template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::CompToCart(const GeoVector& pos, const GeoVector& comp)
@@ -225,7 +228,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Cylindrical>::Com
 \date 10/14/2025
 \param[in] pos Position vector in Spherical coordinates
 \param[in] comp Components of a vector in Spherical coordinates
-\return Components of the vector in Caretesian coordinates
+\return Components of the vector in Cartesian coordinates
 */
 template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::CompToCart(const GeoVector& pos, const GeoVector& comp)
@@ -260,6 +263,28 @@ template <>
 SPECTRUM_DEVICE_FUNC inline GeoVector Metric<CoordinateSystem::Spherical>::ScaleFactors(const GeoVector& pos)
 {
    return GeoVector(1.0, pos[0], pos[0] * sin(pos[1]));
+};
+
+/*!
+\author Vladimir Florinski
+\date 10/20/2025
+\param[in] pos Position vector in Cylindrical coordinates
+*/
+template <>
+SPECTRUM_DEVICE_FUNC inline double Metric<CoordinateSystem::Cylindrical>::Jacobian(const GeoVector& pos)
+{
+   return pos[0];
+};
+
+/*!
+\author Vladimir Florinski
+\date 10/20/2025
+\param[in] pos Position vector in v coordinates
+*/
+template <>
+SPECTRUM_DEVICE_FUNC inline double Metric<CoordinateSystem::Spherical>::Jacobian(const GeoVector& pos)
+{
+   return Sqr(pos[0]) * sin(pos[1]);
 };
 
 };

@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cmath>
 #include <complex>
 
+#include "config.h"
 #include "common/gpu_config.hh"
 
 namespace Spectrum {
@@ -50,7 +51,7 @@ struct EmptyStruct{};
 #define BITS_LOWERED(value, bits) (!((value) & (bits)))
 
 //! A large number, according to the code
-#define sp_large 1.0E20
+#define sp_large 1.0E+20
 
 //! A small number, according to the code
 #define sp_little 1.0E-5
@@ -61,7 +62,7 @@ struct EmptyStruct{};
 //! An even smaller number, according to the code
 #define sp_miniscule 1.0E-12
 
-//! A very small number, according to the code
+//! A very small number (machine precision), according to the code
 #define sp_tiny 1.0E-15
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -426,6 +427,18 @@ SPECTRUM_DEVICE_FUNC static constexpr int EdgesAtVert(void)
 };
 
 /*!
+\brief Side length of an inscribed polygon
+\author Vladimir Florinski
+\date 10/07/2025
+\return Side length of a regular polygon inscribed in a unit circle 
+*/
+template <int verts_per_face>
+SPECTRUM_DEVICE_FUNC static constexpr double InscribedPolygonSide(void)
+{
+   return 2.0 * sin(M_PI / verts_per_face);
+};
+
+/*!
 \brief Solve a quadratic equation (real roots only)
 \author Vladimir Florinski
 \date 08/11/2022
@@ -581,9 +594,8 @@ SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
 template <typename T>
 SPECTRUM_DEVICE_FUNC inline T Average(int size, const T* x, bool arith)
 {
-   int i;
    T avg = 0.0;
-   for (i = 0; i < size; i++) avg += (arith ? x[i] : log(x[i]));
+   for (auto i = 0; i < size; i++) avg += (arith ? x[i] : log(x[i]));
    avg /= size;
    return (arith ? avg : exp(avg));
 };

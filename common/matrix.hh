@@ -14,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Size of this class
+//! Size of this class (should be 72)
 #define SZGM sizeof(GeoMatrix)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -37,13 +37,13 @@ struct GeoMatrix {
    };
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoMatrix(void) {};
+   SPECTRUM_DEVICE_FUNC constexpr GeoMatrix(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit GeoMatrix(double val);
+   SPECTRUM_DEVICE_FUNC explicit constexpr GeoMatrix(double val);
 
 //! Constructor from row vectors
-   SPECTRUM_DEVICE_FUNC GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
+   SPECTRUM_DEVICE_FUNC constexpr GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3);
 
 //! Access to the data for reading
    SPECTRUM_DEVICE_FUNC const double* Data(void) const;
@@ -64,7 +64,7 @@ struct GeoMatrix {
    SPECTRUM_DEVICE_FUNC GeoVector& operator [](int i);
 
 //! Set all nine components to the given value
-   SPECTRUM_DEVICE_FUNC GeoMatrix& operator =(double val);
+   SPECTRUM_DEVICE_FUNC constexpr GeoMatrix& operator =(double val);
 
 //! Transpose this matrix
    SPECTRUM_DEVICE_FUNC GeoMatrix& Transpose(void);
@@ -124,6 +124,12 @@ struct GeoMatrix {
 
 //! Compute the eigenvalues and left eigenvectors
    SPECTRUM_DEVICE_FUNC GeoVector Eigensystem(GeoMatrix& evec) const;
+
+//! Complete the matrix to make it symmetric
+   SPECTRUM_DEVICE_FUNC void CompleteSymmetric(void);
+
+//! Complete the matrix to make it anti-symmetric
+   SPECTRUM_DEVICE_FUNC void CompleteAntiSymmetric(void);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -135,7 +141,7 @@ struct GeoMatrix {
 \date 11/29/2024
 \param[in] a Number to be asigned to each index
 */
-SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(double val)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoMatrix::GeoMatrix(double val)
 {
    operator =(val);
 };
@@ -147,8 +153,8 @@ SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(double val)
 \param[in] v2 Second row
 \param[in] v3 Third row
 */
-SPECTRUM_DEVICE_FUNC inline GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3)
-                                     : row{v1, v2, v3}
+SPECTRUM_DEVICE_FUNC inline constexpr GeoMatrix::GeoMatrix(const GeoVector& v1, const GeoVector& v2, const GeoVector& v3)
+                                               : row{v1, v2, v3}
 {
 };
 
@@ -220,7 +226,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoMatrix::operator [](int i)
 \param[in] val A number to be assigned to all nine components
 \return Reference to this object
 */
-SPECTRUM_DEVICE_FUNC inline GeoMatrix& GeoMatrix::operator =(double val)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoMatrix& GeoMatrix::operator =(double val)
 {
    row[0] = row[1] = row[2] = val;
    return *this;
@@ -502,11 +508,10 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const 
 */
 SPECTRUM_DEVICE_FUNC inline GeoMatrix operator *(const GeoMatrix& matr_l, const GeoMatrix& matr_r)
 {
-   int i, j;
    GeoMatrix matr_tmp, matr_rt(matr_r);
    matr_rt.Transpose();
-   for (i = 0; i < 3; i++) {
-      for (j = 0; j < 3; j++) {
+   for (auto i = 0; i < 3; i++) {
+      for (auto j = 0; j < 3; j++) {
          matr_tmp.row[i][j] = matr_l[i] * matr_rt[j];
       };
    };
@@ -571,13 +576,13 @@ std::ostream& operator <<(std::ostream& os, const GeoMatrix& matr_r);
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! The unit matrix
-const GeoMatrix gm_unit(gv_nx, gv_ny, gv_nz);
+SPECTRUM_CONSTEXPR GeoMatrix gm_unit = {gv_nx, gv_ny, gv_nz};
 
 //! A matrix with zero components
-const GeoMatrix gm_zeros(gv_zeros, gv_zeros, gv_zeros);
+SPECTRUM_CONSTEXPR GeoMatrix gm_zeros = {gv_zeros, gv_zeros, gv_zeros};
 
 //! A matrix with all components equal to one
-const GeoMatrix gm_ones(gv_ones, gv_ones, gv_ones);
+SPECTRUM_CONSTEXPR GeoMatrix gm_ones = {gv_ones, gv_ones, gv_ones};
 
 };
 

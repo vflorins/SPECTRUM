@@ -13,6 +13,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <cmath>
+
+#include "common/definitions.hh"
 
 namespace Spectrum {
 
@@ -20,19 +23,19 @@ namespace Spectrum {
 #define GEO_DEBUG_LEVEL 3
 
 //! Comment character
-const char comment_char = '#';
-
-//! Color of error messages (red)
-const std::string err_color = "\033[31m";
-
-//! Color of informational messages (green)
-const std::string inf_color = "\033[32m";
-
-//! Color of normal messages (default)
-const std::string std_color = "\033[0m";
+#define comment_char '#'
 
 //! Maximum width of a line in a text file
-const int line_width = 1000;
+#define line_width 1000
+
+//! Color of error messages (red)
+inline constexpr const std::string err_color = "\033[31m";
+
+//! Color of informational messages (green)
+inline constexpr const std::string inf_color = "\033[32m";
+
+//! Color of normal messages (default)
+inline constexpr const std::string std_color = "\033[0m";
 
 /*!
 \brief Print an error message in color
@@ -66,6 +69,22 @@ inline void PrintMessage(const char* filename, int line, const std::string& mess
    std::cerr << inf_color;
    std::cerr << filename << ":" << line << ": info message: " << message << std::endl;
    std::cerr << std_color;
+};
+
+/*!
+\brief Print a pass/fail test results by comparing two numbers
+\author Vladimir Florinski
+\date 10/23/2025
+\param[in] message Description of the test
+\param[in] res1    First result
+\param[in] res2    Second result
+*/
+inline void PrintPassFail(const std::string& message, double res1, double res2)
+{
+   bool cmp = fabs(res2 - res1) / (fabs(res2) + fabs(res1)) < sp_tiny;
+   std::cerr << message + ": " << (cmp ? inf_color + "passed" : err_color + "failed");
+   std::cerr << std_color;
+   std::cerr << " (" << res1 << " / " << res2 << ")\n";
 };
 
 /*!

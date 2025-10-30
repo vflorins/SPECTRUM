@@ -93,7 +93,7 @@ SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoMatrix& basis)
 */
 SPECTRUM_DEVICE_FUNC void GeoMatrix::ChangeToBasis(const GeoVector* basis)
 {
-// TODO
+// TODO write this function
 };
 
 /*!
@@ -216,6 +216,31 @@ SPECTRUM_DEVICE_FUNC GeoVector GeoMatrix::Eigensystem(GeoMatrix& evec) const
       evec[ei].Normalize();
    };
    return eval;
+};
+
+/*!
+\author Vladimir Florinski
+\date 10/13/2025
+*/
+SPECTRUM_DEVICE_FUNC void GeoMatrix::CompleteSymmetric(void)
+{
+   row[1][0] = row[0][1];
+   row[2][0] = row[0][2];
+   row[2][1] = row[1][2];
+};
+
+/*!
+\author Vladimir Florinski
+\date 10/13/2025
+*/
+SPECTRUM_DEVICE_FUNC void GeoMatrix::CompleteAntiSymmetric(void)
+{
+   row[0][0] = 0.0;
+   row[1][0] = -row[0][1];
+   row[1][1] = 0.0;
+   row[2][0] = -row[0][2];
+   row[2][1] = -row[1][2];
+   row[2][2] = 0.0;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

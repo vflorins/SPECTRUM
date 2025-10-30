@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <type_traits>
 #include <complex>
 
+#include "config.h"
 #include "common/gpu_config.hh"
 
 namespace Spectrum {

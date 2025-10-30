@@ -17,6 +17,77 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+/*!
+\brief An embedded type containing different aliases for the data
+\author Vladimir Florinski
+*/
+template <typename data_type, int n_vars, std::enable_if_t<(n_vars > 0), bool> = true>
+struct SimpleArrayBase
+{
+   union {
+      data_type data[n_vars];
+      struct {
+         data_type x, y, z;
+      };
+      data_type ijk[n_vars];
+      struct {
+         data_type i, j, k;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+// FIXME: nvcc bug prevents the following from compiling. For now, don't use "n_vars" of 1 or 2 in CUDA code.
+#ifndef __CUDACC__
+
+/*!
+\brief Specialization of "SimpleArrayBase" for a one-component array
+\author Vladimir Florinski
+*/
+template <typename data_type>
+struct SimpleArrayBase<data_type, 1>
+{
+   union {
+      data_type data[1];
+      struct {
+         data_type x;
+      };
+      data_type ijk[1];
+      struct {
+         data_type i;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+/*!
+\brief Specialization of "SimpleArrayBase" for a two-component array
+\author Vladimir Florinski
+*/
+template <typename data_type>
+struct SimpleArrayBase<data_type, 2>
+{
+   union {
+      data_type data[2];
+      struct {
+         data_type x, y;
+      };
+      data_type ijk[2];
+      struct {
+         data_type i, j;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // SimpleArray class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,32 +99,21 @@ namespace Spectrum {
 \note Copy constructor and "operator=" are compiler provided (same for derived classes), so they are not implemented here. Binary operators are external to the class. Derived classes must provide a conversion constructor from the base class to use those.
 */
 template <typename data_type, int n_vars>
-struct SimpleArray
+struct SimpleArray : SimpleArrayBase<data_type, n_vars>
 {
 //! A trait to be used in template specializations
    static constexpr bool is_simple_array = true;
+   
+   using SimpleArrayBase<data_type, n_vars>::data;
 
-//! Storage
-   union {
-      EmptyStruct _empty;
-      data_type data[n_vars];
-      struct {
-         data_type x, y, z;
-      };
-      data_type ijk[n_vars];
-      struct {
-         data_type i, j, k;
-      };
-   };
-
-//! Default constructor - we initialize the "_empty" member to make it constexpr (requires c++20)
-   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) : _empty() {};
+//! Default constructor
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val) {operator =(val);};
 
 //! Constructor from an array
-   SPECTRUM_DEVICE_FUNC explicit SimpleArray(const data_type* other);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(const data_type* other);
 
 //! Return the number of components
    SPECTRUM_DEVICE_FUNC static constexpr int size(void) {return n_vars;};
@@ -138,21 +198,10 @@ struct SimpleArray
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] val Value to be asigned to each component
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(data_type val)
-{
-   operator =(val);
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/08/2024
 \param[in] other Array to initialize from
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>::SimpleArray(const data_type* other)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(const data_type* other)
 {
    memcpy(data, other, n_vars * sizeof(data_type));
 };
