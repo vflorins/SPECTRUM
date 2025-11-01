@@ -179,14 +179,14 @@ int main(int argc, char** argv)
    std::string trajectory_file = "main_test_turb_waves_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "TURBULENCE VIA SUPERPOSITION OF WAVES" << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
    std::cout << "Number of modes:" << std::endl;
    std::cout << "\t Alfven/Slab  = " << nA_modes << std::endl;
    std::cout << "\t Transverse   = " << nT_modes << std::endl;
    std::cout << "\t Longitudinal = " << nL_modes << std::endl;
    std::cout << "\t Isotropic    = " << nI_modes << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 

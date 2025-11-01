@@ -98,11 +98,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-   double R = r_ref;
-   double theta = DegToRad(90.0);
-   double phi = DegToRad(0.0);
-   GeoVector start_pos(R,theta,phi);
-   start_pos.RTP_XYZ();
+   GeoVector start_pos(r_ref,0.0,0.0);
    container.Insert(start_pos);
 
    trajectory->AddInitial(InitialSpaceFixed(), container);
@@ -173,11 +169,11 @@ int main(int argc, char** argv)
    std::string trajectory_file = "main_test_parker_spiral_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
    std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
    std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 

@@ -221,7 +221,7 @@ int main(int argc, char** argv)
    std::string trajectory_file = "main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "DIPOLE FIELD DRIFT PERIODS" << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
    std::cout << "Time elapsed (simulated)     = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
    std::cout << "drift period (theory)        = " << drift_period * unit_time_fluid << " s" << std::endl;
@@ -229,7 +229,7 @@ int main(int argc, char** argv)
    std::cout << "bounce period (theory)       = " << bounce_period * unit_time_fluid << " s" << std::endl;
    std::cout << "bounce period (simulation 1) = " << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Crossings(1,2) << " s" << std::endl;
    std::cout << "bounce period (simulation 2) = " << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Mirrorings() << " s" << std::endl;
-   std::cout << "=========================================================" << std::endl;
+   std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 

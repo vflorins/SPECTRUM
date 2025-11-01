@@ -286,7 +286,7 @@ int main(int argc, char** argv)
    if(argc > 1) n_traj = atoi(argv[1]);
    if(argc > 2) batch_size = atoi(argv[2]);
 
-   std::string simulation_files_prefix = "test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
+   std::string simulation_files_prefix = "main_test_modulation_cartesian_" + simulation->GetTrajectoryName() + "_";
    simulation->DistroFileName(simulation_files_prefix);
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
@@ -294,10 +294,10 @@ int main(int argc, char** argv)
 
    if(MPI_Config::is_master) {
       std::cout << std::endl;
-      std::cout << "MODULATION CARTESIAN PARKER SPIRAL" << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "MODULATION CARTESIAN PARKER FIELD" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Trajectory type: " << simulation->GetTrajectoryName() << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Distribution files outputed to " << simulation_files_prefix << std::endl;
       std::cout << std::endl;
    };

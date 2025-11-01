@@ -465,7 +465,7 @@ int main(int argc, char** argv)
    if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "PITCH ANGLE DISTRIBUTION ISOTROPIZATION" << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Trajectory type: " << simulation->GetTrajectoryName() << std::endl;
       std::cout << "D0 = " << D0 / unit_time_fluid << std::endl;
       std::cout << "distros outputed at times:" << std::endl;
@@ -474,7 +474,7 @@ int main(int argc, char** argv)
       std::cout << "\t timemark2 = " << timemark2 << " s" << std::endl;
       std::cout << "\t timemark3 = " << timemark3 << " s" << std::endl;
       std::cout << "\t final     = " << maxtime << " s" << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Distribution files outputed to " << simulation_files_prefix << std::endl;
       std::cout << std::endl;
    };

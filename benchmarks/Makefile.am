@@ -5,7 +5,7 @@ AM_CXXFLAGS = $(MPI_CFLAGS)
 AM_LDFLAGS = $(MPI_LIBS)
 AM_FCFLAGS = -J$(BATL_INCL_DIR)
 
-bin_PROGRAMS = main_test_dipole_visualization \
+bin_PROGRAMS = main_test_dipole_visual \
                main_test_turb_waves \
                main_test_parker_spiral \
                main_test_init_cond_records \
@@ -13,8 +13,8 @@ bin_PROGRAMS = main_test_dipole_visualization \
                main_test_pa_distro_isotrop \
                main_test_pa_scatt \
                main_test_perp_diff main_test_full_diff \
-               main_test_diffusive_shock_acceleration \
-               main_postprocess_diffusive_shock_acceleration \
+               main_test_diff_shock_acc \
+               main_postprocess_diff_shock_acc \
                main_test_modulation_cartesian_parker \
                main_postprocess_modulation_cartesian_parker \
                main_generate_cartesian_solarwind_background
@@ -22,7 +22,7 @@ bin_PROGRAMS = main_test_dipole_visualization \
 SPBL_COMMON_DIR = ../common
 SPBL_SOURCE_DIR = ../src
 
-main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc \
+main_test_dipole_visual_SOURCES = main_test_dipole_visual.cc \
    $(SPBL_SOURCE_DIR)/trajectory_base.cc \
    $(SPBL_SOURCE_DIR)/trajectory_base.hh \
    $(SPBL_SOURCE_DIR)/background_dipole.cc \
@@ -75,7 +75,7 @@ main_test_dipole_visualization_SOURCES = main_test_dipole_visualization.cc \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
-main_test_dipole_visualization_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+main_test_dipole_visual_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
 main_test_turb_waves_SOURCES = main_test_turb_waves.cc \
    $(SPBL_SOURCE_DIR)/trajectory_fieldline.cc \
@@ -569,7 +569,7 @@ main_test_full_diff_SOURCES = main_test_full_diff.cc \
 
 main_test_full_diff_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_test_diffusive_shock_acceleration_SOURCES = main_test_diffusive_shock_acceleration.cc \
+main_test_diff_shock_acc_SOURCES = main_test_diff_shock_acc.cc \
    $(SPBL_SOURCE_DIR)/simulation.cc \
    $(SPBL_SOURCE_DIR)/simulation.hh \
    $(SPBL_SOURCE_DIR)/distribution_other.cc \
@@ -636,9 +636,9 @@ main_test_diffusive_shock_acceleration_SOURCES = main_test_diffusive_shock_accel
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
-main_test_diffusive_shock_acceleration_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+main_test_diff_shock_acc_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
-main_postprocess_diffusive_shock_acceleration_SOURCES = main_postprocess_diffusive_shock_acceleration.cc \
+main_postprocess_diff_shock_acc_SOURCES = main_postprocess_diff_shock_acc.cc \
    $(SPBL_COMMON_DIR)/matrix.cc \
    $(SPBL_COMMON_DIR)/matrix.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
@@ -655,7 +655,7 @@ main_postprocess_diffusive_shock_acceleration_SOURCES = main_postprocess_diffusi
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh
 
-main_postprocess_diffusive_shock_acceleration_LDADD = $(MPI_LIBS) $(GSL_LIBS)
+main_postprocess_diff_shock_acc_LDADD = $(MPI_LIBS) $(GSL_LIBS)
 
 main_test_modulation_cartesian_parker_SOURCES = main_test_modulation_cartesian_parker.cc \
    $(SPBL_SOURCE_DIR)/simulation.cc \

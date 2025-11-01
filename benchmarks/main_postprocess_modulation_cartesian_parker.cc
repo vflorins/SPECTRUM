@@ -33,8 +33,8 @@ inline double mod_spectrum(double T)
 
 int main(int argc, char** argv)
 {
-   std::string infilename1 = "test_modulation_cartesian_TrajectoryParker_spectrum.dat";
-   std::string outfilename = "test_modulation_cartesian_TrajectoryParker_spectrum_pp.dat";
+   std::string infilename1 = "main_test_modulation_cartesian_TrajectoryParker_spectrum.dat";
+   std::string outfilename = "main_test_modulation_cartesian_TrajectoryParker_spectrum_pp.dat";
    std::string line;
    int i, N = 100, sum_c1[N], sum_c2[N];
    double energy1[N], distro1[N], sum_w1[N]; 

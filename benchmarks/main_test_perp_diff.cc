@@ -247,10 +247,10 @@ int main(int argc, char** argv)
    if(MPI_Config::is_master) {
       std::cout << std::endl;
       std::cout << "PERPENDICULAR DIFFUSION" << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Trajectory type: " << simulation->GetTrajectoryName() << std::endl;
       std::cout << "D0 = " << D0 * Sqr(unit_length_fluid) / unit_time_fluid << std::endl;
-      std::cout << "=========================================================" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
       std::cout << "Distribution files outputed to " << simulation_files_prefix << std::endl;
       std::cout << std::endl;
    };
