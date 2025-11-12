@@ -11,94 +11,18 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_PHYSICS_HH
 #define SPECTRUM_PHYSICS_HH
 
-//#include <array>
-//
-//#include "config.h"
-//
-//#ifdef USE_GSL
-//#include <gsl/gsl_const_cgsm.h>
-//#endif
-
 #include "common/vectors.hh"
+#include "common/specie.hh"
 #include "common/compiletime_lists.hh"
 
 
 namespace Spectrum {
-
-
-//! The largest number of species (distinct particle mass and charge).
-#define MAX_PARTICLE_SPECIES 16
-
-//! Elementary charge (esu)
-#define SPC_CONST_CGSM_ELECTRON_CHARGE 4.8032044E-10
-
-//! Electron mass (g)
-#ifdef USE_GSL
-#define SPC_CONST_CGSM_MASS_ELECTRON GSL_CONST_CGSM_MASS_ELECTRON
-#else
-#define SPC_CONST_CGSM_MASS_ELECTRON 9.11E-26
-#endif
-
-//! Proton mass (g)
-#ifdef USE_GSL
-#define SPC_CONST_CGSM_MASS_PROTON GSL_CONST_CGSM_MASS_PROTON
-#else
-#define SPC_CONST_CGSM_MASS_PROTON 1.67E-24
-#endif
-
-//! Neutron mass (g)
-#ifdef USE_GSL
-#define SPC_CONST_CGSM_MASS_NEUTRON GSL_CONST_CGSM_MASS_NEUTRON
-#else
-#define SPC_CONST_CGSM_MASS_NEUTRON SPC_CONST_CGSM_MASS_PROTON
-#endif
-
-//! Electron volt (cgs)
-#ifdef USE_GSL
-#define SPC_CONST_CGSM_ELECTRON_VOLT GSL_CONST_CGSM_ELECTRON_VOLT
-#else
-#define SPC_CONST_CGSM_ELECTRON_VOLT 1.6E-12
-#endif
 
 //! Various particle energy units (cgs)
 #define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0E3 * SPC_CONST_CGSM_ELECTRON_VOLT)
 #define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0E6 * SPC_CONST_CGSM_ELECTRON_VOLT)
 #define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0E9 * SPC_CONST_CGSM_ELECTRON_VOLT)
 
-
-//! Electric charge: typically equal to elementary charge
-#define unit_charge_particle SPC_CONST_CGSM_ELECTRON_CHARGE
-
-//! Energy: 1 eV or the proton rest energy are reasonable values
-#define unit_energy_particle SPC_CONST_CGSM_ELECTRON_VOLT
-
-//! Momentum: derived, based on the assumption that the particles use the fluid unit for velocity
-#define unit_momentum_particle (unit_energy_particle / unit_velocity_fluid)
-
-//! Mass: derived, based on the assumption that the particles use the fluid unit for velocity
-#define unit_mass_particle (unit_energy_particle / unit_velocity_fluid / unit_velocity_fluid)
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Particle units used in the code - user configurable. Length and time units are the same as for the fluid.
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Electric charge: typically equal to elementary charge
-#define unit_charge_particle SPC_CONST_CGSM_ELECTRON_CHARGE
-
-//! Energy: 1 eV or the proton rest energy are reasonable values
-#define unit_energy_particle SPC_CONST_CGSM_ELECTRON_VOLT
-
-//! Momentum: derived, based on the assumption that the particles use the fluid unit for velocity
-#define unit_momentum_particle (unit_energy_particle / unit_velocity_fluid)
-
-//! Mass: derived, based on the assumption that the particles use the fluid unit for velocity
-#define unit_mass_particle (unit_energy_particle / unit_velocity_fluid / unit_velocity_fluid)
-
-//! Ratio of charge/mass has a conversion factor required to calculate particle's cyclotron frequency and radius.
-#define charge_mass_particle ((unit_charge_particle * unit_magnetic_fluid / unit_mass_particle / unit_velocity_fluid) / unit_frequency_fluid)
-
-//! Rigidity: derived, 1 V = 1 eV / 1 e
-#define unit_rigidity_particle (unit_energy_particle / unit_charge_particle)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Fluid units used in the code - user configurable

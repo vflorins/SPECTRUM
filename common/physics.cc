@@ -14,6 +14,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+// todo this code will be replaced with code currently in Vladimir's branch.
+
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -24,7 +26,7 @@ void PrintUnits(void)
 
 #ifdef USE_GSL
 
-   int spc = SPECIES_PROTON_CORE;
+//   int spc = SPECIES_PROTON_CORE;
 
    std::cout << std::endl;
    std::cout << "CGS speed of light: " << GSL_CONST_CGSM_SPEED_OF_LIGHT << std::endl;
@@ -61,38 +63,38 @@ void PrintUnits(void)
    std::cout << "Boltzmann constant in code units: " << kb_code;
    std::cout << "     Should be: " << GSL_CONST_CGSM_BOLTZMANN / unit_energy_particle * unit_temperature_fluid << "\n";
 
-   std::cout << "Particle mass in code units: " << SpeciesMasses[spc];
-   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle / unit_mass_particle << "\n";
+//   std::cout << "Particle mass in code units: " << SpeciesMasses[spc];
+//   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle / unit_mass_particle << "\n";
+//
+//   std::cout << "Particle charge in code units: " << SpeciesCharges[spc];
+//   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle / unit_charge_particle << "\n";
 
-   std::cout << "Particle charge in code units: " << SpeciesCharges[spc];
-   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle / unit_charge_particle << "\n";
-
-   std::cout << "Thermal speed in code units: " << ThermalSpeed(1.0, spc);
-   std::cout << "     Should be: " << sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid / (SpeciesMasses[spc] * unit_mass_particle))
-                                    / unit_velocity_fluid << "\n";
-
-   std::cout << "Particle rigidity in code units: " << Rigidity(1.0, spc);
-   std::cout << "     Should be: " << unit_momentum_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT / unit_charge_particle / unit_rigidity_particle << "\n";
-
-   std::cout << "Alfven speed in code units: " << AlfvenSpeed(1.0, 1.0);
-   std::cout << "     Should be: " << unit_magnetic_fluid / sqrt(M_4PI * unit_density_fluid) / unit_velocity_fluid << "\n";
-
-   std::cout << "Cyclotron frequency in code units: " << CyclotronFrequency(1.0, 1.0, spc);
-   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid
-                                    / (SpeciesMasses[spc] * unit_mass_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT) / unit_frequency_fluid << "\n";
-   
-   std::cout << "Larmor radius in code units: " << LarmorRadius(SpeciesMasses[spc] * 1.0, 1.0, spc);
-   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle * unit_velocity_fluid * GSL_CONST_CGSM_SPEED_OF_LIGHT
-                                    / (SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid) / unit_length_fluid << "\n";
-
-   std::cout << "Plasma frequency in code units: " << PlasmaFrequency(1.0, spc);
-   std::cout << "     Should be: " << sqrt(M_4PI * unit_density_fluid) * SpeciesCharges[spc] * unit_charge_particle
-                                    / (SpeciesMasses[spc] * unit_mass_particle) / unit_frequency_fluid << "\n";
-
-   std::cout << "Collision frequency in code units: " << CollisionFrequency(1.0, 1.0, 20.0, spc);
-   std::cout << "     Should be: " << 160.0 * M_SQRT2 * M_SQRTPI * unit_density_fluid * Quad(SpeciesCharges[spc] * unit_charge_particle) / 3.0
-                                    / Cube(SpeciesMasses[spc] * unit_mass_particle * sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid
-                                    / (SpeciesMasses[spc] * unit_mass_particle))) / unit_frequency_fluid << "\n";
+//   std::cout << "Thermal speed in code units: " << ThermalSpeed(1.0, spc);
+//   std::cout << "     Should be: " << sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid / (SpeciesMasses[spc] * unit_mass_particle))
+//                                    / unit_velocity_fluid << "\n";
+//
+//   std::cout << "Particle rigidity in code units: " << Rigidity(1.0, spc);
+//   std::cout << "     Should be: " << unit_momentum_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT / unit_charge_particle / unit_rigidity_particle << "\n";
+//
+//   std::cout << "Alfven speed in code units: " << AlfvenSpeed(1.0, 1.0);
+//   std::cout << "     Should be: " << unit_magnetic_fluid / sqrt(M_4PI * unit_density_fluid) / unit_velocity_fluid << "\n";
+//
+//   std::cout << "Cyclotron frequency in code units: " << CyclotronFrequency(1.0, 1.0, spc);
+//   std::cout << "     Should be: " << SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid
+//                                    / (SpeciesMasses[spc] * unit_mass_particle * GSL_CONST_CGSM_SPEED_OF_LIGHT) / unit_frequency_fluid << "\n";
+//
+//   std::cout << "Larmor radius in code units: " << LarmorRadius(SpeciesMasses[spc] * 1.0, 1.0, spc);
+//   std::cout << "     Should be: " << SpeciesMasses[spc] * unit_mass_particle * unit_velocity_fluid * GSL_CONST_CGSM_SPEED_OF_LIGHT
+//                                    / (SpeciesCharges[spc] * unit_charge_particle * unit_magnetic_fluid) / unit_length_fluid << "\n";
+//
+//   std::cout << "Plasma frequency in code units: " << PlasmaFrequency(1.0, spc);
+//   std::cout << "     Should be: " << sqrt(M_4PI * unit_density_fluid) * SpeciesCharges[spc] * unit_charge_particle
+//                                    / (SpeciesMasses[spc] * unit_mass_particle) / unit_frequency_fluid << "\n";
+//
+//   std::cout << "Collision frequency in code units: " << CollisionFrequency(1.0, 1.0, 20.0, spc);
+//   std::cout << "     Should be: " << 160.0 * M_SQRT2 * M_SQRTPI * unit_density_fluid * Quad(SpeciesCharges[spc] * unit_charge_particle) / 3.0
+//                                    / Cube(SpeciesMasses[spc] * unit_mass_particle * sqrt(2.0 * GSL_CONST_CGSM_BOLTZMANN * unit_temperature_fluid
+//                                    / (SpeciesMasses[spc] * unit_mass_particle))) / unit_frequency_fluid << "\n";
 
    std::cout << "--------------------------------------------------------------------------------\n";
    std::cout << std::endl;

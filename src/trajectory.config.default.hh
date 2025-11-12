@@ -17,6 +17,649 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+template <TrajectoryId trajectoryid, SpecieId specieid>
+class TrajectoryDefault;
+
+
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::Fieldline, specieid> {
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::Fieldline,
+//! Name: TrajectoryFields
+// Description: The fields needed to advance the trajectory during simulation.
+// Default: Default
+    Default,
+//! Name: RecordCoordinates
+// Description: The coordinates (and format spec) used to record the trajectory progress.
+// Default: Fields<FConfig<>, Pos_t, Time_t>
+    Fields<FConfig<>, Pos_t, Time_t>,
+//! Name: time_flow
+// Description: The time flow direction used for simulation
+// Options: forward | backward
+// Default: forward
+    TrajectoryOptions::TimeFlow::forward,
+//! Name: rk_integrator
+// Description: The discretization scheme used for simulation, a Runge-Kutta scheme
+// Options: Euler1E | Euler1I | Midpoint_2I | Midpoint_2E | RungeKutta_4E | Kutta38_4E | RungeKuttaFehlberg_54E | CashKarp_54E | DormandPrince_54E | RungeKuttaFehlberg65E | RungeKuttaFehlberg76E | RungeKuttaFehlberg_87E | ...others (see source)
+// Default: DormandPrince_54E
+    RKIntegrator::DormandPrince_54E,
+//! Name: record_mag_extrema
+// Description: Whether to record magnetic field extrema
+// Default: False
+    false,
+//! Name: record_trajectory
+// Description: Whether to record segments
+// Default: False
+    false,
+//! Name: record_trajectory_segment_presize
+// Description: Default initial size of trajectory segment record
+// Default: 10000
+    10000,
+//! Name: trajectory_adv_safety_level
+// Description: Trajectory advance safety level
+// Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
+// Default: low
+    TrajectoryOptions::SafetyLevel::low,
+//! Name: max_trajectory_steps
+// Description: Largest length for single trajectory
+// Default: 100000
+    100000,
+//! Name: max_time_adaptations
+// Description: Largest number of time step adaptations for a single time step
+// Default: 1
+    1,
+//! Name: n_max_calls
+// Description: Upper limit on the number of steps in debug mode
+// Options: -1: unlimited | n ≥ 0: limited, upper bound n
+// Default: -1
+    -1,
+//! Name: cfl_advection
+// Description: CFL condition for advection
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_pitchangle
+// Description: CFL condition for pitch angle scattering
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: drift_safety
+// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: mirror_threshold
+// Description: How many time steps to allow before recording a mirror event
+// Default: 1
+    1,
+//! Name: pperp_method
+// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
+// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
+// Default: mag_moment_conservation
+    TrajectoryOptions::PPerpMethod::mag_moment_conservation,
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+// Default: none
+    TrajectoryOptions::UseBDrifts::none,
+//! Name: stochastic_method
+// Description: Which stochastic method to use for scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_mu
+// Description: which stochastic method to use for pitch angle scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_perp
+// Description: Which stochastic method to use for perpendicular diffusion
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: split_scatt_fraction
+// Description: Whether to split the diffusive advance into two (one before and one after the advection).
+// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
+// Default: 0.0
+    std::ratio<0,1>,
+//! Name: const_dmumax
+// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
+// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
+// Default: constant_dmu_max
+    TrajectoryOptions::ConstDmumax::constant_dmu_max,
+//! Name: steps_per_orbit
+// Description: Number of time steps per one orbit
+// Default: 1
+    1,
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+// Default: gradients
+    TrajectoryOptions::DivkMethod::gradients,
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+// Default: 1.0
+    std::ratio<1,1>
+   >;
+};
+
+
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::Focused, specieid> {
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::Focused,
+//! Name: TrajectoryFields
+// Description: The fields needed to advance the trajectory during simulation.
+// Default: Default
+    Default,
+//! Name: RecordCoordinates
+// Description: The coordinates (and format spec) used to record the trajectory progress.
+// Default: Fields<FConfig<>, Pos_t, Time_t>
+    Fields<FConfig<>, Pos_t, Time_t>,
+//! Name: time_flow
+// Description: The time flow direction used for simulation
+// Options: forward | backward
+// Default: forward
+    TrajectoryOptions::TimeFlow::forward,
+//! Name: rk_integrator
+// Description: The discretization scheme used for simulation, a Runge-Kutta scheme
+// Options: Euler1E | Euler1I | Midpoint_2I | Midpoint_2E | RungeKutta_4E | Kutta38_4E | RungeKuttaFehlberg_54E | CashKarp_54E | DormandPrince_54E | RungeKuttaFehlberg65E | RungeKuttaFehlberg76E | RungeKuttaFehlberg_87E | ...others (see source)
+// Default: DormandPrince_54E
+    RKIntegrator::DormandPrince_54E,
+//! Name: record_mag_extrema
+// Description: Whether to record magnetic field extrema
+// Default: False
+    false,
+//! Name: record_trajectory
+// Description: Whether to record segments
+// Default: False
+    false,
+//! Name: record_trajectory_segment_presize
+// Description: Default initial size of trajectory segment record
+// Default: 10000
+    10000,
+//! Name: trajectory_adv_safety_level
+// Description: Trajectory advance safety level
+// Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
+// Default: low
+    TrajectoryOptions::SafetyLevel::low,
+//! Name: max_trajectory_steps
+// Description: Largest length for single trajectory
+// Default: 100000
+    100000,
+//! Name: max_time_adaptations
+// Description: Largest number of time step adaptations for a single time step
+// Default: 1
+    1,
+//! Name: n_max_calls
+// Description: Upper limit on the number of steps in debug mode
+// Options: -1: unlimited | n ≥ 0: limited, upper bound n
+// Default: -1
+    -1,
+//! Name: cfl_advection
+// Description: CFL condition for advection
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_pitchangle
+// Description: CFL condition for pitch angle scattering
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: drift_safety
+// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: mirror_threshold
+// Description: How many time steps to allow before recording a mirror event
+// Default: 1
+    10,
+//! Name: pperp_method
+// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
+// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
+// Default: mag_moment_conservation
+    TrajectoryOptions::PPerpMethod::scheme,
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+// Default: none
+    TrajectoryOptions::UseBDrifts::none,
+//! Name: stochastic_method
+// Description: Which stochastic method to use for scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_mu
+// Description: which stochastic method to use for pitch angle scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_perp
+// Description: Which stochastic method to use for perpendicular diffusion
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: split_scatt_fraction
+// Description: Whether to split the diffusive advance into two (one before and one after the advection).
+// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
+// Default: 0.0
+    std::ratio<0,1>,
+//! Name: const_dmumax
+// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
+// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
+// Default: constant_dmu_max
+    TrajectoryOptions::ConstDmumax::constant_dmu_max,
+//! Name: steps_per_orbit
+// Description: Number of time steps per one orbit
+// Default: 1
+    1,
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+// Default: gradients
+    TrajectoryOptions::DivkMethod::gradients,
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+// Default: 1.0
+    std::ratio<1,1>
+   >;
+};
+
+
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::Guiding, specieid> {
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::Guiding,
+//! Name: TrajectoryFields
+// Description: The fields needed to advance the trajectory during simulation.
+// Default: Default
+    Default,
+//! Name: RecordCoordinates
+// Description: The coordinates (and format spec) used to record the trajectory progress.
+// Default: Fields<FConfig<>, Pos_t, Time_t>
+    Fields<FConfig<>, Pos_t, Time_t>,
+//! Name: time_flow
+// Description: The time flow direction used for simulation
+// Options: forward | backward
+// Default: forward
+    TrajectoryOptions::TimeFlow::forward,
+//! Name: rk_integrator
+// Description: The discretization scheme used for simulation, a Runge-Kutta scheme
+// Options: Euler1E | Euler1I | Midpoint_2I | Midpoint_2E | RungeKutta_4E | Kutta38_4E | RungeKuttaFehlberg_54E | CashKarp_54E | DormandPrince_54E | RungeKuttaFehlberg65E | RungeKuttaFehlberg76E | RungeKuttaFehlberg_87E | ...others (see source)
+// Default: DormandPrince_54E
+    RKIntegrator::DormandPrince_54E,
+//! Name: record_mag_extrema
+// Description: Whether to record magnetic field extrema
+// Default: False
+    false,
+//! Name: record_trajectory
+// Description: Whether to record segments
+// Default: False
+    false,
+//! Name: record_trajectory_segment_presize
+// Description: Default initial size of trajectory segment record
+// Default: 10000
+    10000,
+//! Name: trajectory_adv_safety_level
+// Description: Trajectory advance safety level
+// Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
+// Default: low
+    TrajectoryOptions::SafetyLevel::low,
+//! Name: max_trajectory_steps
+// Description: Largest length for single trajectory
+// Default: 100000
+    100000,
+//! Name: max_time_adaptations
+// Description: Largest number of time step adaptations for a single time step
+// Default: 1
+    1,
+//! Name: n_max_calls
+// Description: Upper limit on the number of steps in debug mode
+// Options: -1: unlimited | n ≥ 0: limited, upper bound n
+// Default: -1
+    -1,
+//! Name: cfl_advection
+// Description: CFL condition for advection
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_pitchangle
+// Description: CFL condition for pitch angle scattering
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: drift_safety
+// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: mirror_threshold
+// Description: How many time steps to allow before recording a mirror event
+// Default: 1
+    10,
+//! Name: pperp_method
+// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
+// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
+// Default: mag_moment_conservation
+    TrajectoryOptions::PPerpMethod::scheme,
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+// Default: none
+    TrajectoryOptions::UseBDrifts::none,
+//! Name: stochastic_method
+// Description: Which stochastic method to use for scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_mu
+// Description: which stochastic method to use for pitch angle scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_perp
+// Description: Which stochastic method to use for perpendicular diffusion
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: split_scatt_fraction
+// Description: Whether to split the diffusive advance into two (one before and one after the advection).
+// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
+// Default: 0.0
+    std::ratio<0,1>,
+//! Name: const_dmumax
+// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
+// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
+// Default: constant_dmu_max
+    TrajectoryOptions::ConstDmumax::constant_dmu_max,
+//! Name: steps_per_orbit
+// Description: Number of time steps per one orbit
+// Default: 1
+    1,
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+// Default: gradients
+    TrajectoryOptions::DivkMethod::gradients,
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+// Default: 1.0
+    std::ratio<1,1>
+   >;
+};
+
+
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::Lorentz, specieid> {
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::Lorentz,
+//! Name: TrajectoryFields
+// Description: The fields needed to advance the trajectory during simulation.
+// Default: Default
+    Default,
+//! Name: RecordCoordinates
+// Description: The coordinates (and format spec) used to record the trajectory progress.
+// Default: Fields<FConfig<>, Pos_t, Time_t>
+    Fields<FConfig<>, Pos_t, Time_t>,
+//! Name: time_flow
+// Description: The time flow direction used for simulation
+// Options: forward | backward
+// Default: forward
+    TrajectoryOptions::TimeFlow::forward,
+//! Name: rk_integrator
+// Description: The discretization scheme used for simulation, a Runge-Kutta scheme
+// Options: Euler1E | Euler1I | Midpoint_2I | Midpoint_2E | RungeKutta_4E | Kutta38_4E | RungeKuttaFehlberg_54E | CashKarp_54E | DormandPrince_54E | RungeKuttaFehlberg65E | RungeKuttaFehlberg76E | RungeKuttaFehlberg_87E | ...others (see source)
+// Default: DormandPrince_54E
+    RKIntegrator::DormandPrince_54E,
+//! Name: record_mag_extrema
+// Description: Whether to record magnetic field extrema
+// Default: False
+    false,
+//! Name: record_trajectory
+// Description: Whether to record segments
+// Default: False
+    false,
+//! Name: record_trajectory_segment_presize
+// Description: Default initial size of trajectory segment record
+// Default: 10000
+    100000,
+//! Name: trajectory_adv_safety_level
+// Description: Trajectory advance safety level
+// Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
+// Default: low
+    TrajectoryOptions::SafetyLevel::low,
+//! Name: max_trajectory_steps
+// Description: Largest length for single trajectory
+// Default: 100000
+    100000,
+//! Name: max_time_adaptations
+// Description: Largest number of time step adaptations for a single time step
+// Default: 1
+    1,
+//! Name: n_max_calls
+// Description: Upper limit on the number of steps in debug mode
+// Options: -1: unlimited | n ≥ 0: limited, upper bound n
+// Default: -1
+    -1,
+//! Name: cfl_advection
+// Description: CFL condition for advection
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_pitchangle
+// Description: CFL condition for pitch angle scattering
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: drift_safety
+// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: mirror_threshold
+// Description: How many time steps to allow before recording a mirror event
+// Default: 1
+    300,
+//! Name: pperp_method
+// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
+// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
+// Default: mag_moment_conservation
+    TrajectoryOptions::PPerpMethod::scheme,
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+// Default: none
+    TrajectoryOptions::UseBDrifts::none,
+//! Name: stochastic_method
+// Description: Which stochastic method to use for scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_mu
+// Description: which stochastic method to use for pitch angle scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_perp
+// Description: Which stochastic method to use for perpendicular diffusion
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: split_scatt_fraction
+// Description: Whether to split the diffusive advance into two (one before and one after the advection).
+// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
+// Default: 0.0
+    std::ratio<0,1>,
+//! Name: const_dmumax
+// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
+// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
+// Default: constant_dmu_max
+    TrajectoryOptions::ConstDmumax::constant_dmu_max,
+//! Name: steps_per_orbit
+// Description: Number of time steps per one orbit
+// Default: 1
+    100,
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+// Default: gradients
+    TrajectoryOptions::DivkMethod::gradients,
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+// Default: 1.0
+    std::ratio<1,1>
+   >;
+};
+
+
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::Parker, specieid> {
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::Parker,
+//! Name: TrajectoryFields
+// Description: The fields needed to advance the trajectory during simulation.
+// Default: Default
+    Default,
+//! Name: RecordCoordinates
+// Description: The coordinates (and format spec) used to record the trajectory progress.
+// Default: Fields<FConfig<>, Pos_t, Time_t>
+    Fields<FConfig<>, Pos_t, Time_t>,
+//! Name: time_flow
+// Description: The time flow direction used for simulation
+// Options: forward | backward
+// Default: forward
+    TrajectoryOptions::TimeFlow::forward,
+//! Name: rk_integrator
+// Description: The discretization scheme used for simulation, a Runge-Kutta scheme
+// Options: Euler1E | Euler1I | Midpoint_2I | Midpoint_2E | RungeKutta_4E | Kutta38_4E | RungeKuttaFehlberg_54E | CashKarp_54E | DormandPrince_54E | RungeKuttaFehlberg65E | RungeKuttaFehlberg76E | RungeKuttaFehlberg_87E | ...others (see source)
+// Default: DormandPrince_54E
+    RKIntegrator::DormandPrince_54E,
+//! Name: record_mag_extrema
+// Description: Whether to record magnetic field extrema
+// Default: False
+    false,
+//! Name: record_trajectory
+// Description: Whether to record segments
+// Default: False
+    false,
+//! Name: record_trajectory_segment_presize
+// Description: Default initial size of trajectory segment record
+// Default: 10000
+    100000,
+//! Name: trajectory_adv_safety_level
+// Description: Trajectory advance safety level
+// Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
+// Default: low
+    TrajectoryOptions::SafetyLevel::low,
+//! Name: max_trajectory_steps
+// Description: Largest length for single trajectory
+// Default: 100000
+    100000,
+//! Name: max_time_adaptations
+// Description: Largest number of time step adaptations for a single time step
+// Default: 1
+    1,
+//! Name: n_max_calls
+// Description: Upper limit on the number of steps in debug mode
+// Options: -1: unlimited | n ≥ 0: limited, upper bound n
+// Default: -1
+    -1,
+//! Name: cfl_advection
+// Description: CFL condition for advection
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: cfl_pitchangle
+// Description: CFL condition for pitch angle scattering
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: drift_safety
+// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
+// Default: 0.5
+    std::ratio<5,10>,
+//! Name: mirror_threshold
+// Description: How many time steps to allow before recording a mirror event
+// Default: 1
+    10,
+//! Name: pperp_method
+// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
+// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
+// Default: mag_moment_conservation
+    TrajectoryOptions::PPerpMethod::scheme,
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+// Default: none
+    TrajectoryOptions::UseBDrifts::none,
+//! Name: stochastic_method
+// Description: Which stochastic method to use for scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_mu
+// Description: which stochastic method to use for pitch angle scattering
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: stochastic_method_perp
+// Description: Which stochastic method to use for perpendicular diffusion
+// Options: Euler | Milstein | RK2
+// Default: Euler
+    TrajectoryOptions::StochasticMethod::Euler,
+//! Name: split_scatt_fraction
+// Description: Whether to split the diffusive advance into two (one before and one after the advection).
+// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
+// Default: 0.0
+    std::ratio<0,1>,
+//! Name: const_dmumax
+// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
+// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
+// Default: constant_dmu_max
+    TrajectoryOptions::ConstDmumax::constant_dmu_max,
+//! Name: steps_per_orbit
+// Description: Number of time steps per one orbit
+// Default: 1
+    1,
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+// Default: gradients
+    TrajectoryOptions::DivkMethod::direct,
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+// Default: 1.0
+    std::ratio<1,1>
+   >;
+};
+
 
 
 }

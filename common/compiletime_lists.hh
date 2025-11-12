@@ -53,6 +53,12 @@ enum class CoordinateSystem {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+enum class BackgroundId {
+   Dipole,
+   // todo
+};
+
+
 namespace BackgroundOptions {
 
 //! Derivative method (generally either analytic or numeric)
@@ -185,6 +191,11 @@ enum class DivkMethod {
 // Diffusion options
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+enum class DiffusionId {
+   None,
+   // todo
+};
 
 namespace DiffusionOptions {
 

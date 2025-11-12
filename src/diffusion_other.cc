@@ -15,6 +15,67 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionNone methods
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\author Lucius Schoenbaum
+\date 11/11/2025
+*/
+template <typename HConfig>
+DiffusionNone<HConfig>::DiffusionNone(void)
+      : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+{
+};
+
+/*!
+\author Lucius Schoenbaum
+\date 11/11/2025
+\param[in] other Object to initialize from
+
+A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupDiffusion()" with the argument of "true".
+*/
+template <typename HConfig>
+DiffusionNone<HConfig>::DiffusionNone(const DiffusionNone& other)
+      : DiffusionBase(other)
+{
+   RAISE_BITS(_status, DIFF_NOBACKGROUND);
+   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
+};
+
+/*!
+\author Lucius Schoenbaum
+\date 11/11/2025
+\param [in] construct Whether called from a copy constructor or separately
+*/
+template <typename HConfig>
+void DiffusionIsotropicConstant<HConfig>::SetupDiffusion(bool construct)
+{
+// The parent version must be called explicitly if not constructing
+   if (!construct) DiffusionBase::SetupDiffusion(false);
+};
+
+/*!
+\author Lucius Schoenbaum
+\date 10/19/2025
+*/
+template <typename HConfig>
+void DiffusionIsotropicConstant<HConfig>::EvaluateDiffusion(Component comp)
+{
+};
+
+/*!
+\author Lucius Schoenbaum
+\date 11/11/2025
+\return double       Derivative in mu
+*/
+template <typename HConfig>
+double DiffusionIsotropicConstant<HConfig>::GetMuDerivative(Component comp)
+{
+   return -1;
+};
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <iostream>
 
 #include "common/data_container.hh"
-#include "common/spatial_data.hh"
+//#include "common/spatial_data.hh"
 #include "common/vectors.hh"
 #include "common/matrix.hh"
 #include "common/turb_prop.hh"

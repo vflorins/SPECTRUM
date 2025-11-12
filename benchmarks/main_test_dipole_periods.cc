@@ -9,7 +9,8 @@
 #include "src/initial_momentum.hh"
 // todo when all trajectories are updated
 //#include "src/trajectory.hh"
-#include "src/trajectory_guiding_.hh"
+#include "src/trajectory_guiding.hh"
+#include "src/simulation.config.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -21,35 +22,36 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Set the types
+// Set simulation types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-//   using HConfig = HConfigDefault;
-
-   using HConfig = HConfig<
-         BuildMode::debug,
+   using HConfig = SimulationConfig<
          SpecieId::proton_core,
-         1,1
-         ,
-         MyTrajectory,
-         BackgroundDefault,
-         DiffusionDefault,
-         DistributionDefault
+         TrajectoryId::Guiding,
+         BackgroundId::Dipole,
+         DiffusionId::None,
+         // the rest are default settings, only shown for realism.
+         Default,
+         Default,
+         Default,
+         BuildMode::debug,
+         /* num_trajectories */ 1,
+         /* batch_size */ 1,
+         /* max_trajectories_per_worker */ 1
       >;
 
-//   using Fields = Fields<Elc_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
-   using Trajectory = TrajectoryGuiding<HConfig>;
-   using Background = BackgroundDipole<HConfig>;
+   using Background = HConfig::Background;
+   using Diffusion = HConfig::Diffusion;
+   using Trajectory = HConfig::Trajectory;
 
    using InitialTime = InitialTimeFixed<HConfig>;
    using InitialSpace = InitialSpaceFixed<HConfig>;
-   using InitialMomentum = InitialMomentumRing<Trajectory>;
-//   using Diffusion = DiffusionIsotropicConstant<Trajectory>;
+   using InitialMomentum = InitialMomentumRing<HConfig>;
 
-   using BoundaryTime = BoundaryTimeExpire<Trajectory>;
-   using Boundary1 = BoundarySphereAbsorb<Trajectory>;
-   using Boundary2 = BoundaryPlanePass<Trajectory>;
-   using Boundary3 = BoundaryMirror<Trajectory>;
+   using BoundaryTime = BoundaryTimeExpire<HConfig>;
+   using Boundary1 = BoundarySphereAbsorb<HConfig>;
+   using Boundary2 = BoundaryPlanePass<HConfig>;
+   using Boundary3 = BoundaryMirror<HConfig>;
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,13 +66,6 @@ int main(int argc, char** argv)
 
    std::shared_ptr<RNG> rng = std::make_shared<RNG>(time(NULL));
    trajectory->ConnectRNG(rng);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Particle type
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   int specie = SPECIES_PROTON_BEAM;
-   trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background

@@ -1,6 +1,11 @@
-//
-// Created by Lucius Schoenbaum on 10/22/25.
-//
+/*!
+\file specie.hh
+\brief Defines a data structure expressing particle species ("specie") properties that can be compile-time constant.
+\author Lucius Schoenbaum
+\author Vladimir Florinski
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
+*/
 
 #ifndef SPECTRUM_SPECIE_HH
 #define SPECTRUM_SPECIE_HH
@@ -81,12 +86,6 @@
 #else
 #define SPC_CONST_CGSM_ELECTRON_VOLT 1.6E-12
 #endif
-
-//! Various particle energy units (cgs)
-#define SPC_CONST_CGSM_KILO_ELECTRON_VOLT (1.0E3 * SPC_CONST_CGSM_ELECTRON_VOLT)
-#define SPC_CONST_CGSM_MEGA_ELECTRON_VOLT (1.0E6 * SPC_CONST_CGSM_ELECTRON_VOLT)
-#define SPC_CONST_CGSM_GIGA_ELECTRON_VOLT (1.0E9 * SPC_CONST_CGSM_ELECTRON_VOLT)
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Fluid units used in the code - user configurable

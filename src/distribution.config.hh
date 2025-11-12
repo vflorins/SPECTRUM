@@ -19,18 +19,9 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 09/05/2025
 */
-template<
-
-   // todo
-   int a
-
->
-struct DistributionConfig {
-
-};
+// todo
 
 
-using DistributionDefault = DistributionConfig<1, 2, 3>;
 
 }
 

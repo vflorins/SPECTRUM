@@ -136,8 +136,11 @@ physical_defaults = {
         },
     },
     'diffusion': {
+        'None': {
+        },
         'IsotropicConstant': {
             'D0': 1234,
+            'LISM_idx': 1234,
         },
         'QLTConstant': {
             'A2A': 1234,

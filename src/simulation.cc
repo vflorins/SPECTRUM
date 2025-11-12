@@ -479,6 +479,9 @@ template <typename HConfig, typename Trajectory>
 SimulationMaster<HConfig, Trajectory>::SimulationMaster(void)
                 : SimulationServer()
 {
+// SetTasks parameters can be set via template args or explicitly via SetTasks.
+// This takes care of the former case.
+   SetTasks(HConfig::num_trajectories, HConfig::batch_size, HConfig::max_trajectories_per_worker);
 // If simulation is parallel, initialize batches assigned array and cpu available requests array
    if (is_parallel) {
       trajectories_assigned.assign(MPI_Config::work_comm_size, 0);

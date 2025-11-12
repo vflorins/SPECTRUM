@@ -28,8 +28,9 @@ class TrajectoryGuiding : public TrajectoryBase<Background_, Diffusion_> {
 
 public:
 
-   using HConfig = HConfig_;
    using Background = Background_;
+   using Diffusion = Diffusion_;
+   using HConfig = Background::HConfig;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
    using TrajectoryBase = TrajectoryBase<Background, Diffusion>;

@@ -206,7 +206,7 @@ template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
 void BackgroundBase<HConfig>::NumericalDerivatives(Coordinates& coords, Fields& fields)
 {
-   double AbsMom = fields.AbsMom();
+   double AbsMom = coords.AbsMom();
    double AbsMag = fields.AbsMag();
    GeoVector HatMag = fields.HatMag();
    constexpr Specie specie = HConfig::specie;

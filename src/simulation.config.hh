@@ -26,26 +26,40 @@ namespace Spectrum {
 template <
       SpecieId specieid_,
       TrajectoryId trajectoryid_,
+      BackgroundId backgroundid_,
+      DiffusionId diffusionid_,
+      typename TrajectoryConfig_ = Default,
+      typename BackgroundConfig_ = Default,
+      typename DiffusionConfig_ = Default,
       BuildMode build_mode_ = BuildMode::release,
       int num_trajectories_ = 1,
       int batch_size_ = 1,
-      typename TrajectoryConfig_ = Default,
-      typename BackgroundConfig_ = Default,
-      typename DiffusionConfig_ = Default
+      int max_trajectories_per_worker_ = 1
 >
 struct SimulationConfig {
+   // todo Cond here to resolve the default here. __________-
+   // todo
    using TrajectoryConfig = TrajectoryConfig_;
    using BackgroundConfig = BackgroundConfig_;
    using DiffusionConfig = DiffusionConfig_;
 
+
 // The specieid is only needed at compile time, during generation of default config types.
    static constexpr auto specieid = specieid_;
    static constexpr auto trajectoryid = trajectoryid_;
+   static constexpr auto backgroundid = backgroundid_;
+   static constexpr auto diffusionid = diffusionid_;
    static constexpr auto build_mode = build_mode_;
    static constexpr auto num_trajectories = num_trajectories_;
+   static constexpr auto max_trajectories_per_worker = max_trajectories_per_worker_;
    static constexpr auto batch_size = batch_size_;
 
    static constexpr auto specie = Specie<specieid>();
+
+   using Background = Background<backgroundid, BackgroundConfig>;
+   using Diffusion = Diffusion<diffusionid, DiffusionConfig>;
+   using Trajectory = Trajectory<trajectoryid, TrajectoryConfig>;
+
 
 };
 

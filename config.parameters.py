@@ -12,13 +12,16 @@ New parameters can be added to this file. In order to do so,
 be sure to make note of the interoperability requirement between
 the lists here, and the template arguments defined in config.hh files
 (background.config.hh, trajectory.config.hh, diffusion.config.hh)
-in the C++ source. Once these files are all in agreement, the main
+in the C++ source. This should become clear after a moment.
+Once these files are all in agreement, the main
 `config.py` script can be run to generate new default values,
 incorporating physical defaults defined in `config.physical.py`.
+These "physical" defaults are case-specific, and do not
+need to be defined until a specific case demands/suggests doing so.
 
-Similarly, in order to "install" any updates to physical defaults (in `config.physical.py`)
-or to definitions of any values in this file, you must run the main
-`config.py` configuration script.
+In order to "install" any updates to definitions in this file, or to
+physical defaults (in `config.physical.py`), you only need to run
+the main `config.py` configuration script.
 
 """
 
@@ -44,6 +47,7 @@ backgrounds = [
     "Waves",
 ]
 
+# todo documentation
 servers = {
     "Server": 0,
     "ServerBATL": 0,
@@ -51,18 +55,56 @@ servers = {
 }
 
 trajectories = [
-    # todo
+    "Fieldline",
+    "Focused",
+    "Guiding",
+    "Lorentz",
+    "Parker",
 ]
 
 diffusions = [
-    "TimeUniform",
+    "None",
+    "IsotropicConstant",
     "QLTConstant",
-    # todo
+    "WNLTConstant",
+    "WNLTRampVLISM",
+    "ParaConstant",
+    "PerpConstant",
+    "FullConstant",
+    "FlowMomentumPowerLaw",
+    "KineticEnergyRadialDistancePowerLaw",
+    "RigidityMagneticFieldPowerLaw",
+    "StraussEtAl2013",
+    "GuoEtAl2014",
+    "PotgieterEtAl2015",
+    "EmpiricalSOQLTandUNLT",
 ]
 
 
 
 class ParameterInfo:
+    """
+    A data structure setting up the essential
+    information needed to define a default
+    config class. Provides documentation
+    that can be placed where would be appropriate.
+
+    Arguments:
+
+        name (string):
+            parameter name
+        description (string):
+            parameter description
+        default (string or int or float):
+            a default value
+        possible_values (list of string or int or float):
+            A list of possible values, if discrete
+        parameter_type (type or string):
+            The parameter type. If string, then the
+            type refers to an enum, class, or namespace.
+
+    """
+
     def __init__(self, name, description, default, possible_values = None, parameter_type = int):
         self.name = name
         self.description = description
@@ -71,6 +113,10 @@ class ParameterInfo:
         self.parameter_type = parameter_type
 
     def str(self, cpp_comment = True):
+        """
+        A plain text string summarizing the parameter.
+        Formatted as C++ comment if `cpp_comment`.
+        """
         out = "//! " if cpp_comment else ""
         nl = "\n// " if cpp_comment else "\n"
         out += f"Name: {self.name}"
@@ -253,11 +299,13 @@ parameters_trajectory = {
         name = 'record_mag_extrema',
         description = "Whether to record magnetic field extrema",
         default = False,
+        parameter_type = bool,
     ),
     'record_trajectory': ParameterInfo(
         name = 'record_trajectory',
         description = "Whether to record segments",
         default = False,
+        parameter_type = bool,
     ),
     'record_trajectory_segment_presize': ParameterInfo(
         name = 'record_trajectory_segment_presize',
@@ -267,19 +315,19 @@ parameters_trajectory = {
     'trajectory_adv_safety_level': ParameterInfo(
         name = 'trajectory_adv_safety_level',
         description = "Trajectory advance safety level",
-        possible_values=["0: no checks", "1: check dt only", "2: check dt, number of segments, and time adaptations per step"],
-        default = 0,
+        possible_values=["low: no checks", "medium: check dt only", "high: check dt, number of segments, and time adaptations per step"],
+        default = 'low',
         parameter_type="TrajectoryOptions::SafetyLevel"
     ),
     'max_trajectory_steps': ParameterInfo(
         name = 'max_trajectory_steps',
         description = "Largest length for single trajectory",
-        default = "vcx",
+        default = 100000,
     ),
     'max_time_adaptations': ParameterInfo(
         name = 'max_time_adaptations',
         description = "Largest number of time step adaptations for a single time step",
-        default = "vcx",
+        default = 1,
     ),
     'n_max_calls': ParameterInfo(
         name = 'n_max_calls',
@@ -320,19 +368,19 @@ parameters_trajectory = {
     'mirror_threshold': ParameterInfo(
         name = 'mirror_threshold',
         description = "How many time steps to allow before recording a mirror event",
-        default = "vcx",
+        default = 1,
     ),
     'pperp_method': ParameterInfo(
         name = 'pperp_method',
         description = "Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.",
         possible_values=["moment_cons: compute mu from magnetic moment conservation", "scheme: update according to scheme"],
-        default = "moment_cons",
+        default = "mag_moment_conservation",
         parameter_type="TrajectoryOptions::PPerpMethod",
     ),
     'use_B_drifts': ParameterInfo(
         name = 'use_B_drifts',
         description = "Flag to use gradient and curvature drifts in drift velocity calculation",
-        default = "vcx",
+        default = "none",
         parameter_type="TrajectoryOptions::UseBDrifts",
     ),
     'stochastic_method': ParameterInfo(
@@ -363,18 +411,17 @@ parameters_trajectory = {
         default = 0.0,
         parameter_type=float,
     ),
-    # todo fix
     'const_dmumax': ParameterInfo(
         name = 'const_dmumax',
         description = "Desired accuracy in pitch angle cosine or in pitch angle mu",
         possible_values=["constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor)", "constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)"],
-        default = "constant_dmumax",
+        default = "constant_dmu_max",
         parameter_type="TrajectoryOptions::ConstDmumax",
     ),
     'steps_per_orbit': ParameterInfo(
         name = 'steps_per_orbit',
         description = "Number of time steps per one orbit",
-        default = "vcx",
+        default = 1,
     ),
     'divk_method': ParameterInfo(
         name = 'divk_method',
@@ -386,7 +433,7 @@ parameters_trajectory = {
     'dlnp_max': ParameterInfo(
         name = 'dlnp_max',
         description = "Maximum allowed fraction of momentum change per step",
-        default = "vcx",
+        default = 1.0,
         parameter_type=float,
     ),
 }
@@ -395,243 +442,291 @@ parameters_trajectory = {
 parameters_diffusion = {
     'use_qlt_scatt': ParameterInfo(
         name = 'use_qlt_scatt',
-        description = "vcx",
+        description = "Whether to use QLT pitch angle scattering with WLNT perpendicular diffusion",
         default = False,
+        parameter_type = bool,
     ),
     'D0': ParameterInfo(
         name = 'D0',
-        description = "vcx",
-        default = "vcx",
+        description = "diffusion coefficient (if constant)",
+        default = 1.0,
+        parameter_type=float,
     ),
     'Dperp': ParameterInfo(
         name = 'Dperp',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'Dpara': ParameterInfo(
         name = 'Dpara',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'A2A': ParameterInfo(
         name = 'A2A',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'l_max': ParameterInfo(
         name = 'l_max',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'k_min': ParameterInfo(
         name = 'k_min',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'ps_index': ParameterInfo(
         name = 'ps_index',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'ps_minus': ParameterInfo(
         name = 'ps_minus',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'A2T': ParameterInfo(
         name = 'A2T',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'A2L': ParameterInfo(
         name = 'A2L',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'ps_plus': ParameterInfo(
         name = 'ps_plus',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'l_max_HP': ParameterInfo(
         name = 'l_max_HP',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'dl_max': ParameterInfo(
         name = 'dl_max',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'nose_z_nose': ParameterInfo(
         name = 'nose_z_nose',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'nose_z_sheath': ParameterInfo(
         name = 'nose_z_sheath',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'nose_z_dz': ParameterInfo(
         name = 'nose_z_dz',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa0': ParameterInfo(
         name = 'kappa0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_ratio': ParameterInfo(
         name = 'kappa_ratio',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'U0': ParameterInfo(
         name = 'U0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'p0': ParameterInfo(
         name = 'p0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'T0': ParameterInfo(
         name = 'T0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'r0': ParameterInfo(
         name = 'r0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'lam0': ParameterInfo(
         name = 'lam0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'R0': ParameterInfo(
         name = 'R0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'B0': ParameterInfo(
         name = 'B0',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_U': ParameterInfo(
         name = 'pow_law_U',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_p': ParameterInfo(
         name = 'pow_law_p',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_T': ParameterInfo(
         name = 'pow_law_T',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_r': ParameterInfo(
         name = 'pow_law_r',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_R': ParameterInfo(
         name = 'pow_law_R',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'pow_law_B': ParameterInfo(
         name = 'pow_law_B',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'LISM_idx': ParameterInfo(
         name = 'LISM_idx',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1,
+        parameter_type=int,
     ),
     'LISM_ind': ParameterInfo(
         name = 'LISM_ind',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_ratio_inner': ParameterInfo(
         name = 'kappa_ratio_inner',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_ratio_outer': ParameterInfo(
         name = 'kappa_ratio_outer',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'lam_inner': ParameterInfo(
         name = 'lam_inner',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'lam_outer': ParameterInfo(
         name = 'lam_outer',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_inner': ParameterInfo(
         name = 'kappa_inner',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_outer': ParameterInfo(
         name = 'kappa_outer',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'lam_para': ParameterInfo(
         name = 'lam_para',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'lam_perp': ParameterInfo(
         name = 'lam_perp',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'kappa_ratio_red': ParameterInfo(
         name = 'kappa_ratio_red',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'radial_limit_perp_red': ParameterInfo(
         name = 'radial_limit_perp_red',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'solar_cycle_idx': ParameterInfo(
         name = 'solar_cycle_idx',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1,
+        parameter_type=int,
     ),
     'solar_cycle_effect': ParameterInfo(
         name = 'solar_cycle_effect',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
     'Bmix_idx': ParameterInfo(
         name = 'Bmix_idx',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1,
+        parameter_type=int,
     ),
     'Bmix_ind': ParameterInfo(
         name = 'Bmix_ind',
-        description = "vcx",
-        default = "vcx",
+        description = "todo_add_description",
+        default = 1.0,
+        parameter_type=float,
     ),
 }
 

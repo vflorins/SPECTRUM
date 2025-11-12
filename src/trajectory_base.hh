@@ -21,6 +21,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "common/fields2/field_ops.hh"
 
+#include "trajectory.config.default.hh"
+#include "diffusion.config.default.hh"
+
+
 namespace Spectrum {
 
 //! The trajectory will end after the step is completed
@@ -154,12 +158,10 @@ public:
    using Background = Background_;
    using HConfig = Background::HConfig_;
    using Diffusion = Diffusion_;
-   using TrajectoryConfig = Cond<std::same_as<typename HConfig::TrajectoryConfig, Default>, TrajectoryDefault<TrajectoryBase<Background, Diffusion>>, typename HConfig::TrajectoryConfig>;
+   using TrajectoryConfig = Cond<std::same_as<typename HConfig::TrajectoryConfig, Default>, TrajectoryDefault<HConfig::trajectoryid, HConfig::specieid>, typename HConfig::TrajectoryConfig>;
    using TrajectoryCoordinates = TrajectoryConfig::Coordinates;
    using RecordCoordinates = TrajectoryConfig::RecordCoordinates;
-   // todo setify received fields in all base types _________
    using TrajectoryFields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
-   // todo this cannot be resolved here without a Cond. Should we apply another Cond here? .....there is no other choice, we need coords, fields, remainder.
 
    using DiffusionConfig = Cond<std::same_as<typename HConfig::DiffusionConfig, Default>, DiffusionDefault<Diffusion>, typename HConfig::DiffusionConfig>;
    using DiffusionCoordinates = typename DiffusionConfig::Coordinates;

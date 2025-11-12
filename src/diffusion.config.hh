@@ -24,9 +24,9 @@ namespace Spectrum {
 template <
       SpecieId specieid,
 //! Flag to use QLT pitch angle scattering with WLNT perpendicular diffusion
-      bool use_qlt_scatt_,
 //! diffusion coefficient (if constant)
 //! Scattering frequency (persistent)
+      bool use_qlt_scatt_,
       Ratio D0_,
       Ratio Dperp_,
       Ratio Dpara_,
@@ -70,7 +70,7 @@ template <
       Ratio lam_perp_,
       Ratio kappa_ratio_red_,
       Ratio radial_limit_perp_red_,
-      Ratio solar_cycle_idx_,
+      int solar_cycle_idx_,
       Ratio solar_cycle_effect_,
       int Bmix_idx_,
       Ratio Bmix_ind_

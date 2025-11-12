@@ -33,53 +33,58 @@ parameters_diffusion = PM.parameters_diffusion
 parameters = PM.parameters
 
 
-# switch for debugging purposes
-# debug = False
-debug = True
-
-
-if debug:
-    fname = "config.test.hh"
-else:
-    fname = "config.hh"
-
-
+only_generate_test_files = False
 
 def get(key, args, special_name = None, special_value = None):
     """
     This function implements resolutions of values based on the default lists.
+    This logic is the heart of the config system setup.
 
-    :param key: string
-    :param args: argparse structure
-    :param special_name: optional string
-    :param special_value: optional string
-    :return: value
+    Arguments:
+
+        key (string):
+        args (argparse structure): argparse structure
+        special_name (optional string): optional string
+        special_value (optional string): optional string
+
+    Returns:
+
+        value for given key
+
     """
+    # todo better doc'n, nomenclature for special_name, special_value
     parameterinfo = parameters[key]
     preamble = parameterinfo.parameter_type + "::" if isinstance(parameterinfo.parameter_type, str) else ""
     if not key in args:
-        raise KeyError(f"The option {key} is undefined.")
+        raise KeyError(f"[get] The option {key} is undefined.")
     if args.__dict__[key] is not None:
         return args.__dict__[key]
     elif special_name is not None:
         if special_value in physical_defaults[special_name]:
             if key in physical_defaults[special_name][special_value]:
                 if parameterinfo.parameter_type == float:
-                    return ratio(parameterinfo.default)
+                    return ratio(physical_defaults[special_name][special_value][key])
                 elif parameterinfo.parameter_type == int:
                     return str(physical_defaults[special_name][special_value][key])
+                elif parameterinfo.parameter_type == bool:
+                    return str(physical_defaults[special_name][special_value][key]).lower()
                 else:
                     return preamble + physical_defaults[special_name][special_value][key]
             else:
                 # the value is not in the list. Idiomatically, this means the option is not used by the special class.
                 pass
         else:
-            print(f"[get_value] Warning: {special_name} {special_value} not found in list. Using general default for key {key}.")
+            print(f"[get] Warning: {special_name} {special_value} not found in physical default list. Using general default for key {key}.")
     if parameterinfo.parameter_type == float:
         return ratio(parameterinfo.default)
     elif parameterinfo.parameter_type == int:
+        # todo this branch handles some cases where the type is not int.
+        #  It works but should still be revised.
         return str(parameterinfo.default)
+    elif parameterinfo.parameter_type == bool:
+        return str(parameterinfo.default).lower()
     return preamble + str(parameterinfo.default)
+
 
 def check_defaults():
     """
@@ -91,6 +96,7 @@ def check_defaults():
             for key in physical_defaults[special_name][special_value]:
                 if not key in parameters:
                     print(f"[check_defaults] Warning: key {key} found in the list of {special_name} {special_value} physical defaults, but not found in the list of baseline defaults.")
+
 
 def ratio(fp):
     """
@@ -126,11 +132,12 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         help="Whether to operate in default mode (generate default headers) or in user mode (generate a local config file).",
     )
-    parser.set_defaults(mkdefaults=False)
+    parser.set_defaults(mkdefaults=True)
     for key in parameters:
         parser.add_argument(
             f"--{key}",
             type=type(parameters[key]),
+            # todo cf. config.py --help - these descriptions in parameters/physical data files?
             help="(todo)",
             required=False,
         )
@@ -143,41 +150,32 @@ if __name__ == "__main__":
     ################################################################
     # argparse draft - wip
 
-    there_is_a_trajectory = '--trajectory' in sys.argv
-    there_is_a_background = '--background' in sys.argv
-    it_is_a_local_hconfig = '--local' in sys.argv
+    found_traj = '--trajectory' in sys.argv
+    found_background = '--background' in sys.argv
+    found_local_hconfig = '--local' in sys.argv
 
-    if there_is_a_trajectory:
-        print("[hconfig] found traj")
-        # todo
-    else:
-        print("[hconfig] NO traj")
-
-    if it_is_a_local_hconfig:
-        print("[hconfig] local hconfig")
-        # todo
-    else:
-        print("[hconfig] NOT local hconfig")
+    # if found_traj:
+    #     print("[config] found traj")
+    # else:
+    #     print("[config] not found traj")
 
     ################################################################
     # generate defaults (mkdefaults)
 
 
-    if True: # todo temporary
-    # if args.mkdefaults:
-        print("mkdefaults mode", args.mkdefaults)
+    if args.mkdefaults:
         # todo here, generate default files (clobber old ones -- thus, ground truth lives here)
 
-        sptypes = [
-            "background",
-            "trajectory",
-            # "diffusion",
+        spectrum_types = [
+            # "background",
+            # "trajectory",
+            "diffusion",
         ]
 
-        for sptype in sptypes:
+        for spectrum_type in spectrum_types:
             content = f"""/*!
-\\file {sptype}.config.default.hh
-\\brief (Hyper)parameters and config(uration) options for a SPECTRUM {sptype} class
+\\file {spectrum_type}.config.default.hh
+\\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class
 \\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
@@ -187,15 +185,15 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
  * This file is automatically generated by config.py. Do not edit this file, instead edit config.py. 
  */
  
-#ifndef SPECTRUM_{sptype.upper()}_CONFIG_DEFAULT_HH
-#define SPECTRUM_{sptype.upper()}_CONFIG_DEFAULT_HH
+#ifndef SPECTRUM_{spectrum_type.upper()}_CONFIG_DEFAULT_HH
+#define SPECTRUM_{spectrum_type.upper()}_CONFIG_DEFAULT_HH
 
-#include "{sptype}.config.hh"
+#include "{spectrum_type}.config.hh"
 
 namespace Spectrum {{
 
 """
-            if sptype == "background":
+            if spectrum_type == "background":
 
                 for background in backgrounds:
                     if background in servers:
@@ -216,7 +214,7 @@ class BackgroundDefault<Background{background}<HConfig{server2}>> {{
    using type = BackgroundConfig<
       HConfig::specieid,\n"""
                     for key in parameters_background:
-                        content += f"{parameters[key].str()}\n    {get(key, args, sptype, background)},\n"
+                        content += f"{parameters[key].str()}\n    {get(key, args, spectrum_type, background)},\n"
                     # comma...
                     if len(parameters_background) > 0:
                         content = content[:-2] + "\n"
@@ -224,10 +222,45 @@ class BackgroundDefault<Background{background}<HConfig{server2}>> {{
 }};
 
 """
-            elif sptype == "trajectory":
-                print("traj")
-            elif sptype == "diffusion":
-                print("diff")
+            elif spectrum_type == "trajectory":
+                content += "template <TrajectoryId trajectoryid, SpecieId specieid>\nclass TrajectoryDefault;\n\n"
+                for trajectory in trajectories:
+                    content += f"""
+template <SpecieId specieid>
+class TrajectoryDefault<TrajectoryId::{trajectory}, specieid> {{
+   using type = TrajectoryConfig<
+                specieid,
+                TrajectoryId::{trajectory},
+"""
+                    for key in parameters_trajectory:
+                        content += f"{parameters[key].str()}\n    {get(key, args, spectrum_type, trajectory)},\n"
+                    # comma...
+                    if len(parameters_trajectory) > 0:
+                        content = content[:-2] + "\n"
+                    content += f"""   >;
+}};
+
+"""
+            elif spectrum_type == "diffusion":
+                for diffusion in diffusions:
+                    content += f"template <typename HConfig>\nclass Diffusion{diffusion};\n"
+                content += "\ntemplate <typename Diffusion>\nclass DiffusionDefault;\n\n"
+                for diffusion in diffusions:
+                    content += f"""
+template <typename HConfig>
+class DiffusionDefault<Diffusion{diffusion}<HConfig>> {{
+   using type = DiffusionConfig<
+                HConfig::specieid,
+"""
+                    for key in parameters_diffusion:
+                        content += f"{parameters[key].str()}\n    {get(key, args, spectrum_type, diffusion)},\n"
+                    # comma...
+                    if len(parameters_diffusion) > 0:
+                        content = content[:-2] + "\n"
+                    content += f"""   >;
+}};
+
+"""
             content += f"""
 
 }}
@@ -235,39 +268,22 @@ class BackgroundDefault<Background{background}<HConfig{server2}>> {{
 #endif
 
 """
-
-
-
-
-
-
-
-            if False:
-                with open(f"src/{sptype}.config.default.TEST.hh", 'w') as f:
+            if only_generate_test_files:
+                with open(f"{spectrum_type}.config.default.TEST.hh", 'w') as f:
                     f.write(content)
             else:
-                with open(f"src/{sptype}.config.default.hh", 'w') as f:
+                with open(f"src/{spectrum_type}.config.default.hh", 'w') as f:
                     f.write(content)
-
-
-
-
-
-
-
 
 
     ################################################################
     # generate a local config file
 
 
-
     else:
-        print("not defaults mode")
-        # todo here, generate a local script - can do this later
-
-
-
+        print("[config.py] running in !mkdefaults mode")
+        # todo generate a local script - can do this later
+        raise NotImplementedError
 
 
 

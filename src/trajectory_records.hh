@@ -14,9 +14,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <vector>
 #include <fstream>
 #include <iostream>
-#include "vectors.hh"
-#include "definitions.hh" // LocateInArray
-#include "physics.hh" // Mom(), Vel()
+#include "common/vectors.hh"
+#include "common/definitions.hh" // LocateInArray
+#include "common/physics.hh" // Mom(), Vel()
 
 namespace Spectrum {
 

@@ -15,6 +15,64 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+// DiffusionNone class declaration
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*!
+\brief No diffusion class, for reduced physics
+\author Lucius Schoenbaum
+
+Parameters: (DiffusionBase) None
+*/
+template <typename HConfig_>
+class DiffusionNone : public DiffusionBase<HConfig_> {
+
+//! Readable name of the DiffusionIsotropicConstant class
+   static constexpr std::string_view diff_name = "DiffusionNone";
+
+public:
+
+   using HConfig = HConfig_;
+   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionFields;
+   using DiffusionBase = DiffusionBase<HConfig>;
+
+   using DiffusionBase::_status;
+   using DiffusionBase::container;
+   using DiffusionBase::_coords;
+   using DiffusionBase::Kappa;
+//   using DiffusionBase::mu;
+   using DiffusionBase::Stage;
+
+protected:
+
+//! Set up the diffusion model based on "params"
+   void SetupDiffusion(bool construct) override;
+
+//! Compute the diffusion coefficients
+   void EvaluateDiffusion(Component comp) override;
+
+public:
+
+//! Default constructor
+   DiffusionNone(void);
+
+//! Copy constructor
+   DiffusionNone(const DiffusionNone& other);
+
+//! Destructor
+   ~DiffusionNone() override = default;
+
+//! Clone function
+   CloneFunctionDiffusion(DiffusionNone);
+
+//! Compute derivative of diffusion coefficient in mu
+   double GetMuDerivative(Component comp) override;
+
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionIsotropicConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,11 +90,10 @@ class DiffusionIsotropicConstant : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -94,11 +151,10 @@ class DiffusionQLTConstant : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
 //   using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -172,13 +228,12 @@ class DiffusionWNLTConstant : public DiffusionQLTConstant<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
    using HConfig::specie;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using DiffusionQLTConstant = DiffusionQLTConstant<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
+   using DiffusionQLTConstant = DiffusionQLTConstant<HConfig>;
 
    //   using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -248,12 +303,11 @@ class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
-   using DiffusionWNLTConstant = DiffusionWNLTConstant<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
+   using DiffusionWNLTConstant = DiffusionWNLTConstant<HConfig>;
 
    using DiffusionBase::container;
    using DiffusionBase::_coords;
@@ -338,11 +392,10 @@ class DiffusionParaConstant : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -402,11 +455,10 @@ class DiffusionPerpConstant : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -466,11 +518,10 @@ class DiffusionFullConstant : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -531,14 +582,12 @@ class DiffusionFlowMomentumPowerLaw : public DiffusionBase<HConfig_> {
 //! Readable name of the DiffusionFlowMomentumPowerLaw class
    static constexpr std::string_view diff_name = "DiffusionFlowMomentumPowerLaw";
 
-
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -614,11 +663,10 @@ class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<HConfi
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -694,11 +742,10 @@ class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -774,11 +821,10 @@ class DiffusionStraussEtAl2013 : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -839,7 +885,7 @@ public:
 };
 
 template <typename HConfig>
-using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<Trajectory>;
+using DiffusionGuoEtAl2014 = DiffusionStraussEtAl2013<HConfig>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionPotgieterEtAl2015 class declaration
@@ -860,11 +906,10 @@ class DiffusionPotgieterEtAl2015 : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -941,11 +986,10 @@ class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<HConfig_> {
 
 public:
 
-   using Trajectory = Trajectory_;
-   using HConfig = Trajectory::HConfig;
+   using HConfig = HConfig_;
    using DiffusionCoordinates = HConfig::DiffusionCoordinates;
    using DiffusionFields = HConfig::DiffusionFields;
-   using DiffusionBase = DiffusionBase<Trajectory>;
+   using DiffusionBase = DiffusionBase<HConfig>;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;

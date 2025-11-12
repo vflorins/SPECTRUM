@@ -12,6 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+using namespace TrajectoryOptions;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryBase protected methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,8 +83,8 @@ void TrajectoryBase<Background, Diffusion>::ComputeAllBoundaries(void)
 \author Vladimir Florinski
 \date 02/06/2021
 */
-template <typename Background>
-void TrajectoryBase<Background>::UpdateAllBoundaries(void)
+template <typename Background, typename Diffusion>
+void TrajectoryBase<Background, Diffusion>::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
