@@ -52,7 +52,7 @@ void BackgroundUniform::SetupBackground(bool construct)
    if (!construct) BackgroundBase::SetupBackground(false);
 
 // Precompute motional electric field for efficiency
-   E0 = -(u0 ^ B0) / c_code;
+   E0 = -(u0 ^ B0) / Particle::c_code;
 };
 
 /*!

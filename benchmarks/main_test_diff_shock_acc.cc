@@ -29,8 +29,7 @@ int main(int argc, char** argv)
 // Particle type
 //--------------------------------------------------------------------------------------------------
 
-   int specie = SPECIES_PROTON_BEAM;
-   simulation->SetSpecie(specie);
+   Specie<default_specie> specie;
 
 //--------------------------------------------------------------------------------------------------
 // Background
@@ -45,17 +44,17 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Upstream velocity
-   double U_up = 4.0e7 / unit_velocity_fluid;
+   double U_up = 4.0e7 / Particle::unit_velocity;
    GeoVector u0(U_up, 0.0, 0.0);
    container.Insert(u0);
 
 // Upstream magnetic field
-   double B_up = 5.0e-7 / unit_magnetic_fluid;
+   double B_up = 5.0e-7 / Particle::unit_magnetic;
    GeoVector B0(B_up, 0.0, 0.0);
    container.Insert(B0);
 
 // Maximum displacement
-   double one_au = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    double dmax = 0.1 * one_au;
    container.Insert(dmax);
 
@@ -89,7 +88,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Time to obtain solution
-   double one_day = 24.0 * 60.0 * 60.0 / unit_time_fluid;
+   double one_day = 24.0 * 60.0 * 60.0 / Particle::unit_time;
    double t_final = 100.0 * one_day;
    container.Insert(t_final);
 
@@ -115,12 +114,12 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double one_MeV = SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
-   double p0 = Mom(1.0 * one_MeV, specie);
+   double one_MeV = SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy;
+   double p0 = Particle::Mom<specie>(1.0 * one_MeV);
    container.Insert(p0);
 
 // Upper bound for momentum
-   double pf = Mom(100.0 * one_MeV, specie);
+   double pf = Particle::Mom<specie>(100.0 * one_MeV);
    container.Insert(pf);
 
 // Log bias
@@ -156,7 +155,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Reference diffusion coefficient
-   double kappa_up = 1.0e20 / unit_diffusion_fluid;
+   double kappa_up = 1.0e20 / Particle::unit_diffusion;
    double kappa_dn = kappa_up * Sqr(U_dn / U_up);
    container.Insert(kappa_up);
 
@@ -168,7 +167,7 @@ int main(int argc, char** argv)
    container.Insert(power_law_U);
 
 // Normalization of particle momentum
-   double mom_0 =  0.1 * SpeciesMasses[specie] * c_code;
+   double mom_0 =  0.1 * specie.mass * Particle::c_code;
    container.Insert(mom_0);
 
 // Power of particle momentum dependance
@@ -226,7 +225,7 @@ int main(int argc, char** argv)
    container.Insert(unit_distro3);
 
 // Physical units of the bin variable which is momentum here. This is for x axis.
-   GeoVector unit_val3 = {unit_momentum_particle, 1.0, 1.0};
+   GeoVector unit_val3 = {Particle::unit_momentum, 1.0, 1.0};
    container.Insert(unit_val3);
 
 // Don't keep records

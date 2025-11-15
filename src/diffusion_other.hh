@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DIFFUSION_OTHER_HH
 #define SPECTRUM_DIFFUSION_OTHER_HH
 
-#include "diffusion_base.hh"
+#include "src/diffusion_base.hh"
 
 namespace Spectrum {
 
@@ -128,6 +128,8 @@ public:
 // DiffusionWNLTConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifdef USE_GSL
+
 //! Readable name of the DiffusionWNLTConstant class
 const std::string diff_name_wnlt_constant = "DiffusionWNLTConstant";
 
@@ -176,6 +178,8 @@ public:
 //! Clone function
    CloneFunctionDiffusion(DiffusionWNLTConstant);
 };
+
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTRampVLISM class declaration

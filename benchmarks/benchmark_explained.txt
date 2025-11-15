@@ -1,7 +1,7 @@
 This file contains benchmark tests for SPECTRUM.
 
 - DIPOLE FIELD VISUALIZATION
-   - File: main_test_dipole_periods.cc
+   - File: main_test_dipole_visual.cc
    - Trajectory type: any
    - Field type: dipole
    - Expected result: The magnetic field components (outputted in separate files) should resemble a dipole field along a 2D cross-section containing the dipole axis. Specifically, the dipole is along the z-axis, and the cross-section is at y=0. Therefore, By = 0.

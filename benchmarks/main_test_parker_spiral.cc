@@ -33,8 +33,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = SPECIES_PROTON_BEAM;
-   trajectory->SetSpecie(specie);
+   Specie<default_specie> specie;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background
@@ -50,25 +49,25 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   double umag = 4.0e7 / unit_velocity_fluid;
+   double umag = 4.0e7 / Particle::unit_velocity;
    GeoVector u0(umag, 0.0, 0.0);
    container.Insert(u0);
 
 // Magnetic field
-   double RS = 6.957e10 / unit_length_fluid;
+   double RS = 6.957e10 / Particle::unit_length;
    double r_ref = 3.0 * RS;
-   double BmagE = 5.0e-5 / unit_magnetic_fluid;
-   double Bmag_ref = BmagE * Sqr((GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid) / r_ref);
+   double BmagE = 5.0e-5 / Particle::unit_magnetic;
+   double Bmag_ref = BmagE * Sqr((SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length) / r_ref);
    GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
 
 // Effective "mesh" resolution
    double dmax_fraction = 0.1;
-   double dmax = dmax_fraction * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double dmax = dmax_fraction * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(dmax);
 
 // Solar rotation vector
-   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) * Particle::unit_time;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 
@@ -111,7 +110,7 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 100.0;
-   container.Insert(Mom(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie));
+   container.Insert(Particle::Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy));
 
    trajectory->AddInitial(InitialMomentumShell(), container);
 
@@ -153,7 +152,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double r_out = 10.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double r_out = 10.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(r_out);
 
    trajectory->AddBoundary(BoundarySphereAbsorb(), container);
@@ -172,7 +171,7 @@ int main(int argc, char** argv)
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
    std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
-   std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
+   std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * Particle::unit_time << " s" << std::endl;
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;

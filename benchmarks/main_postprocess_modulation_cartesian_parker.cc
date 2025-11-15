@@ -39,6 +39,7 @@ int main(int argc, char** argv)
    int i, N = 100, sum_c1[N], sum_c2[N];
    double energy1[N], distro1[N], sum_w1[N]; 
    double scal, v, p2, energy0 = SPC_CONST_CGSM_MEGA_ELECTRON_VOLT;
+   Specie<default_specie> specie;
 
 // Open input analytic distro file
    std::ifstream input_spectrum_file1(infilename1);
@@ -63,10 +64,10 @@ int main(int argc, char** argv)
 
 // Output data
    output_spectrum_file << std::setprecision(8);
-   scal = Vel(Mom(T0 / unit_energy_particle)) * unmod_spectrum(T0);
+   scal = Particle::Vel<specie>(Particle::Mom<specie>(T0 / Particle::unit_energy)) * unmod_spectrum(T0);
    for(i = 0; i < N; i++) {
-      p2 = Sqr(Mom(energy1[i] / unit_energy_particle));
-      v = Vel(Mom(energy1[i] / unit_energy_particle));
+      p2 = Sqr(Particle::Mom<specie>(energy1[i] / Particle::unit_energy));
+      v = Particle::Vel<specie>(Particle::Mom<specie>(energy1[i] / Particle::unit_energy));
       output_spectrum_file << std::setw(20) << energy1[i] / energy0;
       output_spectrum_file << std::setw(20) << v * unmod_spectrum(energy1[i]) / scal;
       output_spectrum_file << std::setw(20) << v * mod_spectrum(energy1[i]) / scal;

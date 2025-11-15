@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "trajectory_guiding.hh"
 #include "common/print_warn.hh"
+#include "src/trajectory_guiding.hh"
 
 namespace Spectrum {
 
@@ -52,7 +52,7 @@ void TrajectoryGuiding::SetStart(void)
    spdata0._mask = BACKGROUND_ALL | BACKGROUND_gradB | BACKGROUND_dBdt;
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment(traj_mom[0][0], _spdata.Bmag, specie);
+   mag_mom = Particle::MagneticMoment<specie>(traj_mom[0][0], _spdata.Bmag);
 };
 
 /*!
@@ -67,9 +67,9 @@ try {
    double rL, rR;
 
 // Modified fields
-   rL = LarmorRadius(_mom[0], _spdata.Bmag, specie);
-   rR = LarmorRadius(_mom[2], _spdata.Bmag, specie);
-   Evec_star = _spdata.Evec - rR * _spdata.Bmag * _spdata.dbhatdt() / c_code - rL * _vel[0] * _spdata.gradBmag / (2.0 * c_code);
+   rL = Particle::LarmorRadius<specie>(_mom[0], _spdata.Bmag);
+   rR = Particle::LarmorRadius<specie>(_mom[2], _spdata.Bmag);
+   Evec_star = _spdata.Evec - rR * _spdata.Bmag * _spdata.dbhatdt() / Particle::c_code - rL * _vel[0] * _spdata.gradBmag / (2.0 * Particle::c_code);
    Bvec_star = _spdata.Bvec + rR * _spdata.Bmag * _spdata.curlbhat();
 }
 
@@ -86,7 +86,7 @@ catch(ExFieldError& exception) {
 void TrajectoryGuiding::DriftCoeff(void)
 {
    ModifiedFields();
-   drift_vel = (_vel[2] * Bvec_star + c_code * (Evec_star ^ _spdata.bhat)) / (Bvec_star * _spdata.bhat);
+   drift_vel = (_vel[2] * Bvec_star + Particle::c_code * (Evec_star ^ _spdata.bhat)) / (Bvec_star * _spdata.bhat);
 };
 
 /*!
@@ -141,7 +141,7 @@ inline void TrajectoryGuiding::MomentumCorrection(void)
 {
 // Adjust perp component to conserve magnetic moment
 #if PPERP_METHOD == 0
-   _mom[0] = PerpMomentum(mag_mom, _spdata.Bmag, specie);
+   _mom[0] = Particle::PerpMomentum<specie>(mag_mom, _spdata.Bmag);
 #endif
 };
 

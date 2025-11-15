@@ -88,7 +88,7 @@ try {
    GeoVector pos_tmp;
    SpatialData spdata_forw, spdata_back;
    double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-   double delta = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
+   double delta = fmin(Particle::LarmorRadius<specie>(_mom[0], _spdata.Bmag), _spdata.dmax);
 
 // TODO: if the diffusion coefficients depend on more than just magnetic field, "spdata_xxxx._mask" should include more fields.
    spdata_forw._mask = BACKGROUND_U | BACKGROUND_B;

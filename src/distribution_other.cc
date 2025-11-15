@@ -7,9 +7,9 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "distribution_other.hh"
-#include "geometry/coordinates.hh"
+#include "common/coordinates.hh"
 #include "common/physics.hh"
+#include "src/distribution_other.hh"
 
 namespace Spectrum {
 
@@ -201,7 +201,7 @@ void DistributionPositionUniform::EvaluateValue(void)
    if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if (val_coord == 1) Metric<CoordinateSystem::Spherical>::PosToCurv(this->_value);
+   if (val_coord == 1) Metric<CoordinateSystem::SphericalRTP>::PosToCurv(this->_value);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -418,12 +418,12 @@ void DistributionAnisotropyLISM::EvaluateValue(void)
 // Find incoming direction in specified coordinate frame
    mom_rel = this->_mom;
    mom_rel.ChangeToBasis(rot_matrix);
-   Metric<CoordinateSystem::Spherical>::PosToCurv(mom_rel);
+   Metric<CoordinateSystem::SphericalRTP>::PosToCurv(mom_rel);
    this->_value[0] = mom_rel[1];
    this->_value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = this->_mom2 - RelFactor1(this->_mom2.Norm(), this->specie) * mass[this->specie] * U_LISM;
+   mom_rel = this->_mom2 - Particler::RelFactor1<specie>(this->_mom2.Norm()) * specie.mass * U_LISM;
 };
 
 /*!
@@ -553,11 +553,11 @@ void DistributionSpectrumKineticEnergyPowerLaw::SetupDistribution(bool construct
 void DistributionSpectrumKineticEnergyPowerLaw::EvaluateValue(void)
 {
 #if (TRAJ_TYPE == TRAJ_FOCUSED) || (TRAJ_TYPE == TRAJ_PARKER) || (TRAJ_TYPE == TRAJ_PARKER_SOURCE)
-   this->_value[0] = EnrKin(this->_mom[0], this->specie);
+   this->_value[0] = Particle::EnrKin<specie>(this->_mom[0]);
 #elif TRAJ_TYPE == TRAJ_FIELDLINE
-   this->_value[0] = EnrKin(this->_mom[2], this->specie);
+   this->_value[0] = Particle::EnrKin<specie>(this->_mom[2]);
 #elif (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
-   this->_value[0] = EnrKin(this->_mom.Norm(), this->specie);
+   this->_value[0] = Particle::EnrKin<specie>(this->_mom.Norm());
 #endif
 };
 
@@ -576,10 +576,10 @@ void DistributionSpectrumKineticEnergyPowerLaw::SpectrumKineticEnergyPowerLawHot
 #elif (TRAJ_TYPE == TRAJ_LORENTZ) || (TRAJ_TYPE == TRAJ_GUIDING) || (TRAJ_TYPE == TRAJ_GUIDING_SCATT) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF) || (TRAJ_TYPE == TRAJ_GUIDING_DIFF_SCATT)
    mom2mag = this->_mom2.Norm();
 #endif
-   kin_energy = EnrKin(mom2mag, this->specie);
+   kin_energy = Particle::EnrKin<specie>(mom2mag);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel(mom2mag, this->specie);
+   double velocity = Particle::Vel<specie>(mom2mag);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
    this->_weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1
@@ -848,7 +848,7 @@ void DistributionLossCone::EvaluateValue(void)
    if (val_time == 0) this->_value = this->_pos;
    else this->_value = this->_pos2;
 
-   if (val_coord == 1) Metric<CoordinateSystem::Spherical>::PosToCurv(this->_value);
+   if (val_coord == 1) Metric<CoordinateSystem::SphericalRTP>::PosToCurv(this->_value);
 };
 
 /*!

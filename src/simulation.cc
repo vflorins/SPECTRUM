@@ -7,9 +7,10 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "simulation.hh"
-#include "common/print_warn.hh"
 #include <numeric>
+
+#include "src/simulation.hh"
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 
@@ -81,24 +82,6 @@ std::string SimulationWorker::GetTrajectoryName(void) const
 
 /*!
 \author Vladimir Florinski
-\date 05/27/2022
-\param[in] specie_in Index of the particle species defined in physics.hh
-*/
-void SimulationWorker::SetSpecie(unsigned int specie_in)
-{
-   if ((specie_in < 0) || (specie_in >= MAX_PARTICLE_SPECIES)) {
-      PrintError(__FILE__, __LINE__, "Invalid particle specie", MPI_Config::is_master);
-      return;
-   };
-
-// The "trajectory" object will set the specie for its sub-classes
-   specie = specie_in;
-   trajectory->SetSpecie(specie_in);
-   PrintMessage(__FILE__, __LINE__, "Particle specie added", MPI_Config::is_master);
-};
-
-/*!
-\author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 05/27/2022
 \param[in] distribution_in Distribution object for type recognition
@@ -107,7 +90,6 @@ void SimulationWorker::SetSpecie(unsigned int specie_in)
 void SimulationWorker::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
 {
    local_distros.push_back(distribution_in.Clone());
-   local_distros.back()->SetSpecie(specie);
    local_distros.back()->SetupObject(container_in);
    trajectory->ConnectDistribution(local_distros.back());
    PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
@@ -547,7 +529,6 @@ void SimulationMaster::AddDistribution(const DistributionBase& distribution_in, 
 {
 // TODO this should use make_unique instead of shared
    partial_distros.push_back(distribution_in.Clone());
-   partial_distros.back()->SetSpecie(specie);
    partial_distros.back()->SetupObject(container_in);
    SimulationWorker::AddDistribution(distribution_in, container_in);
 
@@ -813,8 +794,8 @@ void SimulationMaster::MasterFinish(void)
    };
 
 // Print shortest and longest simulated time
-   std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time * unit_time_fluid << " s" << std::endl;
-   std::cerr << "Longest simulated trajectory time = " << longest_sim_time * unit_time_fluid << " s" << std::endl;
+   std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time * Particle::unit_time << " s" << std::endl;
+   std::cerr << "Longest simulated trajectory time = " << longest_sim_time * Particle::unit_time << " s" << std::endl;
    if (is_parallel) {
       std::cerr << "Time per trajectory integration:" << std::endl;
       for (cpu = 1; cpu < MPI_Config::work_comm_size; cpu++) {

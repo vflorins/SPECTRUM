@@ -7,8 +7,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "trajectory_guiding_scatt.hh"
 #include "common/print_warn.hh"
+#include "src/trajectory_guiding_scatt.hh"
 
 namespace Spectrum {
 
@@ -99,9 +99,10 @@ void TrajectoryGuidingScatt::EulerPitchAngleScatt(bool second)
 #endif
    } while (fabs(mu_new) > 1.0);
 
+// Cylindrical components of momentum
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cylindrical>(_mom);
 };
 
 /*!
@@ -140,9 +141,10 @@ void TrajectoryGuidingScatt::MilsteinPitchAngleScatt(bool second)
 #endif
    } while (fabs(mu_new) > 1.0);
 
+// Cylindrical components of momentum
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cylindrical>(_mom);
 };
 
 /*!
@@ -239,9 +241,10 @@ void TrajectoryGuidingScatt::RK2PitchAngleScatt(bool second)
 #endif
    } while (fabs(mu_new) > 1.0);
 
+// Cylindrical components of momentum
    _mom[0] = mom_conv[0] * sqrt(1 - Sqr(mu_new));
    _mom[2] = mom_conv[0] * mu_new;
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cylindrical>(_mom);
 };
 
 /*!

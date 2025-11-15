@@ -100,7 +100,7 @@ struct EmptyStruct{};
 \param[in] rad Angle in radians
 \return Angle in degrees
 */
-SPECTRUM_DEVICE_FUNC inline double RadToDeg(double rad)
+SPECTRUM_DEVICE_FUNC inline constexpr double RadToDeg(double rad)
 {
    return rad * 180.0 / M_PI;
 };
@@ -112,7 +112,7 @@ SPECTRUM_DEVICE_FUNC inline double RadToDeg(double rad)
 \param[in] rad Angle in degrees
 \return Angle in radians
 */
-SPECTRUM_DEVICE_FUNC inline double DegToRad(double deg)
+SPECTRUM_DEVICE_FUNC inline constexpr double DegToRad(double deg)
 {
    return deg / 180.0 * M_PI;
 };
@@ -124,7 +124,7 @@ SPECTRUM_DEVICE_FUNC inline double DegToRad(double deg)
 \param[in] n The exponent
 \return \f$2^n\f$
 */
-SPECTRUM_DEVICE_FUNC inline int Pow2(int n)
+SPECTRUM_DEVICE_FUNC inline constexpr int Pow2(int n)
 {
    return 1 << n;
 };
@@ -139,7 +139,7 @@ SPECTRUM_DEVICE_FUNC inline int Pow2(int n)
 
 Reference: http://www.graphics.stanford.edu/~seander/bithacks.htm
 */
-SPECTRUM_DEVICE_FUNC inline bool IsPow2(int n)
+SPECTRUM_DEVICE_FUNC inline constexpr bool IsPow2(int n)
 {
    return !(n & (n - 1));
 };
@@ -154,7 +154,7 @@ SPECTRUM_DEVICE_FUNC inline bool IsPow2(int n)
 
 Reference: http://www.graphics.stanford.edu/~seander/bithacks.htm
 */
-SPECTRUM_DEVICE_FUNC inline int Log2(int n)
+SPECTRUM_DEVICE_FUNC inline constexpr int Log2(int n)
 {
    int log2 = 0;
    while (n >>= 1) log2++;
@@ -169,7 +169,7 @@ SPECTRUM_DEVICE_FUNC inline int Log2(int n)
 \return Sign of x (-1 or 1, never 0)
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T sign(T x)
+SPECTRUM_DEVICE_FUNC inline constexpr T sign(T x)
 {
    return (x >= 0 ? 1 : -1);
 };
@@ -182,7 +182,7 @@ SPECTRUM_DEVICE_FUNC inline T sign(T x)
 \return \f$x^2\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
+SPECTRUM_DEVICE_FUNC inline constexpr T Sqr(T x)
 {
    return x * x;
 };
@@ -195,7 +195,7 @@ SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
 \return \f$x^3\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Cube(T x)
+SPECTRUM_DEVICE_FUNC inline constexpr T Cube(T x)
 {
    return x * x * x;
 };
@@ -208,7 +208,7 @@ SPECTRUM_DEVICE_FUNC inline T Cube(T x)
 \return \f$x^4\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Quad(T x)
+SPECTRUM_DEVICE_FUNC inline constexpr T Quad(T x)
 {
    return x * x * x * x;
 };
@@ -221,9 +221,35 @@ SPECTRUM_DEVICE_FUNC inline T Quad(T x)
 \return \f$x^5\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Quint(T x)
+SPECTRUM_DEVICE_FUNC inline constexpr T Quint(T x)
 {
    return x * x * x * x * x;
+};
+
+/*!
+\brief Computes the square root
+\author Vladimir Florinski
+\date 11/07/2025
+\param[in] x The argument
+\return \f$\sqrt{x}\f$
+*/
+SPECTRUM_DEVICE_FUNC inline constexpr double SqrtHenon(double x)
+{
+   if (x < 0.0) return -NAN;
+   const int maxiter = 10;
+   int niter = 0;
+   double y = x;
+
+// Initial reduction based on a bitwise representation of a "double"
+   size_t* yintp = (size_t*)&y;
+   *yintp = (((((*yintp & 0x7FF0000000000000) - 0x3FF0000000000000) >> 1) + 0x3FF0000000000000) & 0x7FF0000000000000) | (*yintp & 0x000FFFFFFFFFFFFF);
+
+// Henon's method (Newton iterations)
+   while ((fabs((y * y - x) / x) > sp_tiny) && (niter < maxiter)) {
+      y = 0.5 * (y + x / y);
+      niter++;
+   };
+   return y;
 };
 
 /*!
@@ -303,7 +329,7 @@ SPECTRUM_DEVICE_FUNC inline void Delete3D(T*** array)
 \return \f$x^n\f$, or -1 if a negative power of zero is requested
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T IntPow(T x, int n)
+SPECTRUM_DEVICE_FUNC inline constexpr T IntPow(T x, int n)
 {
    int i;
    T res = 1.0;
@@ -328,7 +354,7 @@ SPECTRUM_DEVICE_FUNC inline T IntPow(T x, int n)
 \return The result of a minmod operation
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y)
+SPECTRUM_DEVICE_FUNC inline constexpr T MinMod(T x, T y)
 {
    if (x * y <= 0.0) return 0.0;
    else if (x * x > y * y) return y;
@@ -345,7 +371,7 @@ SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y)
 \return The result of a 3-argument minmod operation
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T MinMod(T x, T y, T z)
+SPECTRUM_DEVICE_FUNC inline constexpr T MinMod(T x, T y, T z)
 {
    T absx, absy, absz;
    absx = std::abs(x);
@@ -574,7 +600,7 @@ SPECTRUM_DEVICE_FUNC inline bool CubicSolve(std::complex<T> a, std::complex<T> b
 \return Reduced number
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
+SPECTRUM_DEVICE_FUNC inline constexpr T MakePeriodic(T x, T period)
 {
    int n = x / period;
    if (x < 0.0) return x - (n - 1) * period;
@@ -592,7 +618,7 @@ SPECTRUM_DEVICE_FUNC inline T MakePeriodic(T x, T period)
 \note The geometric average is done by exponentiating the average of the logged values for numerical stability
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Average(int size, const T* x, bool arith)
+SPECTRUM_DEVICE_FUNC inline constexpr T Average(int size, const T* x, bool arith)
 {
    T avg = 0.0;
    for (auto i = 0; i < size; i++) avg += (arith ? x[i] : log(x[i]));

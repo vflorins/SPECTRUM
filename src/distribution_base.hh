@@ -44,6 +44,8 @@ class DistributionBase : public Params {
 
 protected:
 
+   using Params::specie;
+
 //! Active dimensions as a bitset, gaps are allowed as in "101" or "010" (persistent)
    uint8_t dims;
 

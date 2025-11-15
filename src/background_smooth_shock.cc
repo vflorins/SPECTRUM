@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "background_smooth_shock.hh"
+#include "src/background_smooth_shock.hh"
 
 namespace Spectrum {
 
@@ -46,22 +46,31 @@ BackgroundSmoothShock::BackgroundSmoothShock(const BackgroundSmoothShock& other)
 double BackgroundSmoothShock::ShockTransition(double x)
 {
    double y = x + 0.5;
+
 #if SMOOTH_SHOCK_ORDER == 0 // continous but not differentiable
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 1.0;
    else return y;
+
 #elif SMOOTH_SHOCK_ORDER == 1 // differentiable
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 1.0;
    else return Sqr(y) * (3.0 - 2.0 * y);
+
 #elif SMOOTH_SHOCK_ORDER == 2 // twice differentiable
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 1.0;
    else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
+
 #elif SMOOTH_SHOCK_ORDER == 3 // thrice differentiable
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 1.0;
    else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
+
 #else // smooth
    return 0.5 * (1.0 + tanh(tanh_width_factor * x));
 #endif
@@ -76,22 +85,31 @@ double BackgroundSmoothShock::ShockTransition(double x)
 double BackgroundSmoothShock::ShockTransitionDerivative(double x)
 {
    double y = x + 0.5;
+
 #if SMOOTH_SHOCK_ORDER == 0
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 0.0;
    else return 1.0;
+
 #elif SMOOTH_SHOCK_ORDER == 1
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 0.0;
    else return 6.0 * y * (1.0 - y);
+
 #elif SMOOTH_SHOCK_ORDER == 2
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 0.0;
    else return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
+
 #elif SMOOTH_SHOCK_ORDER == 3
+
    if (x < -0.5) return 0.0;
    else if (x > 0.5) return 0.0;
    else return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
+
 #else
    return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
 #endif
@@ -129,7 +147,7 @@ void BackgroundSmoothShock::EvaluateBackground(void)
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
    if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / Particle::c_code;
    _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -152,7 +170,7 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
       _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / Particle::c_code;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
       _spdata.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
@@ -161,7 +179,7 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
       _spdata.dBvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
+      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / Particle::c_code;
    };
 #else
    NumericalDerivatives();

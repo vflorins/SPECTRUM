@@ -9,16 +9,22 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_RANDOM_HH
 #define SPECTRUM_RANDOM_HH
 
+#include "config.h"
+
+#ifdef USE_GSL
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-
-#include "config.h"
+#endif
 
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // RNG class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
+
+// TODO: replace with with standard C++ RNG
+
+#ifdef USE_GSL
 
 /*!
 \brief A simple wrapper for the GSL random number generator
@@ -114,6 +120,8 @@ inline double RNG::GetRayleigh(void) const
 {
    return  gsl_ran_rayleigh(rng_internal, 1.0);
 };
+
+#endif
 
 };
 

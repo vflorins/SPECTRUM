@@ -49,7 +49,7 @@ struct MultiIndex : public SimpleArray<int, 3>
    SPECTRUM_DEVICE_FUNC constexpr MultiIndex(const SimpleArray<int, 3>& other);
 
 //! Compute a linear index in a 3D array using a second multi-index
-   SPECTRUM_DEVICE_FUNC size_t LinIdx(const MultiIndex& other) const;
+   SPECTRUM_DEVICE_FUNC constexpr size_t LinIdx(const MultiIndex& other) const;
 
 //! Switch the first and third index
    SPECTRUM_DEVICE_FUNC void Flip(void);
@@ -135,7 +135,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr MultiIndex::MultiIndex(const SimpleArray<i
 \param[in] other A multi-index corresponding to a triplet of coordinate indices
 \return Linear index in a 3D contiguous array
 */
-SPECTRUM_DEVICE_FUNC inline size_t MultiIndex::LinIdx(const MultiIndex& other) const
+SPECTRUM_DEVICE_FUNC inline constexpr size_t MultiIndex::LinIdx(const MultiIndex& other) const
 {
    return k * (j * other.i + other.j) + other.k;
 };

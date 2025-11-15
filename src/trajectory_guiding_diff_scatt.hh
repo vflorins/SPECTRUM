@@ -10,8 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_DIFF_SCATT_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_DIFF_SCATT_HH
 
-#include "trajectory_guiding_diff.hh"
-#include "trajectory_guiding_scatt.hh"
+#include "src/trajectory_guiding_diff.hh"
+#include "src/trajectory_guiding_scatt.hh"
 
 namespace Spectrum {
 

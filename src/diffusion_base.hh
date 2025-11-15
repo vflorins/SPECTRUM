@@ -10,12 +10,12 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DIFFUSION_BASE_HH
 #define SPECTRUM_DIFFUSION_BASE_HH
 
-// This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
+#include <memory>
+
 #include "config.h"
 #include "common/params.hh"
 #include "common/physics.hh"
 #include "common/spatial_data.hh"
-#include <memory>
 
 namespace Spectrum {
 

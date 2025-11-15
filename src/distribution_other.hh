@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_DISTRIBUTION_OTHER_HH
 #define SPECTRUM_DISTRIBUTION_OTHER_HH
 
-#include "distribution_templated.hh"
+#include "src/distribution_templated.hh"
 
 namespace Spectrum {
 

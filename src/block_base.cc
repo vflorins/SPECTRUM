@@ -132,8 +132,8 @@ void BlockBase::SetGhostCells(int num_ghost_cells_in)
 void BlockBase::LoadDimensions(double unit_length_block)
 {
 // Scale units
-   face_min *= unit_length_block / unit_length_fluid;
-   face_max *= unit_length_block / unit_length_fluid;
+   face_min *= unit_length_block / Particle::unit_length;
+   face_max *= unit_length_block / Particle::unit_length;
 
 // Copy to physical faces
    face_min_phys = face_min;

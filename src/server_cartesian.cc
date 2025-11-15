@@ -6,12 +6,13 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "server_cartesian.hh"
-#include "block_cartesian.hh"
-#include "reader_cartesian.hh"
-#include "common/print_warn.hh"
 #include <iostream>
 #include <iomanip>
+
+#include "src/server_cartesian.hh"
+#include "src/block_cartesian.hh"
+#include "src/reader_cartesian.hh"
+#include "common/print_warn.hh"
 
 namespace Spectrum {
 
@@ -706,12 +707,12 @@ void ServerCartesianFront::GetVariables(double t, const GeoVector& pos, SpatialD
 #ifdef SERVER_VAR_INDEX_DEN
    spdata.region /= spdata.n_dens;
 #endif
-   spdata.n_dens *= unit_number_density_server / unit_number_density_fluid;
-   spdata.Uvec *= unit_velocity_server / unit_velocity_fluid;
-   spdata.Bvec *= unit_magnetic_server / unit_magnetic_fluid;
-   spdata.Bmag *= unit_magnetic_server / unit_magnetic_fluid;
-   spdata.Evec *= unit_electric_server / unit_electric_fluid;
-   spdata.p_ther *= unit_pressure_server / unit_pressure_fluid;
+   spdata.n_dens *= Fluid::unit_number_density / Particle::unit_number_density;
+   spdata.Uvec *= Fluid::unit_velocity / Particle::unit_velocity;
+   spdata.Bvec *= Fluid::unit_magnetic / Particle::unit_magnetic;
+   spdata.Bmag *= Fluid::unit_magnetic / Particle::unit_magnetic;
+   spdata.Evec *= Fluid::unit_magnetic / Particle::unit_magnetic;
+   spdata.p_ther *= Fluid::unit_pressure / Particle::unit_pressure;
 };
 
 /*!
@@ -857,10 +858,10 @@ void ServerCartesianFront::GetGradients(SpatialData& spdata)
 #endif
 
 // Perform unit conversion for gradients
-   spdata.gradUvec *= unit_velocity_server / unit_velocity_fluid;
-   spdata.gradBvec *= unit_magnetic_server / unit_magnetic_fluid;
-   spdata.gradBmag *= unit_magnetic_server / unit_magnetic_fluid;
-   spdata.gradEvec *= unit_electric_server / unit_electric_fluid;
+   spdata.gradUvec *= Fluid::unit_velocity / Particle::unit_velocity;
+   spdata.gradBvec *= Fluid::unit_magnetic / Particle::unit_magnetic;
+   spdata.gradBmag *= Fluid::unit_magnetic / Particle::unit_magnetic;
+   spdata.gradEvec *= Fluid::unit_magnetic / Particle::unit_magnetic;
 };
 
 /*!
@@ -930,8 +931,8 @@ void ServerCartesianBack::ServerStart(void)
    std::string data_file = file_name_pattern + ".out";
 
    ReadData(data_file);
-   domain_min *= unit_length_server / unit_length_fluid;
-   domain_max *= unit_length_server / unit_length_fluid;
+   domain_min *= Fluid::unit_length / Particle::unit_length;
+   domain_max *= Fluid::unit_length / Particle::unit_length;
 
    MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
    MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
@@ -1012,7 +1013,7 @@ void ServerCartesianBack::HandleNeedVarsRequests(void)
       cpu = index_needvars[cpu_idx];
 
 // Obtain the variables requested
-      pos_cart = buf_needvars[cpu].pos / unit_length_server * unit_length_fluid;
+      pos_cart = buf_needvars[cpu].pos / Fluid::unit_length * Particle::unit_length;
       GetBlockData(pos_cart.Data(), vars, &found);
       if (!found) std::cerr << "Position not found\n";
 
@@ -1052,13 +1053,13 @@ void ServerCartesianBack::HandleNeedBlockRequests(void)
       cpu = index_needblock[cpu_idx];
 
       if (buf_needblock[cpu].type) {
-         pos_cart = buf_needblock[cpu].pos / unit_length_server * unit_length_fluid;
+         pos_cart = buf_needblock[cpu].pos / Fluid::unit_length * Particle::unit_length;
          GetBlock(pos_cart.Data(), &buf_needblock[cpu].node);
          if (buf_needblock[cpu].node == -1) throw ExServerError();
       };
 
       block_served->SetNode(buf_needblock[cpu].node);
-      block_served->LoadDimensions(unit_length_server);
+      block_served->LoadDimensions(Fluid::unit_length);
 
 // Send the block to a worker. We use a blocking Send to ensure that the buffer can be reused.
       MPI_Send(block_served, 1, MPIBlockType, cpu, tag_sendblock, MPI_Config::node_comm);

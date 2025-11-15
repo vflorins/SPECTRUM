@@ -11,7 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SPATIAL_DATA_HH
 
 #include <cstdint>
-#include "vectors.hh"
 #include "matrix.hh"
 
 namespace Spectrum {

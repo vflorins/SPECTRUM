@@ -66,19 +66,17 @@ void TrajectoryBase::PreSize(int init_cap)
 */
 void TrajectoryBase::ResetAllBoundaries(void)
 {
-   unsigned int bnd;
-
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) {
-      bcond_t[bnd]->SetScale(_spdata.dmax / c_code);
-      bcond_t[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (auto& bnd : bcond_t) {
+      bnd->SetScale(_spdata.dmax / Particle::c_code);
+      bnd->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) {
-      bcond_s[bnd]->SetScale(_spdata.dmax);
-      bcond_s[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (auto& bnd : bcond_s) {
+      bnd->SetScale(_spdata.dmax);
+      bnd->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) {
-      bcond_m[bnd]->SetScale(_mom.Norm());
-      bcond_m[bnd]->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (auto& bnd : bcond_m) {
+      bnd->SetScale(_mom.Norm());
+      bnd->ResetBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
    };
 };
 
@@ -88,11 +86,10 @@ void TrajectoryBase::ResetAllBoundaries(void)
 */
 void TrajectoryBase::ComputeAllBoundaries(void)
 {
-   unsigned int bnd;
+   for (auto& bnd : bcond_t) bnd->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (auto& bnd : bcond_s) bnd->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
+   for (auto& bnd : bcond_m) bnd->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
 
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->ComputeBoundary(_t, _pos, _mom, _spdata.bhat, _spdata.region);
 };
 
 /*!
@@ -101,11 +98,9 @@ void TrajectoryBase::ComputeAllBoundaries(void)
 */
 void TrajectoryBase::UpdateAllBoundaries(void)
 {
-   unsigned int bnd;
-
-   for (bnd = 0; bnd < bcond_t.size(); bnd++) bcond_t[bnd]->RecordBoundary();
-   for (bnd = 0; bnd < bcond_s.size(); bnd++) bcond_s[bnd]->RecordBoundary();
-   for (bnd = 0; bnd < bcond_m.size(); bnd++) bcond_m[bnd]->RecordBoundary();
+   for (auto& bnd : bcond_t) bnd->RecordBoundary();
+   for (auto& bnd : bcond_s) bnd->RecordBoundary();
+   for (auto& bnd : bcond_m) bnd->RecordBoundary();
 };
 
 /*!
@@ -158,9 +153,9 @@ void TrajectoryBase::TimeBoundaryProximityCheck(void)
    unsigned int bnd;
    double delta, delta_next;
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   delta_next = -sp_large * _spdata.dmax / c_code;
+   delta_next = -sp_large * _spdata.dmax / Particle::c_code;
 #else
-   delta_next = sp_large * _spdata.dmax / c_code;
+   delta_next = sp_large * _spdata.dmax / Particle::c_code;
 #endif
 
 // All boundaries have been evaluated at the end of the previous time step. For the first step this is done in "SetStart()".
@@ -177,9 +172,9 @@ void TrajectoryBase::TimeBoundaryProximityCheck(void)
 
 // Check whether any boundaries _may_ be crossed and adjust the time step. For adaptive stepping the actual crossing may not occur until later.
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
-   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if (dt >= -delta_next) dt = fmax(-(1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / Particle::c_code);
 #else
-   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / c_code);
+   if (dt >=  delta_next) dt = fmax( (1.0 + sp_little) * delta_next, sp_small * _spdata.dmax / Particle::c_code);
 #endif
 };
 
@@ -346,7 +341,7 @@ bool TrajectoryBase::RKSlopes(void)
       MomentumCorrection();
 
 // Find velocity and acceleration.
-      _vel = Vel(_mom, specie);
+      _vel = Particle::Vel<specie, CoordinateSystem::Cartesian>(_mom);
       Slopes(slope_pos[istage], slope_mom[istage], slope_amp[istage], slope_wgt[istage]);
 
 // The slopes have been computed, so we can reset "_t", "_pos", and "_mom" to their values at the beginning of the step.
@@ -391,7 +386,7 @@ bool TrajectoryBase::RKStep(void)
       _amp += dt * RK_Table.v[islope] * slope_amp[islope] * exp(_wgt);
       _wgt += dt * RK_Table.v[islope] * slope_wgt[islope];
    };
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cartesian>(_mom);
 
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
    if (RK_Table.adaptive) {
@@ -612,9 +607,6 @@ void TrajectoryBase::MomentumCorrection(void)
 */
 bool TrajectoryBase::IsSimmulationReady(void) const
 {
-// Particle specie must be known
-   if ((specie < 0) || (specie >= MAX_PARTICLE_SPECIES)) return false;
-
 // A background object is required
    if (!background) return false;
    else if (BITS_LOWERED(background->GetStatus(), STATE_SETUP_COMPLETE)) return false;
@@ -645,32 +637,6 @@ bool TrajectoryBase::IsSimmulationReady(void) const
 
 /*!
 \author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 10/08/2024
-\param[in] specie_in Index of the particle species defined in physics.hh
-*/
-void TrajectoryBase::SetSpecie(unsigned int specie_in)
-{
-   int bnd;
-
-   Params::SetSpecie(specie_in);
-// The factor multiplying "SpeciesCharges[]" is applied in order to marry particle and fluid scales. See "LarmorRadius()" and "CyclotronFrequency()" functions in physics.hh for reference.
-   q = charge_mass_particle * SpeciesCharges[specie];
-   if (background != nullptr) background->SetSpecie(specie);
-   if (diffusion != nullptr) diffusion->SetSpecie(specie);
-   if (source != nullptr) source->SetSpecie(specie);
-
-   for (auto& bnd : bcond_t) bnd->SetSpecie(specie);
-   for (auto& bnd : bcond_s) bnd->SetSpecie(specie);
-   for (auto& bnd : bcond_m) bnd->SetSpecie(specie);
-
-   if (icond_t != nullptr) icond_t->SetSpecie(specie);
-   if (icond_s != nullptr) icond_s->SetSpecie(specie);
-   if (icond_m != nullptr) icond_m->SetSpecie(specie);
-};
-
-/*!
-\author Vladimir Florinski
 \date 05/27/2022
 \param[in] background_in Background object for type recognition
 \param[in] container_in  Data container for initializating the background object
@@ -678,7 +644,6 @@ void TrajectoryBase::SetSpecie(unsigned int specie_in)
 void TrajectoryBase::AddBackground(const BackgroundBase& background_in, const DataContainer& container_in)
 {
    background = background_in.Clone();
-   background->SetSpecie(specie);
    background->ConnectRNG(rng);
    background->SetupObject(container_in);
    
@@ -694,7 +659,6 @@ void TrajectoryBase::AddBackground(const BackgroundBase& background_in, const Da
 void TrajectoryBase::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    diffusion = diffusion_in.Clone();
-   diffusion->SetSpecie(specie);
    diffusion->SetupObject(container_in);
    
    if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
@@ -709,7 +673,6 @@ void TrajectoryBase::AddDiffusion(const DiffusionBase& diffusion_in, const DataC
 void TrajectoryBase::AddSource(const SourceBase& source_in, const DataContainer& container_in)
 {
    source = source_in.Clone();
-   source->SetSpecie(specie);
    source->SetupObject(container_in);
    
    if (IsSimmulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
@@ -726,21 +689,18 @@ void TrajectoryBase::AddBoundary(const BoundaryBase& boundary_in, const DataCont
 // Time boundary
    if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
       bcond_t.push_back(boundary_in.Clone());
-      bcond_t.back()->SetSpecie(specie);
       bcond_t.back()->SetupObject(container_in);
    }
 
 // Spatial boundary
    else if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_SPACE)) {
       bcond_s.push_back(boundary_in.Clone());
-      bcond_s.back()->SetSpecie(specie);
       bcond_s.back()->SetupObject(container_in);
    }
 
 // Momentum boundary
    else if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_MOMENTUM)) {
       bcond_m.push_back(boundary_in.Clone());
-      bcond_m.back()->SetSpecie(specie);
       bcond_m.back()->SetupObject(container_in);
    }
 
@@ -759,7 +719,6 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
 // Time condition
    if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
       icond_t = initial_in.Clone();
-      icond_t->SetSpecie(specie);
       icond_t->ConnectRNG(rng);
       icond_t->SetupObject(container_in);
    }
@@ -767,7 +726,6 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
 // Spatial condition
    else if (BITS_RAISED(initial_in.GetStatus(), INITIAL_SPACE)) {
       icond_s = initial_in.Clone();
-      icond_s->SetSpecie(specie);
       icond_s->ConnectRNG(rng);
       icond_s->SetupObject(container_in);
    }      
@@ -775,7 +733,6 @@ void TrajectoryBase::AddInitial(const InitialBase& initial_in, const DataContain
 // Momentum condition
    else if (BITS_RAISED(initial_in.GetStatus(), INITIAL_MOMENTUM)) {
       icond_m = initial_in.Clone();
-      icond_m->SetSpecie(specie);
       icond_m->ConnectRNG(rng);
       icond_m->SetupObject(container_in);
    };
@@ -835,23 +792,16 @@ GeoVector TrajectoryBase::GetPosition(double t_in) const
 GeoVector TrajectoryBase::GetVelocity(double t_in) const
 {
    int pt;
-   double weight, mom1, vel1, mom2, vel2;
+   double weight;
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt < 0) {
-      mom1 = traj_mom[0].Norm();
-      vel1 = Vel(mom1, specie);
-      return (vel1 / mom1) * traj_mom[0];
-   }
+   if (pt < 0) return Particle::Vel<specie, CoordinateSystem::Cartesian>(traj_mom[0]);
 
 // Linear interpolation between nearest frames
    else {
-      mom1 = traj_mom[pt].Norm();
-      vel1 = Vel(mom1, specie);
-      mom2 = traj_mom[pt + 1].Norm();
-      vel2 = Vel(mom2, specie);
-      return weight * (vel1 / mom1) * traj_mom[pt] + (1.0 - weight) * (vel2 / mom2) * traj_mom[pt + 1];
+      return weight * Particle::Vel<specie, CoordinateSystem::Cartesian>(traj_mom[pt])
+             + (1.0 - weight) * Particle::Vel<specie, CoordinateSystem::Cartesian>(traj_mom[pt + 1]);
    };
 #else
    std::cerr << "Cannot get velocity with respect to time because it is not being recorded." << std::endl;
@@ -872,8 +822,8 @@ double TrajectoryBase::GetEnergy(double t_in) const
 
 #ifdef RECORD_TRAJECTORY
    GetIdx(t_in, pt, weight);
-   if (pt < 0) return EnrKin(traj_mom[0].Norm(), specie);
-   else return weight * EnrKin(traj_mom[pt].Norm(), specie) + (1.0 - weight) * EnrKin(traj_mom[pt + 1].Norm(), specie);
+   if (pt < 0) return Particle::EnrKin<specie>(traj_mom[0].Norm());
+   else return weight * Particle::EnrKin<specie>(traj_mom[pt].Norm()) + (1.0 - weight) * Particle::EnrKin<specie>(traj_mom[pt + 1].Norm());
 #else
    std::cerr << "Cannot get energy with respect to time because it is not being recorded." << std::endl;
    return 0.0;
@@ -939,10 +889,10 @@ try {
 
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
    _mom = icond_m->GetMomSample(_spdata.bhat);
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cartesian>(_mom);
 
 // Adaptive step must be large at first so that "dt" starts with a physical step.
-   dt_adaptive = sp_large * _spdata.dmax / c_code;
+   dt_adaptive = sp_large * _spdata.dmax / Particle::c_code;
 
 // Re-initialize the trajectory arrays
 #ifdef RECORD_TRAJECTORY
@@ -1031,7 +981,7 @@ void TrajectoryBase::Integrate(void)
 
 #if TRAJ_ADV_SAFETY_LEVEL > 0
 // Time step is too small - terminate
-      if (dt < sp_tiny * _spdata.dmax / c_code) {
+      if (dt < sp_tiny * _spdata.dmax / Particle::c_code) {
          RAISE_BITS(_status, TRAJ_DISCARD);
          throw ExTimeStepTooSmall();
       }
@@ -1099,16 +1049,16 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
       for (pt = 0; pt < traj_t.size(); pt += stride) {
 //FIXME: This computation of momentum magnitude is not guaranteed to work for focused transport. It is only approximately correct when magnitude (_mom[0]) >> pitch angle cosine (_mom[1]).
          mom_mag = traj_mom[pt].Norm();
-         vm_ratio = Vel(mom_mag, specie) / mom_mag;
+         vm_ratio = Particle::Vel<specie>(mom_mag) / mom_mag;
 
-         if (output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? unit_time_fluid : 1.0);
-         if (output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x80) trajfile << std::setw(20) << EnrKin(mom_mag, specie) * (phys_units ? unit_energy_particle : 1.0);
+         if (output & 0x01) trajfile << std::setw(20) << traj_t[pt] * (phys_units ? Particle::unit_time : 1.0);
+         if (output & 0x02) trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x04) trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x08) trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x10) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][0] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x20) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][1] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x40) trajfile << std::setw(20) << vm_ratio * traj_mom[pt][2] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x80) trajfile << std::setw(20) << Particle::EnrKin<specie>(mom_mag) * (phys_units ? Particle::unit_energy : 1.0);
          trajfile << std::endl;
       };
    }
@@ -1118,14 +1068,14 @@ void TrajectoryBase::PrintTrajectory(const std::string traj_name, bool phys_unit
          vel_t = GetVelocity(t_out);
          engkin_t = GetEnergy(t_out);
 
-         if (output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? unit_time_fluid : 1.0);
-         if (output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? unit_length_fluid : 1.0);
-         if (output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? unit_velocity_fluid : 1.0);
-         if (output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? unit_energy_particle : 1.0);
+         if (output & 0x01) trajfile << std::setw(20) << t_out * (phys_units ? Particle::unit_time : 1.0);
+         if (output & 0x02) trajfile << std::setw(20) << pos_t[0] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x04) trajfile << std::setw(20) << pos_t[1] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x08) trajfile << std::setw(20) << pos_t[2] * (phys_units ? Particle::unit_length : 1.0);
+         if (output & 0x10) trajfile << std::setw(20) << vel_t[0] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x20) trajfile << std::setw(20) << vel_t[1] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x40) trajfile << std::setw(20) << vel_t[2] * (phys_units ? Particle::unit_velocity : 1.0);
+         if (output & 0x80) trajfile << std::setw(20) << engkin_t * (phys_units ? Particle::unit_energy : 1.0);
          trajfile << std::endl;
 
          t_out += dt_out;
@@ -1157,11 +1107,11 @@ void TrajectoryBase::PrintCSV(const std::string traj_name, bool phys_units, unsi
 // Generate CSV output
    trajfile << std::setprecision(12);
    for (pt = 0; pt < traj_t.size(); pt += stride) {
-      trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? unit_length_fluid : 1.0);
+      trajfile << std::setw(20) << traj_pos[pt][0] * (phys_units ? Particle::unit_length : 1.0);
       trajfile << ",";
-      trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? unit_length_fluid : 1.0);
+      trajfile << std::setw(20) << traj_pos[pt][1] * (phys_units ? Particle::unit_length : 1.0);
       trajfile << ",";
-      trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? unit_length_fluid : 1.0);
+      trajfile << std::setw(20) << traj_pos[pt][2] * (phys_units ? Particle::unit_length : 1.0);
       trajfile << std::endl;
    };
 

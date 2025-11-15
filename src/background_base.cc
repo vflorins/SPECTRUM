@@ -246,8 +246,9 @@ void BackgroundBase::NumericalDerivatives(void)
    _spdata._mask >>= mask_offset;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 
+// FIXME: this code may not work correctly for trajectory types other than Parker or Focused (?)
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      r_g = fmin(LarmorRadius(_mom[0], _spdata.Bmag, specie), _spdata.dmax);
+      r_g = fmin(Particle::LarmorRadius<specie>(_mom[0], _spdata.Bmag), _spdata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
       fa_basis.row[2] = _spdata.bhat;
@@ -300,7 +301,8 @@ void BackgroundBase::NumericalDerivatives(void)
    _spdata._mask >>= mask_offset;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_ALL)) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      w_g = fmin(CyclotronFrequency(Vel(_mom[0]), _spdata.Bmag, specie), Vel(_mom[0]) / _spdata.dmax);
+      w_g = fmin(Particle::CyclotronFrequency<specie>(Particle::Vel<specie>(_mom[0]), _spdata.Bmag),
+                 Particle::Vel<specie>(_mom[0]) / _spdata.dmax);
       DirectionalDerivative(3);
    };
 
@@ -345,7 +347,7 @@ void BackgroundBase::SetupBackground(bool construct)
 
 // Initialize "safe" box for derivatives
    for (auto xyz = 0; xyz < 3; xyz++) _spdata._dr[xyz] = incr_dmax_ratio * dmax0;
-   _spdata._dt = incr_dmax_ratio * dmax0 / c_code;
+   _spdata._dt = incr_dmax_ratio * dmax0 / Particle::c_code;
    _spdata.dmax = dmax0;
 };
 

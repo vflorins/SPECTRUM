@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_FOCUSED_HH
 #define SPECTRUM_TRAJECTORY_FOCUSED_HH
 
-#include "trajectory_base.hh"
+#include "src/trajectory_base.hh"
 
 namespace Spectrum {
 
@@ -117,9 +117,8 @@ inline void TrajectoryFocused::Load(void)
    _pos = traj_pos.back();
    _mom = traj_mom.back();
 #endif
-   _vel[0] = Vel(_mom[0], specie);
-   _vel[1] = _mom[1];
-   _vel[2] = 0.0;
+   _vel = Particle::Vel<specie, CoordinateSystem::SphericalRMP>(_mom);
+
 };
 /*!
 \author Juan G Alonso Guzman
@@ -131,9 +130,7 @@ inline void TrajectoryFocused::LoadLocal(void)
    _t = local_t;
    _pos = local_pos;
    _mom = local_mom;
-   _vel[0] = Vel(_mom[0], specie);
-   _vel[1] = _mom[1];
-   _vel[2] = 0.0;
+   _vel = Particle::Vel<specie, CoordinateSystem::SphericalRMP>(_mom);
 };
 
 /*!

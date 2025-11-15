@@ -7,7 +7,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "diffusion_base.hh"
+#include "src/diffusion_base.hh"
 
 namespace Spectrum {
 
@@ -105,10 +105,10 @@ void DiffusionBase::EvaluateDiffusion(void)
 double DiffusionBase::GetComponent(int comp, double t_in, const GeoVector& pos_in, const GeoVector& mom_in, const SpatialData& spdata_in)
 {
    SetState(t_in, pos_in, mom_in);
-   vmag = Vel(_mom[0], specie);
+   vmag = Particle::Vel<specie>(_mom[0]);
    _spdata._mask = spdata_in._mask;
    _spdata = spdata_in;
-   Omega = CyclotronFrequency(vmag, _spdata.Bmag, specie);
+   Omega = Particle::CyclotronFrequency<specie>(vmag, _spdata.Bmag);
 
 #if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
    mu = _mom[1];

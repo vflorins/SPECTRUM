@@ -55,10 +55,10 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC void Store(double& x_out, double& y_out, double& z_out) const;
 
 //! Conversion operator to MultiIndex
-   SPECTRUM_DEVICE_FUNC operator MultiIndex(void) const;
+   SPECTRUM_DEVICE_FUNC constexpr operator MultiIndex(void) const;
 
 //! Computes the norm of this vector
-   SPECTRUM_DEVICE_FUNC double Norm(void) const;
+   SPECTRUM_DEVICE_FUNC constexpr double Norm(void) const;
 
 //! Makes this a unit vector
    SPECTRUM_DEVICE_FUNC GeoVector& Normalize(void);
@@ -187,7 +187,7 @@ SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x_out, double& y_out, 
 \date 06/15/2021
 \return A MultiIndex whose components are truncated copies of the vector
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::operator MultiIndex(void) const
 {
    return MultiIndex(x, y, z);
 };
@@ -197,7 +197,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
 \date 04/24/2024
 \return \f$|v|\f$
 */
-SPECTRUM_DEVICE_FUNC inline double GeoVector::Norm(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr double GeoVector::Norm(void) const
 {
    return sqrt(Norm2());
 };

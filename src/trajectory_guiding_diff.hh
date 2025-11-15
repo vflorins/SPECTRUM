@@ -10,8 +10,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_DIFF_HH
 
-#include "trajectory_guiding.hh"
-#include "diffusion_base.hh"
+#include "src/trajectory_guiding.hh"
+#include "src/diffusion_base.hh"
 
 namespace Spectrum {
 

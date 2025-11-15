@@ -6,8 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "background_shock.hh"
 #include "common/print_warn.hh"
+#include "src/background_shock.hh"
 
 namespace Spectrum {
 
@@ -93,6 +93,7 @@ void BackgroundShock::EvaluateBackground(void)
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
       _spdata.region = 1.0;
    }
+
 // Downstream
    else {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
@@ -100,7 +101,7 @@ void BackgroundShock::EvaluateBackground(void)
       _spdata.region = 2.0;
    };
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / Particle::c_code;
    LOWER_BITS(_status, STATE_INVALID);
 };
 

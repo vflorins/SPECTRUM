@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef TRAJECTORY_PARKER_HH
 #define TRAJECTORY_PARKER_HH
 
-#include "trajectory_base.hh"
+#include "src/trajectory_base.hh"
 
 namespace Spectrum {
 
@@ -46,8 +46,8 @@ const double dlnpmax = 0.01;
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-class TrajectoryParker : public TrajectoryBase {
-
+class TrajectoryParker : public TrajectoryBase
+{
 protected:
 
 //! Drift velocity (transient)

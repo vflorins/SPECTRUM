@@ -19,7 +19,7 @@ int main(void)
    MultiIndex Nblocks (Nb, Nb, Nb); // Number of blocks in each dimension
 
 // Domain limits
-   double corner = 100.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double corner = 100.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    GeoVector dom_min (-corner, -corner, -corner); // Minimum domain values
    GeoVector dom_max ( corner,  corner,  corner); // Maximum domain values
 
@@ -42,25 +42,25 @@ int main(void)
    container.Insert(gv_zeros);
 
 // Velocity
-   double umag = 4.0e7 / unit_velocity_fluid;
+   double umag = 4.0e7 / Particle::unit_velocity;
    GeoVector u0(umag, 0.0, 0.0);
    container.Insert(u0);
 
 // Magnetic field
-   double RS = 6.957e10 / unit_length_fluid;
+   double RS = 6.957e10 / Particle::unit_length;
    double r_ref = 3.0 * RS;
-   double BmagE = 5.0e-5 / unit_magnetic_fluid;
-   double Bmag_ref = BmagE * Sqr((GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid) / r_ref);
+   double BmagE = 5.0e-5 / Particle::unit_magnetic;
+   double Bmag_ref = BmagE * Sqr((SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length) / r_ref);
    GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
 
 // Effective "mesh" resolution
    double dmax_fraction = 0.1;
-   double dmax = dmax_fraction * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double dmax = dmax_fraction * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(dmax);
 
 // solar rotation vector
-   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) * Particle::unit_time;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 

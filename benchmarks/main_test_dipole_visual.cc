@@ -30,12 +30,12 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Magnetic field
-   double Bmag = 0.311 / unit_magnetic_fluid;
+   double Bmag = 0.311 / Particle::unit_magnetic;
    GeoVector B0(0.0, 0.0, Bmag);
    container.Insert(B0);
 
 // Largest absolute step size
-   double RE = 6.37e8 / unit_length_fluid;
+   double RE = 6.37e8 / Particle::unit_length;
    double dmax_fraction = 0.1;
    double dmax0 = dmax_fraction * RE;
    container.Insert(dmax0);
@@ -70,9 +70,9 @@ int main(int argc, char** argv)
       for(j = 0; j < N; j++) {
          pos[2] = -corner + j * dz;
          background.GetFields(t, pos, mom, spdata);
-         outfile_x << std::setw(16) << spdata.Bvec[0] * unit_magnetic_fluid;
-         outfile_y << std::setw(16) << spdata.Bvec[1] * unit_magnetic_fluid;
-         outfile_z << std::setw(16) << spdata.Bvec[2] * unit_magnetic_fluid;
+         outfile_x << std::setw(16) << spdata.Bvec[0] * Particle::unit_magnetic;
+         outfile_y << std::setw(16) << spdata.Bvec[1] * Particle::unit_magnetic;
+         outfile_z << std::setw(16) << spdata.Bvec[2] * Particle::unit_magnetic;
       };
       outfile_x << std::endl;
       outfile_y << std::endl;
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Dipole axis: " << UnitVec(B0) << std::endl;
    std::cout << "Resolution: " << N << " x " << N << std::endl;
-   std::cout << "Domain size (km): " << 2.0*corner*unit_length_fluid/1.0e5 << " x " << 2.0*corner*unit_length_fluid/1.0e5 << std::endl;
+   std::cout << "Domain size (km): " << 2.0*corner*Particle::unit_length/1.0e5 << " x " << 2.0*corner*Particle::unit_length/1.0e5 << std::endl;
    std::cout << "Domain center: " << gv_zeros << std::endl;
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Background outputed to " << background_file << "*.dat" << std::endl;

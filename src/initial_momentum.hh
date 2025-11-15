@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_INITIAL_MOMENTUM_HH
 #define SPECTRUM_INITIAL_MOMENTUM_HH
 
-#include "initial_base.hh"
+#include "src/initial_base.hh"
 
 #ifndef TRAJ_TYPE
 #error Trajectory type is undefined!

@@ -30,7 +30,7 @@ namespace Spectrum {
 #define SOLARWIND_SPEED_LATITUDE_PROFILE 0
 
 //! Heliopause radius
-const double hp_rad_sw = 117.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+const double hp_rad_sw = 117.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
 
 //! Magnetic axis tilt angle relative to the solar rotation axis
 const double tilt_ang_sw = 40.0 * M_PI / 180.0;
@@ -40,7 +40,7 @@ const double tilt_ang_sw = 40.0 * M_PI / 180.0;
 const double dtilt_ang_sw = 35.0 * M_PI / 180.0;
 
 //! Solar cycle frequency
-const double W0_sw = M_2PI / (60.0 * 60.0 * 24.0 * 365.0 * 22.0) / unit_frequency_fluid;
+const double W0_sw = M_2PI / (60.0 * 60.0 * 24.0 * 365.0 * 22.0) * Particle::unit_time;
 
 //! Factor to thin peaks and widen troughs (0.0: largest modification, 1.0: no modification)
 const double stilt_ang_sw = 1.0;

@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_GUIDING_HH
 #define SPECTRUM_TRAJECTORY_GUIDING_HH
 
-#include "trajectory_base.hh"
+#include "src/trajectory_base.hh"
 
 namespace Spectrum {
 
@@ -108,9 +108,10 @@ public:
 \date 04/11/2022
 \return A vector in the (p,mu,0) format
 */
+// TODO: replace this with a call to Metric
 inline GeoVector TrajectoryGuiding::ConvertMomentum(void) const
 {
-   return GeoVector(sqrt(Sqr(_mom[0])+Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
+   return GeoVector(sqrt(Sqr(_mom[0]) + Sqr(_mom[2])), _mom[2] / _mom.Norm(), 0.0);
 };
 
 

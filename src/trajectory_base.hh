@@ -10,14 +10,13 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAJECTORY_BASE_HH
 #define SPECTRUM_TRAJECTORY_BASE_HH
 
-// This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, params, physics, random, spatial_data, vectors
-#include "distribution_base.hh"
-#include "background_base.hh"
-#include "diffusion_base.hh"
-#include "source_base.hh"
-#include "boundary_base.hh"
-#include "initial_base.hh"
 #include "common/rk_config.hh"
+#include "src/distribution_base.hh"
+#include "src/background_base.hh"
+#include "src/diffusion_base.hh"
+#include "src/source_base.hh"
+#include "src/boundary_base.hh"
+#include "src/initial_base.hh"
 
 #ifndef TRAJ_TYPE
 #error Trajectory type is undefined!
@@ -515,7 +514,7 @@ inline void TrajectoryBase::Load(void)
    _pos = traj_pos.back();
    _mom = traj_mom.back();
 #endif
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cartesian>(_mom);
 };
 
 /*!
@@ -536,14 +535,14 @@ inline void TrajectoryBase::Store(void)
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/15/2025
+\date 11/11/2025
 */
 inline void TrajectoryBase::LoadLocal(void)
 {
    _t = local_t;
    _pos = local_pos;
    _mom = local_mom;
-   _vel = Vel(_mom, specie);
+   _vel = Particle::Vel<specie, CoordinateSystem::Cartesian>(_mom);
    _amp = local_amp;
    _wgt = local_wgt;
 };

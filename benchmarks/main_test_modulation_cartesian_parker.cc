@@ -28,8 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = SPECIES_PROTON_BEAM;
-   simulation->SetSpecie(specie);
+   Specie<default_specie> specie;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background
@@ -51,7 +50,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Effective "mesh" resolution
-   double dmax = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double dmax = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(dmax);
 
    std::string fname_pattern = "../cartesian_backgrounds/parker_25_25_25";
@@ -75,7 +74,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-   GeoVector init_pos(1.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid, 0.0, 0.0);
+   GeoVector init_pos(1.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length, 0.0, 0.0);
    container.Insert(init_pos);
 
    simulation->AddInitial(InitialSpaceFixed(), container);
@@ -87,11 +86,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double momentum1 = Mom(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum1 = Particle::Mom<specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy);
    container.Insert(momentum1);
 
 // Upper bound for momentum
-   double momentum2 = Mom(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum2 = Particle::Mom<specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy);
    container.Insert(momentum2);
 
 // Log bias
@@ -119,7 +118,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double inner_boundary = 0.05 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double inner_boundary = 0.05 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(inner_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -143,7 +142,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double outer_boundary = 80.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double outer_boundary = 80.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(outer_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -164,7 +163,7 @@ int main(int argc, char** argv)
    container.Insert(actions_time);
    
 // Max duration of the trajectory
-   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / unit_time_fluid;
+   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 / Particle::unit_time;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);
@@ -176,15 +175,15 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Diffusion coefficient normalization factor
-   double kap0 = 1.5e22 / unit_diffusion_fluid;
+   double kap0 = 1.5e22 / Particle::unit_diffusion;
    container.Insert(kap0);
 
 // Rigidity normalization factor
-   double T0 = SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+   double T0 = SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / Particle::unit_energy;
    container.Insert(T0);
 
 // Magnetic field normalization factor
-   double r0 = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double r0 = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    container.Insert(r0);
 
 // Power law slope for rigidity
@@ -230,11 +229,11 @@ int main(int argc, char** argv)
    container.Insert(n_bins);
    
 // Smallest value
-   GeoVector minval(EnrKin(momentum1, specie), 0.0, 0.0);
+   GeoVector minval(Particle::EnrKin<specie>(momentum1), 0.0, 0.0);
    container.Insert(minval);
 
 // Largest value
-   GeoVector maxval(EnrKin(momentum2, specie), 0.0, 0.0);
+   GeoVector maxval(Particle::EnrKin<specie>(momentum2), 0.0, 0.0);
    container.Insert(maxval);
 
 // Linear or logarithmic bins
@@ -246,11 +245,11 @@ int main(int argc, char** argv)
    container.Insert(bin_outside);
 
 // Physical units of the distro variable
-   double unit_distro = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * M_4PI * unit_energy_particle);
+   double unit_distro = 1.0 / (Sqr(Particle::unit_length) * Particle::unit_time * M_4PI * Particle::unit_energy);
    container.Insert(unit_distro);
 
 // Physical units of the bin variable
-   GeoVector unit_val = {unit_energy_particle, 1.0, 1.0};
+   GeoVector unit_val = {Particle::unit_energy, 1.0, 1.0};
    container.Insert(unit_val);
 
 // Don't keep records
@@ -262,7 +261,7 @@ int main(int argc, char** argv)
    container.Insert(J0);
 
 //! Characteristic energy
-   T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+   T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / Particle::unit_energy;
    container.Insert(T0);
 
 //! Spectral power law

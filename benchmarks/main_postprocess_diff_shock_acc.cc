@@ -5,19 +5,19 @@
 
 using namespace Spectrum;
 
-const int specie = SPECIES_PROTON_BEAM;
-const double one_au = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
-const double one_day = 24.0 * 60.0 * 60.0 / unit_time_fluid;
-const double one_MeV = SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
+Specie<default_specie> specie;
+const double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+const double one_day = 24.0 * 60.0 * 60.0 / Particle::unit_time;
+const double one_MeV = SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy;
 const double t_final = 100.0 * one_day;
 const double z_spectrum = 0.1 * one_au;
-const double p0 = Mom(1.0 * one_MeV, specie);
-const double pf = Mom(100.0 * one_MeV, specie);
+const double p0 = Particle::Mom<specie>(1.0 * one_MeV);
+const double pf = Particle::Mom<specie>(100.0 * one_MeV);
 const double s = 4.0;
-const double U_up = 4.0e7 / unit_velocity_fluid;
+const double U_up = 4.0e7 / Particle::unit_velocity;
 const double U_dn = U_up / s;
 const double DeltaU = U_up - U_dn;
-const double kappa_up = 1.0e20 / unit_diffusion_fluid;
+const double kappa_up = 1.0e20 / Particle::unit_diffusion;
 const double kappa_dn = kappa_up * Sqr(U_dn / U_up);
 const double beta = 1.5 * (s + 1.0) / (s - 1.0);
 const double tau = 4.0 * kappa_up / Sqr(U_up);
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 // Output data
    output_dsa_file << std::setprecision(8);
    for(j = 0; j < Np; j++) {
-      output_dsa_file << std::setw(20) << EnrKin(coord[j], specie) / one_MeV
+      output_dsa_file << std::setw(20) << Particle::EnrKin<specie>(coord[j]) / one_MeV
                       << std::setw(20) << f_dn(z_spectrum, coord[j], t_final) * M_4PI * Sqr(coord[j])
                       << std::setw(20) << amp * M_8PI * distro[j] * Sqr(coord[j])
                       << std::endl;

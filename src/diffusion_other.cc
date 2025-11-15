@@ -7,8 +7,10 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "diffusion_other.hh"
+#include "src/diffusion_other.hh"
+#ifdef USE_GSL
 #include <gsl/gsl_sf_hyperg.h>
+#endif
 
 namespace Spectrum {
 
@@ -154,6 +156,8 @@ void DiffusionQLTConstant::EvaluateDiffusion(void)
 // DiffusionWNLTConstant methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+#ifdef USE_GSL
+
 /*!
 \author Vladimir Florinski
 \date 05/06/2022
@@ -237,6 +241,8 @@ void DiffusionWNLTConstant::EvaluateDiffusion(void)
       Kappa[2] += (ps_minus / ps_plus) * Omega * st2 * A2T * DT1 * DT2 / sqrt(Sqr(DT1) + Sqr(DT2));
    };
 };
+
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTRampVLISM methods
@@ -702,15 +708,17 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::SetupDiffusion(bool construct
 /*!
 \author Juan G Alonso Guzman
 \author Swati Sharma
-\date 06/25/2025
+\date 11/14/2025
 */
 void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 {
-   double r = _pos.Norm();
    if (comp_eval == 2) return;
-   if (stream_dep_idx == 0 || r < r0) Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * pow(r / r0, pow_law_r);
-   else if (r < r0 + w_sh) Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * Sqr(_spdata.Uvec.Norm() / u_up);
-   else Kappa[1] = kap0 * pow(EnrKin(_mom[0], specie) / T0, pow_law_T) * dn_up_rat;
+   double r = _pos.Norm();
+   double kap_mom = kap0 * pow(Particle::EnrKin<specie>(_mom[0]) / T0, pow_law_T);
+   
+   if (stream_dep_idx == 0 || r < r0) Kappa[1] = kap_mom * pow(r / r0, pow_law_r);
+   else if (r < r0 + w_sh) Kappa[1] = kap_mom * Sqr(_spdata.Uvec.Norm() / u_up);
+   else Kappa[1] = kap_mom * dn_up_rat;
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -796,7 +804,7 @@ void DiffusionRigidityMagneticFieldPowerLaw::SetupDiffusion(bool construct)
 void DiffusionRigidityMagneticFieldPowerLaw::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   Kappa[1] = (lam0 * vmag / 3.0) * pow(Rigidity(_mom[0], specie) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
+   Kappa[1] = (lam0 * vmag / 3.0) * pow(Particle::Rigidity<specie>(_mom[0]) / R0, pow_law_R) * pow(_spdata.Bmag / B0, pow_law_B);
    Kappa[0] = kap_rat * Kappa[1];
 };
 
@@ -884,7 +892,7 @@ void DiffusionStraussEtAl2013::EvaluateDiffusion(void)
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Particle::Rigidity<specie>(_mom[0]);
    double kap_rat;
 
 // Find diffusion coefficients
@@ -954,7 +962,8 @@ void DiffusionPotgieterEtAl2015::SetupDiffusion(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 01/09/2025
+\author Vladimir Florinski
+\date 11/14/2025
 */
 void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
 {
@@ -965,11 +974,11 @@ void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
    else LISM_ind = (_spdata.region[LISM_idx] > 0.0 ? 0.0 : 1.0);
    double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
    double B0_eff = LISM_ind * _spdata.Bmag + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Particle::Rigidity<specie>(_mom[0]);
    double kap_rat;
 
 // Find diffusion coefficients
-   Kappa[1] = kappa_para * (vmag / c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
+   Kappa[1] = kappa_para * (vmag / Particle::c_code) * (rig < R0 ? 1.0 : sqrt(Cube(rig / R0))) * (B0_eff / _spdata.Bmag);
    if (comp_eval == 0) {
       kap_rat = LISM_ind * kap_rat_out + (1.0 - LISM_ind) * kap_rat_in;
       Kappa[0] = kap_rat * Kappa[1];
@@ -979,7 +988,7 @@ void DiffusionPotgieterEtAl2015::EvaluateDiffusion(void)
 /*!
 \author Juan G Alonso Guzman
 \date 01/09/2025
-\return double       Derivative in mu
+\return Derivative in mu
 */
 double DiffusionPotgieterEtAl2015::GetMuDerivative(void)
 {
@@ -1041,7 +1050,7 @@ void DiffusionEmpiricalSOQLTandUNLT::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
    double lam, rig_dep;
-   double rig = Rigidity(_mom[0], specie);
+   double rig = Particle::Rigidity<specie>(_mom[0]);
 
    if (comp_eval == 1) {
 // Compute mean free path and rigidity dependance with a bent power law

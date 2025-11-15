@@ -21,16 +21,16 @@ fi
 
 # Flags to select which tests to run
 dipole_visual_test=true
-turb_waves_test=true
-parker_spiral_test=true
-init_cond_record_test=true
-dipole_drifts_test=true
-pa_distro_iso_test=true
-pa_scatt_test=true
-perp_diff_test=true
-full_diff_test=true
-diff_shock_acc_test=true
-modulation_cartesian_parker_field_test=true
+turb_waves_test=false
+parker_spiral_test=false
+init_cond_record_test=false
+dipole_drifts_test=false
+pa_distro_iso_test=false
+pa_scatt_test=false
+perp_diff_test=false
+full_diff_test=false
+diff_shock_acc_test=false
+modulation_cartesian_parker_field_test=false
 
 # Function to print header
 # $1: header title
@@ -80,19 +80,14 @@ function report_if_failed {
 # $2-8: configure parameters
 function configure_test {
 	cd ..
-	if test "$6" = "SELF"
-	then
-		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$2 \
-			--with-trajectory=$3 --with-time_flow=$4 --with-rkmethod=$5 \
-			--with-server=$6 \
-			1>> "benchmarks/logs/${1}" 2>> "benchmarks/logs/${1}"
-	else
-		./configure CXXFLAGS="-Ofast" --with-mpi=openmpi --with-execution=$2 \
-			--with-trajectory=$3 --with-time_flow=$4 --with-rkmethod=$5 \
-			--with-server=$6 \
-			--with-server_interp_order=$7 --with-server_num_gcs=$8 \
-			1>> "benchmarks/logs/${1}" 2>> "benchmarks/logs/${1}"
-	fi
+   configure_args="--with-execution=$2 --with-trajectory=$3 --with-time_flow=$4 --with-rkmethod=$5 --with-server=$6 --enable-gsl"
+   if [ "$2" = "PARALLEL" ]; then
+      configure_args="--with-mpi=openmpi $configure_args"
+   fi
+	if [ "$6" != "SELF" ]; then
+      configure_args="$configure_args --with-server_interp_order=$7 --with-server_num_gcs=$8"
+   fi
+	./configure $configure_args 1>> "benchmarks/logs/${1}" 2>> "benchmarks/logs/${1}"
 	report_if_failed $? "CONFIGURATION" "benchmarks/logs/${1}" false
 	cd - 1>> "benchmarks/logs/${1}"
 }

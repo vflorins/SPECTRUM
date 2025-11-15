@@ -88,7 +88,6 @@ void BackgroundBase::BoxPlot3DScalar(const std::string var_name, bool phys_units
    int ix, iy, iz, idx;
    double var_unit;
    bool is_vector;
-   long pos;
 
    GeoVector* field_ptr;
    double* scl_ptr;

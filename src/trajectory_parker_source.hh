@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef TRAJECTORY_PARKER_SOURCE_HH
 #define TRAJECTORY_PARKER_SOURCE_HH
 
-#include "trajectory_parker.hh"
+#include "src/trajectory_parker.hh"
 
 namespace Spectrum {
 
