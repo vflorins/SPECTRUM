@@ -18,8 +18,8 @@ namespace Spectrum {
 \author Vladimir Florinski
 \date 12/17/2020
 */
-template <typename Background, typename Diffusion>
-TrajectoryLorentz<Background, Diffusion>::TrajectoryLorentz(void)
+template <typename HConfig>
+TrajectoryLorentz<HConfig>::TrajectoryLorentz(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -28,8 +28,8 @@ TrajectoryLorentz<Background, Diffusion>::TrajectoryLorentz(void)
 \author Vladimir Florinski
 \date 06/14/2021
 */
-template <typename Background, typename Diffusion>
-void TrajectoryLorentz<Background, Diffusion>::SetStart(void)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
@@ -46,8 +46,8 @@ void TrajectoryLorentz<Background, Diffusion>::SetStart(void)
 \author Juan G Alonso Guzman
 \date 12/15/2020
 */
-template <typename Background, typename Diffusion>
-void TrajectoryLorentz<Background, Diffusion>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::PhysicalStep(void)
 {
    constexpr int steps_per_orbit = HConfig::steps_per_orbit;
    constexpr double cfl_adv = HConfig::cfl_advection;
@@ -67,8 +67,8 @@ void TrajectoryLorentz<Background, Diffusion>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Background, typename Diffusion>
-void TrajectoryLorentz<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryLorentz<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    slope_pos_istage = _coords.Vel();
    slope_mom_istage = specie.q * (_fields.Elc() + (_coords.Vel() ^ _fields.Mag()) / c_code);
@@ -81,8 +81,8 @@ void TrajectoryLorentz<Background, Diffusion>::Slopes(GeoVector& slope_pos_istag
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryLorentz<Background, Diffusion>::Advance(void)
+template <typename HConfig>
+bool TrajectoryLorentz<HConfig>::Advance(void)
 {
    return RKAdvance();
 };

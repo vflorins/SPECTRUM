@@ -21,8 +21,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Background, typename Diffusion>
-TrajectoryGuidingDiff<Background, Diffusion>::TrajectoryGuidingDiff(void)
+template <typename HConfig>
+TrajectoryGuidingDiff<HConfig>::TrajectoryGuidingDiff(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -33,8 +33,8 @@ TrajectoryGuidingDiff<Background, Diffusion>::TrajectoryGuidingDiff(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename Background, typename Diffusion>
-TrajectoryGuidingDiff<Background, Diffusion>::TrajectoryGuidingDiff(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryGuidingDiff<HConfig>::TrajectoryGuidingDiff(const std::string& name_in, uint16_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -43,8 +43,8 @@ TrajectoryGuidingDiff<Background, Diffusion>::TrajectoryGuidingDiff(const std::s
 \author Vladimir Florinski
 \date 05/27/2022
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryGuidingDiff<Background, Diffusion>::IsSimulationReady(void) const
+template <typename HConfig>
+bool TrajectoryGuidingDiff<HConfig>::IsSimulationReady(void) const
 {
    if(!TrajectoryBase::IsSimulationReady()) return false;
 
@@ -58,8 +58,8 @@ bool TrajectoryGuidingDiff<Background, Diffusion>::IsSimulationReady(void) const
 \author Vladimir Florinski
 \date 04/22/2022
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::FieldAlignedFrame(void)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::FieldAlignedFrame(void)
 {
    auto bhat = _fields.HatMag();
    fa_basis[2] = bhat;
@@ -73,8 +73,8 @@ void TrajectoryGuidingDiff<Background, Diffusion>::FieldAlignedFrame(void)
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::DiffusionCoeff(void)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::DiffusionCoeff(void)
 try {
 {
       GeoVector gradDperp;
@@ -114,8 +114,8 @@ catch (ExFieldError &exception) {
 \author Vladimir Florinski
 \date 05/16/2022
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::EulerPerpDiffSlopes(void)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::EulerPerpDiffSlopes(void)
 {
 
 // Generate stochastic factors
@@ -143,8 +143,8 @@ void TrajectoryGuidingDiff<Background, Diffusion>::EulerPerpDiffSlopes(void)
 \author Vladimir Florinski
 \date 10/05/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::MilsteinPerpDiffSlopes(void)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
 {
    double Vxy, random, Dperp_new;
    double dbdx, dbdy, dx, dy, slope_Dperp;
@@ -203,8 +203,8 @@ void TrajectoryGuidingDiff<Background, Diffusion>::MilsteinPerpDiffSlopes(void)
 \author Vladimir Florinski
 \date 05/16/2022
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryGuidingDiff<Background, Diffusion>::RK2PerpDiffSlopes(void)
+template <typename HConfig>
+bool TrajectoryGuidingDiff<HConfig>::RK2PerpDiffSlopes(void)
 {
    double Rx, Ry, Vxy, random;
    double dbdx, dbdy, d2bdx2, d2bdy2, d2bdxdy, dx, dy;
@@ -333,8 +333,8 @@ bool TrajectoryGuidingDiff<Background, Diffusion>::RK2PerpDiffSlopes(void)
 \param[out] position slopes
 \param[out] momentum slopes
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
    TrajectoryGuidingDiff::DiffusionCoeff();
@@ -351,8 +351,8 @@ void TrajectoryGuidingDiff<Background, Diffusion>::Slopes(GeoVector& slope_pos_i
 \author Juan G Alonso Guzman
 \date 03/12/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingDiff<Background, Diffusion>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryGuidingDiff<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_adv = HConfig::cfl_advection;
    constexpr double cfl_dif = HConfig::cfl_diffusion;
@@ -374,8 +374,8 @@ void TrajectoryGuidingDiff<Background, Diffusion>::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryGuidingDiff<Background, Diffusion>::Advance(void)
+template <typename HConfig>
+bool TrajectoryGuidingDiff<HConfig>::Advance(void)
 {
 // Retrieve latest point of the trajectory and store locally
    StoreLocal();

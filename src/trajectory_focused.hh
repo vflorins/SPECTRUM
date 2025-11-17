@@ -20,8 +20,8 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_mag (x), mu (y), unused (z)
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryFocused : public TrajectoryBase<Background_, Diffusion_> {
+template <typename HConfig_>
+class TrajectoryFocused : public TrajectoryBase<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryFocused";
@@ -29,10 +29,9 @@ class TrajectoryFocused : public TrajectoryBase<Background_, Diffusion_> {
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
    using TrajectoryBase::_status;
@@ -146,8 +145,8 @@ public:
 \author Vladimir Florinski
 \date 08/07/2023
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryFocused<Background, Diffusion>::ReverseMomentum(void)
+template <typename HConfig>
+inline void TrajectoryFocused<HConfig>::ReverseMomentum(void)
 {
    _coords.Mom()[1] = -_coords.Mom()[1];
 };

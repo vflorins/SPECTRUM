@@ -11,10 +11,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SIMULATION_CONFIG_HH
 
 #include "common/compiletime_lists.hh"
-#include "trajectory.config.hh"
 #include "background.config.hh"
+#include "trajectory.config.hh"
 #include "diffusion.config.hh"
-#include "distribution.config.hh"
+
 
 namespace Spectrum {
 
@@ -24,42 +24,37 @@ namespace Spectrum {
 \date 09/05/2025
 */
 template <
-      SpecieId specieid_,
-      TrajectoryId trajectoryid_,
-      BackgroundId backgroundid_,
-      DiffusionId diffusionid_,
-      typename TrajectoryConfig_ = Default,
-      typename BackgroundConfig_ = Default,
-      typename DiffusionConfig_ = Default,
       BuildMode build_mode_ = BuildMode::release,
+      SpecieId specieid_ = SpecieId::proton_core,
+      Config::Background background_ = Config::Background::Dipole,
+      Config::Trajectory trajectory_ = Config::Trajectory::Lorentz,
+      Config::Diffusion diffusion_ = Config::Diffusion::None,
+      typename BackgroundConfig_ = Default,
+      typename TrajectoryConfig_ = Default,
+      typename DiffusionConfig_ = Default,
       int num_trajectories_ = 1,
       int batch_size_ = 1,
       int max_trajectories_per_worker_ = 1
 >
 struct SimulationConfig {
-   // todo Cond here to resolve the default here. __________-
-   // todo
-   using TrajectoryConfig = TrajectoryConfig_;
-   using BackgroundConfig = BackgroundConfig_;
-   using DiffusionConfig = DiffusionConfig_;
 
+   using BackgroundConfig = Cond<std::same_as<BackgroundConfig_, Default>, BackgroundConfig<background_, specieid_>, BackgroundConfig_>;
+   using TrajectoryConfig = Cond<std::same_as<TrajectoryConfig_, Default>, TrajectoryConfig<trajectory_, specieid_>, TrajectoryConfig_>;
+   using DiffusionConfig = Cond<std::same_as<DiffusionConfig_, Default>, DiffusionConfig<diffusion_, specieid_>, DiffusionConfig_>;
 
-// The specieid is only needed at compile time, during generation of default config types.
-   static constexpr auto specieid = specieid_;
-   static constexpr auto trajectoryid = trajectoryid_;
-   static constexpr auto backgroundid = backgroundid_;
-   static constexpr auto diffusionid = diffusionid_;
    static constexpr auto build_mode = build_mode_;
+   static constexpr auto specie = Specie<specieid_>();
+
    static constexpr auto num_trajectories = num_trajectories_;
-   static constexpr auto max_trajectories_per_worker = max_trajectories_per_worker_;
    static constexpr auto batch_size = batch_size_;
+   static constexpr auto max_trajectories_per_worker = max_trajectories_per_worker_;
 
-   static constexpr auto specie = Specie<specieid>();
-
-   using Background = Background<backgroundid, BackgroundConfig>;
-   using Diffusion = Diffusion<diffusionid, DiffusionConfig>;
-   using Trajectory = Trajectory<trajectoryid, TrajectoryConfig>;
-
+/*
+ * The coordinates for ALL backgrounds are: Pos_t, Time_t, with cartesian coordinates for position.
+ * However, these coordinates are unused in the *current* implementation.
+ * This information is stored here but this is only done in order to make an update easier if this assumption changes.
+ */
+   using BackgroundCoordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian>, Time_t, Pos_t>;
 
 };
 

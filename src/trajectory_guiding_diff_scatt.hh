@@ -24,8 +24,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_, Background_>, TrajectoryGuidingDiff<HConfig_, Background_>, TrajectoryGuidingScatt<HConfig_, Background_> {
+template <typename HConfig_>
+class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_>, TrajectoryGuidingDiff<HConfig_>, TrajectoryGuidingScatt<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiffScatt";
@@ -33,15 +33,14 @@ class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_, Background
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
-   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
-   using TrajectoryGuidingDiff = TrajectoryGuidingDiff<Background, Diffusion>;
-   using TrajectoryGuidingScatt = TrajectoryGuidingScatt<Background, Diffusion>;
+   using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
+   using TrajectoryGuidingDiff = TrajectoryGuidingDiff<HConfig>;
+   using TrajectoryGuidingScatt = TrajectoryGuidingScatt<HConfig>;
 
    using typename TrajectoryBase::DiffusionCoordinates;
    using typename TrajectoryBase::DiffusionFields;

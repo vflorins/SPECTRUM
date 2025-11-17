@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-template <typename Background, typename Diffusion>
-TrajectoryParker<Background, Diffusion>::TrajectoryParker(void)
+template <typename HConfig>
+TrajectoryParker<HConfig>::TrajectoryParker(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ TrajectoryParker<Background, Diffusion>::TrajectoryParker(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename Background, typename Diffusion>
-TrajectoryParker<Background, Diffusion>::TrajectoryParker(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryParker<HConfig>::TrajectoryParker(const std::string& name_in, uint16_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -41,8 +41,8 @@ TrajectoryParker<Background, Diffusion>::TrajectoryParker(const std::string& nam
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryParker<Background, Diffusion>::IsSimulationReady(void) const
+template <typename HConfig>
+bool TrajectoryParker<HConfig>::IsSimulationReady(void) const
 {
    if (!TrajectoryBase::IsSimulationReady()) return false;
 
@@ -56,8 +56,8 @@ bool TrajectoryParker<Background, Diffusion>::IsSimulationReady(void) const
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::SetStart(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
@@ -67,8 +67,8 @@ void TrajectoryParker<Background, Diffusion>::SetStart(void)
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::FieldAlignedFrame(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::FieldAlignedFrame(void)
 {
    fa_basis[2] = _fields.HatMag();
    fa_basis[0] = GetSecondUnitVec(_fields.HatMag());
@@ -79,8 +79,8 @@ void TrajectoryParker<Background, Diffusion>::FieldAlignedFrame(void)
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::DiffusionCoeff(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::DiffusionCoeff(void)
 try {
    int i,j;
    // todo review impl for parker coords -> diffusion coords (any)
@@ -163,8 +163,8 @@ catch(ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 03/11/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::EulerDiffSlopes(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::EulerDiffSlopes(void)
 {
    double dWx, dWy, dWz;
    FieldAlignedFrame();
@@ -198,8 +198,8 @@ void TrajectoryParker<Background, Diffusion>::EulerDiffSlopes(void)
 \date 06/07/2023
 \note "Bvec", "Bmag", and "bhat" must be available, so "CommonFields()" must be called prior to this function.
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::DriftCoeff(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::DriftCoeff(void)
 {
    if constexpr (HConfig::use_B_drifts == TrajectoryOptions::UseBDrifts::gradient_curvature) {
       // Compute |B|*curl(b/|B|)
@@ -223,8 +223,8 @@ void TrajectoryParker<Background, Diffusion>::DriftCoeff(void)
 \author Juan G Alonso Guzman
 \date 06/07/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_adv = HConfig::cfl_advection;
    constexpr double cfl_dif = HConfig::cfl_diffusion;
@@ -246,8 +246,8 @@ void TrajectoryParker<Background, Diffusion>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Background, typename Diffusion>
-void TrajectoryParker<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryParker<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    DriftCoeff();
    DiffusionCoeff();
@@ -276,8 +276,8 @@ void TrajectoryParker<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryParker<Background, Diffusion>::Advance(void)
+template <typename HConfig>
+bool TrajectoryParker<HConfig>::Advance(void)
 {
 // store locally
    StoreLocal();

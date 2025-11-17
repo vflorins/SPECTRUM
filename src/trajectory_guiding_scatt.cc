@@ -21,8 +21,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Background, typename Diffusion>
-TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(void)
+template <typename HConfig>
+TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(void)
       : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -33,8 +33,8 @@ TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename Background, typename Diffusion>
-TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -43,8 +43,8 @@ TrajectoryGuidingScatt<Background, Diffusion>::TrajectoryGuidingScatt(const std:
 \author Vladimir Florinski
 \date 05/27/2022
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryGuidingScatt<Background, Diffusion>::IsSimulationReady(void) const
+template <typename HConfig>
+bool TrajectoryGuidingScatt<HConfig>::IsSimulationReady(void) const
 {
    if (!TrajectoryBase::IsSimulationReady()) return false;
 
@@ -59,8 +59,8 @@ bool TrajectoryGuidingScatt<Background, Diffusion>::IsSimulationReady(void) cons
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingScatt<Background, Diffusion>::DiffusionCoeff(void)
+template <typename HConfig>
+void TrajectoryGuidingScatt<HConfig>::DiffusionCoeff(void)
 try {
 
    auto dcoords = DiffusionCoordinates::Convert(_coords);
@@ -85,8 +85,8 @@ catch(ExFieldError& exception) {
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingScatt<Background, Diffusion>::EulerPitchAngleScatt(bool second)
+template <typename HConfig>
+void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
 {
    double mu_new, dt_local;
    /*
@@ -129,8 +129,8 @@ void TrajectoryGuidingScatt<Background, Diffusion>::EulerPitchAngleScatt(bool se
 \date 05/10/2022
 \param[in] second True if this is the second step of a split scheme
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingScatt<Background, Diffusion>::MilsteinPitchAngleScatt(bool second)
+template <typename HConfig>
+void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
 {
 // Calculate Dmumu_new
    auto dcoords = DiffusionCoordinates::Convert(_coords);
@@ -183,8 +183,8 @@ void TrajectoryGuidingScatt<Background, Diffusion>::MilsteinPitchAngleScatt(bool
 
 Computes RK stochastic step with 2 evaluations of the drift term, 3 evaluations of the variance term, and 1 derivative of the variance term
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingScatt<Background, Diffusion>::RK2PitchAngleScatt(bool second)
+template <typename HConfig>
+void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
 {
 // todo review after spdata/fields
    double slope_Vmu[2], slope_Dmumu[3];
@@ -307,8 +307,8 @@ void TrajectoryGuidingScatt<Background, Diffusion>::RK2PitchAngleScatt(bool seco
 \author Juan G Alonso Guzman
 \date 04/29/2022
 */
-template <typename Background, typename Diffusion>
-void TrajectoryGuidingScatt<Background, Diffusion>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryGuidingScatt<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_pa = cfl_pitchangle;
    double dmumax;
@@ -331,8 +331,8 @@ void TrajectoryGuidingScatt<Background, Diffusion>::PhysicalStep(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryGuidingScatt<Background, Diffusion>::Advance(void)
+template <typename HConfig>
+bool TrajectoryGuidingScatt<HConfig>::Advance(void)
 {
 
 // Compute drift and diffusion coefficients (including PA advection term) for physical step computation

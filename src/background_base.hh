@@ -11,8 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_BASE_HH
 #define SPECTRUM_BACKGROUND_BASE_HH
 
-#include "background.config.default.hh"
-
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include "common/params.hh"
@@ -75,8 +73,7 @@ class BackgroundBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundBase<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundCoordinates = BackgroundConfig::Coordinates;
+   using BackgroundConfig = HConfig::BackgroundConfig;
 
    using BackgroundConfig::num_numeric_grad_evals;
 

@@ -30,7 +30,7 @@ int main(int argc, char** argv)
    using HConfig = SimulationDefault;
 
    using Background = BackgroundUniform<HConfig>;
-   using Trajectory = TrajectoryParker<Background, Diffusion>;
+   using Trajectory = TrajectoryParker<HConfig>;
 
    using Simulation = SimulationWorker<Trajectory>;
    using InitialTime = InitialTimeFixed<Trajectory>;

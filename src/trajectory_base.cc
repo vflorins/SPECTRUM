@@ -22,8 +22,8 @@ using namespace TrajectoryOptions;
 \author Vladimir Florinski
 \date 11/24/2020
 */
-template <typename Background, typename Diffusion>
-TrajectoryBase<Background, Diffusion>::TrajectoryBase(void)
+template <typename HConfig>
+TrajectoryBase<HConfig>::TrajectoryBase(void)
               : Params("", STATE_NONE),
               records(HConfig::record_trajectory_segment_presize)
 {
@@ -35,8 +35,8 @@ TrajectoryBase<Background, Diffusion>::TrajectoryBase(void)
 \param[in] name_in    Readable name of the class
 \param[in] status_in  Initial status
 */
-template <typename Background, typename Diffusion>
-TrajectoryBase<Background, Diffusion>::TrajectoryBase(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryBase<HConfig>::TrajectoryBase(const std::string& name_in, uint16_t status_in)
               : Params(name_in, status_in),
                 records(HConfig::record_trajectory_segment_presize)
 {
@@ -46,8 +46,8 @@ TrajectoryBase<Background, Diffusion>::TrajectoryBase(const std::string& name_in
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::ResetAllBoundaries(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::ResetAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -69,8 +69,8 @@ void TrajectoryBase<Background, Diffusion>::ResetAllBoundaries(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::ComputeAllBoundaries(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::ComputeAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -83,8 +83,8 @@ void TrajectoryBase<Background, Diffusion>::ComputeAllBoundaries(void)
 \author Vladimir Florinski
 \date 02/06/2021
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::UpdateAllBoundaries(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::UpdateAllBoundaries(void)
 {
    unsigned int bnd;
 
@@ -99,8 +99,8 @@ void TrajectoryBase<Background, Diffusion>::UpdateAllBoundaries(void)
 \author Lucius Schoenbaum
 \date 09/11/2025
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::ReverseMomentum(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::ReverseMomentum(void)
 {
    _coords.Mom() *= -1.0;
 };
@@ -112,8 +112,8 @@ void TrajectoryBase<Background, Diffusion>::ReverseMomentum(void)
 
 This function should be called near the _beginning_ of the "Advance()" routine, after a call to "PhysicalStep()". Its only purpose is to adjust the time step to prevent an overshoot.
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::TimeBoundaryProximityCheck(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::TimeBoundaryProximityCheck(void)
 {
    unsigned int bnd;
    double delta, delta_next;
@@ -153,8 +153,8 @@ void TrajectoryBase<Background, Diffusion>::TimeBoundaryProximityCheck(void)
 
 This function should be called each time the position is updated (e.g., inside the RK loop). The purpose is to catch the situation where the trajectory leaves the domain and the fields become unavailable making any further integration impossible. 
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryBase<Background, Diffusion>::SpaceTerminateCheck(void)
+template <typename HConfig>
+bool TrajectoryBase<HConfig>::SpaceTerminateCheck(void)
 try {
    uint16_t bnd_status;
    int bnd = 0, distro;
@@ -213,9 +213,9 @@ catch (ExBoundaryError& exception) {
 \param[in]  coords   Coordinates (typically Time, Position, Momentum) at which to compute fields
 \param[out] fields Fields requested to be populated by the background
 */
-template <typename Background, typename Diffusion>
+template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void TrajectoryBase<Background, Diffusion>::CommonFields(Coordinates& coords, Fields& fields)
+void TrajectoryBase<HConfig>::CommonFields(Coordinates& coords, Fields& fields)
 try {
 // Compute fields and reset derivative data
    background->template GetFields<Coordinates, Fields, RequestedFields>(coords, fields);
@@ -253,8 +253,8 @@ catch (ExFieldError& exception) {
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryBase<Background, Diffusion>::RKSlopes(void)
+template <typename HConfig>
+bool TrajectoryBase<HConfig>::RKSlopes(void)
 {
 // When the function exits we are finished with the input coords, and can free the memory.
    unsigned int istage, islope;
@@ -304,8 +304,8 @@ bool TrajectoryBase<Background, Diffusion>::RKSlopes(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryBase<Background, Diffusion>::RKStep(void)
+template <typename HConfig>
+bool TrajectoryBase<HConfig>::RKStep(void)
 {
    using BT = ButcherTable;
    unsigned int islope;
@@ -363,8 +363,8 @@ bool TrajectoryBase<Background, Diffusion>::RKStep(void)
 \author Vladimir Florinski
 \date 04/01/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::HandleBoundaries(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::HandleBoundaries(void)
 {
    int bnd, bnd_status, distro;
 
@@ -496,8 +496,8 @@ void TrajectoryBase<Background, Diffusion>::HandleBoundaries(void)
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryBase<Background, Diffusion>::RKAdvance(void)
+template <typename HConfig>
+bool TrajectoryBase<HConfig>::RKAdvance(void)
 {
 
 // Retrieve latest point of the trajectory and store it locally.
@@ -537,8 +537,8 @@ bool TrajectoryBase<Background, Diffusion>::RKAdvance(void)
 \author Vladimir Florinski
 \date 09/30/2022
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::MomentumCorrection(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::MomentumCorrection(void)
 {
 };
 
@@ -547,8 +547,8 @@ void TrajectoryBase<Background, Diffusion>::MomentumCorrection(void)
 \author Juan G Alonso Guzman
 \date 10/08/2024
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryBase<Background, Diffusion>::IsSimulationReady(void) const
+template <typename HConfig>
+bool TrajectoryBase<HConfig>::IsSimulationReady(void) const
 {
 // A background object is required
    if (!background) return false;
@@ -584,8 +584,8 @@ bool TrajectoryBase<Background, Diffusion>::IsSimulationReady(void) const
 \param[in] background_in Background object for type recognition
 \param[in] container_in  Data container for initializating the background object
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::AddBackground(const DataContainer& container_in)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::AddBackground(const DataContainer& container_in)
 {
    background = std::make_unique(Background());
    background->ConnectRNG(rng);
@@ -600,8 +600,8 @@ void TrajectoryBase<Background, Diffusion>::AddBackground(const DataContainer& c
 \param[in] diffusion_in Diffusion object for type recognitions
 \param[in] container_in Data container for initializating the diffusion object
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in)
 {
    diffusion = diffusion_in.Clone();
    diffusion->SetupObject(container_in);
@@ -615,8 +615,8 @@ void TrajectoryBase<Background, Diffusion>::AddDiffusion(const DiffusionBase& di
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
 {
 // Time boundary
    if (BITS_RAISED(boundary_in.GetStatus(), BOUNDARY_TIME)) {
@@ -646,8 +646,8 @@ void TrajectoryBase<Background, Diffusion>::AddBoundary(const BoundaryBase& boun
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
 {
 // Time condition
    if (BITS_RAISED(initial_in.GetStatus(), INITIAL_TIME)) {
@@ -681,8 +681,8 @@ void TrajectoryBase<Background, Diffusion>::AddInitial(const InitialBase& initia
 
 To start a new trajectory its objects must be set to their initial state. This function determines the initial position and momentum from the respective distributions, calculates the fields, initializes the boundaries at the initial poasition, and resets the counters. A time step evaluation is not performed because it is done in"Advance()" at the beginning of each step.
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::SetStart(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::SetStart(void)
 try {
 
 // Get the starting time from the initial time distribution
@@ -743,8 +743,8 @@ catch (ExFieldError& exception) {
 \author Juan G Alonso Guzman
 \date 12/17/2020
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::Integrate(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::Integrate(void)
 {
    bool was_advanced;
    int time_step_adaptations = 0;
@@ -755,7 +755,7 @@ void TrajectoryBase<Background, Diffusion>::Integrate(void)
 // Attempt to advance trajectory by one segment
       was_advanced = Advance();
 
-      if constexpr (HConfig::trajectory_adv_safety_level > 1) {
+      if constexpr (HConfig::advance_safety_level > 1) {
 // Too many steps were taken - terminate
          if (records.Segments() > HConfig::max_trajectory_steps) {
             RAISE_BITS(_status, TRAJ_DISCARD);
@@ -773,7 +773,7 @@ void TrajectoryBase<Background, Diffusion>::Integrate(void)
          };
       }
 
-      if constexpr (HConfig::trajectory_adv_safety_level > 0) {
+      if constexpr (HConfig::advance_safety_level > 0) {
 // Time step is too small - terminate
          if (dt < sp_tiny * _dmax / c_code) {
             RAISE_BITS(_status, TRAJ_DISCARD);
@@ -793,8 +793,8 @@ void TrajectoryBase<Background, Diffusion>::Integrate(void)
 \author Vladimir Florinski
 \date 02/17/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::StopBackground(void)
+template <typename HConfig>
+void TrajectoryBase<HConfig>::StopBackground(void)
 {
    background->StopServerFront();
 };
@@ -807,8 +807,8 @@ void TrajectoryBase<Background, Diffusion>::StopBackground(void)
 \param[in] bnd    Which boundary condition to use
 \return int number of crossings
 */
-template <typename Background, typename Diffusion>
-int TrajectoryBase<Background, Diffusion>::Crossings(unsigned int output, unsigned int bnd) const
+template <typename HConfig>
+int TrajectoryBase<HConfig>::Crossings(unsigned int output, unsigned int bnd) const
 {
    if (bnd < 0) return 0;
 
@@ -823,8 +823,8 @@ int TrajectoryBase<Background, Diffusion>::Crossings(unsigned int output, unsign
 \author Vladimir Florinski
 \date 12/27/2021
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::InterpretStatus(void) const
+template <typename HConfig>
+void TrajectoryBase<HConfig>::InterpretStatus(void) const
 {
    std::cerr << "Trajectory status: ";
    if (BITS_RAISED(_status, TRAJ_DISCARD)) std::cerr << "discarded\n";
@@ -842,8 +842,8 @@ void TrajectoryBase<Background, Diffusion>::InterpretStatus(void) const
 \author Vladimir Florinski
 \date 02/22/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryBase<Background, Diffusion>::PrintInfo(void) const
+template <typename HConfig>
+void TrajectoryBase<HConfig>::PrintInfo(void) const
 {
    int obj;
    std::cerr << std::endl;

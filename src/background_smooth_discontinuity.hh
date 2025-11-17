@@ -36,7 +36,6 @@ public:
    using BackgroundDiscontinuity = BackgroundDiscontinuity<HConfig>;
    using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSmoothDiscontinuity<HConfig>>, typename HConfig::BackgroundConfig>;
 
-   using BackgroundCoordinates = BackgroundConfig::Coordinates;
    using BackgroundBase = BackgroundBase<HConfig>;
    using BackgroundBase::_status;
    using BackgroundBase::container;

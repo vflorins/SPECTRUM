@@ -24,8 +24,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<HConfig_, Background_> {
+template <typename HConfig_>
+class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiff";
@@ -33,13 +33,12 @@ class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<HConfig_, Backgro
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
-   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
+   using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;

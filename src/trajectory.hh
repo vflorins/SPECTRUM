@@ -21,4 +21,30 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "trajectory_focused.hh"
 #include "trajectory_parker.hh"
 
+namespace Spectrum {
+
+
+template<typename HConfig>
+using TrajectoryList = Fields<
+      FConfig<>,
+      TrajectoryFieldline<HConfig>,
+      TrajectoryFocused<HConfig>,
+      TrajectoryGuiding<HConfig>,
+      TrajectoryGuidingDiff<HConfig>,
+      TrajectoryGuidingScatt<HConfig>,
+      TrajectoryGuidingDiffScatt<HConfig>,
+      TrajectoryLorentz<HConfig>,
+      TrajectoryParker<HConfig>
+>;
+
+
+template<typename HConfig>
+using Trajectory = FieldOps::Nth<TrajectoryList<HConfig>, reinterpret_cast<int>(HConfig::TrajectoryConfig::trajectoryid)>;
+
+
+}
+
+
+
+
 #endif

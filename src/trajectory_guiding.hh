@@ -20,20 +20,18 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_perp (x), unused (y), p_para (z)
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryGuiding : public TrajectoryBase<Background_, Diffusion_> {
+template <typename HConfig_>
+class TrajectoryGuiding : public TrajectoryBase<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuiding";
 
 public:
 
-   using Background = Background_;
-   using Diffusion = Diffusion_;
-   using HConfig = Background::HConfig;
+   using HConfig = HConfig_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
 protected:
@@ -132,8 +130,8 @@ public:
 \date 04/11/2022
 \return A vector in the (p,mu,0) format
 */
-template <typename Background, typename Diffusion>
-inline GeoVector TrajectoryGuiding<Background, Diffusion>::ConvertMomentum(void) const
+template <typename HConfig>
+inline GeoVector TrajectoryGuiding<HConfig>::ConvertMomentum(void) const
 {
    return GeoVector(sqrt(Sqr(_coords.MomPerp())+Sqr(_coords.MomPara())), _coords.MomPara() / _coords.AbsMom(), 0.0);
 };
@@ -144,8 +142,8 @@ inline GeoVector TrajectoryGuiding<Background, Diffusion>::ConvertMomentum(void)
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryGuiding<Background, Diffusion>::ReverseMomentum(void)
+template <typename HConfig>
+inline void TrajectoryGuiding<HConfig>::ReverseMomentum(void)
 {
    _coords.MomPara() = -_coords.MomPara();
 };

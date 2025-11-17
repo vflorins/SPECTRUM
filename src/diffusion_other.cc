@@ -49,7 +49,7 @@ DiffusionNone<HConfig>::DiffusionNone(const DiffusionNone& other)
 \param [in] construct Whether called from a copy constructor or separately
 */
 template <typename HConfig>
-void DiffusionIsotropicConstant<HConfig>::SetupDiffusion(bool construct)
+void DiffusionNone<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
@@ -60,7 +60,7 @@ void DiffusionIsotropicConstant<HConfig>::SetupDiffusion(bool construct)
 \date 10/19/2025
 */
 template <typename HConfig>
-void DiffusionIsotropicConstant<HConfig>::EvaluateDiffusion(Component comp)
+void DiffusionNone<HConfig>::EvaluateDiffusion(Component comp)
 {
 };
 
@@ -70,7 +70,7 @@ void DiffusionIsotropicConstant<HConfig>::EvaluateDiffusion(Component comp)
 \return double       Derivative in mu
 */
 template <typename HConfig>
-double DiffusionIsotropicConstant<HConfig>::GetMuDerivative(Component comp)
+double DiffusionNone<HConfig>::GetMuDerivative(Component comp)
 {
    return -1;
 };

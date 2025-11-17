@@ -23,8 +23,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_, Background_> {
+template <typename HConfig_>
+class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_> {
 
 //! Readable name of the class
    static constexpr std::string_view traj_name = "TrajectoryGuidingScatt";
@@ -32,10 +32,9 @@ class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_, Background_> {
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
    using HConfig::TrajectoryConfig::split_scatt;
    using HConfig::TrajectoryConfig::split_scatt_fraction;
@@ -43,7 +42,7 @@ public:
    using HConfig::TrajectoryConfig::const_dmumax;
    using HConfig::TrajectoryConfig::cfl_pitchangle;
 
-   using TrajectoryGuiding = TrajectoryGuiding<Background, Diffusion>;
+   using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
 
 protected:
 

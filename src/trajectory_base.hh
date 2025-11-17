@@ -11,18 +11,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_TRAJECTORY_BASE_HH
 
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, params, physics, random, spatial_data, vectors
+
+#include "background.hh"
+#include "diffusion.hh"
 #include "distribution_base.hh"
-#include "background_base.hh"
-#include "diffusion_base.hh"
 #include "boundary_base.hh"
 #include "initial_base.hh"
 #include "common/rk_lists.hh"
 #include "trajectory_records.hh"
 
 #include "common/fields2/field_ops.hh"
-
-#include "trajectory.config.default.hh"
-#include "diffusion.config.default.hh"
 
 
 namespace Spectrum {
@@ -150,20 +148,21 @@ A trajectory should be thought of as a self-contained simulation. There are four
 
 A trajectory object is considered initialized if (a) background is assigned, (b) at least one time boundary is assigned, (c) the space initial condition is assigned, and (d) the momentum initial condition is assigned.
 */
-template <typename Background_, typename Diffusion_>
+template <typename HConfig_>
 class TrajectoryBase : public Params {
 
 public:
 
-   using Background = Background_;
-   using HConfig = Background::HConfig_;
-   using Diffusion = Diffusion_;
-   using TrajectoryConfig = Cond<std::same_as<typename HConfig::TrajectoryConfig, Default>, TrajectoryDefault<HConfig::trajectoryid, HConfig::specieid>, typename HConfig::TrajectoryConfig>;
+   using HConfig = HConfig_;
+   using TrajectoryConfig = HConfig::TrajectoryConfig;
    using TrajectoryCoordinates = TrajectoryConfig::Coordinates;
    using RecordCoordinates = TrajectoryConfig::RecordCoordinates;
    using TrajectoryFields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
 
-   using DiffusionConfig = Cond<std::same_as<typename HConfig::DiffusionConfig, Default>, DiffusionDefault<Diffusion>, typename HConfig::DiffusionConfig>;
+   using Background = Background<HConfig>;
+   using Diffusion = Diffusion<HConfig>;
+
+   using DiffusionConfig = HConfig::DiffusionConfig;
    using DiffusionCoordinates = typename DiffusionConfig::Coordinates;
    using DiffusionFields = typename FieldOps::Set<typename DiffusionConfig::Fields>;
    using DiffusionFieldsRemainder = typename FieldOps::Difference<DiffusionFields, TrajectoryFields>;
@@ -174,7 +173,9 @@ public:
 
 // todo: AB-test polymorphism
    using DiffusionBase = Diffusion;
+   using BackgroundBase = Background;
 //   using DiffusionBase = DiffusionBase<HConfig>;
+//   using BackgroundBase = BackgroundBase<HConfig>;
 
 // Polymorphic base types
    using DistributionBase = DistributionBase<HConfig>;
@@ -184,7 +185,7 @@ public:
 protected:
 
 //! Background object (persistent)
-   std::unique_ptr<Background> background = nullptr;
+   std::unique_ptr<BackgroundBase> background = nullptr;
 
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
@@ -415,8 +416,8 @@ public:
 \author Vladimir Florinski
 \date 06/08/2022
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryBase<Background, Diffusion>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
+template <typename HConfig>
+inline void TrajectoryBase<HConfig>::ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions.push_back(distribution_in);
 };
@@ -427,8 +428,8 @@ inline void TrajectoryBase<Background, Diffusion>::ConnectDistribution(const std
 \date 07/27/2022
 \param[in] distro index of which distribution to replace
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryBase<Background, Diffusion>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
+template <typename HConfig>
+inline void TrajectoryBase<HConfig>::ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in)
 {
    distributions[distro] = distribution_in;
 };
@@ -438,8 +439,8 @@ inline void TrajectoryBase<Background, Diffusion>::ReplaceDistribution(int distr
 \date 07/15/2022
 \param[in] distro index of which distribution to reset
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int distro)
+template <typename HConfig>
+inline void TrajectoryBase<HConfig>::DisconnectDistribution(int distro)
 {
    distributions[distro].reset();
 };
@@ -448,8 +449,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 //\author Vladimir Florinski
 //\date 09/25/2020
 //*/
-//template <typename Background, typename Diffusion>
-//inline void TrajectoryBase<HConfig, Baclground>::Load(void)
+//template <typename HConfig>
+//inline void TrajectoryBase<HConfig>::Load(void)
 //{
 //   _coords.Vel() = Vel<specie>(_coords.Mom());
 //};
@@ -459,8 +460,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 //\author Vladimir Florinski
 //\date 09/25/2020
 //*/
-//template <typename Background, typename Diffusion>
-//inline void TrajectoryBase<HConfig, Baclground>::Store(void)
+//template <typename HConfig>
+//inline void TrajectoryBase<HConfig>::Store(void)
 //{
 //   records.Store(_coords);
 //};
@@ -470,8 +471,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 //\author Juan G Alonso Guzman
 //\date 05/10/2022
 //*/
-//template <typename Background, typename Diffusion>
-//inline void TrajectoryBase<HConfig, Baclground>::LoadLocal(void)
+//template <typename HConfig>
+//inline void TrajectoryBase<HConfig>::LoadLocal(void)
 //{
 //   _coords = local_coords;
 //};
@@ -481,8 +482,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 //\author Juan G Alonso Guzman
 //\date 05/10/2022
 //*/
-//template <typename Background, typename Diffusion>
-//inline void TrajectoryBase<HConfig, Baclground>::StoreLocal(void)
+//template <typename HConfig>
+//inline void TrajectoryBase<HConfig>::StoreLocal(void)
 //{
 //   local_coords = _coords;
 //};
@@ -492,8 +493,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 //\date 06/12/2024
 //\return Momentum in (p,mu,phi) coordinates
 //*/
-//template <typename Background, typename Diffusion>
-//inline GeoVector TrajectoryBase<HConfig, Baclground>::ConvertMomentum(void) const
+//template <typename HConfig>
+//inline GeoVector TrajectoryBase<HConfig>::ConvertMomentum(void) const
 //{
 //   return _coords.Mom();
 //};
@@ -503,8 +504,8 @@ inline void TrajectoryBase<Background, Diffusion>::DisconnectDistribution(int di
 \date 01/13/2021
 \return Total time spanned by the trajectory
 */
-template <typename Background, typename Diffusion>
-inline double TrajectoryBase<Background, Diffusion>::ElapsedTime(void) const
+template <typename HConfig>
+inline double TrajectoryBase<HConfig>::ElapsedTime(void) const
 {
    return _coords.Time() - coords0.Time();
 };

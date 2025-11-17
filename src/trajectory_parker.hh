@@ -20,21 +20,19 @@ namespace Spectrum {
 
 Components of "traj_mom" are: p_mag (x), unused (y), unused (z)
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryParker : public TrajectoryBase<Background_, Diffusion_> {
+template <typename HConfig_>
+class TrajectoryParker : public TrajectoryBase<HConfig_> {
 
    //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryParker";
 
 public:
 
-   using Background = Background_;
-   using Diffusion = Diffusion_;
-   using HConfig = Background::HConfig;
-   // todo Traj'yConfig
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using HConfig = HConfig_;
+   using TrajectoryConfig = HConfig::TrajectoryConfig;
+   using TrajectoryCoordinates = TrajectoryConfig::TrajectoryCoordinates;
+   using TrajectoryFields = TrajectoryConfig::TrajectoryFields;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
    using TrajectoryBase::_status;
@@ -46,9 +44,12 @@ public:
    using TrajectoryBase::dt_physical;
 
    using TrajectoryBase::diffusion;
-   using typename TrajectoryBase::DiffusionCoordinates;
-   using typename TrajectoryBase::DiffusionFields;
-   using typename TrajectoryBase::DiffusionFieldsRemainder;
+   using DiffusionCoordinates = HConfig::DiffusionConfig::DiffusionCoordinates;
+   using DiffusionFields = HConfig::DiffusionConfig::DiffusionFields;
+   using DiffusionRemainder = HConfig::DiffusionConfig::DiffusionRemainder; // ????
+//   using typename TrajectoryBase::DiffusionCoordinates;
+//   using typename TrajectoryBase::DiffusionFields;
+//   using typename TrajectoryBase::DiffusionFieldsRemainder;
 
    using TrajectoryBase::background;
    using TrajectoryBase::rng;
@@ -145,8 +146,8 @@ public:
 \author Vladimir Florinski
 \date 07/07/2023
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryParker<Background, Diffusion>::ReverseMomentum(void)
+template <typename HConfig>
+inline void TrajectoryParker<HConfig>::ReverseMomentum(void)
 {
 };
 

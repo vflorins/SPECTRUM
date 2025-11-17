@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// TrajectoryFieldlineBase methods
+// TrajectoryFieldline methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
@@ -20,8 +20,8 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename Background, typename Diffusion, typename Field_t>
-TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(void)
+template <typename HConfig>
+TrajectoryFieldline<HConfig>::TrajectoryFieldline(void)
                    : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -32,8 +32,8 @@ TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename Background, typename Diffusion, typename Field_t>
-TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryFieldline<HConfig>::TrajectoryFieldline(const std::string& name_in, uint16_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -45,8 +45,8 @@ TrajectoryFieldline<HConfig, Background, Field_t>::TrajectoryFieldline(const std
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename Background, typename Diffusion, typename Field_t>
-void TrajectoryFieldline<HConfig, Background, Field_t>::SetStart(void)
+template <typename HConfig>
+void TrajectoryFieldline<HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
@@ -58,8 +58,8 @@ void TrajectoryFieldline<HConfig, Background, Field_t>::SetStart(void)
 \author Lucius Schoenbaum
 \date 08/16/2025
 */
-template <typename Background, typename Diffusion, typename Field_t>
-void TrajectoryFieldline<HConfig, Background, Field_t>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryFieldline<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_adv = HConfig::cfl_advection;
    // todo review - what is Vel_sys ----> check
@@ -74,8 +74,8 @@ void TrajectoryFieldline<HConfig, Background, Field_t>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Background, typename Diffusion, typename Field_t>
-void TrajectoryFieldline<HConfig, Background, Field_t>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryFieldline<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    // todo VelPara
    if constexpr (std::same_as<Field_t, Fluv_t>) {
@@ -101,8 +101,8 @@ void TrajectoryFieldline<HConfig, Background, Field_t>::Slopes(GeoVector& slope_
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion, typename Field_t>
-bool TrajectoryFieldline<HConfig, Background, Field_t>::Advance(void)
+template <typename HConfig>
+bool TrajectoryFieldline<HConfig>::Advance(void)
 {
    return RKAdvance();
 };

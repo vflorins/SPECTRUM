@@ -19,8 +19,8 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename Background, typename Diffusion>
-TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(void)
+template <typename HConfig>
+TrajectoryFocused<HConfig>::TrajectoryFocused(void)
                  : TrajectoryBase(traj_name, STATE_NONE)
 {
 };
@@ -31,8 +31,8 @@ TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-template <typename Background, typename Diffusion>
-TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(const std::string& name_in, uint16_t status_in)
+template <typename HConfig>
+TrajectoryFocused<HConfig>::TrajectoryFocused(const std::string& name_in, uint16_t status_in)
                  : TrajectoryBase(name_in, status_in)
 {
 };
@@ -41,8 +41,8 @@ TrajectoryFocused<Background, Diffusion>::TrajectoryFocused(const std::string& n
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryFocused<Background, Diffusion>::SetStart(void)
+template <typename HConfig>
+void TrajectoryFocused<HConfig>::SetStart(void)
 {
 // Call the base version of this function.
    TrajectoryBase::SetStart();
@@ -56,8 +56,8 @@ void TrajectoryFocused<Background, Diffusion>::SetStart(void)
 \author Vladimir Florinski
 \date 03/11/2024
 */
-template <typename Background, typename Diffusion>
-void TrajectoryFocused<Background, Diffusion>::DriftCoeff(void)
+template <typename HConfig>
+void TrajectoryFocused<HConfig>::DriftCoeff(void)
 {
    auto U = _fields.Vel();
    auto bhat = _fields.HatMag();
@@ -87,8 +87,8 @@ void TrajectoryFocused<Background, Diffusion>::DriftCoeff(void)
 \author Vladimir Florinski
 \date 08/07/2023
 */
-template <typename Background, typename Diffusion>
-void TrajectoryFocused<Background, Diffusion>::PhysicalStep(void)
+template <typename HConfig>
+void TrajectoryFocused<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_adv = HConfig::cfl_advection;
    constexpr double drift_safety = HConfig::drift_safety;
@@ -103,8 +103,8 @@ void TrajectoryFocused<Background, Diffusion>::PhysicalStep(void)
 \param[out] slope_pos_istage RK slope for position
 \param[out] slope_mom_istage RK slope for momentum
 */
-template <typename Background, typename Diffusion>
-void TrajectoryFocused<Background, Diffusion>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
+template <typename HConfig>
+void TrajectoryFocused<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    GeoMatrix bhatbhat;
    GeoVector cdUvecdt;
@@ -149,8 +149,8 @@ void TrajectoryFocused<Background, Diffusion>::Slopes(GeoVector& slope_pos_istag
 
 If the state at return contains the TRAJ_TERMINATE flag, the calling program must stop this trajectory. If the state at the end contains the TRAJ_DISCARD flag, the calling program must reject this trajectory (and possibly repeat the trial with a different random number).
 */
-template <typename Background, typename Diffusion>
-bool TrajectoryFocused<Background, Diffusion>::Advance(void)
+template <typename HConfig>
+bool TrajectoryFocused<HConfig>::Advance(void)
 {
    return RKAdvance();
 };
@@ -159,8 +159,8 @@ bool TrajectoryFocused<Background, Diffusion>::Advance(void)
 \author Juan G Alonso Guzman
 \date 08/07/2023
 */
-template <typename Background, typename Diffusion>
-inline void TrajectoryFocused<Background, Diffusion>::MomentumCorrection(void)
+template <typename HConfig>
+inline void TrajectoryFocused<HConfig>::MomentumCorrection(void)
 {
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment

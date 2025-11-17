@@ -18,8 +18,8 @@ namespace Spectrum {
 \brief Trajectory tracer for the Newton-Lorentz equation (full orbit)
 \author Vladimir Florinski
 */
-template <typename Background_, typename Diffusion_>
-class TrajectoryLorentz : public TrajectoryBase<Background_, Diffusion_> {
+template <typename HConfig_>
+class TrajectoryLorentz : public TrajectoryBase<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryLorentz";
@@ -27,10 +27,9 @@ class TrajectoryLorentz : public TrajectoryBase<Background_, Diffusion_> {
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
    using TrajectoryFields = HConfig::TrajectoryFields;
-   using TrajectoryBase = TrajectoryBase<Background, Diffusion>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
    using TrajectoryBase::_status;
@@ -93,8 +92,8 @@ public:
 //\date 09/02/2022
 //\return A vector in the (p,mu,phi) format
 //*/
-//template <typename Background, typename Diffusion>
-//inline GeoVector TrajectoryLorentz<Background, Diffusion>::ConvertMomentum(void) const
+//template <typename HConfig>
+//inline GeoVector TrajectoryLorentz<HConfig>::ConvertMomentum(void) const
 //{
 //   return GeoVector(_coords.Mom().Norm(), (_coords.Mom() * _fields.HatMag()) / _coords.Mom().Norm(), 0.0);
 //};

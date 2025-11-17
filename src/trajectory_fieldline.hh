@@ -26,19 +26,18 @@ The type Field_t is a field type that will be traced during the simulation,
 i.e., the "field" in Fieldline.
 Components of "traj_mom" are: unused (x), unused (y), p_para (z)
 */
-template <typename HConfig_, typename Background_, typename Field_t_>
-class TrajectoryFieldline : public TrajectoryBase<Background_, Diffusion_> {
+template <typename HConfig_>
+class TrajectoryFieldline : public TrajectoryBase<HConfig_> {
 
    static constexpr std::string_view traj_name = "TrajectoryFieldline";
 
 public:
 
    using HConfig = HConfig_;
-   using Background = Background_;
-   using Field_t = Field_t_;
+   using Field_t = HConfig::FieldlineField_t;
    using TrajectoryFields = Fields<FConfig<>, Field_t>;
    using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryBase = TrajectoryBase<HConfig, Background_>;
+   using TrajectoryBase = TrajectoryBase<HConfig>;
    using HConfig::specie;
 
    static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Elc_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");

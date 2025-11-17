@@ -25,24 +25,23 @@ int main(int argc, char** argv)
 // Set simulation types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using HConfig = SimulationConfig<
+   using H = SimulationConfig<
+         BuildMode::debug,
          SpecieId::proton_core,
          TrajectoryId::Guiding,
          BackgroundId::Dipole,
          DiffusionId::None,
-         // the rest are default settings, only shown for realism.
          Default,
          Default,
          Default,
-         BuildMode::debug,
          /* num_trajectories */ 1,
          /* batch_size */ 1,
          /* max_trajectories_per_worker */ 1
       >;
 
-   using Background = HConfig::Background;
-   using Diffusion = HConfig::Diffusion;
-   using Trajectory = HConfig::Trajectory;
+   using Background = Background<HConfig>;
+   using Diffusion = Diffusion<HConfig>;
+   using Trajectory = Trajectory<HConfig>;
 
    using InitialTime = InitialTimeFixed<HConfig>;
    using InitialSpace = InitialSpaceFixed<HConfig>;

@@ -32,6 +32,59 @@ enum class BuildMode {
    release
 };
 
+namespace Config {
+
+enum class Background {
+   CylindricalObstacle,
+   Dipole,
+   Discontinuity,
+   MagnetizedCylinder,
+   MagnetizedSphere,
+   Server,
+   ServerBATL,
+   ServerCartesian,
+   Shock,
+   SmoothDiscontinuity,
+   SmoothShock,
+   SolarWind,
+   SolarWindTermShock,
+   SphericalObstacle,
+   Uniform,
+   VLISMBochum,
+   Waves,
+};
+
+enum class Trajectory {
+   Fieldline,
+   Focused,
+   Guiding,
+   GuidingDiff,
+   GuidingScatt,
+   GuidingDiffScatt,
+   Lorentz,
+   Parker,
+};
+
+enum class Diffusion {
+   None,
+   IsotropicConstant,
+   QLTConstant,
+   WNLTConstant,
+   WNLTRampVLISM,
+   ParaConstant,
+   PerpConstant,
+   FullConstant,
+   FlowMomentumPowerLaw,
+   KineticEnergyRadialDistancePowerLaw,
+   RigidityMagneticFieldPowerLaw,
+   StraussEtAl2013,
+   GuoEtAl2014,
+   PotgieterEtAl2015,
+   EmpiricalSOQLTandUNLT,
+};
+
+}
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Fields options
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -51,12 +104,6 @@ enum class CoordinateSystem {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background options
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-enum class BackgroundId {
-   Dipole,
-   // todo
-};
 
 
 namespace BackgroundOptions {
@@ -127,14 +174,6 @@ enum class ModRPos {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-enum class TrajectoryId {
-   Fieldline,
-   Focused,
-   Guiding,
-   Lorentz,
-   Parker,
-};
-
 
 namespace TrajectoryOptions {
 
@@ -191,11 +230,6 @@ enum class DivkMethod {
 // Diffusion options
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-enum class DiffusionId {
-   None,
-   // todo
-};
 
 namespace DiffusionOptions {
 
@@ -283,6 +317,15 @@ struct Cond_impl<false, IfTrue, IfFalse> {
 //! Conditional type
 template <bool cond, typename IfTrue, typename IfFalse>
 using Cond = typename Impl::Cond_impl<cond, IfTrue, IfFalse>::Cond;
+
+
+
+
+
+
+
+
+
 
 
 //! Type indicator to use a default configuration for a Config class
