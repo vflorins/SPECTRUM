@@ -27,12 +27,12 @@ namespace Particle {
 // TODO: The following four constants should be moved to a user-configurable location
 
 //! Length unit: primary (choose based on on Larmor radius, such as 1000 km)
-//SPECTRUM_CONSTEXPR double unit_length = 1.0E10;
-SPECTRUM_CONSTEXPR double unit_length = 1.5E13;
+SPECTRUM_CONSTEXPR double unit_length = 1.0E10;
+//SPECTRUM_CONSTEXPR double unit_length = 1.5E13;
 
 //! Velocity unit: primary (~c)
-//SPECTRUM_CONSTEXPR double unit_velocity = 0.1 * SPC_CONST_CGSM_SPEED_OF_LIGHT;
-SPECTRUM_CONSTEXPR double unit_velocity = 1.0E7;
+SPECTRUM_CONSTEXPR double unit_velocity = 0.1 * SPC_CONST_CGSM_SPEED_OF_LIGHT;
+//SPECTRUM_CONSTEXPR double unit_velocity = 1.0E7;
 
 //! Mass unit: primary (m_p, m_e, etc.)
 SPECTRUM_CONSTEXPR double unit_mass = SPC_CONST_CGSM_MASS_PROTON;

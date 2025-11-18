@@ -14,7 +14,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #if SERVER_TYPE == SERVER_SELF
 // This needs to be here for proper compilation (e.g. for ExServerError to be defined)
-#include "server_base.hh"
+//#include "server_base.hh"
 #elif SERVER_TYPE == SERVER_CARTESIAN
 #include "server_cartesian.hh"
 #elif SERVER_TYPE == SERVER_BATL
