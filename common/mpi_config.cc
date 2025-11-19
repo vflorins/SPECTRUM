@@ -128,7 +128,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
       n_bosses_per_socket = 1;
    }
 
-// If necessary, further split sock_comm for as many bosses as
+// If necessary, further split sock_comm
    else if (n_bosses_per_socket > 1) {
       MPI_Comm_split(sock_comm, (sock_comm_rank % n_bosses_per_socket), 0, &sock_comm_tmp);
       MPI_Comm_free(&sock_comm);
