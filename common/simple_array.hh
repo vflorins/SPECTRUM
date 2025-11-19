@@ -101,10 +101,10 @@ struct SimpleArrayBase<data_type, 2>
 template <typename data_type, int n_vars>
 struct SimpleArray : SimpleArrayBase<data_type, n_vars>
 {
+   using SimpleArrayBase<data_type, n_vars>::data;
+
 //! A trait to be used in template specializations
    static constexpr bool is_simple_array = true;
-   
-   using SimpleArrayBase<data_type, n_vars>::data;
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) {};

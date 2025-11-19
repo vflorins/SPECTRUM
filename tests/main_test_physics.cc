@@ -2,5 +2,5 @@
 
 int main()
 {
-   Spectrum::PrintUnits();
+   Spectrum::TestPhysics();
 };

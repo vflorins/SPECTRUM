@@ -51,7 +51,7 @@ void TrajectoryLorentz::SetStart(void)
 void TrajectoryLorentz::PhysicalStep(void)
 {
 // Obtain the time step based on the orbit resolution. If B is zero, use a small but finite value of "Omega".
-   double Omega = fmax(Particle<specie>::CyclotronFrequency(_vel.Norm(), _spdata.Bmag, specie), sp_tiny);
+   double Omega = fmax(Particle::CyclotronFrequency<specie>(_vel.Norm(), _spdata.Bmag), sp_tiny);
    dt_physical = M_2PI / Omega / steps_per_orbit;
 
 // Obtain the grid based time step based on grid max distance.
@@ -67,7 +67,7 @@ void TrajectoryLorentz::PhysicalStep(void)
 void TrajectoryLorentz::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage, double& slope_amp_istage, double& slope_wgt_istage)
 {
    slope_pos_istage = _vel;
-   slope_mom_istage = q * (_spdata.Evec + (_vel ^ _spdata.Bvec) / c_code);
+   slope_mom_istage = Particle::LorentzForce<specie>(_vel, _spdata.Evec, _spdata.Bvec);
 };
 
 /*!

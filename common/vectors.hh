@@ -52,7 +52,7 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC constexpr GeoVector(const MultiIndex& other);
 
 //! Store the content of the vector into three separate components
-   SPECTRUM_DEVICE_FUNC void Store(double& x_out, double& y_out, double& z_out) const;
+   SPECTRUM_DEVICE_FUNC constexpr void Store(double& x_out, double& y_out, double& z_out) const;
 
 //! Conversion operator to MultiIndex
    SPECTRUM_DEVICE_FUNC constexpr operator MultiIndex(void) const;
@@ -61,25 +61,25 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC constexpr double Norm(void) const;
 
 //! Makes this a unit vector
-   SPECTRUM_DEVICE_FUNC GeoVector& Normalize(void);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& Normalize(void);
 
 //! Makes this a unit vector but saves the norm
-   SPECTRUM_DEVICE_FUNC GeoVector& Normalize(double& norm);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& Normalize(double& norm);
 
 //! Vector-multiply this by another vector
-   SPECTRUM_DEVICE_FUNC GeoVector& operator ^=(const GeoVector& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& operator ^=(const GeoVector& other);
 
 //! Add a multi-index to this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator +=(const MultiIndex& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& operator +=(const MultiIndex& other);
 
 //! Subtract a multi-index from this
-   SPECTRUM_DEVICE_FUNC GeoVector& operator -=(const MultiIndex& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& operator -=(const MultiIndex& other);
 
 //! Multiply component-wise by a multi-index
-   SPECTRUM_DEVICE_FUNC GeoVector& operator *=(const MultiIndex& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& operator *=(const MultiIndex& other);
 
 //! Divide component-wise by a multi-index
-   SPECTRUM_DEVICE_FUNC GeoVector& operator /=(const MultiIndex& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& operator /=(const MultiIndex& other);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -175,7 +175,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(const MultiIndex& oth
 \param[out] y Second component
 \param[out] z Third component
 */
-SPECTRUM_DEVICE_FUNC inline void GeoVector::Store(double& x_out, double& y_out, double& z_out) const
+SPECTRUM_DEVICE_FUNC inline constexpr void GeoVector::Store(double& x_out, double& y_out, double& z_out) const
 {
    x_out = x;
    y_out = y;
@@ -207,7 +207,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr double GeoVector::Norm(void) const
 \date 07/23/2019
 \return Reference to this object
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::Normalize(void)
 {
    double norm = Norm();
    x /= norm;
@@ -222,7 +222,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
 \param[out] norm \f$|v|\f$
 \return Reference to this object
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::Normalize(double& norm)
 {
    norm = Norm();
    x /= norm;
@@ -237,7 +237,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
 \param[in] other Right operand \f$\mathbf{v}_1\f$
 \return \f$\mathbf{v}\times\mathbf{v}_1\f$
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::operator ^=(const GeoVector& other)
 {
    GeoVector vect_tmp(*this);
    x = vect_tmp.y * other.z - vect_tmp.z * other.y;
@@ -253,7 +253,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator ^=(const GeoVector& o
 \param[in] other Right operand (multi-index)
 \return The result of a summation with a multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::operator +=(const MultiIndex& other)
 {
    x += other.x;
    y += other.y;
@@ -268,7 +268,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator +=(const MultiIndex& 
 \param[in] other Right operand (multi-index)
 \return The result of a subtraction of a multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::operator -=(const MultiIndex& other)
 {
    x -= other.x;
    y -= other.y;
@@ -283,7 +283,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator -=(const MultiIndex& 
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise multiplication by a multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::operator *=(const MultiIndex& other)
 {
    x *= other.x;
    y *= other.y;
@@ -298,7 +298,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator *=(const MultiIndex& 
 \param[in] other Right operand (multi-index)
 \return The result of a component-wise division by a multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::operator /=(const MultiIndex& other)
 {
    x /= other.x;
    y /= other.y;
@@ -317,7 +317,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::operator /=(const MultiIndex& 
 \param[in] vect Vector to reflect \f$\mathbf{v}\f$
 \return \f$-\mathbf{v}\f$
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator -(const GeoVector& vect)
 {
    GeoVector vect_tmp(vect);
    vect_tmp.Negate();
@@ -332,7 +332,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect)
 \param[in] sarr_r Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
 */
-SPECTRUM_DEVICE_FUNC inline double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    return vect_l.ScalarProd(vect_r);
 };
@@ -345,7 +345,7 @@ SPECTRUM_DEVICE_FUNC inline double operator *(const GeoVector& vect_l, const Geo
 \param[in] vect_r Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\times\mathbf{v}_2\f$
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator ^(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator ^(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    GeoVector vect_tmp(vect_l);
    vect_tmp ^= vect_r;
@@ -361,7 +361,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator ^(const GeoVector& vect_l, const 
 \param[in] midx_r Right operand (multi-index)
 \return Addition of vector and multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const GeoVector& vect_l, const MultiIndex& midx_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator +(const GeoVector& vect_l, const MultiIndex& midx_r)
 {
    GeoVector vect_tmp(vect_l);
    vect_tmp += midx_r;
@@ -377,7 +377,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const GeoVector& vect_l, const 
 \param[in] vect_r Right operand (vector)
 \return Addition of vector and multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const MultiIndex& midx_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator +(const MultiIndex& midx_l, const GeoVector& vect_r)
 {
    GeoVector vect_tmp(midx_l);
    vect_tmp += vect_r;
@@ -393,7 +393,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator +(const MultiIndex& midx_l, const
 \param[in] midx_r Right operand (multi-index)
 \return Subtraction of vector and multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect_l, const MultiIndex& midx_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator -(const GeoVector& vect_l, const MultiIndex& midx_r)
 {
    GeoVector vect_tmp(vect_l);
    vect_tmp -= midx_r;
@@ -409,7 +409,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect_l, const 
 \param[in] vect_r Right operand (vector)
 \return Subtraction of vector and multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const MultiIndex& midx_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator -(const MultiIndex& midx_l, const GeoVector& vect_r)
 {
    GeoVector vect_tmp(midx_l);
    vect_tmp -= vect_r;
@@ -425,7 +425,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const MultiIndex& midx_l, const
 \param[in] midx_r Right operand (multi-index)
 \return Vector multiplied by the multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator *(const GeoVector& vect_l, const MultiIndex& midx_r)
 {
    GeoVector vect_tmp(vect_l);
    vect_tmp *= midx_r;
@@ -441,7 +441,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const GeoVector& vect_l, const 
 \param[in] vect_r Right operand (vector)
 \return Vector multiplied by the multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator *(const MultiIndex& midx_l, const GeoVector& vect_r)
 {
    GeoVector vect_tmp(midx_l);
    vect_tmp *= vect_r;
@@ -457,7 +457,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator *(const MultiIndex& midx_l, const
 \param[in] midx_r Right operand (multi-index)
 \return Vector divided by the multi-index
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector operator /(const GeoVector& vect_l, const MultiIndex& midx_r)
 {
    GeoVector vect_tmp(vect_l);
    vect_tmp /= midx_r;
@@ -471,7 +471,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator /(const GeoVector& vect_l, const 
 \param[in] vect Vector to rescale \f$\mathbf{v}\f$
 \return Normalized vector
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector UnitVec(const GeoVector& vect)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector UnitVec(const GeoVector& vect)
 {
    GeoVector vect_tmp(vect);
    return vect_tmp.Normalize();

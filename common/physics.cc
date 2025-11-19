@@ -19,7 +19,7 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \date 11/10/2025
 */
-void PrintUnits(void)
+void TestPhysics(void)
 {
    std::cout << std::endl;
 
@@ -155,7 +155,8 @@ void PrintUnits(void)
    double K_cgs = 0.23 * m_cgs * Sqr(SPC_CONST_CGSM_SPEED_OF_LIGHT);
    GeoVector E_cgs = 1.0E-5 * B_cgs;
    double Emag_cgs = E_cgs.Norm();
-   double mag_mom_cgs = 1.0;
+   double mag_mom_cgs = q_cgs * 2.7E11;
+   double ppara_cgs = (p_cgs * B_cgs) / B_cgs.Norm();
 
    message = "Relativistic factor at " + std::format("v={:.3e}⨯cm⨯s⁻¹", vmag_cgs);
    res1 = Particle::RelFactor(vmag_cgs / Particle::unit_velocity);
@@ -213,40 +214,55 @@ void PrintUnits(void)
 
    std::cout << "------------------------Testing particle/fluid routines-------------------------\n";
 
+   message = "Induced Electric field at " + std::format("v={:.3e}⨯cm⨯s⁻¹, ", vmag_cgs)
+                                          + std::format("B={:.3e}⨯G", Bmag_cgs);
+   res1 = Particle::InducedEfield(v_cgs / Particle::unit_velocity, B_cgs / Particle::unit_magnetic).Norm();
+   res2 = (v_cgs ^ B_cgs).Norm() / SPC_CONST_CGSM_SPEED_OF_LIGHT / Particle::unit_magnetic;
+   PrintPassFail(message, res1, res2);
+
    message = "Lorentz force at " + std::format("v={:.3e}⨯cm⨯s⁻¹, ", vmag_cgs)
                                  + std::format("E={:.3e}⨯G, ", Emag_cgs)
                                  + std::format("B={:.3e}⨯G", Bmag_cgs);
-   res1 = Particle::LorentzForce<specie>(v_cgs / Particle::unit_velocity, E_cgs / Fluid::unit_magnetic, B_cgs / Fluid::unit_magnetic).Norm();
+   res1 = Particle::LorentzForce<specie>(v_cgs / Particle::unit_velocity, E_cgs / Particle::unit_magnetic, B_cgs / Particle::unit_magnetic).Norm();
    res2 = q_cgs * (E_cgs + (v_cgs ^ B_cgs) / SPC_CONST_CGSM_SPEED_OF_LIGHT).Norm() / Particle::unit_force;
    PrintPassFail(message, res1, res2);
 
    message = "Thermal speed at " + std::format("T={:.3e}⨯K", T_cgs);
-   res1 = Particle::ThermalSpeed<specie>(T_cgs / Fluid::unit_temperature);
+   res1 = Particle::ThermalSpeed<specie>(T_cgs / Particle::unit_temperature);
    res2 = sqrt(2.0 * SPC_CONST_CGSM_BOLTZMANN * T_cgs / m_cgs) / Particle::unit_velocity;
    PrintPassFail(message, res1, res2);
 
    message = "Cyclotron frequency at " + std::format("v={:.3e}⨯cm⨯s⁻¹, ", vmag_cgs)
                                        + std::format("B={:.3e}⨯G", Bmag_cgs);
-   res1 = Particle::CyclotronFrequency<specie>(vmag_cgs / Particle::unit_velocity, Bmag_cgs / Fluid::unit_magnetic);
+   res1 = Particle::CyclotronFrequency<specie>(vmag_cgs / Particle::unit_velocity, Bmag_cgs / Particle::unit_magnetic);
    res2 = q_cgs * Bmag_cgs / (rel * m_cgs * SPC_CONST_CGSM_SPEED_OF_LIGHT) * Particle::unit_time;
    PrintPassFail(message, res1, res2);
 
    message = "Larmor radius at " + std::format("p={:.3e}⨯g⨯cm⨯s⁻¹, ", pmag_cgs)
                                  + std::format("B={:.3e}⨯G", Bmag_cgs);
-   res1 = Particle::LarmorRadius<specie>(pmag_cgs / Particle::unit_momentum, Bmag_cgs / Fluid::unit_magnetic);
+   res1 = Particle::LarmorRadius<specie>(pmag_cgs / Particle::unit_momentum, Bmag_cgs / Particle::unit_magnetic);
    res2 = pmag_cgs * SPC_CONST_CGSM_SPEED_OF_LIGHT / q_cgs / Bmag_cgs / Particle::unit_length;
    PrintPassFail(message, res1, res2);
 
    message = "Magnetic moment at " + std::format("p={:.3e}⨯g⨯cm⨯s⁻¹, ", pmag_cgs)
                                    + std::format("B={:.3e}⨯G", Bmag_cgs);
-   res1 = Particle::MagneticMoment<specie>(pmag_cgs / Particle::unit_momentum, Bmag_cgs / Fluid::unit_magnetic);
+   res1 = Particle::MagneticMoment<specie>(pmag_cgs / Particle::unit_momentum, Bmag_cgs / Particle::unit_magnetic);
    res2 = Sqr(pmag_cgs) / (2.0 * m_cgs * Bmag_cgs) / Particle::unit_magnetic_moment;
    PrintPassFail(message, res1, res2);
 
-   message = "Momentum at " + std::format("M={:.3e}⨯Fr⨯cm, ", mag_mom_cgs)
-                            + std::format("B={:.3e}⨯G", Bmag_cgs);
-   res1 = Particle::PerpMomentum<specie>(mag_mom_cgs / Particle::unit_magnetic_moment, Bmag_cgs / Fluid::unit_magnetic);
+   message = "Perpendicular momentum at " + std::format("M={:.3e}⨯Fr⨯cm, ", mag_mom_cgs)
+                                          + std::format("B={:.3e}⨯G", Bmag_cgs);
+   res1 = Particle::PerpMomentum<specie>(mag_mom_cgs / Particle::unit_magnetic_moment, Bmag_cgs / Particle::unit_magnetic);
    res2 = sqrt(2.0 * m_cgs * mag_mom_cgs * Bmag_cgs) / Particle::unit_momentum;
+   PrintPassFail(message, res1, res2);
+
+   message = "Relativistic factor at " + std::format("p∥={:.3e}⨯g⨯cm⨯s⁻¹, ", ppara_cgs)
+                                       + std::format("M={:.3e}⨯Fr⨯cm, ", mag_mom_cgs)
+                                       + std::format("B={:.3e}⨯G", Bmag_cgs);
+   
+   res1 = Particle::RelFactor2<specie>(ppara_cgs / Particle::unit_momentum, mag_mom_cgs / Particle::unit_magnetic_moment,
+                                                                            Bmag_cgs / Particle::unit_magnetic);
+   res2 = sqrt(1.0 + (2.0 * m_cgs * mag_mom_cgs * Bmag_cgs + Sqr(ppara_cgs)) / Sqr(m_cgs * SPC_CONST_CGSM_SPEED_OF_LIGHT));
    PrintPassFail(message, res1, res2);
 
    std::cout << std::endl;

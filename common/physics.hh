@@ -263,23 +263,6 @@ SPECTRUM_DEVICE_FUNC inline constexpr double RelFactor1(double mmag)
 };
 
 /*!
-\brief Relativistic factor based on parallel momentum and magnetic moment
-\author Vladimir Florinski
-\author Lucius Schoenbaum
-\date 09/13/2025
-\param[in] mom     Parallel component of momentum in particle units
-\param[in] mag_mom Magnetic moment
-\param[in] B       Magnetic field magnitude
-\return Lorentz factor
-// TODO fix this function
-*/
-//template <Specie specie>
-//SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double B)
-//{
-//   return sqrt(1.0 + (2.0 * specie.mass * mag_mom * B + Sqr(mom)) / Sqr(specie.mass * c_code));
-//};
-
-/*!
 \brief Calculate particle momentum from its kinetic energy
 \author Vladimir Florinski
 \author Lucius Schoenbaum
@@ -401,6 +384,19 @@ SPECTRUM_DEVICE_FUNC inline constexpr double EffectiveTemperature(double v_th)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
+\brief Electric field from ideal Ohm's law
+\author Vladimir Florinski
+\date 11/17/2025
+\param[in] vel  Velocity vector in particle units
+\param[in] Bvec Magnetic field vector in particle units
+\return Electric field, \f$\mathbf{E}=-(\mathbf{v}\times\mathbf{B})/c\f$
+*/
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector InducedEfield(const GeoVector& vel, const GeoVector& Bvec)
+{
+   return  -(vel ^ Bvec) / c_code;
+};
+
+/*!
 \brief Magnetic force on a particle
 \author Vladimir Florinski
 \date 11/11/2025
@@ -465,7 +461,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr double LarmorRadius(double mmag, double Bm
 \author Lucius Schoenbaum
 \date 11/11/2025
 \param[in] mperp Momentum (perp. component) in particle units
-\param[in] Bmag  Magnetic field magnitude in fluid units
+\param[in] Bmag  Magnetic field magnitude in particle units
 \return Magnetic moment
 */
 template <Specie specie>
@@ -487,6 +483,22 @@ template <Specie specie>
 SPECTRUM_DEVICE_FUNC inline constexpr double PerpMomentum(double mag_mom, double Bmag)
 {
    return sqrt(2.0 * specie.mass * mag_mom * Bmag);
+};
+
+/*!
+\brief Relativistic factor based on parallel momentum and magnetic moment
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 09/13/2025
+\param[in] mpara   Parallel component of momentum in particle units
+\param[in] mag_mom Magnetic moment in particle units
+\param[in] Bmag    Magnetic field magnitude in particle units
+\return Lorentz factor
+*/
+template <Specie specie>
+SPECTRUM_DEVICE_FUNC inline constexpr double RelFactor2(double mpara, double mag_mom, double Bmag)
+{
+   return sqrt(1.0 + (2.0 * specie.mass * mag_mom * Bmag + Sqr(mpara)) / Sqr(specie.mass * c_code));
 };
 
 };
@@ -529,8 +541,8 @@ SPECTRUM_DEVICE_FUNC inline constexpr double PerpMomentum(double mag_mom, double
           //* unit_mass_particle * Sqr(PlasmaFrequency<specie>(den) * charge_mass_conversion * specie.charge / specie.mass);
 //};
 
-//! Print all units and constants
-void PrintUnits(void);
+//! Print all units and test each conversion routine
+void TestPhysics(void);
 
 };
 

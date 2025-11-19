@@ -147,7 +147,7 @@ void BackgroundSmoothShock::EvaluateBackground(void)
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
    if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / Particle::c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = Particle::InducedEfield(_spdata.Uvec, _spdata.Bvec);
    _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);

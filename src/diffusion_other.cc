@@ -630,8 +630,8 @@ void DiffusionFlowMomentumPowerLaw::EvaluateDiffusion(void)
 \author Juan G Alonso Guzman
 \author Swati Sharma
 \date 01/03/2025
-\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
-\return double       Directional derivative
+\param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 double DiffusionFlowMomentumPowerLaw::GetDirectionalDerivative(int xyz)
@@ -645,7 +645,7 @@ double DiffusionFlowMomentumPowerLaw::GetDirectionalDerivative(int xyz)
 \author Juan G Alonso Guzman
 \author Swati Sharma
 \date 01/03/2025
-\return double       Derivative in mu
+\return Derivative in mu
 */
 double DiffusionFlowMomentumPowerLaw::GetMuDerivative(void)
 {
@@ -725,8 +725,8 @@ void DiffusionKineticEnergyRadialDistancePowerLaw::EvaluateDiffusion(void)
 /*!
 \author Juan G Alonso Guzman
 \date 02/18/2025
-\param[in] xyz       Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
-\return double       Directional derivative
+\param[in] xyz Index for which derivative to take (0 = x, 1 = y, 2 = z, else = t)
+\return Directional derivative
 \note This is meant to be called after GetComponent() for the component for which the derivative is wanted
 */
 double DiffusionKineticEnergyRadialDistancePowerLaw::GetDirectionalDerivative(int xyz)
@@ -744,7 +744,7 @@ double DiffusionKineticEnergyRadialDistancePowerLaw::GetDirectionalDerivative(in
 /*!
 \author Juan G Alonso Guzman
 \date 05/13/2024
-\return double       Derivative in mu
+\return Derivative in mu
 */
 double DiffusionKineticEnergyRadialDistancePowerLaw::GetMuDerivative(void)
 {

@@ -192,7 +192,7 @@ void TrajectoryParker::DriftCoeff(void)
 // Compute |B|*curl(b/|B|)
    drift_vel = (_spdata.curlB() - 2.0 * (_spdata.gradBmag ^ _spdata.bhat)) / _spdata.Bmag;
 // Scale by pvc/3q|B| = r_L*v/3
-   drift_vel *= LarmorRadius(_mom[0], _spdata.Bmag, specie) * _vel[0] / 3.0;
+   drift_vel *= Particle::LarmorRadius<specie>(_mom[0], _spdata.Bmag) * _vel[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
    if (drift_vel.Norm() > 0.5 * _vel[0]) {
       drift_vel.Normalize();

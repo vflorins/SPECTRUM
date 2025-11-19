@@ -118,7 +118,7 @@ void TrajectoryGuiding::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
 #endif
 
    slope_mom_istage[1] = 0.0;
-   slope_mom_istage[2] = q * (Evec_star * Bvec_star) / (Bvec_star * _spdata.bhat);
+   slope_mom_istage[2] = specie.charge * (Evec_star * Bvec_star) / (Bvec_star * _spdata.bhat);
 };
 
 /*!

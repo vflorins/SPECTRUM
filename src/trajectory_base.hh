@@ -170,9 +170,6 @@ protected:
 //! Initial length of trajectory containers (persistent)
    unsigned int presize = 1;
 
-//! Particle's charge to mass ratio (persistent)
-   double q;
-
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
 

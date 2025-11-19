@@ -1,13 +1,27 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CXXFLAGS = $(MPI_CFLAGS) -DGEO_DEBUG -Wall -Wno-comment
-#AM_CXXFLAGS = $(MPI_CFLAGS)
-#AM_LDFLAGS = $(MPI_LIBS)
-#BATL_HOME = /home/vladimir/Science/Global3D/Michigan/BATL-master
-
 AM_FCFLAGS = -J$(BATL_HOME)/share/include
+AM_CXXFLAGS =
+AM_LDFLAGS =
+
+if ENABLE_MPI
+AM_CXXFLAGS += $(MPI_CFLAGS)
+AM_LDFLAGS += $(MPI_LIBS)
+endif
+
+if ENABLE_CUDA
+AM_CXXFLAGS += $(CUDA_CFLAGS) -Xcompiler "-Wall"
+AM_LDFLAGS += $(CUDA_LIBS)
+else
+AM_CXXFLAGS += -Wall
+endif
+
+if ENABLE_GSL
+AM_LDFLAGS += $(GSL_LIBS) $(GSL_CBLAS_LIB)
+endif
 
 bin_PROGRAMS = main_test_mpi_config \
+               main_test_gpu_config \
                main_test_data_container \
                main_test_physics \
                main_test_background_bochum \
@@ -36,7 +50,15 @@ main_test_mpi_config_SOURCES = main_test_mpi_config.cc \
    $(SPBL_COMMON_DIR)/mpi_config.cc \
    $(SPBL_COMMON_DIR)/mpi_config.hh
 
-main_test_mpi_config_LDADD = $(MPI_LIBS)
+main_test_mpi_config_LINK = $(CXXLD) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+main_test_gpu_config_SOURCES = main_test_gpu_config.cc \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/gpu_config.hh
+
+main_test_gpu_config_LINK = $(CXXLD) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,12 +77,19 @@ main_test_data_container_SOURCES = main_test_data_container.cc \
 main_test_physics_SOURCES = main_test_physics.cc \
    $(SPBL_COMMON_DIR)/physics.cc \
    $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/specie.hh \
+   $(SPBL_COMMON_DIR)/coordinates.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
    $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/physical_constants.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh
+
+main_test_physics_LINK = $(CXXLD) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 

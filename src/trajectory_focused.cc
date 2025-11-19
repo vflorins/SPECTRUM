@@ -116,16 +116,14 @@ void TrajectoryFocused::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom
    cdUvecdt = _spdata.dUvecdt + (_spdata.Uvec * _spdata.gradUvec);
    bhat_cdUvecdt = 2.0 * _spdata.bhat * cdUvecdt / _vel[0];
 
-   slope_mom_istage[0] = 0.5 * _mom[0] * ( (3.0 * st2 - 2.0) * bhatbhat_gradUvec 
-                                         - st2 * _spdata.divU() - _mom[1] * bhat_cdUvecdt);
+   slope_mom_istage[0] = 0.5 * _mom[0] * ((3.0 * st2 - 2.0) * bhatbhat_gradUvec - st2 * _spdata.divU() - _mom[1] * bhat_cdUvecdt);
 
 #if PPERP_METHOD == 1
-   slope_mom_istage[1] = 0.5 * st2 * ( _vel[0] * _spdata.divbhat() - bhat_cdUvecdt 
-                                     + _mom[1] * (_spdata.divU() - 3.0 * bhatbhat_gradUvec) );
+   slope_mom_istage[1] = 0.5 * st2 * (_vel[0] * _spdata.divbhat() - bhat_cdUvecdt + _mom[1] * (_spdata.divU() - 3.0 * bhatbhat_gradUvec));
 #else
    slope_mom_istage[1] = 0.0;
 #endif
-   
+
    slope_mom_istage[2] = 0.0;
 };
 
@@ -149,7 +147,7 @@ inline void TrajectoryFocused::MomentumCorrection(void)
 {
 // Adjust perp component to conserve magnetic moment
 #if PPERP_METHOD == 0
-   _mom[1] = sqrt(1.0 - Sqr(PerpMomentum(mag_mom, _spdata.Bmag, specie) / _mom[0]));
+   _mom[1] = sqrt(1.0 - Sqr(Particle::PerpMomentum<specie>(mag_mom, _spdata.Bmag) / _mom[0]));
 #endif
 
 //Check to enforce |mu| <= 1.0
