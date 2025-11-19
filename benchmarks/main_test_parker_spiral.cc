@@ -176,7 +176,7 @@ int main(int argc, char** argv)
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file,false);
+   trajectory->PrintCSV(trajectory_file, true);
    
    return 0;
 };

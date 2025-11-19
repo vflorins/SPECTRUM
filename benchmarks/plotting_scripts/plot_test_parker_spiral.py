@@ -10,7 +10,7 @@ data_file = "main_test_parker_spiral_TrajectoryFieldline.lines"
 plot_file = "plot_test_parker_spiral_TrajectoryFieldline.png"
 
 # Import data
-data = np.loadtxt(data_path + data_file, delimiter=",")
+data = np.loadtxt(data_path + data_file, delimiter=",") / 1.496e+13 # au
 
 # Make figure
 fig = plt.figure(figsize=(15, 10), layout='tight')

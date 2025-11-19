@@ -10,7 +10,7 @@ data_file = "main_test_dipole_drifts_TrajectoryGuiding.lines"
 plot_file = "plot_test_dipole_drifts_TrajectoryGuiding.png"
 
 # Import data
-data = np.loadtxt(data_path + data_file, delimiter=",") / 4.26352e-5 # au -> RE
+data = np.loadtxt(data_path + data_file, delimiter=",") / 6.37e8 # RE
 N = np.size(data,0)
 
 # Find numbers

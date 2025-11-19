@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
    container.Insert(gv_zeros);
 
-   double radius = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double radius = 1.0 / Particle::unit_length;
    container.Insert(radius);
 
    simulation->AddInitial(InitialSpaceSphere(), container);
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
    GeoVector unit_val2 = {Particle::unit_length, Particle::unit_length, Particle::unit_length};
    container.Insert(unit_val2);
 
-// Don't keep records
+// Keep records
    bool keep_records2 = true;
    container.Insert(keep_records2);
 
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
    simulation->SetTasks(n_traj, batch_size);
    simulation->MainLoop();
    simulation->PrintDistro1D(0, 0, simulation_files_prefix + "init_time.dat", true);
-   simulation->PrintRecords(1, simulation_files_prefix + "pos_records.dat", false);
+   simulation->PrintRecords(1, simulation_files_prefix + "pos_records.dat", true);
 
    if(MPI_Config::is_master) {
       std::cout << std::endl;

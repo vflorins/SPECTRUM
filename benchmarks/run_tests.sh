@@ -19,18 +19,35 @@ then
 	n_cpus=$n_cpus_max
 fi
 
-# Flags to select which tests to run
-dipole_visual_test=true
-turb_waves_test=false
-parker_spiral_test=false
-init_cond_record_test=false
-dipole_drifts_test=false
-pa_distro_iso_test=false
-pa_scatt_test=false
-perp_diff_test=false
-full_diff_test=false
-diff_shock_acc_test=false
-modulation_cartesian_parker_field_test=false
+# If no input is provided, explain usage
+if [ "$#" -eq 0 ] || [ "${1}" = "-h" ]
+then
+   echo "Script to run SPECTRUM benchmark tests."
+   echo "Usage: ./run_tests.sh [N]"
+   echo ""
+   echo "   Value of N indicates which test(s) to run:"
+   echo "------------------------------------------------"
+   echo "      1: DIPOLE FIELD VISUALIZATION"
+   echo "      2: TURBULENCE VIA SUPERPOSITION OF WAVES"
+   echo "      3: PARKER SPIRAL SOLAR WIND"
+   echo "      4: INITIAL CONDITION RECORDS TEST"
+   echo "      5: DIPOLE FIELD DRIFT PERIODS"
+   echo "      6: PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
+   echo "      7: PITCH ANGLE SCATTERING"
+   echo "      8: PERPENDICULAR DIFFUSION"
+   echo "      9: FULL (PERP+PARA) DIFFUSION"
+   echo "     10: DIFFUSIVE SHOCK ACCELERATION"
+   echo "     11: MODULATION WITH CARTESIAN PARKER FIELD"
+   echo "    all: ALL BENCHMARK TESTS"
+fi
+
+# If input `all` is provided, run all tests
+if [ "${1}" = "all" ]
+then
+	run_all_tests=true
+else
+	run_all_tests=false
+fi
 
 # Function to print header
 # $1: header title
@@ -143,7 +160,7 @@ print_header "BENCHMARK RESULTS" $results_file
 mkdir -p logs
 
 # DIPOLE FIELD VISUALIZATION
-if $dipole_visual_test
+if [ "${1}" = "1" ] || $run_all_tests
 then
 	test_title="DIPOLE FIELD VISUALIZATION"
 	log_file="log_test_dipole_visual.txt"
@@ -156,7 +173,7 @@ then
 fi
 
 # TURBULENCE VIA SUPERPOSITION OF WAVES
-if $turb_waves_test
+if [ "${1}" = "2" ] || $run_all_tests
 then
 	test_title="TURBULENCE VIA SUPERPOSITION OF WAVES"
 	log_file="log_test_turb_waves.txt"
@@ -169,7 +186,7 @@ then
 fi
 
 # PARKER SPIRAL SOLAR WIND
-if $parker_spiral_test
+if [ "${1}" = "3" ] || $run_all_tests
 then
 	test_title="PARKER SPIRAL SOLAR WIND"
 	log_file="log_test_parker_spiral.txt"
@@ -182,7 +199,7 @@ then
 fi
 
 # INITIAL CONDITION RECORDS TEST
-if $init_cond_record_test
+if [ "${1}" = "4" ] || $run_all_tests
 then
 	test_title="INITIAL CONDITION RECORDS"
 	log_file="log_test_init_cond_records.txt"
@@ -195,7 +212,7 @@ then
 fi
 
 # DIPOLE FIELD DRIFT PERIODS
-if $dipole_drifts_test
+if [ "${1}" = "5" ] || $run_all_tests
 then
 	test_title="DIPOLE FIELD DRIFT PERIODS"
 	log_file="log_test_dipole_periods.txt"
@@ -208,7 +225,7 @@ then
 fi
 
 # PITCH ANGLE DISTRIBUTION ISOTROPIZATION
-if $pa_distro_iso_test
+if [ "${1}" = "6" ] || $run_all_tests
 then
 	test_title="PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
 	log_file="log_test_pa_distro_isotrop.txt"
@@ -221,7 +238,7 @@ then
 fi
 
 # PITCH ANGLE SCATTERING
-if $pa_scatt_test
+if [ "${1}" = "7" ] || $run_all_tests
 then
 	test_title="PITCH ANGLE SCATTERING"
 	log_file="log_test_pa_scatt.txt"
@@ -234,7 +251,7 @@ then
 fi
 
 # PERPENDICULAR DIFFUSION
-if $perp_diff_test
+if [ "${1}" = "8" ] || $run_all_tests
 then
 	test_title="PERPENDICULAR DIFFUSION"
 	log_file="log_test_perp_diff.txt"
@@ -247,7 +264,7 @@ then
 fi
 
 # FULL (PERP+PARA) DIFFUSION
-if $full_diff_test
+if [ "${1}" = "9" ] || $run_all_tests
 then
 	test_title="FULL DIFFUSION"
 	log_file="log_test_full_diff.txt"
@@ -260,7 +277,7 @@ then
 fi
 
 # DIFFUSIVE SHOCK ACCELERATION
-if $diff_shock_acc_test
+if [ "${1}" = "10" ] || $run_all_tests
 then
 	test_title="DIFFUSIVE SHOCK ACCELERATION"
 	log_file="log_test_diff_shock_acc.txt"
@@ -280,7 +297,7 @@ then
 fi
 
 # MODULATION WITH CARTESIAN PARKER FIELD
-if $modulation_cartesian_parker_field_test
+if [ "${1}" = "11" ] || $run_all_tests
 then
 	test_title="CARTESIAN PARKER FIELD BACKGROUND GENERATION"
 	log_file="log_generate_cartesian_solarwind_background.txt"

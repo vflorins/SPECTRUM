@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-   double L = 3.0;
+   double L = 4.0;
    GeoVector start_pos(L*RE, 0.0, 0.0);
    container.Insert(start_pos);
 
@@ -103,7 +103,8 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 1.0;
-   container.Insert(Particle::Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy));
+   double kinetic_energy = MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy;
+   container.Insert(Particle::Mom<specie>(kinetic_energy));
 
    double theta_eq = DegToRad(30.0);
    container.Insert(theta_eq);
@@ -233,7 +234,7 @@ int main(int argc, char** argv)
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file,false);
+   trajectory->PrintCSV(trajectory_file, true);
    
    return 0;
 };
