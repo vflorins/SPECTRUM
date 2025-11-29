@@ -10,7 +10,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_MAGNETIZED_CYLINDER_HH
 #define SPECTRUM_BACKGROUND_MAGNETIZED_CYLINDER_HH
 
-#include "background_cylindrical_obstacle.hh"
 
 namespace Spectrum {
 
@@ -26,57 +25,32 @@ namespace Spectrum {
 Parameters: (BackgroundCylindricalObstacle)
 */
 template <typename HConfig_>
-class BackgroundMagnetizedCylinder : public BackgroundCylindricalObstacle<HConfig_> {
-private:
+class BackgroundMagnetizedCylinder: public BackgroundCylindricalObstacle<HConfig_> {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundMagnetizedCylinder";
+   static constexpr std::string_view name = "BackgroundMagnetizedCylinder";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundMagnetizedCylinder<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+   using Config = HConfig::BackgroundConfig;
    using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<HConfig>;
-
-   using BackgroundConfig::derivative_method;
-
-protected:
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   using BackgroundCylindricalObstacle::B0;
 
 public:
 
-//! Default constructor
-   BackgroundMagnetizedCylinder(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Destructor
-   ~BackgroundMagnetizedCylinder() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundMagnetizedCylinder);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
 };
 

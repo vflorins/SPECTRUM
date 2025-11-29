@@ -42,7 +42,7 @@ int main(void)
    double z_nose = 110.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(z_nose);
 
-   background.SetupObject(container);
+   .SetupObject(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 

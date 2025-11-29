@@ -22,7 +22,7 @@ using namespace BackgroundOptions;
 */
 template <typename HConfig>
 BackgroundWaves<HConfig>::BackgroundWaves(void)
-               : BackgroundBase(bg_name, MODEL_STATIC)
+               : BackgroundBase(name, MODEL_STATIC)
 {
 };
 
@@ -181,9 +181,9 @@ void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
 
    posprime = coords.Pos() - r0;
 
-   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = gv_zeros;
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = gv_zeros;
    if constexpr (RequestedFields::Mag_found()) {
-      fields.Mag() = B0;
+      fields.Mag('w') = B0;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
          for (wave = 0; wave < n_waves[t_type]; wave++) {
@@ -197,14 +197,14 @@ void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
             B_rot[1] = -Ampl[t_type][wave] * sina[t_type][wave] * sin(arg);
 
 // Project the field back into the global frame. This is faster than calling "ChangeFromBasis()" because it saves 6 ops out of 15
-            fields.Mag()[0] += B_rot[0] * basis[t_type][wave][0][0] + B_rot[1] * basis[t_type][wave][1][0];
-            fields.Mag()[1] += B_rot[0] * basis[t_type][wave][0][1] + B_rot[1] * basis[t_type][wave][1][1];
-            fields.Mag()[2] += B_rot[0] * basis[t_type][wave][0][2] + B_rot[1] * basis[t_type][wave][1][2];
+            fields.Mag('w')[0] += B_rot[0] * basis[t_type][wave][0][0] + B_rot[1] * basis[t_type][wave][1][0];
+            fields.Mag('w')[1] += B_rot[0] * basis[t_type][wave][0][1] + B_rot[1] * basis[t_type][wave][1][1];
+            fields.Mag('w')[2] += B_rot[0] * basis[t_type][wave][0][2] + B_rot[1] * basis[t_type][wave][1][2];
          };
       };
    };
-   if constexpr (RequestedFields::Elc_found()) fields.Elc() = gv_zeros;
-   if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = gv_zeros;
+   if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -225,9 +225,9 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords
 
    posprime = coords.Pos() - r0;
 
-   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
    if constexpr (RequestedFields::DelMag_found()) {
-      fields.DelMag() = gm_zeros;
+      fields.DelMag('w') = gm_zeros;
 
       for (t_type = turb_alfven; t_type <= turb_isotropic; GEO_INCR(t_type, turb_type)) {
          for (wave = 0; wave < n_waves[t_type]; wave++) {
@@ -246,17 +246,17 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords
 
 // Transform the derivataives to the global frame
             for (xyz = 0; xyz < 3; xyz++) {
-               fields.DelMag()[0][xyz] += dB_rot[xyz] * basis[t_type][wave][3][0];
-               fields.DelMag()[1][xyz] += dB_rot[xyz] * basis[t_type][wave][3][1];
-               fields.DelMag()[2][xyz] += dB_rot[xyz] * basis[t_type][wave][3][2];
+               fields.DelMag('w')[0][xyz] += dB_rot[xyz] * basis[t_type][wave][3][0];
+               fields.DelMag('w')[1][xyz] += dB_rot[xyz] * basis[t_type][wave][3][1];
+               fields.DelMag('w')[2][xyz] += dB_rot[xyz] * basis[t_type][wave][3][2];
             };
          };
       };
    };
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
-   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
-   if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
+   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
 };
 
 /*!
@@ -265,7 +265,7 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords
 */
 template <typename HConfig>
 template <typename Coordinates>
-void BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords)
+double BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(shortest_wave, dmax0);
    LOWER_BITS(_status, STATE_INVALID);

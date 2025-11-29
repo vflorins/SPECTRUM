@@ -19,25 +19,25 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Boundary is in time
-const uint16_t BOUNDARY_TIME = 0x0010;
+const status_t BOUNDARY_TIME = 0x0010;
 
 //! Boundary is spatial
-const uint16_t BOUNDARY_SPACE = 0x0020;
+const status_t BOUNDARY_SPACE = 0x0020;
 
 //! Boundary is momentum boundary
-const uint16_t BOUNDARY_MOMENTUM = 0x0040;
+const status_t BOUNDARY_MOMENTUM = 0x0040;
 
 //! Reflecting boundary, trajectory will continue
-const uint16_t BOUNDARY_REFLECT = 0x0080;
+const status_t BOUNDARY_REFLECT = 0x0080;
 
 //! Trajectory will stop after next crossing
-const uint16_t BOUNDARY_TERMINAL = 0x0100;
+const status_t BOUNDARY_TERMINAL = 0x0100;
 
 //! Boundary was crossed since last saved position (delta's have opposite signs)
-const uint16_t BOUNDARY_CROSSED = 0x0200;
+const status_t BOUNDARY_CROSSED = 0x0200;
 
 //! Boundary is recurrent (moves by a certain amount after each crossing)
-const uint16_t BOUNDARY_RECURRENT = 0x0400;
+const status_t BOUNDARY_RECURRENT = 0x0400;
 
 //! Types of boundary conditions
 const std::string boundary_type_names[3] = {"time", "space", "momentum"};
@@ -93,9 +93,8 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::TrajectoryConfig::TrajectoryCoordinates;
-   using Fields = HConfig::TrajectoryConfig::TrajectoryFields;
-   using HConfig::specie;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
+   using Fields = HConfig::TrajectoryConfig::Fields;
 
 protected:
 
@@ -133,7 +132,7 @@ protected:
    BoundaryBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryBase(const std::string& name_in, uint16_t status_in);
+   BoundaryBase(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    BoundaryBase(const BoundaryBase& other);

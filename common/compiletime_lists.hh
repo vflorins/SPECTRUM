@@ -15,8 +15,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <gsl/gsl_const_cgsm.h>
 #endif
 
+#include "common/compiletime_math.hh"
 #include "common/rk_lists.hh"
 #include "common/specie.hh"
+
 
 namespace Spectrum {
 
@@ -34,15 +36,23 @@ enum class BuildMode {
 
 namespace Config {
 
+// NOTE: This namespace is automatically parsed by config.py.
+// Do not make changes to this namespaces without
+// reviewing/testing config.py.
+
+// NOTE: These backgrounds are not yet supported in this branch/version of SPECTRUM.
+//   Server
+//   ServerBATL
+//   ServerCartesian
+
 enum class Background {
    CylindricalObstacle,
+   DataBATL,
+   DataCartesian,
    Dipole,
    Discontinuity,
    MagnetizedCylinder,
    MagnetizedSphere,
-   Server,
-   ServerBATL,
-   ServerCartesian,
    Shock,
    SmoothDiscontinuity,
    SmoothShock,

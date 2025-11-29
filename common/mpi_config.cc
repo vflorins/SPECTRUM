@@ -1,5 +1,5 @@
 /*!
-\file MPI_Config::cc
+\file mpi_config.cc
 \brief Implements classes responsible for creating MPI various communicators and determining hardware configuration, as well as aiding in non-blocking communication
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -9,7 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "mpi_config.hh" 
 
-#ifdef USE_MPI
 
 #include <algorithm>
 #include <fstream>
@@ -19,7 +18,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// Example 1: 3 nodes, 4 proc/node, ALLOW_MASTER_BOSS, ALLOW_BOSS_WORKER
+// Example 1: 3 nodes, 4 proc/node, ALLOW_MASTER_SERVER, ALLOW_SERVER_WORKER
 //
 // node_comm:     0       1       2       3       4       5       6       7       8       9      10      11
 //                |       |       |       |       |       |       |       |       |       |       |       |
@@ -35,7 +34,7 @@ namespace Spectrum {
 
 
 
-// Example 2: 3 nodes, 4 proc/node, ALLOW_MASTER_BOSS
+// Example 2: 3 nodes, 4 proc/node, ALLOW_MASTER_SERVER
 //
 // node_comm:     0       1       2       3       4       5       6       7       8       9      10      11
 //                |       |       |       |       |       |       |       |       |       |       |       |
@@ -51,7 +50,7 @@ namespace Spectrum {
 
 
 
-// Example 3: 3 nodes, 4 proc/node, ALLOW_BOSS_WORKER
+// Example 3: 3 nodes, 4 proc/node, ALLOW_SERVER_WORKER
 //
 // node_comm:             1       2       3       4       5       6       7       8       9      10      11
 //                        |       |       |       |       |       |       |       |       |       |       |
@@ -88,7 +87,8 @@ namespace Spectrum {
 \param[in] argc Number of command line arguments
 \param[in] argv Array of command line arguments
 */
-MPI_Config::MPI_Config(int argc, char** argv)
+template <typename HConfig>
+MPI<HConfig>::MPI(int argc, char** argv)
 {
    int proc;
 
@@ -106,43 +106,45 @@ MPI_Config::MPI_Config(int argc, char** argv)
    MPI_Comm_rank(node_comm, &node_comm_rank);
 
 // Adjust for multiple servers per node
-#ifdef N_BOSSES_PER_NODE
-#if N_BOSSES_PER_NODE > 1
-   int sock_comm_size, sock_comm_rank;
-   MPI_Comm sock_comm, sock_comm_tmp;
+   if constexpr (HConfig::data_background()) {
+      // todo this parameter in all data backgrounds
+      constexpr auto n_servers_per_node = HConfig::BackgroundConfig::n_servers_per_node;
+      if constexpr (n_servers_per_node > 1) {
+         int sock_comm_size, sock_comm_rank;
+         MPI_Comm sock_comm, sock_comm_tmp;
 
 // First split based on socket. This is done to ensure that servers only communicate with workers within their physical socket.
-   MPI_Comm_split_type(node_comm, OMPI_COMM_TYPE_SOCKET, 0, MPI_INFO_NULL, &sock_comm);
-   MPI_Comm_size(sock_comm, &sock_comm_size);
-   MPI_Comm_rank(sock_comm, &sock_comm_rank);
+         MPI_Comm_split_type(node_comm, OMPI_COMM_TYPE_SOCKET, 0, MPI_INFO_NULL, &sock_comm);
+         MPI_Comm_size(sock_comm, &sock_comm_size);
+         MPI_Comm_rank(sock_comm, &sock_comm_rank);
 
 // Figure out the number of sockets per node by counting the number of processes with rank 0 in "sock_comm"
-   int sock_count_msg = (sock_comm_rank ? 0 : 1);
-   MPI_Allreduce(&sock_count_msg, &n_sockets_per_node, 1, MPI_INT, MPI_SUM, node_comm);
+         int sock_count_msg = (sock_comm_rank ? 0 : 1);
+         MPI_Allreduce(&sock_count_msg, &n_sockets_per_node, 1, MPI_INT, MPI_SUM, node_comm);
 
 // Find number of servers per socket. This number is forced to be at least 1 and rounded down to be an integer for simplicity.
-   n_servers_per_socket = N_BOSSES_PER_NODE / n_sockets_per_node;
+         n_servers_per_socket = n_servers_per_node / n_sockets_per_node;
 
-// If there are more sockets than servers, just pretend N_BOSSES_PER_NODE = n_servers_per_socket * n_sockets_per_node
-   if (n_servers_per_socket < 1) {
-      n_servers_per_socket = 1;
-   }
+// If there are more sockets than servers, just pretend N_SERVERS_PER_NODE = n_servers_per_socket * n_sockets_per_node
+         if (n_servers_per_socket < 1) {
+            n_servers_per_socket = 1;
+         }
 
 // If necessary, further split sock_comm for as many servers as
-   else if (n_servers_per_socket > 1) {
-      MPI_Comm_split(sock_comm, (sock_comm_rank % n_servers_per_socket), 0, &sock_comm_tmp);
-      MPI_Comm_free(&sock_comm);
-      sock_comm = sock_comm_tmp;
-   };
+         else if (n_servers_per_socket > 1) {
+            MPI_Comm_split(sock_comm, (sock_comm_rank % n_servers_per_socket), 0, &sock_comm_tmp);
+            MPI_Comm_free(&sock_comm);
+            sock_comm = sock_comm_tmp;
+         };
 
-   MPI_Comm_free(&node_comm);
-   node_comm = sock_comm;
+         MPI_Comm_free(&node_comm);
+         node_comm = sock_comm;
 
 // Update rank and size in new "node" communicators
-   MPI_Comm_size(node_comm, &node_comm_size);
-   MPI_Comm_rank(node_comm, &node_comm_rank);
-#endif
-#endif
+         MPI_Comm_size(node_comm, &node_comm_size);
+         MPI_Comm_rank(node_comm, &node_comm_rank);
+      }
+   }
 
 // Figure out the number of nodes (or node-like units) by counting the number of processes with rank 0 in "node_comm"
    int node_count_msg = (node_comm_rank ? 0 : 1);
@@ -189,7 +191,9 @@ MPI_Config::MPI_Config(int argc, char** argv)
 // Server functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifndef ALLOW_MASTER_BOSS
+// TODO GOT TO HERE ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+#ifndef ALLOW_MASTER_SERVER
+   if constexpr ()
 
 // If the master cannot be a server, remove the master from the respective node communicator. On the master "node_comm" will be set to MPI_COMM_NULL.
    MPI_Comm node_comm_tmp;
@@ -244,7 +248,7 @@ MPI_Config::MPI_Config(int argc, char** argv)
 // Determine the number of workers and set the worker status. The number could be zero if there is only one process on the node and a server-worker is not allowed.
    if (is_server) {
 
-#ifdef ALLOW_BOSS_WORKER
+#ifdef ALLOW_SERVER_WORKER
       workers_in_node = node_comm_size;
       is_worker = true;
 #else
@@ -304,7 +308,8 @@ MPI_Config::MPI_Config(int argc, char** argv)
 \author Vladimir Florinski
 \date 06/07/2022
 */
-MPI_Config::~MPI_Config()
+template <typename HConfig>
+MPI<HConfig>::~MPI()
 {
    if (is_master) delete[] workers_per_node;
    if (work_comm != MPI_COMM_NULL) MPI_Comm_free(&work_comm);
@@ -316,78 +321,57 @@ MPI_Config::~MPI_Config()
 };
 
 /*!
-\author Juan G Alonso Guzman
-\date 04/27/2021
-\param[in] size Size of communicator in which non-blocking receives will be called
-*/
-MPI_Request_Info::MPI_Request_Info(int size)
-{
-   mpi_req = new MPI_Request[size];
-   cpu_rank = new int[size];
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 04/27/2021
-*/
-MPI_Request_Info::~MPI_Request_Info()
-{
-   delete[] mpi_req;
-   delete[] cpu_rank;
-};
-
-#ifdef GEO_DEBUG
-
-/*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 12/02/2024
 */
-void TestMPIConfig(void)
+template <typename HConfig>
+void MPI<HConfig>::TestMPIConfig(void) const requires (HConfig::buildmode == BuildMode::debug)
 {
 // Each process prints its config to a different file
-   std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(MPI_Config::glob_comm_rank);
+   std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(MPI::glob_comm_rank);
    std::ofstream infofile;
    infofile.open(filename.c_str(), std::ofstream::out);
 
    infofile << "--------------------------------------------------------------------------------\n";
-   infofile << "Size of global communicator: " << MPI_Config::glob_comm_size << std::endl;
-   infofile << "Rank in global communicator: " << MPI_Config::glob_comm_rank << std::endl;
-   infofile << "Master status: " << (MPI_Config::is_master ? "YES" : "NO") << std::endl;
+   infofile << "Size of global communicator: " << MPI::glob_comm_size << std::endl;
+   infofile << "Rank in global communicator: " << MPI::glob_comm_rank << std::endl;
+   infofile << "Master status: " << (MPI::is_master ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   infofile << "Number of nodes: " << MPI_Config::n_nodes << std::endl;
-   infofile << "Size of server communicator: " << MPI_Config::server_comm_size << std::endl;
-   infofile << "Rank in server communicator: " << MPI_Config::server_comm_rank << std::endl;
-   infofile << "Server status: " << (MPI_Config::is_server ? "YES" : "NO") << std::endl;
+   infofile << "Number of nodes: " << MPI::n_nodes << std::endl;
+   infofile << "Size of server communicator: " << MPI::server_comm_size << std::endl;
+   infofile << "Rank in server communicator: " << MPI::server_comm_rank << std::endl;
+   infofile << "Server status: " << (MPI::is_server ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   infofile << "This is node: " << MPI_Config::my_node << std::endl;
-   infofile << "Size of node communicator: " << MPI_Config::node_comm_size << std::endl;
-   infofile << "Rank in node communicator: " << MPI_Config::node_comm_rank << std::endl;
-   infofile << "Number of sockets per node: " << MPI_Config::n_sockets_per_node << std::endl;
-   infofile << "Number of servers per socket: " << MPI_Config::n_servers_per_socket << std::endl;
+   infofile << "This is node: " << MPI::my_node << std::endl;
+   infofile << "Size of node communicator: " << MPI::node_comm_size << std::endl;
+   infofile << "Rank in node communicator: " << MPI::node_comm_rank << std::endl;
+   infofile << "Number of sockets per node: " << MPI::n_sockets_per_node << std::endl;
+   infofile << "Number of servers per socket: " << MPI::n_servers_per_socket << std::endl;
    infofile << std::endl;
 
-   infofile << "Total number of workers: " << MPI_Config::n_workers << std::endl;
-   infofile << "Number of workers in this node: " << MPI_Config::workers_in_node << std::endl;
-   infofile << "Size of worker communicator: " << MPI_Config::work_comm_size << std::endl;
-   infofile << "Rank in worker communicator: " << MPI_Config::work_comm_rank << std::endl;
-   infofile << "Worker status: " << (MPI_Config::is_worker ? "YES" : "NO") << std::endl;
+   infofile << "Total number of workers: " << MPI::n_workers << std::endl;
+   infofile << "Number of workers in this node: " << MPI::workers_in_node << std::endl;
+   infofile << "Size of worker communicator: " << MPI::work_comm_size << std::endl;
+   infofile << "Rank in worker communicator: " << MPI::work_comm_rank << std::endl;
+   infofile << "Worker status: " << (MPI::is_worker ? "YES" : "NO") << std::endl;
    infofile << std::endl;
 
-   if (MPI_Config::is_master) {
-      for (auto node = 0; node < MPI_Config::n_nodes; node++) {
-         infofile << "Number of workers in node " << node << ": " << MPI_Config::workers_per_node[node] << std::endl;
+   if (MPI::is_master) {
+      for (auto node = 0; node < MPI::n_nodes; node++) {
+         infofile << "Number of workers in node " << node << ": " << MPI::workers_per_node[node] << std::endl;
       };
    };
    infofile << "--------------------------------------------------------------------------------\n";
-   
+
    infofile.close();
 };
 
-#endif
+
+
+
 
 };
 
-#endif

@@ -9,7 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_DISCONTINUITY_HH
 #define SPECTRUM_BACKGROUND_DISCONTINUITY_HH
 
-#include "background_base.hh"
 
 namespace Spectrum {
 
@@ -24,74 +23,51 @@ namespace Spectrum {
 Parameters: (BackgroundBase), GeoVector n_discont, double v_discont, GeoVector u1, GeoVector B1
 */
 template <typename HConfig_>
-class BackgroundDiscontinuity : public BackgroundBase<HConfig_> {
-private:
+class BackgroundDiscontinuity {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundDiscontinuity";
+   static constexpr std::string_view name = "BackgroundDiscontinuity";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundDiscontinuity<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
-
-   using BackgroundConfig::derivative_method;
+   using Config = HConfig::BackgroundConfig;
 
 protected:
 
-//! Discontinuity normal (persistent)
-   GeoVector n_discont;
+   static constexpr double dmax0 = Config::dmax0;
+
+   static constexpr GeoVector r0 = Config::r0;
+
+   //! Discontinuity normal (persistent)
+   static constexpr GeoVector n_discont = Config::n_discont.Normalize();
 
 //! Discontinuity velocity (persistent)
-   double v_discont;
+   static constexpr double v_discont = Config::v_discont;
 
 //! Downstream flow vector (persistent), "u0" is upstream flow vector
-   GeoVector u1;
+   static constexpr GeoVector u0 = Config::u0;
+   static constexpr GeoVector u1 = Config::u1;
 
 //! Downstream magnetic field (persistent), "B0" is upstream magnetic field
-   GeoVector B1;
-
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static constexpr GeoVector B0 = Config::B0;
+   static constexpr GeoVector B1 = Config::B1;
 
 public:
 
-//! Default constructor
-   BackgroundDiscontinuity(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundDiscontinuity(const std::string& name_in, uint16_t status_in);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundDiscontinuity(const BackgroundDiscontinuity& other);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
-//! Destructor
-   ~BackgroundDiscontinuity() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundDiscontinuity);
 
 };
 

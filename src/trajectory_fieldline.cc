@@ -33,7 +33,7 @@ TrajectoryFieldline<HConfig>::TrajectoryFieldline(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryFieldline<HConfig>::TrajectoryFieldline(const std::string& name_in, uint16_t status_in)
+TrajectoryFieldline<HConfig>::TrajectoryFieldline(const std::string_view& name_in, status_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -61,7 +61,7 @@ void TrajectoryFieldline<HConfig>::SetStart(void)
 template <typename HConfig>
 void TrajectoryFieldline<HConfig>::PhysicalStep(void)
 {
-   constexpr double cfl_adv = HConfig::cfl_advection;
+   constexpr double cfl_adv = Config::cfl_advection;
    // todo review - what is Vel_sys ----> check
    dt_physical = cfl_adv * _dmax / fabs(_coords.VelPara());
 };

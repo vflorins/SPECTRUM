@@ -23,7 +23,6 @@ using namespace BackgroundOptions;
 */
 template <typename HConfig>
 BackgroundSphericalObstacle<HConfig>::BackgroundSphericalObstacle(void)
-                           : BackgroundBase(bg_name, MODEL_STATIC)
 {
 };
 
@@ -32,8 +31,7 @@ BackgroundSphericalObstacle<HConfig>::BackgroundSphericalObstacle(void)
 \date 08/20/2024
 */
 template <typename HConfig>
-BackgroundSphericalObstacle<HConfig>::BackgroundSphericalObstacle(const std::string& name_in, uint16_t status_in)
-                           : BackgroundBase(name_in, status_in)
+BackgroundSphericalObstacle<HConfig>::BackgroundSphericalObstacle(const std::string_view& name_in, status_t status_in)
 {
 };
 
@@ -80,19 +78,19 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackground(Coordinates& coord
    GeoVector posprime = coords.Pos() - r0;
    double posprimenorm = posprime.Norm();
 
-   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = gv_zeros;
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = gv_zeros;
    if constexpr (RequestedFields::Mag_found()) {
-      if (posprimenorm < r_sphere) fields.Mag() = gv_zeros;
+      if (posprimenorm < r_sphere) fields.Mag('w') = gv_zeros;
       else {
          double r2 = Sqr(posprimenorm);
          double r5 = Cube(posprimenorm) * r2;
-         fields.Mag() = B0 - (3.0 * (posprime * M) * posprime - r2 * M) / r5;
+         fields.Mag('w') = B0 - (3.0 * (posprime * M) * posprime - r2 * M) / r5;
       };
    };
-   if constexpr (RequestedFields::Elc_found()) fields.Elc() = gv_zeros;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = gv_zeros;
    if constexpr (RequestedFields::Iv0_found()) {
-      if (posprimenorm < r_sphere) fields.Iv0() = 0.0;
-      else fields.Iv0() = 1.0;
+      if (posprimenorm < r_sphere) fields.Iv0('w') = 0.0;
+      else fields.Iv0('w') = 1.0;
    }
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -110,11 +108,11 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordin
       GeoVector posprime = coords.Pos() - r0;
       double posprimenorm = posprime.Norm();
 
-      if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
+      if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
       if constexpr (RequestedFields::DelMag_found() || Fields::DelAbsMag_found()) {
          if (posprimenorm < r_sphere) {
-            if constexpr (RequestedFields::DelMag_found()) fields.DelMag() = gm_zeros;
-            if constexpr (RequestedFields::DelAbsMag_found()) fields.DelAbsMag() = 0.0;
+            if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') = gm_zeros;
+            if constexpr (RequestedFields::DelAbsMag_found()) fields.DelAbsMag('w') = 0.0;
          }
          else {
             double r2 = Sqr(posprimenorm);
@@ -127,15 +125,15 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordin
 
             auto DelMag = -3.0 * (mr + rm + mdotr * (gm_unit - 5.0 * rr / r2)) / r5;
             if constexpr (RequestedFields::DelMag_found())
-               fields.DelMag() = DelMag;
+               fields.DelMag('w') = DelMag;
             if constexpr (RequestedFields::DelAbsMag_found())
-               fields.DelAbsMag() = DelMag * fields.HatMag();
+               fields.DelAbsMag('w') = DelMag * fields.HatMag();
          };
       };
-      if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
-      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
-      if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
-      if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
+      if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
+      if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
+      if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
    }
    else {
       NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
@@ -148,7 +146,7 @@ void BackgroundSphericalObstacle<HConfig>::EvaluateBackgroundDerivatives(Coordin
 */
 template <typename HConfig>
 template <typename Coordinates>
-void BackgroundSphericalObstacle<HConfig>::EvaluateDmax(Coordinates& coords)
+double BackgroundSphericalObstacle<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

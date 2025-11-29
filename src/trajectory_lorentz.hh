@@ -27,10 +27,11 @@ class TrajectoryLorentz : public TrajectoryBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -42,8 +43,8 @@ public:
 //   // methods
    using TrajectoryBase::RKAdvance;
 
-   static_assert(!TrajectoryFields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(!TrajectoryFields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

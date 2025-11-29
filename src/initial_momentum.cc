@@ -56,7 +56,7 @@ void InitialMomentumFixed<HConfig>::SetupInitial(bool construct)
 
 // Pre-assign "_mom" so that it never needs to change
    container.Read(initmom);
-   _coords.Mom() = initmom;
+   _coords.Mom('w') = initmom;
 
 };
 
@@ -117,13 +117,13 @@ void InitialMomentumBeam<HConfig>::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused) {
-      _coords.Mom() = GeoVector(p0, 0.0, 0.0);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {
+      _coords.Mom('w') = GeoVector(p0, 0.0, 0.0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
-      _coords.Mom() = GeoVector(0.0, 0.0, p0);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+      _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
 // Nothing to do.
    }
 };
@@ -136,7 +136,7 @@ void InitialMomentumBeam<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialMomentumBeam<HConfig>::EvaluateInitial(void)
 {
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
       _coords.Mom() = p0 * axis;
    }
    else {
@@ -194,13 +194,13 @@ void InitialMomentumRing<HConfig>::SetupInitial(bool construct)
    mu0 = cos(theta0);
    st0 = sin(theta0);
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused) {
-      _coords.Mom() = GeoVector(p0, mu0, 0.0);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {
+      _coords.Mom('w') = GeoVector(p0, mu0, 0.0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
-      _coords.Mom() = GeoVector(p0 * st0, 0.0, p0 * mu0);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+      _coords.Mom('w') = GeoVector(p0 * st0, 0.0, p0 * mu0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
 // Nothing to do.
    }
 
@@ -213,17 +213,17 @@ void InitialMomentumRing<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialMomentumRing<HConfig>::EvaluateInitial(void)
 {
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
       double phi = M_2PI * rng->GetUniform();
       GeoVector e1, e2;
 
 // Component parallel to "axis"
-      _coords.Mom() = p0 * mu0 * axis;
+      _coords.Mom('w') = p0 * mu0 * axis;
 
 // Components normal to "axis"
       e1 = GetSecondUnitVec(axis);
       e2 = axis ^ e1;
-      _coords.Mom() += p0 * st0 * (cos(phi) * e1 + sin(phi) * e2);
+      _coords.Mom('w') += p0 * st0 * (cos(phi) * e1 + sin(phi) * e2);
    }
    else {
 // Nothing to do - the value of "_coords.Mom()" was assigned in "SetupInitial()"
@@ -275,11 +275,11 @@ void InitialMomentumShell<HConfig>::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) {
-      _coords.Mom() = GeoVector(p0, 0.0, 0.0);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
+      _coords.Mom('w') = GeoVector(p0, 0.0, 0.0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline) {
-      _coords.Mom() = GeoVector(0.0, 0.0, p0);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
    }
    else {
 // Nothing to do.
@@ -294,27 +294,27 @@ template <typename HConfig>
 void InitialMomentumShell<HConfig>::EvaluateInitial(void)
 {
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding
-   || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused) {
+   if constexpr (HConfig::trajectory == Config::Trajectory::Guiding
+   || HConfig::trajectory == Config::Trajectory::Focused) {
 
       double mu, st;
 
       mu = -1.0 + 2.0 * rng->GetUniform();
       st = sqrt(1.0 - Sqr(mu));
 
-      if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
-         _coords.Mom() = GeoVector(p0 * st, 0.0, p0 * mu);
+      if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+         _coords.Mom('w') = GeoVector(p0 * st, 0.0, p0 * mu);
       }
       else {
-         _coords.Mom() = GeoVector(p0, mu, 0.0);
+         _coords.Mom('w') = GeoVector(p0, mu, 0.0);
       }
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz) {
       double mu, st, phi;
       mu = -1.0 + 2.0 * rng->GetUniform();
       st = sqrt(1.0 - Sqr(mu));
       phi = M_2PI * rng->GetUniform();
-      _coords.Mom() = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
+      _coords.Mom('w') = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
    }
    else {
 // Parker, Fieldline
@@ -386,30 +386,30 @@ void InitialMomentumThickShell<HConfig>::EvaluateInitial(void)
    if (log_bias) p = pow(10.0, p1 + (p2 - p1) * rng->GetUniform());
    else p = p1 + (p2 - p1) * rng->GetUniform();
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) {
-      _coords.Mom() = GeoVector(p, 0.0, 0.0);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
+      _coords.Mom('w') = GeoVector(p, 0.0, 0.0);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline) {
-      _coords.Mom() = GeoVector(0.0, 0.0, p);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      _coords.Mom('w') = GeoVector(0.0, 0.0, p);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::Focused) {
       double mu, st;
 
       mu = -1.0 + 2.0 * rng->GetUniform();
       st = sqrt(1.0 - Sqr(mu));
-      if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
-         _coords.Mom() = GeoVector(p * st, 0.0, p * mu);
+      if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+         _coords.Mom('w') = GeoVector(p * st, 0.0, p * mu);
       }
       else {
-         _coords.Mom() = GeoVector(p, mu, 0.0);
+         _coords.Mom('w') = GeoVector(p, mu, 0.0);
       }
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
       double mu, st, phi;
       mu = -1.0 + 2.0 * rng->GetUniform();
       st = sqrt(1.0 - Sqr(mu));
       phi = M_2PI * rng->GetUniform();
-      _coords.Mom() = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
+      _coords.Mom('w') = GeoVector(p * st * cos(phi), p * st * sin(phi), p * mu);
    }
 };
 
@@ -456,12 +456,12 @@ void InitialMomentumTable<HConfig>::EvaluateInitial(void)
       table_counter = rng->GetUniform() * initquant.size();
 
 // Pull momentum in randomly selected place on the table
-      _coords.Mom() = initquant[table_counter];
+      _coords.Mom('w') = initquant[table_counter];
    }
    else {
 
 // Pull next momentum on the table
-      _coords.Mom() = initquant[table_counter++];
+      _coords.Mom('w') = initquant[table_counter++];
 
 // If all momenta have been sampled, reset the counter
       if (table_counter == initquant.size()) table_counter = 0;
@@ -527,32 +527,32 @@ template <typename HConfig>
 void InitialMomentumMaxwell<HConfig>::EvaluateInitial(void)
 {
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline) {
-      _coords.Mom() = GeoVector(0.0, 0.0, p0);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
       return;
    }
 
    double p_para = p0 + dp_para * rng->GetNormal();
    double p_perp = dp_perp * rng->GetRayleigh();
 
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz){
+   if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
       double phi = M_2PI * rng->GetUniform();
       GeoVector e1, e2;
       e1 = GetSecondUnitVec(axis);
       e2 = axis ^ e1;
-      _coords.Mom() = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
+      _coords.Mom('w') = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
-      _coords.Mom() = GeoVector(p_perp, 0.0, p_para);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+      _coords.Mom('w') = GeoVector(p_perp, 0.0, p_para);
    }
    else {
       double p = sqrt(Sqr(p_para) + Sqr(p_perp));
-      if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused){
+      if constexpr (HConfig::trajectory == Config::Trajectory::Focused){
          double mu = p_para / p;
-         _coords.Mom() = GeoVector(p, mu, 0.0);
+         _coords.Mom('w') = GeoVector(p, mu, 0.0);
       }
-      else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) {
-         _coords.Mom() = GeoVector(p, 0.0, 0.0);
+      else if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
+         _coords.Mom('w') = GeoVector(p, 0.0, 0.0);
       }
    }
 };

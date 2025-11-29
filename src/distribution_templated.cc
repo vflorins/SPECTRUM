@@ -36,7 +36,7 @@ DistributionTemplated<HConfig, distroClass>::DistributionTemplated(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig, class distroClass>
-DistributionTemplated<HConfig, distroClass>::DistributionTemplated(const std::string& name_in, uint16_t status_in)
+DistributionTemplated<HConfig, distroClass>::DistributionTemplated(const std::string_view& name_in, status_t status_in)
                                   : DistributionBase(name_in, status_in)
 {
 };

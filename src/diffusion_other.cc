@@ -163,7 +163,7 @@ DiffusionQLTConstant<HConfig>::DiffusionQLTConstant(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-DiffusionQLTConstant<HConfig>::DiffusionQLTConstant(const std::string& name_in, uint16_t status_in)
+DiffusionQLTConstant<HConfig>::DiffusionQLTConstant(const std::string_view& name_in, status_t status_in)
                     : DiffusionBase(name_in, status_in)
 {
 };
@@ -233,7 +233,7 @@ DiffusionWNLTConstant<HConfig>::DiffusionWNLTConstant(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-DiffusionWNLTConstant<HConfig>::DiffusionWNLTConstant(const std::string& name_in, uint16_t status_in)
+DiffusionWNLTConstant<HConfig>::DiffusionWNLTConstant(const std::string_view& name_in, status_t status_in)
                      : DiffusionQLTConstant(name_in, status_in)
 {
 };
@@ -710,7 +710,7 @@ template <typename HConfig>
 void DiffusionFlowMomentumPowerLaw<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
-   // todo Fluv, AbsFluv, DotFluv - only for FlowMomentumPowerLaw!
+   // Fluv, AbsFluv, DotFluv, DelFluv are needed for FlowMomentumPowerLaw
    Kappa[Component::para] = kap0 * pow(_fields.AbsFluv() / U0, pow_law_U) * pow(_coords.AbsMom() / p0, pow_law_p);
    Kappa[Component::perp] = kap_rat * Kappa[Component::para];
 };
@@ -803,7 +803,7 @@ template <typename HConfig>
 void DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
-   Kappa[Component::para] = kap0 * pow(EnrKin<specie>(_coords.AbsMom()) / T0, pow_law_T) * pow(_coords.Rad() / r0, pow_law_r);
+   Kappa[Component::para] = kap0 * pow(EnrKin<Config::specie>(_coords.AbsMom()) / T0, pow_law_T) * pow(_coords.Rad() / r0, pow_law_r);
    Kappa[Component::perp] = kap_rat * Kappa[Component::para];
 };
 
@@ -892,7 +892,7 @@ template <typename HConfig>
 void DiffusionRigidityMagneticFieldPowerLaw<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
-   Kappa[Component::para] = (lam0 * _coords.AbsVel() / 3.0) * pow(Rigidity<specie>(_coords.AbsMom()) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
+   Kappa[Component::para] = (lam0 * _coords.AbsVel() / 3.0) * pow(Rigidity<Config::specie>(_coords.AbsMom()) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
    Kappa[Component::perp] = kap_rat * Kappa[Component::para];
 };
 
@@ -989,7 +989,7 @@ void DiffusionStraussEtAl2013<HConfig>::EvaluateDiffusion(Component comp)
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity<specie>(_coords.AbsMom());
+   double rig = Rigidity<Config::specie>(_coords.AbsMom());
    double kap_rat;
 
 // Find diffusion coefficients
@@ -1075,7 +1075,7 @@ void DiffusionPotgieterEtAl2015<HConfig>::EvaluateDiffusion(Component comp)
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity<specie>(_coords.AbsMom());
+   double rig = Rigidity<Config::specie>(_coords.AbsMom());
    double kap_rat;
 
 // Find diffusion coefficients
@@ -1156,7 +1156,7 @@ void DiffusionEmpiricalSOQLTandUNLT<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
    double lam, rig_dep;
-   double rig = Rigidity<specie>(_coords.AbsMom());
+   double rig = Rigidity<Config::specie>(_coords.AbsMom());
 
    if (comp == Component::para) {
 // Compute mean free path and rigidity dependance with a bent power law

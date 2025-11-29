@@ -9,45 +9,39 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_CACHE_LRU_HH
 #define SPECTRUM_CACHE_LRU_HH
 
+#include "server_types.hh"
 #include <unordered_map>
 #include <list>
 #include <string>
 #include <memory>
-#include "block_base.hh"
 
 namespace Spectrum {
-
-////! The size of the cache.
-//const int max_cache_size = 100;
-
 
 /*!
 \brief Cache with Least Recently Used (LRU) deletion policy
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 */
 template <typename HConfig_>
 class BlockCache {
 public:
 
    using HConfig = HConfig_;
-   using Block_t = HConfig::Block_t;
-   using BlockIdx = int;
+   using Config = HConfig::BackgroundConfig;
+   using Block = Block<HConfig>;
 
+   using BlockIdx = int;
    using QueueType = std::list<BlockIdx>;
    using QueueIterType = QueueType::const_iterator;
    using HelperMapType = std::unordered_map<BlockIdx, QueueIterType>;
+   using BlockPtr = std::shared_ptr<Block>;
 
-//   typedef std::shared_ptr<Block_t> BlockPtrType;
-//   typedef std::unordered_map<int, BlockPtrType> BlockMapType;
-
-//   typedef std::list<int> QueueType;
-//   typedef QueueType::const_iterator QueueIterType;
-//   typedef std::unordered_map<int, QueueIterType> HelperMapType;
+   static constexpr int max_cache_size = Config::max_cache_size;
 
 protected:
 
 //! Shared pointers to blocks stored as an unordered map (hash access)
-   std::unordered_map<BlockIdx, std::shared_ptr<Block_t>> blocks;
+   std::unordered_map<BlockIdx, BlockPtr> blocks;
    
 //! List of block IDs sorted by access time
    QueueType queue;
@@ -73,7 +67,7 @@ public:
    int Present(int bidx);
 
 //! Add a new block
-   int AddBlock(const BlockPtrType& block);
+   int AddBlock(const BlockPtr& block_ptr);
 
 //! Empty the cache
    void Empty(void);
@@ -82,7 +76,7 @@ public:
    int PosOwner(const GeoVector& pos);
 
 //! Access element
-   Block_t& operator[](int bidx);
+   Block& operator[](BlockIdx bidx);
 
 //! Print all block indices, newest first
    void PrintAllIndices(void) const;
@@ -139,7 +133,7 @@ inline int BlockCache<HConfig>::Present(int bidx)
 \return Shared pointer to the block
 */
 template <typename HConfig>
-inline HConfig::Block_t& BlockCache<HConfig>::operator[](BlockIdx bidx)
+inline Block<HConfig>& BlockCache<HConfig>::operator[](BlockIdx bidx)
 {
 // It is assumed the block is present; otherwise the result is indeterminate
    return blocks[bidx];

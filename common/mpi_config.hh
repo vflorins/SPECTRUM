@@ -10,60 +10,56 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_MPI_CONFIG_HH
 #define SPECTRUM_MPI_CONFIG_HH
 
-#include "config.h"
+#include "compiletime_lists.hh"
 
 #ifdef USE_MPI
-
 #include <mpi.h>
-
-
-//! Do not compile if server is needed in a serial run. The autotools configure process should not allow this but config.h could still be edited manually.
-#if (EXEC_TYPE == EXEC_SERIAL) && (SERVER_TYPE != SERVER_SELF)
-#error "SERIAL execution can only used with a SELF server type"
 #endif
 
-//! Master/Server/Worker policy - set by configure
-#if EXEC_TYPE == EXEC_SERIAL
-#define ALLOW_MASTER_BOSS
-#endif
-
-//! Number of servers per physical node
-#define N_BOSSES_PER_NODE 1
-
-#if SERVER_TYPE == SERVER_SELF
-#define ALLOW_BOSS_WORKER
-#else
-#define NEED_SERVER
-#endif
 
 namespace Spectrum {
-
-//! MPI tag for "cpu_avail" message (W->M)
-const int tag_cpuavail = 1011;
-
-//! MPI tag for "distribution" message (W->M)
-const int tag_distrdata = 1012;
-
-//! MPI tag for "need more" message (M->W)
-const int tag_needmore_MW = 1013;
-
-//! MPI tag for "position" message (W->B)
-const int tag_positdata = 1014;
-
-//! MPI tag for "auxiliary" message (B->W)
-const int tag_fielddata = 1015;
-
-//! MPI tag for "need more" message (W->B)
-const int tag_needmore_WB = 1016;
 
 /*!
 \brief Class to store the information about the topology of the MPI environment
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 
 This class is used to partition the simulation into nodes (shared memory) and assigning servers for each node. It sets up three communicators, between the processes in a single node, between the server processes, and between the worker processes. It also identifies how many worker processes are available in the simulation. An application should create a single instance of this type and pass a pointer to other objects. As a convenience feature, the RNG is initialized using the global rank and timer.
 */
-struct MPI_Config
+template <typename HConfig_>
+struct MPI
 {
+   using HConfig = HConfig_;
+
+   enum tag {
+//! MPI tag for "need block" message (W->S)
+      endblock = 1001,
+//! MPI tag for "send block" message (S->W)
+      sendblock = 1002,
+//! MPI tag for "need stencil" message (W->S)
+      needstencil = 1003,
+//! MPI tag for "send stencil" message (S->W)
+      sendstencil = 1004,
+//! MPI tag for "need vars" message (W->S)
+      needvars = 1005,
+//! MPI tag for "send vars" message (S->W)
+      sendvars = 1006,
+//! MPI tag for "stop serve" message (W->S)
+      stopserve = 1007,
+//! MPI tag for "cpu_avail" message (W->M)
+      cpuavail = 1011,
+//! MPI tag for "distribution" message (W->M)
+      distrdata = 1012,
+//! MPI tag for "need more" message (M->W)
+      needmore_MW = 1013,
+//! MPI tag for "position" message (W->S)
+      positdata = 1014,
+//! MPI tag for "auxiliary" message (S->W)
+      fielddata = 1015,
+//! MPI tag for "need more" message (W->S)
+      needmore_WS = 1016,
+   };
+
 //! Global communicator
    inline static MPI_Comm glob_comm;
 
@@ -131,49 +127,27 @@ struct MPI_Config
    inline static int* workers_per_node;
 
 //! Default constructor
-   MPI_Config(void) = delete;
+   MPI(void) = delete;
 
 //! Copy constructor - deleted, no copy allowed
-   MPI_Config(const MPI_Config& other) = delete;
+   MPI(const MPI& other) = delete;
 
 //! Constructor with arguments
-   MPI_Config(int argc, char** argv);
+   MPI(int argc, char** argv);
 
 //! Destructor
-   ~MPI_Config();
-};
+   ~MPI();
 
-/*!
-\brief Class to handle non-blocking receives
-\author Juan G Alonso Guzman
-
-This class houses all the variables necessary to implement non-blocking communications
-*/
-struct MPI_Request_Info
-{
-//! MPI Request array
-   MPI_Request* mpi_req = nullptr;
-
-//! CPU rank array of processes that have completed requests
-   int* cpu_rank = nullptr;
-
-//! Count of CPUs that have completed requests
-   int count = 0;
-
-//! Constructor with a parameter
-   MPI_Request_Info(int size);
-
-//! Destructor
-   ~MPI_Request_Info();
-};
-
-#ifdef GEO_DEBUG
-//! Self-test for the class
-void TestMPIConfig(void);
-#endif
+   //! Self-test for the class
+   void TestMPIConfig(void) const requires (HConfig::buildmode == BuildMode::debug);
 
 };
 
-#endif
+
+};
+
+
+// Something like this is needed for templated classes
+#include "mpi_config.cc"
 
 #endif

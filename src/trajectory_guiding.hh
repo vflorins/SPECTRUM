@@ -29,10 +29,11 @@ class TrajectoryGuiding : public TrajectoryBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
 protected:
 
@@ -56,7 +57,6 @@ protected:
 ////   using TrajectoryBase::traj_t;
 ////   using TrajectoryBase::traj_pos;
 //   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::specie;
 ////   using TrajectoryBase::local_t;
 ////   using TrajectoryBase::local_pos;
 ////   using TrajectoryBase::local_mom;
@@ -77,10 +77,7 @@ protected:
    GeoVector drift_vel;
 
 //! Conversion from (p_perp,0,p_para) to (p,mu,0)
-   GeoVector ConvertMomentum(void) const override;
-
-//! Momentum transformation on reflection at a boundary
-   void ReverseMomentum(void) override;
+//   GeoVector ConvertMomentum(void) const override;
 
 //! Compute the modified electromagnetic fields
    void ModifiedFields(void);
@@ -106,7 +103,7 @@ public:
    TrajectoryGuiding(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuiding(const std::string& name_in, uint16_t status_in);
+   TrajectoryGuiding(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryGuiding(const TrajectoryGuiding& other) = delete;
@@ -119,6 +116,7 @@ public:
 
 //! Clear the trajectory and start a new one with specified position and momentum
    void SetStart(void) override;
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -130,23 +128,11 @@ public:
 \date 04/11/2022
 \return A vector in the (p,mu,0) format
 */
-template <typename HConfig>
-inline GeoVector TrajectoryGuiding<HConfig>::ConvertMomentum(void) const
-{
-   return GeoVector(sqrt(Sqr(_coords.MomPerp())+Sqr(_coords.MomPara())), _coords.MomPara() / _coords.AbsMom(), 0.0);
-};
-
-
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 07/07/2023
-*/
-template <typename HConfig>
-inline void TrajectoryGuiding<HConfig>::ReverseMomentum(void)
-{
-   _coords.MomPara() = -_coords.MomPara();
-};
+//template <typename HConfig>
+//inline GeoVector TrajectoryGuiding<HConfig>::ConvertMomentum(void) const
+//{
+//   return GeoVector(sqrt(Sqr(_coords.MomPerp())+Sqr(_coords.MomPara())), _coords.MomPara() / _coords.AbsMom(), 0.0);
+//};
 
 
 };

@@ -18,58 +18,33 @@ using namespace BackgroundOptions;
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
-*/
-template <typename HConfig>
-BackgroundSmoothDiscontinuity<HConfig>::BackgroundSmoothDiscontinuity(void)
-                             : BackgroundDiscontinuity(bg_name, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/20/2023
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundSmoothDiscontinuity<HConfig>::BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other)
-                             : BackgroundDiscontinuity(other)
-{
-   RAISE_BITS(_status, STATE_NONE);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
 \date 05/30/2024
 \param [in] x Relative transition region location
 \return Relative value of discontinuous quantity
 */
 template <typename HConfig>
-double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
+constexpr double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
 {
    double y = x + 0.5;
-   if constexpr (smooth_discontinuity_order == 0) {
+   if constexpr (Config::smooth_discontinuity_order == 0) {
       // not continous
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return y;
    }
-   else if constexpr (smooth_discontinuity_order == 1){
+   else if constexpr (Config::smooth_discontinuity_order == 1){
       // differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Sqr(y) * (3.0 - 2.0 * y);
    }
-   else if constexpr (smooth_discontinuity_order == 2) {
+   else if constexpr (Config::smooth_discontinuity_order == 2) {
       // twice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
       else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
    }
-   else if constexpr (smooth_discontinuity_order == 3) {
+   else if constexpr (Config::smooth_discontinuity_order == 3) {
       // thrice differentiable
       if (x < -0.5) return 0.0;
       else if (x > 0.5) return 1.0;
@@ -77,7 +52,7 @@ double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
    }
    else {
       // smooth
-      return 0.5 * (1.0 + tanh(tanh_width_factor * x));
+      return 0.5 * (1.0 + tanh(Config::tanh_width_factor * x));
    }
 };
 
@@ -88,50 +63,32 @@ double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransition(double x)
 \return Derivative of relative value of discontinuous quantity
 */
 template <typename HConfig>
-double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransitionDerivative(double x)
+constexpr double BackgroundSmoothDiscontinuity<HConfig>::DiscontinuityTransitionDerivative(double x)
 {
    double y = x + 0.5;
-   if constexpr (smooth_discontinuity_order == 0) {
+   if constexpr (Config::smooth_discontinuity_order == 0) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 1.0;
    }
-   else if constexpr (smooth_discontinuity_order == 1){
+   else if constexpr (Config::smooth_discontinuity_order == 1){
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 6.0 * y * (1.0 - y);
    }
-   else if constexpr (smooth_discontinuity_order == 2) {
+   else if constexpr (Config::smooth_discontinuity_order == 2) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
    }
-   else if constexpr (smooth_discontinuity_order == 3) {
+   else if constexpr (Config::smooth_discontinuity_order == 3) {
       if (x < -0.5) return 0.0;
       if (x > 0.5) return 0.0;
       return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
    }
    else {
-      return 0.5 * tanh_width_factor * (1.0 - Sqr(tanh(tanh_width_factor * x)));
+      return 0.5 * Config::tanh_width_factor * (1.0 - Sqr(tanh(Config::tanh_width_factor * x)));
    }
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 02/28/2025
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-template <typename HConfig>
-void BackgroundSmoothDiscontinuity<HConfig>::SetupBackground(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundDiscontinuity::SetupBackground(false);
-
-// Unpack parameters
-   container.Read(width_discont);
-   container.Read(dmax_fraction);
 };
 
 /*!
@@ -140,20 +97,20 @@ void BackgroundSmoothDiscontinuity<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
-   ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
+   auto ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
 
    a1 = DiscontinuityTransition(ds_discont);
    a2 = 1.0 - a1;
 
-   if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u0 * a1 + u1 * a2;
-   if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0 * a1 + B1 * a2;
-   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
-   if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
+   if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = u0 * a1 + u1 * a2;
+   if constexpr (RequestedFields::Mag_found()) fields.Mag('w') = B0 * a1 + B1 * a2;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -162,36 +119,33 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coo
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (derivative_method == DerivativeMethod::analytic) {
-      if constexpr (RequestedFields::DelFluv_found()) {
-         fields.DelFluv().Dyadic(n_discont, u0 - u1);
-         fields.DelFluv() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
-      };
-      if constexpr (RequestedFields::DelMag_found()) {
-         fields.DelMag().Dyadic(n_discont, B0 - B1);
-         fields.DelMag() *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
-      }
-      if constexpr (RequestedFields::DelAbsMag_found()) {
-         fields.DelAbsMag() = fields.DelMag() * fields.HatMag();
-      };
-      if constexpr (RequestedFields::DelElc_found()) {
-         fields.DelElc() = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
-      };
-      if constexpr (RequestedFields::DotFluv_found()) {
-         fields.DotFluv() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
-      };
-      if constexpr (RequestedFields::DotMag_found()) {
-         fields.DotMag() = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
-      };
-      if constexpr (RequestedFields::DotElc_found()) {
-         fields.DotElc() = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
-      };
-   }
-   else {
-      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+   auto ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
+   if constexpr (RequestedFields::DelFluv_found()) {
+      fields.DelFluv('w').Dyadic(n_discont, u0 - u1);
+      fields.DelFluv('w') *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
    };
+   if constexpr (RequestedFields::DelMag_found()) {
+      fields.DelMag('w').Dyadic(n_discont, B0 - B1);
+      fields.DelMag('w') *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
+   }
+   if constexpr (RequestedFields::DelAbsMag_found()) {
+      fields.DelAbsMag('w') = fields.DelMag() * fields.HatMag();
+   };
+   if constexpr (RequestedFields::DelElc_found()) {
+      fields.DelElc('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
+   };
+   if constexpr (RequestedFields::DotFluv_found()) {
+      fields.DotFluv('w') = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
+   };
+   if constexpr (RequestedFields::DotMag_found()) {
+      fields.DotMag('w') = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
+   };
+   if constexpr (RequestedFields::DotElc_found()) {
+      fields.DotElc('w') = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
+   };
+   return 0;
 };
 
 /*!
@@ -200,10 +154,11 @@ void BackgroundSmoothDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coord
 */
 template <typename HConfig>
 template <typename Coordinates>
-void BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords)
+status_t BackgroundSmoothDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
 {
-   _ddata.dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
-   LOWER_BITS(_status, STATE_INVALID);
+   auto ds_discont = ((coords.Pos() - r0) * n_discont - v_discont * coords.Time()) / width_discont;
+   dmax = fmin(dmax_fraction * width_discont * fmax(1.0, fabs(ds_discont)), dmax0);
+   return 0;
 };
 
 };

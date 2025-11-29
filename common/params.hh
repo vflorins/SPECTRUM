@@ -11,28 +11,15 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_PARAMS_HH
 
 // This includes (algorithm, cmath, cstdint, cstring, fstream, vector), definitions, multi_index
+#include "status.hh"
 #include "vectors.hh"
 #include "data_container.hh"
 #include "random.hh"
 #include <exception>
 #include <memory>
 
+
 namespace Spectrum {
-
-//! Zero state (for initialization)
-const uint16_t STATE_NONE = 0x0000;
-
-//! The internal state is invalid
-const uint16_t STATE_INVALID = 0x0001;
-
-//! Setup was completed
-const uint16_t STATE_SETUP_COMPLETE = 0x0002;
-
-//! The model has no time dependence
-const uint16_t MODEL_STATIC = 0x0004;
-
-//! The model is mesh based
-const uint16_t MODEL_MESH_BASED = 0x0008;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions
@@ -105,13 +92,13 @@ protected:
    std::shared_ptr<RNG> rng = nullptr;
 
 //! Status
-   uint16_t _status = STATE_NONE;
+   status_t _status = STATE_NONE;
 
 //! Default constructor (protected, class not designed to be instantiated)
    Params(void) = default;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   Params(const std::string_view& name_in, uint16_t status_in);
+   Params(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    Params(const Params& other);
@@ -134,7 +121,7 @@ public:
    DataContainer GetContainer(void) const {return container;};
 
 //! Return the status
-   uint16_t GetStatus(void) const {return _status;};
+   status_t GetStatus(void) const {return _status;};
 
 };
 

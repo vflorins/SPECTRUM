@@ -33,9 +33,11 @@ class DiffusionNone : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -64,7 +66,7 @@ public:
    ~DiffusionNone() override = default;
 
 //! Clone function
-   CloneFunctionDiffusion(DiffusionNone);
+//   CloneFunctionDiffusion(DiffusionNone);
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(Component comp) override;
@@ -91,9 +93,11 @@ class DiffusionIsotropicConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -102,7 +106,7 @@ public:
 //   using DiffusionBase::mu;
    using DiffusionBase::Stage;
 
-   static_assert(HConfig::TrajectoryConfig::trajectoryid != TrajectoryId::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -152,9 +156,11 @@ class DiffusionQLTConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
 //   using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -165,7 +171,7 @@ public:
    using DiffusionBase::vmag;
    using DiffusionBase::Stage;
 
-   static_assert(HConfig::TrajectoryConfig::trajectoryid != TrajectoryId::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -196,7 +202,7 @@ public:
    DiffusionQLTConstant(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionQLTConstant(const std::string& name_in, uint16_t status_in);
+   DiffusionQLTConstant(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    DiffusionQLTConstant(const DiffusionQLTConstant& other);
@@ -229,10 +235,12 @@ class DiffusionWNLTConstant : public DiffusionQLTConstant<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
-   using HConfig::specie;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
+
    using DiffusionQLTConstant = DiffusionQLTConstant<HConfig>;
 
    //   using DiffusionBase::_status;
@@ -247,7 +255,7 @@ public:
    using DiffusionQLTConstant::k_min;
    using DiffusionQLTConstant::ps_minus;
 
-   static_assert(HConfig::TrajectoryConfig::trajectoryid != TrajectoryId::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -272,7 +280,7 @@ public:
    DiffusionWNLTConstant(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionWNLTConstant(const std::string& name_in, uint16_t status_in);
+   DiffusionWNLTConstant(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    DiffusionWNLTConstant(const DiffusionWNLTConstant& other);
@@ -304,9 +312,12 @@ class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
+
    using DiffusionWNLTConstant = DiffusionWNLTConstant<HConfig>;
 
    using DiffusionBase::container;
@@ -321,7 +332,7 @@ public:
    using DiffusionWNLTConstant::A2L;
    using DiffusionWNLTConstant::l_max;
 
-   static_assert(HConfig::TrajectoryConfig::trajectoryid != TrajectoryId::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
@@ -393,9 +404,11 @@ class DiffusionParaConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -456,9 +469,11 @@ class DiffusionPerpConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -519,9 +534,11 @@ class DiffusionFullConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -585,9 +602,11 @@ class DiffusionFlowMomentumPowerLaw : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::container;
@@ -664,9 +683,11 @@ class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<HConfi
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -743,9 +764,11 @@ class DiffusionRigidityMagneticFieldPowerLaw : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -822,9 +845,11 @@ class DiffusionStraussEtAl2013 : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -907,9 +932,11 @@ class DiffusionPotgieterEtAl2015 : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;
@@ -987,9 +1014,11 @@ class DiffusionEmpiricalSOQLTandUNLT : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionFields;
+   using Config = HConfig::DiffusionConfig;
+
    using DiffusionBase = DiffusionBase<HConfig>;
+   using Coordinates = DiffusionBase::Coordinates;
+   using Fields = DiffusionBase::Fields;
 
    using DiffusionBase::_status;
    using DiffusionBase::specie;

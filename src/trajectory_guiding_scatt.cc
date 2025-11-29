@@ -34,7 +34,7 @@ TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in)
+TrajectoryGuidingScatt<HConfig>::TrajectoryGuidingScatt(const std::string_view& name_in, status_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -50,7 +50,7 @@ bool TrajectoryGuidingScatt<HConfig>::IsSimulationReady(void) const
 
 // A diffusion object is required
    if (diffusion == nullptr) return false;
-   else if (BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   else if (BITS_LOWERED(diffusion.GetStatus(), STATE_SETUP_COMPLETE)) return false;
    return true;
 };
 
@@ -66,11 +66,11 @@ try {
    auto dcoords = DiffusionCoordinates::Convert(_coords);
    DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
    CommonFields_Diffusion(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dmumu = diffusion->Get(Component::mu);
+   diffusion.Stage(dcoords, dfields);
+   Dmumu = diffusion.Get(Component::mu);
 
 // Compute the derivative in mu
-   Vmu = diffusion->GetMuDerivative(Component::mu);
+   Vmu = diffusion.GetMuDerivative(Component::mu);
 }
 
 catch(ExFieldError& exception) {
@@ -98,8 +98,8 @@ void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
     */
    auto dcoords = DiffusionCoordinates::Convert(_coords);
 
-   if constexpr (split_scatt) {
-      auto alpha = split_scatt_fraction;
+   if constexpr (Config::split_scatt) {
+      auto alpha = Config::split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -116,11 +116,11 @@ void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
       }
    } while (fabs(mu_new) > 1.0);
 
-   _coords = TrajectoryCoordinates::Convert(dcoords);
+   _coords = Coordinates::Convert(dcoords);
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<specie>(_coords.Mom());
+//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
 };
 
 /*!
@@ -136,18 +136,18 @@ void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
    auto dcoords = DiffusionCoordinates::Convert(_coords);
 
    double dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
-   dcoords.MomMu() += dmu;
+   dcoords.MomMu('w') += dmu;
    DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
    CommonFields_Diffusion(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
+   diffusion.Stage(dcoords, dfields);
    // todo: fields/coords ---- this code is invalid as-is. mom_conv is created and *then* modified, _coords is left as-is - review and fix
-   double Dmumu_new = diffusion->Get(Component::mu);
+   double Dmumu_new = diffusion.Get(Component::mu);
 
    double mu_new;
    double dt_local, b, b1, dW;
 
-   if constexpr (split_scatt) {
-      auto alpha = split_scatt_fraction;
+   if constexpr (Config::split_scatt) {
+      auto alpha = Config::split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -169,11 +169,11 @@ void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
       }
    } while (fabs(mu_new) > 1.0);
 
-   _coords = TrajectoryCoordinates::Convert(dcoords);
+   _coords = Coordinates::Convert(dcoords);
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<specie>(_coords.Mom());
+//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
 };
 
 /*!
@@ -198,8 +198,8 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
 //   GeoVector mom_conv = ConvertMomentum();
    double Dmumu_new, dfit, dW, dt_local;
 
-   if constexpr (split_scatt) {
-      auto alpha = split_scatt_fraction;
+   if constexpr (Config::split_scatt) {
+      auto alpha = Config::split_scatt_fraction;
       dt_local = (second ? 1.0 - alpha : alpha) * dt;
    }
    else {
@@ -226,18 +226,18 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      dcoords.MomMu() = mu_new;
+      dcoords.MomMu('w') = mu_new;
       CommonFields(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dmumu = diffusion->Get(Component::mu);
+      diffusion.Stage(dcoords, dfields);
+      Dmumu = diffusion.Get(Component::mu);
 
       dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
-      dcoords.MomMu() += dmu;
-      dcoords.Time() += dt_local; // todo review _______
+      dcoords.MomMu('w') += dmu;
+      dcoords.Time('w') += dt_local; // todo review _______
 
       CommonFields(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dmumu_new = diffusion->Get(Component::mu);
+      diffusion.Stage(dcoords, dfields);
+      Dmumu_new = diffusion.Get(Component::mu);
       slope_Vmu[1] = (Dmumu_new - Dmumu) / dmu;
 
 // Compute second slope for Dmumu
@@ -251,11 +251,11 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      dcoords.MomMu() = mu_new;
-      dcoords.Time() += dt_local;
+      dcoords.MomMu('w') = mu_new;
+      dcoords.Time('w') += dt_local;
       CommonFields(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dmumu = diffusion->Get(Component::mu);
+      diffusion.Stage(dcoords, dfields);
+      Dmumu = diffusion.Get(Component::mu);
       slope_Dmumu[1] = sqrt(2.0 * Dmumu);
 
 // Compute third slope for Dmumu
@@ -268,20 +268,20 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
          continue;
       };
 
-      dcoords.MomMu() = mu_new;
-      dcoords.Time() += dt_local;
+      dcoords.MomMu('w') = mu_new;
+      dcoords.Time('w') += dt_local;
       CommonFields(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dmumu = diffusion->Get(Component::mu);
+      diffusion.Stage(dcoords, dfields);
+      Dmumu = diffusion.Get(Component::mu);
       slope_Dmumu[2] = sqrt(2.0 * Dmumu);
 
 // Compute additional fit term
       dcoords = dcoords_orig;
       dmu = sp_small * (dcoords.MomMu() + sp_small < 1.0 ? 1.0 : -1.0);
-      dcoords.MomMu() += dmu;
+      dcoords.MomMu('w') += dmu;
       CommonFields(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dmumu_new = diffusion->Get(Component::mu);
+      diffusion.Stage(dcoords, dfields);
+      Dmumu_new = diffusion.Get(Component::mu);
       dfit = (sqrt(2.0 * Dmumu_new) - slope_Dmumu[0]) / dmu;
 
 // Add all the stuff
@@ -295,11 +295,11 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
    } while (fabs(mu_new) > 1.0);
 
    dcoords.MomMu() = mu_new;
-   _coords = TrajectoryCoordinates::Convert(dcoords);
+   _coords = Coordinates::Convert(dcoords);
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<specie>(_coords.Mom());
+//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
 };
 
 /*!
@@ -310,9 +310,9 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
 template <typename HConfig>
 void TrajectoryGuidingScatt<HConfig>::PhysicalStep(void)
 {
-   constexpr double cfl_pa = cfl_pitchangle;
+   constexpr double cfl_pa = Config::cfl_pitchangle;
    double dmumax;
-   if constexpr (const_dmumax == TrajectoryOptions::ConstDmumax::constant_dtheta_max) {
+   if constexpr (Config::const_dmumax == TrajectoryOptions::ConstDmumax::constant_dtheta_max) {
       double dthetamax = 2.0*M_PI/180.0;
       dmumax = sqrt(1 - fabs(_coords.MomPara() / _coords.AbsMom())) * dthetamax + 0.5 * fabs(_coords.MomPara() / _coords.AbsMom()) * Sqr(dthetamax);
    }
@@ -349,13 +349,13 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Perform first half of PA scattering
-   if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+   if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
       EulerPitchAngleScatt(0);
    }
-   else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+   else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
       MilsteinPitchAngleScatt(0);
    }
-   else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+   else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
       RK2PitchAngleScatt(0);
    }
 
@@ -381,7 +381,7 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
    if (RKStep()) return false;
 
    // todo replace bool split_scatt with check whether fraction < 1
-   if constexpr (split_scatt) {
+   if constexpr (Config::split_scatt) {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Second half of stochastic pitch angle contribution and advection term
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -394,13 +394,13 @@ bool TrajectoryGuidingScatt<HConfig>::Advance(void)
       DiffusionCoeff();
 
 // Perform second half of PA scattering
-      if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+      if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
          EulerPitchAngleScatt(1);
       }
-      else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+      else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
          MilsteinPitchAngleScatt(1);
       }
-      else if constexpr (stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+      else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
          RK2PitchAngleScatt(1);
       }
    }

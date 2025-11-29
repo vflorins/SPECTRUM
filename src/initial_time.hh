@@ -103,7 +103,7 @@ protected:
    double increment;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialTimeInterval(const std::string& name_in, uint16_t status_in);
+   InitialTimeInterval(const std::string_view& name_in, status_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;

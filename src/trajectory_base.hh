@@ -14,126 +14,21 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "background.hh"
 #include "diffusion.hh"
+
 #include "distribution_base.hh"
 #include "boundary_base.hh"
 #include "initial_base.hh"
 #include "common/rk_lists.hh"
-#include "trajectory_records.hh"
+#include "utils_records.hh"
 
 #include "common/fields2/field_ops.hh"
 
 
 namespace Spectrum {
 
-//! The trajectory will end after the step is completed
-constexpr uint16_t TRAJ_FINISH = 0x0010;
-
-//! Time boundary was crossed
-constexpr uint16_t TRAJ_TIME_CROSSED = 0x0020;
-
-//! Spatial boundary was crossed
-constexpr uint16_t TRAJ_SPATIAL_CROSSED = 0x0040;
-
-//! Momentum boundary was crossed
-constexpr uint16_t TRAJ_MOMENTUM_CROSSED = 0x0080;
-
-//! Trajectory is invalid and must be discarded
-constexpr uint16_t TRAJ_DISCARD = 0x0100;
-
 //! Clone function pattern
 #define CloneFunctionTrajectory(T) std::unique_ptr<TrajectoryBase> Clone(void) const override {return std::make_unique<T>();};
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Exceptions
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief Exception if maximum number of steps is reached in trajectory
-\author Juan G Alonso Guzman
-*/
-class ExMaxStepsReached : public std::exception {
-
-public:
-
-//! Return explanatory string
-   const char* what(void) const noexcept override;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/14/2022
-\return Text describing the error
-*/
-inline const char* ExMaxStepsReached::what(void) const noexcept
-{
-   return "Maximum number of steps in a trajectory reached.";
-};
-
-/*!
-\brief Exception if maximum number of time step adaptations in a single step is reached
-\author Juan G Alonso Guzman
-*/
-class ExMaxTimeAdaptsReached : public std::exception {
-
-public:
-
-//! Return explanatory string
-   const char* what(void) const noexcept override;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/14/2022
-\return Text describing the error
-*/
-inline const char* ExMaxTimeAdaptsReached::what(void) const noexcept
-{
-   return "Maximum number of time adaptations in a single step reached.";
-};
-
-/*!
-\brief Exception if time step becomes too small
-\author Juan G Alonso Guzman
-*/
-class ExTimeStepTooSmall : public std::exception {
-
-public:
-
-//! Return explanatory string
-   const char* what(void) const noexcept override;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/14/2022
-\return Text describing the error
-*/
-inline const char* ExTimeStepTooSmall::what(void) const noexcept
-{
-   return "Time step became too small.";
-};
-
-/*!
-\brief Exception if time step becomes nan
-\author Juan G Alonso Guzman
-*/
-class ExTimeStepNan : public std::exception {
-
-public:
-
-//! Return explanatory string
-   const char* what(void) const noexcept override;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/20/2022
-\return Text describing the error
-*/
-inline const char* ExTimeStepNan::what(void) const noexcept
-{
-   return "Time step became nan.";
-};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // TrajectoryBase class declaration
@@ -154,28 +49,22 @@ class TrajectoryBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryConfig = HConfig::TrajectoryConfig;
-   using TrajectoryCoordinates = TrajectoryConfig::Coordinates;
-   using RecordCoordinates = TrajectoryConfig::RecordCoordinates;
-   using TrajectoryFields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
+   using Config = HConfig::TrajectoryConfig;
+   using Coordinates = Config::Coordinates;
+   using RecordCoordinates = Config::RecordCoordinates;
+   using Fields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
 
    using Background = Background<HConfig>;
+   using BackgroundDerivatives = Cond<HConfig::BackgroundConfig::derivative_method == BackgroundOptions::DerivativeMethod::numeric, NumericalDerivatives<HConfig>, Background>;
    using Diffusion = Diffusion<HConfig>;
 
    using DiffusionConfig = HConfig::DiffusionConfig;
    using DiffusionCoordinates = typename DiffusionConfig::Coordinates;
    using DiffusionFields = typename FieldOps::Set<typename DiffusionConfig::Fields>;
-   using DiffusionFieldsRemainder = typename FieldOps::Difference<DiffusionFields, TrajectoryFields>;
+   using DiffusionFieldsRemainder = typename FieldOps::Difference<DiffusionFields, Fields>;
 
-   using HConfig::specie;
    using ButcherTable = ButcherTable<HConfig::TrajectoryConfig::rk_integrator>;
-   using Records = Records<RecordCoordinates, specie, HConfig::TrajectoryConfig::record_mag_extrema, HConfig::TrajectoryConfig::record_trajectory>;
-
-// todo: AB-test polymorphism
-   using DiffusionBase = Diffusion;
-   using BackgroundBase = Background;
-//   using DiffusionBase = DiffusionBase<HConfig>;
-//   using BackgroundBase = BackgroundBase<HConfig>;
+   using Records = Records<RecordCoordinates, HConfig::specie, HConfig::TrajectoryConfig::record_mag_extrema, HConfig::TrajectoryConfig::record_trajectory>;
 
 // Polymorphic base types
    using DistributionBase = DistributionBase<HConfig>;
@@ -185,13 +74,13 @@ public:
 protected:
 
 //! Background object (persistent)
-   std::unique_ptr<BackgroundBase> background = nullptr;
+   Background background = Background();
+
+//! Diffusion object (persistent)
+   Diffusion diffusion = Diffusion();
 
 //! Array of distribution objects (persistent)
    std::vector<std::shared_ptr<DistributionBase>> distributions;
-
-//! Diffusion object (persistent)
-   std::unique_ptr<DiffusionBase> diffusion = nullptr;
 
 //! Array of time boundary condition objects (persistent)
    std::vector<std::unique_ptr<BoundaryBase>> bcond_t;
@@ -211,19 +100,17 @@ protected:
 //! Initial condition in momentum (persistent)
    std::unique_ptr<InitialBase> icond_m = nullptr;
 
-   TrajectoryCoordinates _coords;
+   Coordinates _coords;
 
    ButcherTable butcher_table;
 
-   Records records;
-
-   TrajectoryCoordinates local_coords;
+   Coordinates local_coords;
 
 //! Background-dependent dmax (transient)
    double _dmax;
 
 //! Spatial data (transient)
-   TrajectoryFields _fields;
+   Fields _fields;
 
    //! Slopes for position in RK step (transient)
    GeoVector slope_pos[ButcherTable::data.rk_stages];
@@ -264,10 +151,10 @@ protected:
    double nearest_bnd_dist;
 
 //! Coordinates at the start of the trajectory (needed for distributions)
-   TrajectoryCoordinates coords0;
+   Coordinates coords0;
 
 //! Field values at the start of the trajectory (needed for distributions)
-   TrajectoryFields fields0;
+   Fields fields0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -275,7 +162,7 @@ protected:
    TrajectoryBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryBase(const std::string& name_in, uint16_t status_in);
+   TrajectoryBase(const std::string_view& name_in, status_t status_in);
 
 //! Reset all boundary objects
    void ResetAllBoundaries(void);
@@ -300,9 +187,6 @@ protected:
 
 //! Conversion of momentum from "native" to (p,mu,phi) coordinates
 //   virtual GeoVector ConvertMomentum(void) const;
-
-//! Momentum transformation on reflection at a boundary
-   virtual void ReverseMomentum(void);
 
 //! Predict whether any time boundaries will be crossed during the currect step
    void TimeBoundaryProximityCheck(void);
@@ -343,6 +227,9 @@ protected:
 
 public:
 
+//! Recording and printing/exporting data helper class
+   Records records;
+
 //! Copy constructor (class not copyable)
    TrajectoryBase(const TrajectoryBase& other) = delete;
 
@@ -352,10 +239,10 @@ public:
 //! Clone function (stub)
    virtual std::unique_ptr<TrajectoryBase> Clone(void) const = 0;
 
-   //! Add a background object
+//! Assign background model parameters
    void AddBackground(const DataContainer& container_in);
 
-   //! Connect to an existing distribution object
+//! Connect to an existing distribution object
    void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
 
 //! Disconnect an existing distribution object
@@ -365,7 +252,7 @@ public:
    void ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in);
 
 //! Assign diffusion model parameters
-   void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in);
+   void AddDiffusion(const DataContainer& container_in);
 
 //! Add a boundary condition
    void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
@@ -452,7 +339,7 @@ inline void TrajectoryBase<HConfig>::DisconnectDistribution(int distro)
 //template <typename HConfig>
 //inline void TrajectoryBase<HConfig>::Load(void)
 //{
-//   _coords.Vel() = Vel<specie>(_coords.Mom());
+//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
 //};
 
 // todo deprecated
@@ -466,27 +353,27 @@ inline void TrajectoryBase<HConfig>::DisconnectDistribution(int distro)
 //   records.Store(_coords);
 //};
 
-///*!
-//\author Vladimir Florinski
-//\author Juan G Alonso Guzman
-//\date 05/10/2022
-//*/
-//template <typename HConfig>
-//inline void TrajectoryBase<HConfig>::LoadLocal(void)
-//{
-//   _coords = local_coords;
-//};
-//
-///*!
-//\author Vladimir Florinski
-//\author Juan G Alonso Guzman
-//\date 05/10/2022
-//*/
-//template <typename HConfig>
-//inline void TrajectoryBase<HConfig>::StoreLocal(void)
-//{
-//   local_coords = _coords;
-//};
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\date 05/10/2022
+*/
+template <typename HConfig>
+inline void TrajectoryBase<HConfig>::LoadLocal(void)
+{
+   _coords = local_coords;
+};
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\date 05/10/2022
+*/
+template <typename HConfig>
+inline void TrajectoryBase<HConfig>::StoreLocal(void)
+{
+   local_coords = _coords;
+};
 
 ///*!
 //\author Juan G Alonso Guzman

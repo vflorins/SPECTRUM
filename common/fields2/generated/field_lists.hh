@@ -49,6 +49,7 @@ FlxGlm,
 Mom,
 AbsMom,
 HatMom,
+MomMu,
 Vel,
 AbsVel,
 HatVel,
@@ -82,7 +83,7 @@ Formatted names for distinguished code-wide fields
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-const constexpr std::array<std::string_view, 48> Names = {
+const constexpr std::array<std::string_view, 49> Names = {
    std::string_view(""),
    std::string_view("Pos"),
    std::string_view("Rad"),
@@ -106,6 +107,7 @@ const constexpr std::array<std::string_view, 48> Names = {
    std::string_view("Mom"),
    std::string_view("AbsMom"),
    std::string_view("HatMom"),
+   std::string_view("MomMu"),
    std::string_view("Vel"),
    std::string_view("AbsVel"),
    std::string_view("HatVel"),

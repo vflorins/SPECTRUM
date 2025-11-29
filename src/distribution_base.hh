@@ -13,20 +13,20 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 // This includes (algorithm, cmath, cstdint, cstring, exception, fstream, vector), data_container, definitions, multi_index, vectors
 #include <config.h>
 #include <common/params.hh>
-#include <src/trajectory_records.hh>
+#include <src/utils_records.hh>
 #include <functional>
 
 
 namespace Spectrum {
 
 //! Distribution is in time, allowed to combine with space and momentum
-const uint16_t DISTRO_TIME = 0x0010;
+const status_t DISTRO_TIME = 0x0010;
 
 //! Distribution is in space, allowed to combine with time and momentum
-const uint16_t DISTRO_SPACE = 0x0020;
+const status_t DISTRO_SPACE = 0x0020;
 
 //! Distribution is in momentum, allowed to combine with time and space
-const uint16_t DISTRO_MOMENTUM = 0x0040;
+const status_t DISTRO_MOMENTUM = 0x0040;
 
 //! Function type to respond to different actions
 using WeightAction = std::function<void(void)>;
@@ -122,7 +122,7 @@ protected:
    DistributionBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionBase(const std::string& name_in, uint16_t status_in);
+   DistributionBase(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionBase(const DistributionBase& other);

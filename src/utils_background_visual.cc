@@ -1,26 +1,29 @@
 /*!
-\file background_base_visual.cc
-\brief Implements visualization methods of the base background class
+\file utils_background_visual.cc
+\brief Implements visualization methods of the background class
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "background_base.hh"
+#include "utils_background_visual.hh"
 #include <iostream>
 #include <iomanip>
 
-#ifdef USE_SILO
+#include "common/fields.hh"
+
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// BackgroundBase methods for visualization
+// BackgroundVisual methods for visualization
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
-\date 08/31/2021
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] xyz_min One corner of the box
 \param[in] xyz_max Opposite corner of the box
 \param[in] dim_z   Number of zones in each direction
@@ -28,7 +31,7 @@ namespace Spectrum {
 \param[in] right   Direction defining the x-axis in the cut plane
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_max_in, const MultiIndex& dims_z_in,
+void BackgroundVisual<HConfig>::SetBox(const GeoVector& xyz_min_in, const GeoVector& xyz_max_in, const MultiIndex& dims_z_in,
                             const GeoVector& normal, const GeoVector& right)
 {
    xyz_min = xyz_min_in;
@@ -41,15 +44,14 @@ void BackgroundBase<HConfig>::SetBox(const GeoVector& xyz_min_in, const GeoVecto
 
 /*!
 \author Vladimir Florinski
-\date 08/31/2021
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] box_fname  Name of the SILO file
 \param[in] phys_units Use physical units for output
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
+void BackgroundVisual<HConfig>::BoxPlot3DMesh(const std::string box_fname, bool phys_units)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int i, xyz;
    GeoVector incr;
    MultiIndex dims_n;
@@ -68,7 +70,7 @@ void BackgroundBase<HConfig>::BoxPlot3DMesh(const std::string box_fname, bool ph
 // Generate SILO output 
    silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
    if (!silofile) return;
-   DBPutQuadmesh(silofile, mesh3d_name.c_str(), NULL, coords, dims_n.ijk, 3, DB_DOUBLE, DB_COLLINEAR, NULL);
+   DBPutQuadmesh(silofile, mesh3d_name.data(), NULL, coords, dims_n.ijk, 3, DB_DOUBLE, DB_COLLINEAR, NULL);
 
 // Clean up
    for (xyz = 0; xyz < 3; xyz++) delete[] coords[xyz];
@@ -77,127 +79,73 @@ void BackgroundBase<HConfig>::BoxPlot3DMesh(const std::string box_fname, bool ph
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 08/05/2025
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
+\param[in] coord   Optional coordinate for scalar output. If Field_t is not scalar,
+and this is not set, then the norm will be exported.
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::BoxPlot3DScalar(const std::string var_name, bool phys_units, double t)
+template <typename Field_t>
+void BackgroundVisual<HConfig>::BoxPlot3DScalar(bool phys_units, double t, int coord = -1)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int ix, iy, iz, idx;
    double var_unit;
-   bool is_vector;
    long pos;
 
-   GeoVector* field_ptr;
-   double* scl_ptr;
    double* scl_field;
 
-// Parse the user input
-   if (var_name == "Umag") {
-      _spdata._mask = BACKGROUND_U;
-      field_ptr = &_spdata.Uvec;
+   // todo var_unit incorporated into Fields
+   if (std::same_as<Field_t, Fluv_t> || std::same_as<Field_t, AbsFluv_t>)
       var_unit = unit_velocity_fluid;
-      is_vector = true;
-   }
-   else if (var_name == "Ux") {
-      _spdata._mask = BACKGROUND_U;
-      scl_ptr = &_spdata.Uvec[0];
-      var_unit = unit_velocity_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "Uy") {
-      _spdata._mask = BACKGROUND_U;
-      scl_ptr = &_spdata.Uvec[1];
-      var_unit = unit_velocity_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "Uz") {
-      _spdata._mask = BACKGROUND_U;
-      scl_ptr = &_spdata.Uvec[2];
-      var_unit = unit_velocity_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "Bmag") {
-      _spdata._mask = BACKGROUND_B;
-      field_ptr = &_spdata.Bvec;
+   else if (std::same_as<Field_t, Mag_t>)
       var_unit = unit_magnetic_fluid;
-      is_vector = true;
-   }
-   else if (var_name == "Bx") {
-      _spdata._mask = BACKGROUND_B;
-      scl_ptr = &_spdata.Bvec[0];
-      var_unit = unit_magnetic_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "By") {
-      _spdata._mask = BACKGROUND_B;
-      scl_ptr = &_spdata.Bvec[1];
-      var_unit = unit_magnetic_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "Bz") {
-      _spdata._mask = BACKGROUND_B;
-      scl_ptr = &_spdata.Bvec[2];
-      var_unit = unit_magnetic_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "Region1") {
-      scl_ptr = &_spdata.region[0];
-      is_vector = false;
-   }
-   else if (var_name == "Region2") {
-      scl_ptr = &_spdata.region[1];
-      is_vector = false;
-   }
-   else if (var_name == "Region3") {
-      scl_ptr = &_spdata.region[2];
-      is_vector = false;
-   }
-   else if (var_name == "n_dens") {
-      scl_ptr = &_spdata.n_dens;
-      var_unit = unit_number_density_fluid;
-      is_vector = false;
-   }
-   else if (var_name == "p_ther") {
-      scl_ptr = &_spdata.p_ther;
+   else if (std::same_as<Field_t, Den_t>)
+      var_unit = unit_density_fluid;
+   else if (std::same_as<Field_t, Prs_t>)
       var_unit = unit_pressure_fluid;
-      is_vector = false;
-   }
-   else return;
+   else
+      var_unit = 1.0;
 
 // Memory for zone var
    scl_field = new double[dims_z.Prod()];
    GeoVector incr = (xyz_max - xyz_min) / dims_z;
 
-   std::cerr << "Calculating the variable " << var_name << ":     ";
+   std::cerr << "Calculating the variable " << Field_t::name << ":     ";
 
 // Mesh based output
-   _t = t;
+   using Coordinates = Fields<Time_t, Pos_t>;
+   using Fields = Fields<Field_t>;
+   auto coords = Coordinates();
+   auto fields = Fields();
+   status_t status;
+   coords.Time('w') = t;
    idx = 0;
    for (iz = 0; iz < dims_z[2]; iz++) {
-      _pos[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
+      coords.Pos('w')[2] = (xyz_min[2] + (iz + 0.5) * incr[2]);
       for (iy = 0; iy < dims_z[1]; iy++) {
-         _pos[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
+         coords.Pos('w')[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
          for (ix = 0; ix < dims_z[0]; ix++) {
-            _pos[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
-            EvaluateBackground();
-            if (is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
-            else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
+            coords.Pos('w')[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
+            // todo Background
+            status = Background::EvaluateBackground(coords, fields);
+            // todo this may be buggy
+            if constexpr (std::is_base_of<GeoVector, Field_t>() && coord == -1)
+               scl_field[idx] = fields.template get<Field_t>().Norm() * (phys_units ? var_unit : 1.0);
+            else
+               scl_field[idx] = fields.template get<Field_t>() * (phys_units ? var_unit : 1.0);
             idx++;
          };
       };
-      
       std::cerr << "\e[4D";
       std::cerr << std::setw(3) << int(double(iz) / double(dims_z[2]) * 100.0) << "%";
    };
    std::cerr << "\e[4D100%\n";
 
 // Generate SILO output 
-   DBPutQuadvar1(silofile, var_name.c_str(), mesh3d_name.c_str(), scl_field, dims_z.ijk, 3, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
+   DBPutQuadvar1(silofile, Field_t::name.data(), mesh3d_name.data(), scl_field, dims_z.ijk, 3, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
    delete[] scl_field;
@@ -205,16 +153,15 @@ void BackgroundBase<HConfig>::BoxPlot3DScalar(const std::string var_name, bool p
 
 /*!
 \author Vladimir Florinski
-\date 10/23/2020
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
+void BackgroundVisual<HConfig>::BoxPlot3DVector(const std::string var_name, bool phys_units, double t)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int xyz, ix, iy, iz, idx;
    double var_unit;
    GeoVector incr, field;
@@ -265,7 +212,7 @@ void BackgroundBase<HConfig>::BoxPlot3DVector(const std::string var_name, bool p
 
 // Generate SILO output 
    const char* sub_names[] = {(var_name + "_x").c_str(), (var_name + "_y").c_str(), (var_name + "_z").c_str()};
-   DBPutQuadvar(silofile, var_name.c_str(), mesh3d_name.c_str(), 3, sub_names, vec_field, dims_z.ijk, 3, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
+   DBPutQuadvar(silofile, var_name.c_str(), mesh3d_name.data(), 3, sub_names, vec_field, dims_z.ijk, 3, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
    for (xyz = 0; xyz < 3; xyz++) delete[] vec_field[xyz];
@@ -273,15 +220,14 @@ void BackgroundBase<HConfig>::BoxPlot3DVector(const std::string var_name, bool p
 
 /*!
 \author Vladimir Florinski
-\date 08/31/2021
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] box_fname  Name of the SILO file
 \param[in] phys_units Use physical units for output
 */
 template <typename HConfig>
-void BackgroundBase<HConfig>::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
+void BackgroundVisual<HConfig>::BoxPlot2DMesh(const std::string box_fname, bool phys_units)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int i, xyz;
    GeoVector incr;
    MultiIndex dims_n;
@@ -300,7 +246,7 @@ void BackgroundBase<HConfig>::BoxPlot2DMesh(const std::string box_fname, bool ph
 // Generate SILO output 
    silofile = DBCreate(box_fname.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
    if (!silofile) return;
-   DBPutQuadmesh(silofile, mesh2d_name.c_str(), NULL, coords, dims_n.ijk, 2, DB_DOUBLE, DB_COLLINEAR, NULL);
+   DBPutQuadmesh(silofile, mesh2d_name.data(), NULL, coords, dims_n.ijk, 2, DB_DOUBLE, DB_COLLINEAR, NULL);
 
 // Clean up
    for (xyz = 0; xyz < 2; xyz++) delete[] coords[xyz];
@@ -309,16 +255,15 @@ void BackgroundBase<HConfig>::BoxPlot2DMesh(const std::string box_fname, bool ph
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 01/04/2024
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-template <typename Fields>
-void BackgroundBase<HConfig>::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
+template <typename HConfig>
+void BackgroundVisual<HConfig>::BoxPlot2DScalar(const std::string var_name, bool phys_units, double t)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int xyz, ix, iy, idx;
    double var_unit;
    bool is_vector;
@@ -415,7 +360,8 @@ void BackgroundBase<HConfig>::BoxPlot2DScalar(const std::string var_name, bool p
       local_coord[1] = (xyz_min[1] + (iy + 0.5) * incr[1]);
       for (ix = 0; ix < dims_z[0]; ix++) {
          local_coord[0] = (xyz_min[0] + (ix + 0.5) * incr[0]);
-         for (xyz = 0; xyz < 3; xyz++) _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
+         for (xyz = 0; xyz < 3; xyz++)
+            _pos[xyz] = local_coord[0] * x_dir[xyz] + local_coord[1] * y_dir[xyz];
          EvaluateBackground();
          if (is_vector) scl_field[idx] = field_ptr->Norm() * (phys_units ? var_unit : 1.0);
          else scl_field[idx] = *scl_ptr * (phys_units ? var_unit : 1.0);
@@ -428,7 +374,7 @@ void BackgroundBase<HConfig>::BoxPlot2DScalar(const std::string var_name, bool p
    std::cerr << "\e[4D100%\n";
 
 // Generate SILO output 
-   DBPutQuadvar1(silofile, var_name.c_str(), mesh2d_name.c_str(), scl_field, dims_z.ijk, 2, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
+   DBPutQuadvar1(silofile, var_name.c_str(), mesh2d_name.data(), scl_field, dims_z.ijk, 2, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
    delete[] scl_field;
@@ -436,16 +382,15 @@ void BackgroundBase<HConfig>::BoxPlot2DScalar(const std::string var_name, bool p
 
 /*!
 \author Vladimir Florinski
-\date 11/02/2020
+\author Lucius Schoenbaum
+\date 11/22/2025
 \param[in] var_name   Name of the variable to be plotted
 \param[in] phys_units Use physical units for output
 \param[in] t          Time at which to plot variable
 */
-template <typename Fields>
-void BackgroundBase<HConfig>::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
+template <typename HConfig>
+void BackgroundVisual<HConfig>::BoxPlot2DVector(const std::string var_name, bool phys_units, double t)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
-
    int xyz, ix, iy, idx;
    double var_unit;
    GeoVector incr, field, y_dir, local_coord;
@@ -494,7 +439,7 @@ void BackgroundBase<HConfig>::BoxPlot2DVector(const std::string var_name, bool p
 
 // Generate SILO output 
    const char* sub_names[] = {(var_name + "_x").c_str(), (var_name + "_y").c_str()};
-   DBPutQuadvar(silofile, var_name.c_str(), mesh2d_name.c_str(), 2, sub_names, vec_field, dims_z.ijk, 2, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
+   DBPutQuadvar(silofile, var_name.c_str(), mesh2d_name.data(), 2, sub_names, vec_field, dims_z.ijk, 2, NULL, 0, DB_DOUBLE, DB_ZONECENT, NULL);
 
 // Clean up
    for (xyz = 0; xyz < 2; xyz++) delete[] vec_field[xyz];
@@ -502,15 +447,14 @@ void BackgroundBase<HConfig>::BoxPlot2DVector(const std::string var_name, bool p
 
 /*!
 \author Vladimir Florinski
-\date 10/23/2020
+\author Lucius Schoenbaum
+\date 11/22/2025
 */
-template <typename Fields>
-void BackgroundBase<Fields>::BoxPlotFinalize(void)
+template <typename HConfig>
+void BackgroundVisual<HConfig>::BoxPlotFinalize(void)
 {
-   if (BITS_LOWERED(_status, STATE_SETUP_COMPLETE)) return;
    if (silofile) DBClose(silofile);
 };
 
 };
 
-#endif

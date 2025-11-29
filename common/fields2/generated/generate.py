@@ -64,7 +64,7 @@ class Field:
     components of a formatted SPECTRUM variable, or field.
     """
 
-    def __init__(self, name, datatype, description, R, S, printed_name=None, normof=None, hatof=None, hasdiv = None, hascurl = None, delof = None, dotof = None):
+    def __init__(self, name, datatype, description, R, S, printed_name=None, normof=None, hatof=None, hasdiv = None, hascurl = None, delof = None, dotof = None, muof = None):
         self.name = name
         self.datatype = datatype
         self.description = description
@@ -74,6 +74,7 @@ class Field:
         self.printed_name = printed_name
         self.normof = normof
         self.hatof = hatof
+        self.muof = muof
         if normof is not None and hatof is not None:
             raise ValueError
         self.hasdiv = hasdiv
@@ -133,10 +134,11 @@ else:
         Field("FlxMag", "GeoVector", "Magnetic field flux function", R = 1, S = 0),
         Field("Glm", "Scalar", "Lagrange multiplier field of GLM MHD", R = 1, S = 0),
         Field("FlxGlm", "Scalar", "Lagrange mutlipler flux function of GLM MHD", R = 1, S = 0),
-        # Tracer background fields:
+        # Tracer background and coordinate fields:
         Field("Mom", "GeoVector", "Particle Momentum", R = 0, S = 0),
         Field("AbsMom", "Scalar", "Magnitude of momentum", R = 0, S = 0, normof="Mom"),
         Field("HatMom", "GeoVector", "Direction of momentum", R = 0, S = 0, hatof="Mom"),
+        Field("MomMu", "Scalar", "Pitch angle cosine of momentum", R = 0, S = 0, muof="Mom"),
         Field("Vel", "GeoVector", "Particle Velocity", R = 0, S = 0),
         Field("AbsVel", "Scalar", "Magnitude of velocity", R = 0, S = 0, normof="Vel"),
         Field("HatVel", "GeoVector", "Direction of velocity", R = 0, S = 0, hatof="Vel"),
@@ -411,31 +413,31 @@ def get_injectee(injectee_label, named):
    }};
 
 """
+            reinterpret_ = f"*reinterpret_cast<const {datatype}*>(data + {name}_offset)"
             if field.normof is not None:
                 x += f"""
 /*!
 \\brief Get {name} ({description}) from the data type, as lvalue.
 \\author Lucius Schoenbaum
 \\date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   {datatype}& {name}(void) {{
-      if constexpr ({name}_found())
-         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
-      else
-            if constexpr (FConfig::{field.normof}_radial)
-               return {field.normof}()[0];
-            else
-               return {field.normof}().Norm();
+   {datatype}& {name}(char w) {{
+        if constexpr (FConfig::{field.normof}_radial)
+           return {field.normof}()[0];
+        else
+           return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
    }};
 
 /*!
-\\brief Get {name} ({description}) from the data type, as const rvalue.
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   const {datatype}& {name}(void) const {{
+   [[nodiscard]] {datatype} {name}(void) const {{
       if constexpr ({name}_found())
-         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+         return {reinterpret_};
       else
          if constexpr (FConfig::{field.normof}_radial)
             return {field.normof}()[0];
@@ -449,25 +451,56 @@ def get_injectee(injectee_label, named):
 \\brief Get {name} ({description}) from the data type, as lvalue.
 \\author Lucius Schoenbaum
 \\date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   {datatype}& {name}(void) {{
-      if constexpr ({name}_found())
-         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
-      else
-         return UnitVec({field.hatof}());
+   {datatype}& {name}(char w) {{
+      return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
    }};
 
 /*!
-\\brief Get {name} ({description}) from the data type, as const rvalue.
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   const {datatype}& {name}(void) const {{
+   [[nodiscard]] {datatype} {name}(void) const {{
       if constexpr ({name}_found())
-         return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+         return {reinterpret_};
       else
          return UnitVec({field.hatof}());
    }};
+"""
+            elif field.muof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   {datatype}& {name}(char w) {{
+        if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::pitchangle)
+           return {field.muof}()[1];
+        else
+           return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   [[nodiscard]] {datatype} {name}(void) const {{
+      if constexpr ({name}_found())
+         return {reinterpret_};
+      else
+         if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::pitchangle)
+            return {field.muof}()[1];
+         else
+            return ({field.muof}()*Mag())/(Abs{field.muof}()*AbsMag());
+   }};
+                
 """
             else:
                 x += f"""
@@ -475,18 +508,20 @@ def get_injectee(injectee_label, named):
 \\brief Get {name} ({description}) from the data type, as lvalue.
 \\author Lucius Schoenbaum
 \\date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   {datatype}& {name}(void) {{
+   {datatype}& {name}(char w) {{
       return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
    }};
 
 /*!
-\\brief Get {name} ({description}) from the data type, as const rvalue.
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \\author Lucius Schoenbaum
 \\date 3/25/2025
 */
-   const {datatype}& {name}(void) const {{
-      return reinterpret_cast<const {datatype}&>(*(data + {name}_offset));
+   [[nodiscard]] {datatype} {name}(void) const {{
+      return {reinterpret_};
    }};
    
 """

@@ -34,7 +34,7 @@ InitialBase<HConfig>::InitialBase(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-InitialBase<HConfig>::InitialBase(const std::string& name_in, uint16_t status_in)
+InitialBase<HConfig>::InitialBase(const std::string_view& name_in, status_t status_in)
            : Params(name_in, status_in)
 {
 };
@@ -170,7 +170,7 @@ InitialTable<HConfig, tableClass>::InitialTable(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig, class tableClass>
-InitialTable<HConfig, tableClass>::InitialTable(const std::string& name_in, uint16_t status_in)
+InitialTable<HConfig, tableClass>::InitialTable(const std::string_view& name_in, status_t status_in)
                         : InitialBase(name_in, status_in)
 {
 };

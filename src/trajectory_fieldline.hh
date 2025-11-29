@@ -34,11 +34,13 @@ class TrajectoryFieldline : public TrajectoryBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using Field_t = HConfig::FieldlineField_t;
-   using TrajectoryFields = Fields<FConfig<>, Field_t>;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
+
+   using Field_t = Config::FieldlineField_t;
 
    static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Elc_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");
 
@@ -73,7 +75,7 @@ public:
    TrajectoryFieldline(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryFieldline(const std::string& name_in, uint16_t status_in);
+   TrajectoryFieldline(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryFieldline(const TrajectoryFieldline& other) = delete;

@@ -19,8 +19,7 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 09/05/2025
 */
-// todo
-
+// This is not currently used/implemented.
 
 
 }

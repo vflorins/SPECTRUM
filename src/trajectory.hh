@@ -26,25 +26,23 @@ namespace Spectrum {
 
 template<typename HConfig>
 using TrajectoryList = Fields<
-      FConfig<>,
-      TrajectoryFieldline<HConfig>,
-      TrajectoryFocused<HConfig>,
-      TrajectoryGuiding<HConfig>,
-      TrajectoryGuidingDiff<HConfig>,
-      TrajectoryGuidingScatt<HConfig>,
-      TrajectoryGuidingDiffScatt<HConfig>,
-      TrajectoryLorentz<HConfig>,
-      TrajectoryParker<HConfig>
+FConfig<>,
+TrajectoryFieldline<HConfig>,
+TrajectoryFocused<HConfig>,
+TrajectoryGuiding<HConfig>,
+TrajectoryGuidingDiff<HConfig>,
+TrajectoryGuidingScatt<HConfig>,
+TrajectoryGuidingDiffScatt<HConfig>,
+TrajectoryLorentz<HConfig>,
+TrajectoryParker<HConfig>
 >;
 
 
 template<typename HConfig>
-using Trajectory = FieldOps::Nth<TrajectoryList<HConfig>, reinterpret_cast<int>(HConfig::TrajectoryConfig::trajectoryid)>;
+using Trajectory = FieldOps::Nth<TrajectoryList<HConfig>, static_cast<int>(HConfig::trajectory)>;
 
 
 }
-
-
 
 
 #endif

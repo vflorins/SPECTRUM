@@ -56,7 +56,7 @@ void InitialSpaceFixed<HConfig>::SetupInitial(bool construct)
    container.Read(initpos);
 
 // Pre-assign "_coords.Pos()" so that it never needs to change
-   _coords.Pos() = initpos;
+   _coords.Pos('w') = initpos;
 };
 
 /*!
@@ -90,7 +90,7 @@ InitialSpaceLine<HConfig>::InitialSpaceLine(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-InitialSpaceLine<HConfig>::InitialSpaceLine(const std::string& name_in, uint16_t status_in)
+InitialSpaceLine<HConfig>::InitialSpaceLine(const std::string_view& name_in, status_t status_in)
                 : InitialBase(name_in, status_in)
 {
 };
@@ -133,7 +133,7 @@ void InitialSpaceLine<HConfig>::SetupInitial(bool construct)
    else {
       randompos = false;
       increment = (endpos - startpos) / (double)n_intervals;
-      _coords.Pos() = startpos - 0.5 * increment;
+      _coords.Pos('w') = startpos - 0.5 * increment;
    };
 };
 
@@ -144,7 +144,7 @@ void InitialSpaceLine<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialSpaceLine<HConfig>::EvaluateInitial(void)
 {
-   if (randompos) _coords.Pos() = startpos + (endpos - startpos) * rng->GetUniform();
+   if (randompos) _coords.Pos('w') = startpos + (endpos - startpos) * rng->GetUniform();
    else _coords.Pos() += increment;
 };
 
@@ -169,7 +169,7 @@ InitialSpaceCircle<HConfig>::InitialSpaceCircle(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-InitialSpaceCircle<HConfig>::InitialSpaceCircle(const std::string& name_in, uint16_t status_in)
+InitialSpaceCircle<HConfig>::InitialSpaceCircle(const std::string_view& name_in, status_t status_in)
                   : InitialBase(name_in, status_in)
 {
 };
@@ -222,7 +222,7 @@ void InitialSpaceCircle<HConfig>::EvaluateInitial(void)
    double phi;
 
    phi = M_2PI * rng->GetUniform();
-   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi);
+   _coords.Pos('w') = origin + radius_x * cos(phi) + radius_y * sin(phi);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ InitialSpaceSphere<HConfig>::InitialSpaceSphere(void)
 \date 06/14/2021
 */
 template <typename HConfig>
-InitialSpaceSphere<HConfig>::InitialSpaceSphere(const std::string& name_in, uint16_t status_in)
+InitialSpaceSphere<HConfig>::InitialSpaceSphere(const std::string_view& name_in, status_t status_in)
                   : InitialBase(name_in, status_in)
 {
 };
@@ -335,7 +335,7 @@ void InitialSpaceSphere<HConfig>::EvaluateInitial(void)
    st = sqrt(1.0 - Sqr(ct));
    phi = M_2PI * rng->GetUniform();
 
-   _coords.Pos() = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
+   _coords.Pos('w') = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -414,7 +414,7 @@ void InitialSpaceSphereSector<HConfig>::EvaluateInitial(void)
    st = sqrt(1.0 - Sqr(ct));
    phi = phi1 + (phi2 - phi1) * rng->GetUniform();
 
-   _coords.Pos() = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
+   _coords.Pos('w') = origin + GeoVector(radius * st * cos(phi), radius * st * sin(phi), radius * ct);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -487,7 +487,7 @@ void InitialSpaceRankineHalfBody<HConfig>::EvaluateInitial(void)
    s = sqrt(Sqr(r) - Sqr(z));
    phi = M_2PI * rng->GetUniform();
 
-   _coords.Pos() = origin + GeoVector(s * cos(phi), s * sin(phi), z);
+   _coords.Pos('w') = origin + GeoVector(s * cos(phi), s * sin(phi), z);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -533,12 +533,12 @@ void InitialSpaceTable<HConfig>::EvaluateInitial(void)
       table_counter = rng->GetUniform() * initquant.size();
 
 // Pull position in randomly selected place on the table
-      _coords.Pos() = initquant[table_counter];
+      _coords.Pos('w') = initquant[table_counter];
    }
    else {
 
 // Pull next position on the table
-      _coords.Pos() = initquant[table_counter++];
+      _coords.Pos('w') = initquant[table_counter++];
 
 // If all positions have been sampled, reset the counter
       if (table_counter == initquant.size()) table_counter = 0;
@@ -564,7 +564,7 @@ InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(void)
 \date 05/16/2023
 */
 template <typename HConfig>
-InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const std::string& name_in, uint16_t status_in)
+InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const std::string_view& name_in, status_t status_in)
                     : InitialBase(name_in, status_in)
 {
 };
@@ -616,7 +616,7 @@ void InitialSpaceCylinder<HConfig>::EvaluateInitial(void)
    z = rng->GetUniform();
    phi = M_2PI * rng->GetUniform();
 
-   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
+   _coords.Pos('w') = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -682,7 +682,7 @@ void InitialSpaceCylinderSector<HConfig>::EvaluateInitial(void)
    z = rng->GetUniform();
    phi = phi1 + (phi2 - phi1) * rng->GetUniform();
 
-   _coords.Pos() = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
+   _coords.Pos('w') = origin + radius_x * cos(phi) + radius_y * sin(phi) + height * z;
 };
 
 };

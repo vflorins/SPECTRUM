@@ -129,11 +129,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double momentum1 = Mom<specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum1 = Mom<Config::specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum1);
 
 // Upper bound for momentum
-   double momentum2 = Mom<specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum2 = Mom<Config::specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum2);
 
 // Log bias

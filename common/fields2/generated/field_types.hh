@@ -174,6 +174,13 @@ using AbsMom_t = ScalarField<Field::Id::AbsMom, 0, 0, 0>;
 using HatMom_t = VectorField<Field::Id::HatMom, 0, 0, 0>;
 
 /*!
+\brief Pitch angle cosine of momentum type with a formatted name
+\author Lucius Schoenbaum
+\date 03/25/2025
+*/
+using MomMu_t = ScalarField<Field::Id::MomMu, 0, 0, 0>;
+
+/*!
 \brief Particle Velocity type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025

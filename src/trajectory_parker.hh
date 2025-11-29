@@ -29,11 +29,11 @@ class TrajectoryParker : public TrajectoryBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryConfig = HConfig::TrajectoryConfig;
-   using TrajectoryCoordinates = TrajectoryConfig::TrajectoryCoordinates;
-   using TrajectoryFields = TrajectoryConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -44,9 +44,9 @@ public:
    using TrajectoryBase::dt_physical;
 
    using TrajectoryBase::diffusion;
-   using DiffusionCoordinates = HConfig::DiffusionConfig::DiffusionCoordinates;
-   using DiffusionFields = HConfig::DiffusionConfig::DiffusionFields;
-   using DiffusionRemainder = HConfig::DiffusionConfig::DiffusionRemainder; // ????
+//   using typename TrajectoryBase::DiffusionCoordinates;
+//   using typename TrajectoryBase::DiffusionFields;
+//   using typename TrajectoryBase::DiffusionRemainder;
 //   using typename TrajectoryBase::DiffusionCoordinates;
 //   using typename TrajectoryBase::DiffusionFields;
 //   using typename TrajectoryBase::DiffusionFieldsRemainder;
@@ -111,16 +111,13 @@ protected:
 //! Perform all checks to see if a trajectory is ready to be used in a simulation
    bool IsSimulationReady(void) const override;
 
-//! Momentum transformation on reflection at a boundary
-   void ReverseMomentum(void) override;
-
 public:
 
 //! Default constructor
    TrajectoryParker(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryParker(const std::string& name_in, uint16_t status_in);
+   TrajectoryParker(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryParker(const TrajectoryParker& other) = delete;
@@ -136,20 +133,6 @@ public:
 
 };
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// TrajectoryParker inline methods
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 07/07/2023
-*/
-template <typename HConfig>
-inline void TrajectoryParker<HConfig>::ReverseMomentum(void)
-{
-};
 
 };
 

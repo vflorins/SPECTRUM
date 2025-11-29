@@ -16,64 +16,6 @@ using namespace BackgroundOptions;
 // BackgroundDiscontinuity methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 08/05/2025
-*/
-template <typename HConfig>
-BackgroundDiscontinuity<HConfig>::BackgroundDiscontinuity(void)
-                       : BackgroundBase(bg_name, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/20/2023
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundDiscontinuity<HConfig>::BackgroundDiscontinuity(const BackgroundDiscontinuity& other)
-                       : BackgroundBase(other)
-{
-   RAISE_BITS(_status, STATE_NONE);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/20/2023
-*/
-template <typename HConfig>
-BackgroundDiscontinuity<HConfig>::BackgroundDiscontinuity(const std::string& name_in, uint16_t status_in)
-               : BackgroundBase(name_in, status_in)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/14/2025
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-template <typename HConfig>
-void BackgroundDiscontinuity<HConfig>::SetupBackground(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
-
-// Unpack parameters
-   container.Read(n_discont);
-   container.Read(v_discont);
-   container.Read(u1);
-   container.Read(B1);
-
-// Normalize n_discont
-   n_discont.Normalize();
-};
 
 /*!
 \author Juan G Alonso Guzman
@@ -81,24 +23,24 @@ void BackgroundDiscontinuity<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Upstream
    if ((coords.Pos() - r0) * n_discont - v_discont * coords.Time() > 0) {
-      if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u0;
-      if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0;
-      if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 1.0;
+      if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = u0;
+      if constexpr (RequestedFields::Mag_found()) fields.Mag('w') = B0;
+      if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0;
    }
 // Downstream
    else {
-      if constexpr (RequestedFields::Fluv_found()) fields.Fluv() = u1;
-      if constexpr (RequestedFields::Mag_found()) fields.Mag() = B1;
-      if constexpr (RequestedFields::Iv0_found()) fields.Iv0() = 2.0;
+      if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = u1;
+      if constexpr (RequestedFields::Mag_found()) fields.Mag('w') = B1;
+      if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 2.0;
    };
 
-   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -107,17 +49,34 @@ void BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coords, F
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
-   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv() = gm_zeros;
-   if constexpr (RequestedFields::DelMag_found()) fields.DelMag() = gm_zeros;
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc() = gm_zeros;
+   if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
+   if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') = gm_zeros;
+   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
 
 // Time derivatives are zero
-   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
-   if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+
+   return 0;
 };
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 08/06/2025
+*/
+template <typename HConfig>
+template <typename Coordinates>
+status_t BackgroundDiscontinuity<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+{
+   dmax = dmax0;
+   return 0;
+};
+
+
 
 };

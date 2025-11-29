@@ -16,30 +16,6 @@ using namespace BackgroundOptions;
 // BackgroundMagnetizedCylinder methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\date 02/13/2024
-*/
-template <typename HConfig>
-BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(void)
-                            : BackgroundCylindricalObstacle(bg_name, MODEL_STATIC)
-{
-};
-
-/*!
-\author Vladimir Florinski
-\date 02/13/2024
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(const BackgroundMagnetizedCylinder& other)
-                            : BackgroundCylindricalObstacle(other)
-{
-   RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
 
 /*!
 \author Vladimir Florinski
@@ -47,13 +23,12 @@ BackgroundMagnetizedCylinder<HConfig>::BackgroundMagnetizedCylinder(const Backgr
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    BackgroundCylindricalObstacle::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
    if constexpr (RequestedFields::Mag_found())
-      fields.Mag() = B0 - fields.Mag();
-
-   LOWER_BITS(_status, STATE_INVALID);
+      fields.Mag('w') = B0 - fields.Mag();
+   return 0;
 };
 
 /*!
@@ -62,15 +37,23 @@ void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackground(Coordinates& coor
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (derivative_method == DerivativeMethod::analytic) {
-      BackgroundCylindricalObstacle::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
-      if constexpr (RequestedFields::DelMag_found()) fields.DelMag() *= -1.0;
-   }
-   else {
-      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
-   };
+   BackgroundCylindricalObstacle::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+   if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') *= -1.0;
+   return 0;
 };
+
+/*!
+\author Lucius Schoenbaum
+\date 11/24/2025
+*/
+template <typename HConfig>
+template <typename Coordinates>
+status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+{
+   return BackgroundCylindricalObstacle::template EvaluateBackgroundDerivatives<Coordinates>(coords, dmax);
+};
+
 
 };

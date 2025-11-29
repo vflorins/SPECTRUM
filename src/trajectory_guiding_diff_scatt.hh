@@ -33,10 +33,11 @@ class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_>, Trajector
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
    using TrajectoryGuidingDiff = TrajectoryGuidingDiff<HConfig>;
@@ -69,7 +70,6 @@ public:
 //////   using TrajectoryBase::traj_t;
 //////   using TrajectoryBase::traj_pos;
 //////   using TrajectoryBase::traj_mom;
-////   using TrajectoryBase::specie;
 //////   using TrajectoryBase::local_t;
 //////   using TrajectoryBase::local_pos;
 //////   using TrajectoryBase::local_mom;

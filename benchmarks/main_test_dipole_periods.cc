@@ -7,17 +7,15 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-// todo when all trajectories are updated
-//#include "src/trajectory.hh"
-#include "src/trajectory_guiding.hh"
+
+#include "src/trajectory.hh"
 #include "src/simulation.config.hh"
 #include <iostream>
 #include <iomanip>
 
 using namespace Spectrum;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
 
    DataContainer container;
 
@@ -25,22 +23,20 @@ int main(int argc, char** argv)
 // Set simulation types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using H = SimulationConfig<
+   using HConfig = SimulationConfig<
          BuildMode::debug,
          SpecieId::proton_core,
-         TrajectoryId::Guiding,
-         BackgroundId::Dipole,
-         DiffusionId::None,
+         Config::Background::Dipole,
+         Config::Trajectory::Guiding,
+         Config::Diffusion::None,
          Default,
          Default,
          Default,
          /* num_trajectories */ 1,
          /* batch_size */ 1,
          /* max_trajectories_per_worker */ 1
-      >;
+   >;
 
-   using Background = Background<HConfig>;
-   using Diffusion = Diffusion<HConfig>;
    using Trajectory = Trajectory<HConfig>;
 
    using InitialTime = InitialTimeFixed<HConfig>;
@@ -99,7 +95,7 @@ int main(int argc, char** argv)
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(Background(), container);
+   trajectory->AddBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -120,7 +116,7 @@ int main(int argc, char** argv)
    container.Clear();
 
    double L = 3.0;
-   GeoVector start_pos(L*RE, 0.0, 0.0);
+   GeoVector start_pos(L * RE, 0.0, 0.0);
    container.Insert(start_pos);
 
    trajectory->AddInitial(InitialSpace(), container);
@@ -133,7 +129,7 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 1.0;
-   container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
+   container.Insert(Mom<HConfig::specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
    double theta_eq = DegToRad(30.0);
    container.Insert(theta_eq);
@@ -153,7 +149,7 @@ int main(int argc, char** argv)
 // Action
    std::vector<int> actions; // empty vector because there are no distributions
    container.Insert(actions);
-   
+
 // Duration of the trajectory
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
@@ -200,7 +196,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Normal
-   GeoVector normal_drift(1.0,0.0,0.0);
+   GeoVector normal_drift(1.0, 0.0, 0.0);
    container.Insert(normal_drift);
 
    trajectory->AddBoundary(Boundary2(), container);
@@ -221,7 +217,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Normal
-   GeoVector normal_bounce(0.0,0.0,1.0);
+   GeoVector normal_bounce(0.0, 0.0, 1.0);
    container.Insert(normal_bounce);
 
    trajectory->AddBoundary(Boundary2(), container);
@@ -255,15 +251,19 @@ int main(int argc, char** argv)
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
    std::cout << "Time elapsed (simulated)     = " << trajectory->ElapsedTime() * unit_time_fluid << " s" << std::endl;
    std::cout << "drift period (theory)        = " << drift_period * unit_time_fluid << " s" << std::endl;
-   std::cout << "drift period (simulation)    = " << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Crossings(1,1) << " s" << std::endl;
+   std::cout << "drift period (simulation)    = "
+             << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Crossings(1, 1) << " s" << std::endl;
    std::cout << "bounce period (theory)       = " << bounce_period * unit_time_fluid << " s" << std::endl;
-   std::cout << "bounce period (simulation 1) = " << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Crossings(1,2) << " s" << std::endl;
-   std::cout << "bounce period (simulation 2) = " << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Mirrorings() << " s" << std::endl;
+   std::cout << "bounce period (simulation 1) = "
+             << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Crossings(1, 2) << " s" << std::endl;
+   std::cout << "bounce period (simulation 2) = "
+             << 2.0 * trajectory->ElapsedTime() * unit_time_fluid / trajectory->Mirrorings() << " s" << std::endl;
    std::cout << "=========================================================" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file,false);
-   
+   trajectory->records.PrintCSV(trajectory_file, false);
+
    return 0;
 };
+

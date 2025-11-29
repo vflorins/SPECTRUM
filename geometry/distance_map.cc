@@ -38,7 +38,7 @@ DistanceBase::DistanceBase(void)
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-DistanceBase::DistanceBase(const std::string& name_in, uint16_t status_in)
+DistanceBase::DistanceBase(const std::string_view& name_in, status_t status_in)
             : Params(name_in, status_in)
 {
 };

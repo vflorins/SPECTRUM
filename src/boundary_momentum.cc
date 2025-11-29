@@ -31,7 +31,7 @@ BoundaryMomentum<HConfig>::BoundaryMomentum(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryMomentum<HConfig>::BoundaryMomentum(const std::string& name_in, uint16_t status_in)
+BoundaryMomentum<HConfig>::BoundaryMomentum(const std::string_view& name_in, status_t status_in)
                 : BoundaryBase(name_in,  status_in)
 {
 };
@@ -72,7 +72,7 @@ void BoundaryMomentum<HConfig>::SetupBoundary(bool construct)
 template <typename HConfig>
 void BoundaryMomentum<HConfig>::EvaluateBoundary(void)
 {
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline){
+   if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline){
 // TODO
    }
    else {
@@ -102,7 +102,7 @@ BoundaryMomentumInject<HConfig>::BoundaryMomentumInject(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryMomentumInject<HConfig>::BoundaryMomentumInject(const std::string& name_in, uint16_t status_in)
+BoundaryMomentumInject<HConfig>::BoundaryMomentumInject(const std::string_view& name_in, status_t status_in)
                       : BoundaryMomentum(name_in, status_in)
 {
    max_crossings = 1;
@@ -307,7 +307,7 @@ void BoundaryMomentumInjectRestrictShell<HConfig>::EvaluateBoundary(void)
 */
 template <typename HConfig>
 BoundaryMirror<HConfig>::BoundaryMirror(void)
-              : BoundaryBase(bdy_name, 0, BOUNDARY_MOMENTUM | BOUNDARY_REFLECT)
+              : BoundaryBase(bdy_name, BOUNDARY_MOMENTUM | BOUNDARY_REFLECT)
 {
    max_crossings = -1;
 };
@@ -351,13 +351,13 @@ template <typename HConfig>
 void BoundaryMirror<HConfig>::EvaluateBoundary(void)
 {
 // Delta is the parallel momentum component
-   if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Guiding) {
+   if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
       _delta = _coords.MomPara();
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Focused) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {
       _delta = _coords.AbsMom() * _coords.MomMu();
    }
-   else if constexpr (HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz) {
       _delta = _coords.Mom() * _fields.AbsMag();
    }
 };

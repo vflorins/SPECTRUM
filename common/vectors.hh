@@ -9,7 +9,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_VECTORS_HH
 #define SPECTRUM_VECTORS_HH
 
-#include <common/multi_index.hh>
+#include "common/compiletime_math.hh"
+#include "common/multi_index.hh"
 
 namespace Spectrum {
 
@@ -58,7 +59,7 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC operator MultiIndex(void) const;
 
 //! Computes the norm of this vector
-   SPECTRUM_DEVICE_FUNC double Norm(void) const;
+   SPECTRUM_DEVICE_FUNC constexpr double Norm(void) const;
 
 //! Makes this a unit vector
    SPECTRUM_DEVICE_FUNC GeoVector& Normalize(void);
@@ -215,9 +216,9 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
 \date 04/24/2024
 \return \f$|v|\f$
 */
-SPECTRUM_DEVICE_FUNC inline double GeoVector::Norm(void) const
+SPECTRUM_DEVICE_FUNC constexpr inline double GeoVector::Norm(void) const
 {
-   return sqrt(Norm2());
+   return csqrt(Norm2());
 };
 
 /*!

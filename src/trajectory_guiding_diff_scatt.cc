@@ -92,13 +92,13 @@ bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Perform first half of PA scattering
-   if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+   if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
       TrajectoryGuidingScatt::EulerPitchAngleScatt(0);
    }
-   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+   else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
       TrajectoryGuidingScatt::MilsteinPitchAngleScatt(0);
    }
-   else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+   else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
       TrajectoryGuidingScatt::RK2PitchAngleScatt(0);
    }
 
@@ -135,9 +135,9 @@ bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
    if (RKStep()) return false;
 
 // Stochastic displacement
-   _coords.Pos() += dr_perp;
+   _coords.Pos('w') += dr_perp;
 
-   if constexpr (HConfig::split_scatt) {
+   if constexpr (Config::split_scatt) {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Second half of stochastic pitch angle contribution and advection term
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -150,13 +150,13 @@ bool TrajectoryGuidingDiffScatt<HConfig>::Advance(void)
       TrajectoryGuidingScatt::DiffusionCoeff();
 
 // Perform second half of PA scattering
-      if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
+      if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Euler) {
          TrajectoryGuidingScatt::EulerPitchAngleScatt(1);
       }
-      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
+      else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::Milstein) {
          TrajectoryGuidingScatt::MilsteinPitchAngleScatt(1);
       }
-      else if constexpr (HConfig::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
+      else if constexpr (Config::stochastic_method_mu == TrajectoryOptions::StochasticMethod::RK2) {
          TrajectoryGuidingScatt::RK2PitchAngleScatt(1);
       }
    }

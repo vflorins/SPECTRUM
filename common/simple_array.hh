@@ -110,7 +110,7 @@ struct SimpleArray
    SPECTRUM_DEVICE_FUNC SimpleArray& operator %=(const SimpleArray& other);
 
 //! Computes the square of the norm of this simple array
-   SPECTRUM_DEVICE_FUNC data_type Norm2(void) const;
+   SPECTRUM_DEVICE_FUNC constexpr data_type Norm2(void) const;
 
 //! Sum of all components
    SPECTRUM_DEVICE_FUNC data_type Sum(void) const;
@@ -330,7 +330,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 \return \f$|v|^2\f$
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::Norm2(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr data_type SimpleArray<data_type, n_vars>::Norm2(void) const
 {
    data_type sum = data[0] * data[0];
    for (auto i = 1; i < n_vars; i++) sum += data[i] * data[i];

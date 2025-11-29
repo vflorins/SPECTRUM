@@ -34,7 +34,7 @@ TrajectoryGuidingDiff<HConfig>::TrajectoryGuidingDiff(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryGuidingDiff<HConfig>::TrajectoryGuidingDiff(const std::string& name_in, uint16_t status_in)
+TrajectoryGuidingDiff<HConfig>::TrajectoryGuidingDiff(const std::string_view& name_in, status_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -50,7 +50,7 @@ bool TrajectoryGuidingDiff<HConfig>::IsSimulationReady(void) const
 
 // A diffusion object is required
    if(diffusion == nullptr) return false;
-   else if(BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   else if(BITS_LOWERED(diffusion.GetStatus(), STATE_SETUP_COMPLETE)) return false;
    return true;
 };
 
@@ -83,15 +83,15 @@ try {
       auto dcoords = DiffusionCoordinates::Convert(_coords);
       DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
       CommonFields_Diffusion(dcoords, dfields);
-      diffusion->Stage(dcoords, dfields);
-      Dperp = diffusion->Get(Component::perp);
+      diffusion.Stage(dcoords, dfields);
+      Dperp = diffusion.Get(Component::perp);
 
 // Compute gradient of Dperp
-      auto ddata = background->GetDerivativeData();
+      auto ddata = backgroundderivatives.GetDerivativeData();
       // todo component of ddir
-      gradDperp[0] = diffusion->GetDirectionalDerivative(Component::perp, 0, ddata);
-      gradDperp[1] = diffusion->GetDirectionalDerivative(Component::perp, 1, ddata);
-      gradDperp[2] = diffusion->GetDirectionalDerivative(Component::perp, 2, ddata);
+      gradDperp[0] = diffusion.GetDirectionalDerivative(Component::perp, 0, ddata);
+      gradDperp[1] = diffusion.GetDirectionalDerivative(Component::perp, 1, ddata);
+      gradDperp[2] = diffusion.GetDirectionalDerivative(Component::perp, 2, ddata);
 
 // Find components of Vperp in field aligned frame
       Vperp[0] = gradDperp * fa_basis[0];
@@ -126,8 +126,8 @@ void TrajectoryGuidingDiff<HConfig>::EulerPerpDiffSlopes(void)
    auto dcoords = DiffusionCoordinates::Convert(_coords);
    DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
    CommonFields_Diffusion(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp = diffusion.Get(Component::perp);
 
 // Compute random displacement
    dr_perp[0] = sqrt(2.0 * Dperp) * dWx;
@@ -149,7 +149,7 @@ void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
    double Vxy, random, Dperp_new;
    double dbdx, dbdy, dx, dy, slope_Dperp;
    GeoVector pos_new, xhat, yhat;
-   TrajectoryFields fields_new;
+   Fields fields_new;
 
 // Generate stochastic factors
    double dWx = sqrt(dt) * rng->GetNormal();
@@ -159,8 +159,8 @@ void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
    auto dcoords = DiffusionCoordinates::Convert(_coords);
    DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
    CommonFields_Diffusion(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp = diffusion.Get(Component::perp);
    slope_Dperp = sqrt(2.0 * Dperp);
 
 // Compute random displacement
@@ -171,20 +171,20 @@ void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
 // Calculate derivatives of sqrt(2.0 * Dperp) = b_11 = b_22. Note that b_12 = b_21 = 0.
    xhat = gv_nx;
    xhat.ChangeFromBasis(fa_basis);
-   dx = background->GetSafeIncr(xhat);
-   dcoords.Pos() += dx * xhat;
+   dx = backgroundderivatives.GetSafeIncr(xhat);
+   dcoords.Pos('w') += dx * xhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
    dbdx = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dx;
 
    yhat = gv_ny;
    yhat.ChangeFromBasis(fa_basis);
-   dy = background->GetSafeIncr(yhat);
-   dcoords.Pos() += dy * yhat - dx * xhat;
+   dy = backgroundderivatives.GetSafeIncr(yhat);
+   dcoords.Pos('w') += dy * yhat - dx * xhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
    dbdy = (sqrt(2.0 * Dperp_new) - slope_Dperp) / dy;
 
 // Add extra Milstein terms to Euler step
@@ -220,8 +220,8 @@ bool TrajectoryGuidingDiff<HConfig>::RK2PerpDiffSlopes(void)
    auto dcoords = DiffusionCoordinates::Convert(_coords);
    DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
    CommonFields_Diffusion(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp = diffusion.Get(Component::perp);
    slope_Dperp[0] = sqrt(2.0 * Dperp);
 
 // Compute displacement for slope calculation
@@ -231,78 +231,78 @@ bool TrajectoryGuidingDiff<HConfig>::RK2PerpDiffSlopes(void)
    dpos.ChangeFromBasis(fa_basis);
 
 // Compute second contribution to stochastic slope
-   dcoords.Pos() += gambar * dpos;
+   dcoords.Pos('w') += gambar * dpos;
    // todo impl _______________
    if(SpaceTerminateCheck(dcoords, dfields)) return true;
 
    dcoords.Time() += dt;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
    slope_Dperp[1] = sqrt(2.0 * Dperp_new);
-   dcoords.Pos() = local_coords.Pos();
+   dcoords.Pos('w') = local_coords.Pos();
 
 // Compute third contribution to stochastic slope
-   dcoords.Pos() -= dpos / (3.0 * gambar);
+   dcoords.Pos('w') -= dpos / (3.0 * gambar);
    // todo impl _______________
    if(SpaceTerminateCheck(dcoords, dfields)) return true;
 
    // todo review, i think Time() must be reset
 
-   dcoords.Time() += dt;
+   dcoords.Time('w') += dt;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
    slope_Dperp[2] = sqrt(2.0 * Dperp_new);
-   dcoords.Pos() = local_coords.Pos();
+   dcoords.Pos('w') = local_coords.Pos();
 
 // Compute additional fit term (this is the most computationally intensive part)
 
 // first and second x derivative
    xhat = gv_nx;
    xhat.ChangeFromBasis(fa_basis);
-   dx = background->GetSafeIncr(xhat);
-   dcoords.Pos() += dx * xhat;
+   dx = backgroundderivatives.GetSafeIncr(xhat);
+   dcoords.Pos('w') += dx * xhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
-   dcoords.Pos() = local_coords.Pos();
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
+   dcoords.Pos('w') = local_coords.Pos();
 
    dx *= 0.5;
-   dcoords.Pos() += dx * xhat;
+   dcoords.Pos('w') += dx * xhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_newx = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_newx = diffusion.Get(Component::perp);
    dbdx = (sqrt(2.0 * Dperp_newx) - slope_Dperp[0]) / dx;
    d2bdx2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newx) + slope_Dperp[0]) / Sqr(dx);
-   dcoords.Pos() = local_coords.Pos();
+   dcoords.Pos('w') = local_coords.Pos();
 
 // first and second y derivative
    yhat = gv_ny;
    yhat.ChangeFromBasis(fa_basis);
-   dy = background->GetSafeIncr(yhat);
-   dcoords.Pos() += dy * yhat;
+   dy = backgroundderivatives.GetSafeIncr(yhat);
+   dcoords.Pos('w') += dy * yhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
-   dcoords.Pos() = local_coords.Pos();
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
+   dcoords.Pos('w') = local_coords.Pos();
 
    dy *= 0.5;
-   dcoords.Pos() += dy * yhat;
+   dcoords.Pos('w') += dy * yhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_newy = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_newy = diffusion.Get(Component::perp);
    dbdy = (sqrt(2.0 * Dperp_newy) - slope_Dperp[0]) / dy;
    d2bdy2 = (sqrt(2.0 * Dperp_new) - 2.0 * sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / Sqr(dy);
-   dcoords.Pos() = local_coords.Pos();
+   dcoords.Pos('w') = local_coords.Pos();
 
 // mixed second derivative
-   dcoords.Pos() += dx * xhat + dy * yhat;
+   dcoords.Pos('w') += dx * xhat + dy * yhat;
    CommonFields(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Dperp_new = diffusion->Get(Component::perp);
+   diffusion.Stage(dcoords, dfields);
+   Dperp_new = diffusion.Get(Component::perp);
    d2bdxdy = (sqrt(2.0 * Dperp_new) - sqrt(2.0 * Dperp_newx) - sqrt(2.0 * Dperp_newy) + slope_Dperp[0]) / (dx * dy);
-   dcoords.Pos() = local_coords.Pos();
+   dcoords.Pos('w') = local_coords.Pos();
 
 // combination
    random = rng->GetUniform();
@@ -338,7 +338,7 @@ void TrajectoryGuidingDiff<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVect
 {
    TrajectoryGuiding::Slopes(slope_pos_istage, slope_mom_istage);
    TrajectoryGuidingDiff::DiffusionCoeff();
-   if constexpr (HConfig::time_flow == TimeFlow::forward) {
+   if constexpr (Config::time_flow == TimeFlow::forward) {
       slope_pos_istage += Vperp;
    }
    else {
@@ -354,10 +354,10 @@ void TrajectoryGuidingDiff<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVect
 template <typename HConfig>
 void TrajectoryGuidingDiff<HConfig>::PhysicalStep(void)
 {
-   constexpr double cfl_adv = HConfig::cfl_advection;
-   constexpr double cfl_dif = HConfig::cfl_diffusion;
-   constexpr double safety = HConfig::drift_safety;
-   if constexpr (HConfig::time_flow == TimeFlow::forward) {
+   constexpr double cfl_adv = Config::cfl_advection;
+   constexpr double cfl_dif = Config::cfl_diffusion;
+   constexpr double safety = Config::drift_safety;
+   if constexpr (Config::time_flow == TimeFlow::forward) {
       dt_physical = cfl_adv * _dmax / ((drift_vel + Vperp).Norm() + safety * _coords.AbsVel());
    }
    else {
@@ -417,7 +417,7 @@ bool TrajectoryGuidingDiff<HConfig>::Advance(void)
    if(RKStep()) return false;
 
 // Stochastic displacement
-   _coords.Pos() += dr_perp;
+   _coords.Pos('w') += dr_perp;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handle boundaries

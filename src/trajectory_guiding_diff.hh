@@ -33,10 +33,11 @@ class TrajectoryGuidingDiff : virtual public TrajectoryGuiding<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
 
@@ -123,7 +124,7 @@ public:
    TrajectoryGuidingDiff(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuidingDiff(const std::string& name_in, uint16_t status_in);
+   TrajectoryGuidingDiff(const std::string_view& name_in, status_t status_in);
 
 //! Destructor
    ~TrajectoryGuidingDiff() override = default;

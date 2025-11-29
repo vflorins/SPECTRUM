@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
 // Effective "mesh" resolution
    double enr = 100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle;
-   double R_L = LarmorRadius<specie>(Mom<specie>(enr), Bmag);
+   double R_L = LarmorRadius<Config::specie>(Mom<Config::specie>(enr), Bmag);
    double dmax = 0.1 * R_L;
    container.Insert(dmax);
 
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom<specie>(enr);
+   double momentum = Mom<Config::specie>(enr);
    GeoVector init_mom(0.0, 0.0, momentum);
 
    container.Insert(init_mom);

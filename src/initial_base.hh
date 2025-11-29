@@ -20,25 +20,25 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 //! Condition is in time
-const uint16_t INITIAL_TIME = 0x0010;
+const status_t INITIAL_TIME = 0x0010;
 
 //! Condition is in space
-const uint16_t INITIAL_SPACE = 0x0020;
+const status_t INITIAL_SPACE = 0x0020;
 
 //! Condition is in momentum
-const uint16_t INITIAL_MOMENTUM = 0x0040;
+const status_t INITIAL_MOMENTUM = 0x0040;
 
 //! Condition is a single point
-const uint16_t INITIAL_POINT = 0x0080;
+const status_t INITIAL_POINT = 0x0080;
 
 //! Condition is a curve
-const uint16_t INITIAL_CURVE = 0x0100;
+const status_t INITIAL_CURVE = 0x0100;
 
 //! Condition is a surface
-const uint16_t INITIAL_SURFACE = 0x0200;
+const status_t INITIAL_SURFACE = 0x0200;
 
 //! Condition is a volume
-const uint16_t INITIAL_VOLUME = 0x0400;
+const status_t INITIAL_VOLUME = 0x0400;
 
 //! Clone function pattern
 #define CloneFunctionInitial(T) std::unique_ptr<InitialBase> Clone(void) const override {return std::make_unique<T>();};
@@ -65,8 +65,7 @@ private:
 public:
 
    using HConfig = HConfig_;
-   using Coordinates = HConfig::TrajectoryConfig::TrajectoryCoordinates;
-   using HConfig::specie;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
 protected:
 
@@ -80,7 +79,7 @@ protected:
    InitialBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialBase(const std::string& name_in, uint16_t status_in);
+   InitialBase(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    InitialBase(const InitialBase& other);
@@ -164,7 +163,7 @@ protected:
    InitialTable(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialTable(const std::string& name_in, uint16_t status_in);
+   InitialTable(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    InitialTable(const InitialTable& other);

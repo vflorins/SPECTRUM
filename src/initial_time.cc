@@ -55,7 +55,7 @@ void InitialTimeFixed<HConfig>::SetupInitial(bool construct)
    container.Read(inittime);
 
 // Pre-assign "_coords.Time()" so that it never needs to change
-   _coords.Time() = inittime;
+   _coords.Time('w') = inittime;
 };
 
 /*!
@@ -89,7 +89,7 @@ InitialTimeInterval<HConfig>::InitialTimeInterval(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-InitialTimeInterval<HConfig>::InitialTimeInterval(const std::string& name_in, uint16_t status_in)
+InitialTimeInterval<HConfig>::InitialTimeInterval(const std::string_view& name_in, status_t status_in)
                    : InitialBase(name_in, status_in)
 {
 };
@@ -132,7 +132,7 @@ void InitialTimeInterval<HConfig>::SetupInitial(bool construct)
    else {
       randomtime = false;
       increment = (endtime - starttime) / (double)n_intervals;
-      _coords.Time() = starttime - 0.5 * increment;
+      _coords.Time('w') = starttime - 0.5 * increment;
    };
 };
 
@@ -143,7 +143,7 @@ void InitialTimeInterval<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialTimeInterval<HConfig>::EvaluateInitial(void)
 {
-   if (randomtime) _coords.Time() = starttime + (endtime - starttime) * rng->GetUniform();
+   if (randomtime) _coords.Time('w') = starttime + (endtime - starttime) * rng->GetUniform();
    else _coords.Time() += increment;
 };
 
@@ -188,11 +188,11 @@ void InitialTimeTable<HConfig>::EvaluateInitial(void)
 // Generate random integer between 0 and initquant.size() - 1
       table_counter = rng->GetUniform() * initquant.size();
 // Pull time in randomly selected place on the table
-      _coords.Time() = initquant[table_counter];
+      _coords.Time('w') = initquant[table_counter];
    }
    else {
 // Pull next time on the table
-      _coords.Time() = initquant[table_counter++];
+      _coords.Time('w') = initquant[table_counter++];
 // If all positions have been sampled, reset the counter
       if (table_counter == initquant.size()) table_counter = 0;
    };

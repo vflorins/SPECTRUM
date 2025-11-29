@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_UNIFORM_HH
 #define SPECTRUM_BACKGROUND_UNIFORM_HH
 
-#include "background_base.hh"
+#include "utils_numerical_derivatives.hh"
 
 namespace Spectrum {
 
@@ -22,65 +22,39 @@ namespace Spectrum {
 \brief Constant EM field, mainly for testing
 \author Vladimir Florinski
 
-Parameters: (BackgroundBase)
 */
 template <typename HConfig_>
-class BackgroundUniform : public BackgroundBase<HConfig_> {
-private:
+class BackgroundUniform {
+public:
 
    //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundUniform";
+   static constexpr std::string_view name = "BackgroundUniform";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundUniform<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
-
-   using BackgroundConfig::derivative_method;
+   using Cfg = HConfig::BackgroundConfig;
 
 protected:
 
 //! Electric field (persistent)
-   GeoVector E0;
+   static constexpr GeoVector E0 = -(Cfg::u0 ^ Cfg::B0) / c_code;
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+////! Set up the field evaluator based on "params"
+//   void SetupBackground(bool construct);
 
 public:
 
-//! Default constructor
-   BackgroundUniform(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static void EvaluateBackground(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundUniform(const BackgroundUniform& other);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Destructor
-   ~BackgroundUniform() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundUniform);
+   template <typename Coordinates>
+   static double EvaluateDmax(Coordinates& coords);
 
 };
 

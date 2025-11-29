@@ -32,7 +32,7 @@ DistributionUniform<Trajectory, distroClass>::DistributionUniform()
 \date 06/18/2021
 */
 template <typename Trajectory, class distroClass>
-DistributionUniform<Trajectory, distroClass>::DistributionUniform(const std::string& name_in, uint16_t status_in)
+DistributionUniform<Trajectory, distroClass>::DistributionUniform(const std::string_view& name_in, status_t status_in)
                                 : DistributionTemplated(name_in, status_in)
 {
 };
@@ -445,7 +445,7 @@ void DistributionAnisotropyLISM<HConfig>::EvaluateValue(void)
    _value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = _coords2.Mom() - RelFactor1<specie>(_coords2.Mom().Norm()) * specie.mass * U_LISM;
+   mom_rel = _coords2.Mom() - RelFactor1<Config::specie>(_coords2.Mom().Norm()) * specie.mass * U_LISM;
 };
 
 /*!
@@ -458,7 +458,7 @@ void DistributionAnisotropyLISM<HConfig>::ComptonGettingFactor(void)
    double vel;
    GeoVector mom_hat;
 
-   vel = Vel<specie>(_coords1.Mom().Norm());
+   vel = Vel<Config::specie>(_coords1.Mom().Norm());
    mom_hat = UnitVec(_coords1.Mom());
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
@@ -503,7 +503,7 @@ template <typename HConfig>
 void DistributionAnisotropyLISM<HConfig>::bCrossGradientAnisotropy(void)
 {
 // FIXME: This is according to Zhang et al. 2020, but (perhaps) differs from Zhang et al. 2014. We should investigate this further.
-   _weight = grad_perp_dens * (_coords2.Pos() + LarmorRadius<specie>(mom_rel.Norm(), _fields2.AbsMag()) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
+   _weight = grad_perp_dens * (_coords2.Pos() + LarmorRadius<Config::specie>(mom_rel.Norm(), _fields2.AbsMag()) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
 };
 
 //#endif
@@ -529,7 +529,7 @@ DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticE
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, uint16_t status_in)
+DistributionSpectrumKineticEnergyPowerLaw<HConfig>::DistributionSpectrumKineticEnergyPowerLaw(const std::string_view& name_in, status_t status_in)
                                          : DistributionTemplated(name_in, status_in)
 {
 };
@@ -583,13 +583,13 @@ template <typename HConfig>
 void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::EvaluateValue(void)
 {
    if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
-      _value[0] = EnrKin<specie>(_coords1.Mom()[0]);
+      _value[0] = EnrKin<Config::specie>(_coords1.Mom()[0]);
    }
    else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>) {
-      _value[0] = EnrKin<specie>(_coords1.Mom()[2]);
+      _value[0] = EnrKin<Config::specie>(_coords1.Mom()[2]);
    }
    else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>> || std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
-      _value[0] = EnrKin<specie>(_coords1.Mom().Norm());
+      _value[0] = EnrKin<Config::specie>(_coords1.Mom().Norm());
    }
    else {
 // stub
@@ -620,10 +620,10 @@ void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SpectrumKineticEnergyPo
 // stub
       ;
    }
-   kin_energy = EnrKin<specie>(mom2mag);
+   kin_energy = EnrKin<Config::specie>(mom2mag);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel<specie>(mom2mag);
+   double velocity = Vel<Config::specie>(mom2mag);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
    _weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1

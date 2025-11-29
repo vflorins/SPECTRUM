@@ -11,103 +11,108 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SERVER_BATL_HH
 
 #include "server_cartesian.hh"
+#include "server_interface.hh"
 
 namespace Spectrum {
 
-//! Flag to always request stencil directly from BATL for 1st order interpolation (0 = no, 1 = yes)
-#define REQUEST_STENCIL_FROM_BATL 0
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void wrapamr_clean();
-void wrapamr_read_header(const char*, int, int);
-void wrapamr_read_file(const char*, int, int, int);
-void wrapamr_read_file_partial(const char*, int, int, int, int, int*);
-void wrapamr_get_ndim(int*);
-void wrapamr_get_nvar(int*);
-void wrapamr_get_domain(double*, double*);
-void wrapamr_get_block_size(int*, int*, int*, int*);
-void wrapamr_get_data_serial(const double* pos, double* variables, int*);
+void wrapamr_read_header(const char *, int, int);
+void wrapamr_read_file(const char *, int, int, int);
+void wrapamr_read_file_partial(const char *, int, int, int, int, int *);
+void wrapamr_get_ndim(int *);
+void wrapamr_get_nvar(int *);
+void wrapamr_get_domain(double *, double *);
+void wrapamr_get_block_size(int *, int *, int *, int *);
+void wrapamr_get_data_serial(const double *pos, double *variables, int *);
 
 void spectrum_init_mpi(int comm);
-void spectrum_get_node(const double* pos, int* node);
-void spectrum_get_neighbor_node(int node, int i, int j, int k, int* neighbor_node, int* neighbor_level);
-void spectrum_get_interpolation_stencil(const double* pos, int* n_nodes, int* stencil_nodes, int* stencil_zones, double* stencil_weights);
+void spectrum_get_node(const double *pos, int *node);
+void spectrum_get_neighbor_node(int node, int i, int j, int k, int *neighbor_node, int *neighbor_level);
+void spectrum_get_interpolation_stencil(const double *pos, int *n_nodes, int *stencil_nodes, int *stencil_zones,
+                                        double *stencil_weights);
 
 // FIXME debug only
-void spectrum_read_header(const char*, int, int);
+void spectrum_read_header(const char *, int, int);
 
 #ifdef __cplusplus
 }
 #endif
 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Interface for the Fortran routines in "server_batl.f90"
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+\brief Obtain the pointers to the neighbor arrays for a node
+\param[in]  node            Node
+\param[out] neighbor_nodes  Entry into the BATL array of neighbor nodes
+\param[out] neighbor_levels Entry into the BATL array of neighbor levels
+*/
+//void spectrum_get_all_neighbor_nodes(int node, int** neighbor_nodes, int** neighbor_levels);
+
+/*!
+\brief Obtain copies of the neighbor arrays for a node
+\param[in]  node            Node
+\param[out] neighbor_nodes  Array of neighbor nodes
+\param[out] neighbor_levels Array of neighbor levels
+*/
+void spectrum_get_all_neighbor_copies(int node, int* neighbor_nodes, int* neighbor_levels);
+
+/*!
+\brief Return the coordinates of two opposite corners of the block
+\param[in]  node     Node
+\param[out] face_min Coordinates of the lower corner
+\param[out] face_max Coordinates of the upper corner
+*/
+void spectrum_get_block_corners(int node, double* face_min, double* face_max);
+
+/*!
+\brief Obtain copies of the variables associated with a node
+\param[in]  node      Node
+\param[out] variables Array of variables
+*/
+void spectrum_get_block_data(int node, double* variables);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // ServerBATL class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-class ServerBATL : virtual public ServerCartesian {
+template <typename HConfig_>
+class ServerBATL : public ServerCartesian<HConfig_>, public ServerInterface<HConfig_> {
+public:
 
-protected:
+   using HConfig = HConfig_;
+   using Block = Block<HConfig>;
+   using MPI = MPI<HConfig>;
 
-//! Initialize block pointer
-   void InitializeBlockPtr(BlockBase* &block_ptr) override;
+   using ServerCartesian = ServerCartesian<HConfig>;
+   using ServerInterface = ServerInterface<HConfig>;
 
-//! Default constructor - disabled
+public:
+
+//! Default constructor
    ServerBATL(void) = default;
 
-public:
-
-//! Destructor
-   virtual ~ServerBATL() = default;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// ServerBATLFront class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-class ServerBATLFront : virtual public ServerBATL, virtual public ServerCartesianFront {
-
-protected:
-
-//! Make shared block
-   void MakeSharedBlock(BlockPtrType &block_new) override;
-
-//! Obtain an interpolation stencil from the server
-   int RequestStencil(const GeoVector& pos);
-
-//! Generate an interpolation stencil for one plane
-   int BuildInterpolationPlane(const GeoVector& pos, int plane, int half);
-
-//! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos) override;
-
-public:
-
-//! Default constructor
-   ServerBATLFront(void) = default;
-
-//! Destructor
-   ~ServerBATLFront() override = default;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// ServerBATLBack class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-class ServerBATLBack : virtual public ServerBATL, virtual public ServerCartesianBack {
-
-public:
-
-//! Default constructor
-   ServerBATLBack(void) = default;
-
 //! Constructor with arguments
-   ServerBATLBack(const std::string& file_name_pattern_in);
+   ServerBATL(const std::string& file_name_pattern_in);
 
 //! Destructor
-   ~ServerBATLBack() override = default;
+   ~ServerBATL() override = default;
 
 //! Read data file
    void ReadData(const std::string data_file) override;
@@ -126,15 +131,11 @@ public:
 
 //! Handle "needstencil" requests
    void HandleNeedStencilRequests(void);
-};
-
-//! Server types
-#if SERVER_TYPE == SERVER_BATL
-typedef ServerBATL ServerType;
-typedef ServerBATLFront ServerFrontType;
-typedef ServerBATLBack ServerBackType;
-#endif
 
 };
+
+};
+
+#include "server_batl.cc"
 
 #endif

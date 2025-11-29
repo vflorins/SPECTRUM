@@ -113,7 +113,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom<specie>(1.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum = Mom<Config::specie>(1.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    double theta = DegToRad(90.0);
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Scattering frequency
-   double D0 = 0.01 * CyclotronFrequency<specie>(Vel<specie>(momentum),Bmag);
+   double D0 = 0.01 * CyclotronFrequency<Config::specie>(Vel<Config::specie>(momentum),Bmag);
    container.Insert(D0);
 
 // Pass ownership of "diffusion" to simulation

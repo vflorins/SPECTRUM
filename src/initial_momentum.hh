@@ -42,7 +42,7 @@ public:
    using InitialBase::_coords;
    using InitialBase::axis;
 
-   static_assert(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Lorentz || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
+   static_assert(HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::trajectory == Config::Trajectory::Fieldline, "InitialMomentumFixed initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -100,7 +100,7 @@ public:
    // methods:
    using InitialBase::GetMomSample;
 
-   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) && !(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!(HConfig::trajectory == Config::Trajectory::Parker) && !(HConfig::trajectory == Config::Trajectory::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 
@@ -157,7 +157,7 @@ public:
 
    using InitialBase::rng;
 
-   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker) && !(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
+   static_assert(!(HConfig::trajectory == Config::Trajectory::Parker) && !(HConfig::trajectory == Config::Trajectory::Fieldline), "InitialMomentumRing initial type cannot be applied to the selected Trajectory type.");
 
 protected:
 

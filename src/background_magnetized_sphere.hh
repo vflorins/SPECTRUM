@@ -24,57 +24,32 @@ namespace Spectrum {
 Parameters: (BackgroundSphericalObstacle)
 */
 template <typename HConfig_>
-class BackgroundMagnetizedSphere : public BackgroundSphericalObstacle<HConfig_> {
-private:
+class BackgroundMagnetizedSphere: public BackgroundSphericalObstacle<HConfig_> {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundMagnetizedSphere";
+   static constexpr std::string_view name = "BackgroundMagnetizedSphere";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundMagnetizedSphere<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
+   using BackgroundConfig = HConfig::BackgroundConfig;
    using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HConfig>;
-   using BackgroundSphericalObstacle::EvaluateAbsMag;
-   using BackgroundSphericalObstacle::EvaluateDmax;
-   using BackgroundSphericalObstacle::GetDmax;
-   using BackgroundSphericalObstacle::StopServerFront;
-   using BackgroundSphericalObstacle::SetupBackground;
-
-   using BackgroundConfig::derivative_method;
-
-protected:
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   using BackgroundSphericalObstacle::B0;
 
 public:
 
-//! Default constructor
-   BackgroundMagnetizedSphere(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Destructor
-   ~BackgroundMagnetizedSphere() override = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundMagnetizedSphere);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
 };
 

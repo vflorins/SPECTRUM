@@ -32,15 +32,11 @@ class TrajectoryGuidingScatt : public TrajectoryGuiding<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
-   using HConfig::TrajectoryConfig::split_scatt;
-   using HConfig::TrajectoryConfig::split_scatt_fraction;
-   using HConfig::TrajectoryConfig::stochastic_method_mu;
-   using HConfig::TrajectoryConfig::const_dmumax;
-   using HConfig::TrajectoryConfig::cfl_pitchangle;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
 
@@ -74,7 +70,6 @@ protected:
 ////   using TrajectoryBase::traj_t;
 ////   using TrajectoryBase::traj_pos;
 ////   using TrajectoryBase::traj_mom;
-//   using TrajectoryBase::specie;
 ////   using TrajectoryBase::local_t;
 ////   using TrajectoryBase::local_pos;
 ////   using TrajectoryBase::local_mom;
@@ -135,7 +130,7 @@ public:
    TrajectoryGuidingScatt(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryGuidingScatt(const std::string& name_in, uint16_t status_in);
+   TrajectoryGuidingScatt(const std::string_view& name_in, status_t status_in);
 
 //! Destructor
    ~TrajectoryGuidingScatt() override = default;

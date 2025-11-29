@@ -33,7 +33,7 @@ TrajectoryGuiding<HConfig>::TrajectoryGuiding(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryGuiding<HConfig>::TrajectoryGuiding(const std::string& name_in, uint16_t status_in)
+TrajectoryGuiding<HConfig>::TrajectoryGuiding(const std::string_view& name_in, status_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -49,7 +49,7 @@ void TrajectoryGuiding<HConfig>::SetStart(void)
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment<specie>(_coords.MomPerp(), _fields.AbsMag());
+   mag_mom = MagneticMoment<Config::specie>(_coords.MomPerp(), _fields.AbsMag());
 };
 
 /*!
@@ -66,8 +66,8 @@ try {
    double rL, rR;
 
 // Modified fields
-   rL = LarmorRadius<specie>(_coords.MomPerp(), _fields.AbsMag());
-   rR = LarmorRadius<specie>(_coords.MomPara(), _fields.AbsMag());
+   rL = LarmorRadius<Config::specie>(_coords.MomPerp(), _fields.AbsMag());
+   rR = LarmorRadius<Config::specie>(_coords.MomPara(), _fields.AbsMag());
    Evec_star = _fields.Elc();
    Evec_star = Evec_star - rR * _fields.AbsMag() * _fields.DotHatMag() / c_code;
    Evec_star = Evec_star - rL * _coords.VelPerp() * _fields.DelAbsMag() / (2.0 * c_code);
@@ -100,8 +100,8 @@ template <typename HConfig>
 void TrajectoryGuiding<HConfig>::PhysicalStep(void)
 {
 // If the pitch angle is at 90 degrees we only have the perpendicular component of "drift_vel", which may be too small, but can increase by a large (relative) factor during the integration step. For this reason a small fraction of the total speed is added to the characteristic speed.
-   constexpr double cfl_adv = HConfig::cfl_advection;
-   constexpr double drift_safety = HConfig::drift_safety;
+   constexpr double cfl_adv = Config::cfl_advection;
+   constexpr double drift_safety = Config::drift_safety;
    dt_physical = cfl_adv * _dmax/(drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
 //   dt_physical = cfl_adv * _dmax / (drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
 };
@@ -119,15 +119,15 @@ void TrajectoryGuiding<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
    DriftCoeff();
    slope_pos_istage = drift_vel;
 
-   if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
+   if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[0] = 0.0;
    }
-   else if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
+   else if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
       slope_mom_istage[0] = 0.5 * _coords.MomPerp() / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
    }
 
    slope_mom_istage[1] = 0.0;
-   slope_mom_istage[2] = specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
+   slope_mom_istage[2] = Config::specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
 };
 
 /*!
@@ -150,9 +150,9 @@ bool TrajectoryGuiding<HConfig>::Advance(void)
 template <typename HConfig>
 inline void TrajectoryGuiding<HConfig>::MomentumCorrection(void)
 {
-   if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
+   if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-      _coords.MomPerp() = PerpMomentum<specie>(mag_mom, _fields.AbsMag());
+      _coords.MomPerp('w') = PerpMomentum<Config::specie>(mag_mom, _fields.AbsMag());
    }
 };
 

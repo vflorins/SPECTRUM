@@ -34,19 +34,20 @@ void BlockCache<HConfig>::DeleteOldest(void)
 
 /*!
 \author Vladimir Florinski
-\date 01/26/2023
-\param[in] block Shared pointer to a block
+\author Lucius Schoenbaum
+\date 11/26/2025
+\param[in] block_ptr Shared pointer to a block
 \return Block index
 */
 template <typename HConfig>
-int BlockCache<HConfig>::AddBlock(const BlockPtrType& block)
+int BlockCache<HConfig>::AddBlock(const BlockPtr& block_ptr)
 {
 // Check if the cache is full
    if (blocks.size() >= max_cache_size) DeleteOldest();
 
-   int bidx = block->GetNode();
+   int bidx = block_ptr->GetNode();
 
-   if (blocks.emplace(bidx, block).second) {
+   if (blocks.emplace(bidx, block_ptr).second) {
       queue.push_front(bidx);
       helper.emplace(bidx, queue.cbegin());
    }

@@ -23,8 +23,11 @@ Elsewhere, this file can be edited normally.
 #include <stdexcept>
 #include "../generated/field_types.hh"
 #include "../fconfig.hh"
-#include "../../compiletime_lists.hh"
-#include "../../physics.hh"
+
+#include "common/compiletime_lists.hh"
+#include "common/status.hh"
+#include "common/physics.hh"
+
 
 namespace Spectrum {
 
@@ -52,7 +55,7 @@ public:
  */
    template <typename X>
    static constexpr bool found() {
-      return (std::same_as<X, Ts> || ...);
+      return (std::same_as<X, Ts> || ... || false);
    }
 
 //private:
@@ -66,7 +69,7 @@ public: // test
 \date 08/26/2025
  */
    static constexpr std::size_t compute_size() {
-      return (sizeof(Ts) + ...)/sizeof(double);
+      return (sizeof(Ts) + ... + 0)/sizeof(double);
    }
 
    template <typename X>
@@ -80,7 +83,7 @@ public: // test
 
    template<std::size_t... Is>
    static constexpr std::size_t compute_offset_impl(std::index_sequence<Is...>) {
-      return (sizeof(std::tuple_element_t<Is, std::tuple<Ts...>>) + ...)/sizeof(double);
+      return (sizeof(std::tuple_element_t<Is, std::tuple<Ts...>>) + ... + 0)/sizeof(double);
    }
 
    template<typename X>
@@ -116,6 +119,7 @@ public: // test
    static constexpr const std::size_t Mom_offset = compute_offset<Mom_t>();
    static constexpr const std::size_t AbsMom_offset = compute_offset<AbsMom_t>();
    static constexpr const std::size_t HatMom_offset = compute_offset<HatMom_t>();
+   static constexpr const std::size_t MomMu_offset = compute_offset<MomMu_t>();
    static constexpr const std::size_t Vel_offset = compute_offset<Vel_t>();
    static constexpr const std::size_t AbsVel_offset = compute_offset<AbsVel_t>();
    static constexpr const std::size_t HatVel_offset = compute_offset<HatVel_t>();
@@ -152,6 +156,7 @@ public:
 
    Fields(void) = default;
 
+   template <std::enable_if<(sizeof...(Ts) > 0)>>
    explicit Fields(Ts... in):
        data(in...)
    {};
@@ -197,6 +202,21 @@ As an array of double, the size is given by the static member size().
       return data;
    }
 
+/*!
+\brief Get a quantity by type
+\author Lucius Schoenbaum
+\date 11/10/2025
+Note: This method is functionally invalid if the tuple
+contains multiple members with the same data type.
+This should not occur in fluid or MHD applications.
+ */
+   template <typename T>
+   decltype(auto) get() const {
+      constexpr auto idx = compute_index<T>();
+      return *reinterpret_cast<const T*>(data + idx);
+   }
+
+
    // BEGIN(fields/generate, class)
 
 
@@ -214,18 +234,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Pos (Position in space) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Pos(void) {
+   GeoVector& Pos(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Pos_offset));
    };
 
 /*!
-\brief Get Pos (Position in space) from the data type, as const rvalue.
+\brief Get Pos (Position in space) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Pos(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Pos_offset));
+   [[nodiscard]] GeoVector Pos(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Pos_offset);
    };
    
 
@@ -244,25 +266,24 @@ As an array of double, the size is given by the static member size().
 \brief Get Rad (Radial spatial coordinate) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Rad(void) {
-      if constexpr (Rad_found())
-         return reinterpret_cast<double&>(*(data + Rad_offset));
-      else
-            if constexpr (FConfig::Pos_radial)
-               return Pos()[0];
-            else
-               return Pos().Norm();
+   double& Rad(char w) {
+        if constexpr (FConfig::Pos_radial)
+           return Pos()[0];
+        else
+           return reinterpret_cast<double&>(*(data + Rad_offset));
    };
 
 /*!
-\brief Get Rad (Radial spatial coordinate) from the data type, as const rvalue.
+\brief Get Rad (Radial spatial coordinate) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Rad(void) const {
+   [[nodiscard]] double Rad(void) const {
       if constexpr (Rad_found())
-         return reinterpret_cast<double&>(*(data + Rad_offset));
+         return *reinterpret_cast<const double*>(data + Rad_offset);
       else
          if constexpr (FConfig::Pos_radial)
             return Pos()[0];
@@ -285,18 +306,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Time (Time) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Time(void) {
+   double& Time(char w) {
       return reinterpret_cast<double&>(*(data + Time_offset));
    };
 
 /*!
-\brief Get Time (Time) from the data type, as const rvalue.
+\brief Get Time (Time) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Time(void) const {
-      return reinterpret_cast<const double&>(*(data + Time_offset));
+   [[nodiscard]] double Time(void) const {
+      return *reinterpret_cast<const double*>(data + Time_offset);
    };
    
 
@@ -315,18 +338,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Den (Density field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Den(void) {
+   double& Den(char w) {
       return reinterpret_cast<double&>(*(data + Den_offset));
    };
 
 /*!
-\brief Get Den (Density field) from the data type, as const rvalue.
+\brief Get Den (Density field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Den(void) const {
-      return reinterpret_cast<const double&>(*(data + Den_offset));
+   [[nodiscard]] double Den(void) const {
+      return *reinterpret_cast<const double*>(data + Den_offset);
    };
    
 
@@ -345,18 +370,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Prs (Pressure field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Prs(void) {
+   double& Prs(char w) {
       return reinterpret_cast<double&>(*(data + Prs_offset));
    };
 
 /*!
-\brief Get Prs (Pressure field) from the data type, as const rvalue.
+\brief Get Prs (Pressure field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Prs(void) const {
-      return reinterpret_cast<const double&>(*(data + Prs_offset));
+   [[nodiscard]] double Prs(void) const {
+      return *reinterpret_cast<const double*>(data + Prs_offset);
    };
    
 
@@ -375,18 +402,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Enr (Energy field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Enr(void) {
+   double& Enr(char w) {
       return reinterpret_cast<double&>(*(data + Enr_offset));
    };
 
 /*!
-\brief Get Enr (Energy field) from the data type, as const rvalue.
+\brief Get Enr (Energy field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Enr(void) const {
-      return reinterpret_cast<const double&>(*(data + Enr_offset));
+   [[nodiscard]] double Enr(void) const {
+      return *reinterpret_cast<const double*>(data + Enr_offset);
    };
    
 
@@ -405,18 +434,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Fluv (Fluid Flow Velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Fluv(void) {
+   GeoVector& Fluv(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Fluv_offset));
    };
 
 /*!
-\brief Get Fluv (Fluid Flow Velocity field) from the data type, as const rvalue.
+\brief Get Fluv (Fluid Flow Velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Fluv(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Fluv_offset));
+   [[nodiscard]] GeoVector Fluv(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Fluv_offset);
    };
    
 
@@ -462,18 +493,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Flum (Fluid Flow Momentum field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Flum(void) {
+   GeoVector& Flum(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Flum_offset));
    };
 
 /*!
-\brief Get Flum (Fluid Flow Momentum field) from the data type, as const rvalue.
+\brief Get Flum (Fluid Flow Momentum field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Flum(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Flum_offset));
+   [[nodiscard]] GeoVector Flum(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Flum_offset);
    };
    
 
@@ -492,18 +525,20 @@ As an array of double, the size is given by the static member size().
 \brief Get FlxDen (Fluid density flux function) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& FlxDen(void) {
+   double& FlxDen(char w) {
       return reinterpret_cast<double&>(*(data + FlxDen_offset));
    };
 
 /*!
-\brief Get FlxDen (Fluid density flux function) from the data type, as const rvalue.
+\brief Get FlxDen (Fluid density flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& FlxDen(void) const {
-      return reinterpret_cast<const double&>(*(data + FlxDen_offset));
+   [[nodiscard]] double FlxDen(void) const {
+      return *reinterpret_cast<const double*>(data + FlxDen_offset);
    };
    
 
@@ -522,18 +557,20 @@ As an array of double, the size is given by the static member size().
 \brief Get FlxEnr (Fluid energy flux function) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& FlxEnr(void) {
+   double& FlxEnr(char w) {
       return reinterpret_cast<double&>(*(data + FlxEnr_offset));
    };
 
 /*!
-\brief Get FlxEnr (Fluid energy flux function) from the data type, as const rvalue.
+\brief Get FlxEnr (Fluid energy flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& FlxEnr(void) const {
-      return reinterpret_cast<const double&>(*(data + FlxEnr_offset));
+   [[nodiscard]] double FlxEnr(void) const {
+      return *reinterpret_cast<const double*>(data + FlxEnr_offset);
    };
    
 
@@ -552,18 +589,20 @@ As an array of double, the size is given by the static member size().
 \brief Get FlxFlum (Fluid flow momentum flux function) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& FlxFlum(void) {
+   GeoVector& FlxFlum(char w) {
       return reinterpret_cast<GeoVector&>(*(data + FlxFlum_offset));
    };
 
 /*!
-\brief Get FlxFlum (Fluid flow momentum flux function) from the data type, as const rvalue.
+\brief Get FlxFlum (Fluid flow momentum flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& FlxFlum(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + FlxFlum_offset));
+   [[nodiscard]] GeoVector FlxFlum(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + FlxFlum_offset);
    };
    
 
@@ -582,25 +621,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsFluv(void) {
-      if constexpr (AbsFluv_found())
-         return reinterpret_cast<double&>(*(data + AbsFluv_offset));
-      else
-            if constexpr (FConfig::Fluv_radial)
-               return Fluv()[0];
-            else
-               return Fluv().Norm();
+   double& AbsFluv(char w) {
+        if constexpr (FConfig::Fluv_radial)
+           return Fluv()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsFluv_offset));
    };
 
 /*!
-\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type, as const rvalue.
+\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsFluv(void) const {
+   [[nodiscard]] double AbsFluv(void) const {
       if constexpr (AbsFluv_found())
-         return reinterpret_cast<double&>(*(data + AbsFluv_offset));
+         return *reinterpret_cast<const double*>(data + AbsFluv_offset);
       else
          if constexpr (FConfig::Fluv_radial)
             return Fluv()[0];
@@ -623,22 +661,21 @@ As an array of double, the size is given by the static member size().
 \brief Get HatFluv (Direction of fluid flow velocity) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatFluv(void) {
-      if constexpr (HatFluv_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
-      else
-         return UnitVec(Fluv());
+   GeoVector& HatFluv(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
    };
 
 /*!
-\brief Get HatFluv (Direction of fluid flow velocity) from the data type, as const rvalue.
+\brief Get HatFluv (Direction of fluid flow velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatFluv(void) const {
+   [[nodiscard]] GeoVector HatFluv(void) const {
       if constexpr (HatFluv_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatFluv_offset);
       else
          return UnitVec(Fluv());
    };
@@ -658,25 +695,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsFlum(void) {
-      if constexpr (AbsFlum_found())
-         return reinterpret_cast<double&>(*(data + AbsFlum_offset));
-      else
-            if constexpr (FConfig::Flum_radial)
-               return Flum()[0];
-            else
-               return Flum().Norm();
+   double& AbsFlum(char w) {
+        if constexpr (FConfig::Flum_radial)
+           return Flum()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsFlum_offset));
    };
 
 /*!
-\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type, as const rvalue.
+\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsFlum(void) const {
+   [[nodiscard]] double AbsFlum(void) const {
       if constexpr (AbsFlum_found())
-         return reinterpret_cast<double&>(*(data + AbsFlum_offset));
+         return *reinterpret_cast<const double*>(data + AbsFlum_offset);
       else
          if constexpr (FConfig::Flum_radial)
             return Flum()[0];
@@ -699,22 +735,21 @@ As an array of double, the size is given by the static member size().
 \brief Get HatFlum (Direction of fluid flow momentum) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatFlum(void) {
-      if constexpr (HatFlum_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
-      else
-         return UnitVec(Flum());
+   GeoVector& HatFlum(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
    };
 
 /*!
-\brief Get HatFlum (Direction of fluid flow momentum) from the data type, as const rvalue.
+\brief Get HatFlum (Direction of fluid flow momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatFlum(void) const {
+   [[nodiscard]] GeoVector HatFlum(void) const {
       if constexpr (HatFlum_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatFlum_offset);
       else
          return UnitVec(Flum());
    };
@@ -734,18 +769,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Mag (Magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Mag(void) {
+   GeoVector& Mag(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Mag_offset));
    };
 
 /*!
-\brief Get Mag (Magnetic field) from the data type, as const rvalue.
+\brief Get Mag (Magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Mag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Mag_offset));
+   [[nodiscard]] GeoVector Mag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Mag_offset);
    };
    
 
@@ -791,18 +828,20 @@ As an array of double, the size is given by the static member size().
 \brief Get FlxMag (Magnetic field flux function) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& FlxMag(void) {
+   GeoVector& FlxMag(char w) {
       return reinterpret_cast<GeoVector&>(*(data + FlxMag_offset));
    };
 
 /*!
-\brief Get FlxMag (Magnetic field flux function) from the data type, as const rvalue.
+\brief Get FlxMag (Magnetic field flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& FlxMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + FlxMag_offset));
+   [[nodiscard]] GeoVector FlxMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + FlxMag_offset);
    };
    
 
@@ -821,18 +860,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Glm(void) {
+   double& Glm(char w) {
       return reinterpret_cast<double&>(*(data + Glm_offset));
    };
 
 /*!
-\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as const rvalue.
+\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Glm(void) const {
-      return reinterpret_cast<const double&>(*(data + Glm_offset));
+   [[nodiscard]] double Glm(void) const {
+      return *reinterpret_cast<const double*>(data + Glm_offset);
    };
    
 
@@ -851,18 +892,20 @@ As an array of double, the size is given by the static member size().
 \brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& FlxGlm(void) {
+   double& FlxGlm(char w) {
       return reinterpret_cast<double&>(*(data + FlxGlm_offset));
    };
 
 /*!
-\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as const rvalue.
+\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& FlxGlm(void) const {
-      return reinterpret_cast<const double&>(*(data + FlxGlm_offset));
+   [[nodiscard]] double FlxGlm(void) const {
+      return *reinterpret_cast<const double*>(data + FlxGlm_offset);
    };
    
 
@@ -881,18 +924,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Mom (Particle Momentum) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Mom(void) {
+   GeoVector& Mom(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Mom_offset));
    };
 
 /*!
-\brief Get Mom (Particle Momentum) from the data type, as const rvalue.
+\brief Get Mom (Particle Momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Mom(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Mom_offset));
+   [[nodiscard]] GeoVector Mom(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Mom_offset);
    };
    
 
@@ -911,25 +956,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsMom (Magnitude of momentum) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsMom(void) {
-      if constexpr (AbsMom_found())
-         return reinterpret_cast<double&>(*(data + AbsMom_offset));
-      else
-            if constexpr (FConfig::Mom_radial)
-               return Mom()[0];
-            else
-               return Mom().Norm();
+   double& AbsMom(char w) {
+        if constexpr (FConfig::Mom_radial)
+           return Mom()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsMom_offset));
    };
 
 /*!
-\brief Get AbsMom (Magnitude of momentum) from the data type, as const rvalue.
+\brief Get AbsMom (Magnitude of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsMom(void) const {
+   [[nodiscard]] double AbsMom(void) const {
       if constexpr (AbsMom_found())
-         return reinterpret_cast<double&>(*(data + AbsMom_offset));
+         return *reinterpret_cast<const double*>(data + AbsMom_offset);
       else
          if constexpr (FConfig::Mom_radial)
             return Mom()[0];
@@ -952,25 +996,65 @@ As an array of double, the size is given by the static member size().
 \brief Get HatMom (Direction of momentum) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatMom(void) {
+   GeoVector& HatMom(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
+   };
+
+/*!
+\brief Get HatMom (Direction of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatMom(void) const {
       if constexpr (HatMom_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatMom_offset);
       else
          return UnitVec(Mom());
    };
 
+
 /*!
-\brief Get HatMom (Direction of momentum) from the data type, as const rvalue.
+\brief Whether MomMu (Pitch angle cosine of momentum) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatMom(void) const {
-      if constexpr (HatMom_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
-      else
-         return UnitVec(Mom());
+   static constexpr bool MomMu_found(void) {
+      return (MomMu_offset != Type_not_found);
    };
+
+
+/*!
+\brief Get MomMu (Pitch angle cosine of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& MomMu(char w) {
+        if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+           return Mom()[1];
+        else
+           return reinterpret_cast<double&>(*(data + MomMu_offset));
+   };
+
+/*!
+\brief Get MomMu (Pitch angle cosine of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double MomMu(void) const {
+      if constexpr (MomMu_found())
+         return *reinterpret_cast<const double*>(data + MomMu_offset);
+      else
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+            return Mom()[1];
+         else
+            return (Mom()*Mag())/(AbsMom()*AbsMag());
+   };
+                
 
 
 /*!
@@ -987,18 +1071,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Vel (Particle Velocity) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Vel(void) {
+   GeoVector& Vel(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Vel_offset));
    };
 
 /*!
-\brief Get Vel (Particle Velocity) from the data type, as const rvalue.
+\brief Get Vel (Particle Velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Vel(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Vel_offset));
+   [[nodiscard]] GeoVector Vel(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Vel_offset);
    };
    
 
@@ -1017,25 +1103,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsVel (Magnitude of velocity) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsVel(void) {
-      if constexpr (AbsVel_found())
-         return reinterpret_cast<double&>(*(data + AbsVel_offset));
-      else
-            if constexpr (FConfig::Vel_radial)
-               return Vel()[0];
-            else
-               return Vel().Norm();
+   double& AbsVel(char w) {
+        if constexpr (FConfig::Vel_radial)
+           return Vel()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsVel_offset));
    };
 
 /*!
-\brief Get AbsVel (Magnitude of velocity) from the data type, as const rvalue.
+\brief Get AbsVel (Magnitude of velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsVel(void) const {
+   [[nodiscard]] double AbsVel(void) const {
       if constexpr (AbsVel_found())
-         return reinterpret_cast<double&>(*(data + AbsVel_offset));
+         return *reinterpret_cast<const double*>(data + AbsVel_offset);
       else
          if constexpr (FConfig::Vel_radial)
             return Vel()[0];
@@ -1058,22 +1143,21 @@ As an array of double, the size is given by the static member size().
 \brief Get HatVel (Direction of velocity) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatVel(void) {
-      if constexpr (HatVel_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
-      else
-         return UnitVec(Vel());
+   GeoVector& HatVel(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
    };
 
 /*!
-\brief Get HatVel (Direction of velocity) from the data type, as const rvalue.
+\brief Get HatVel (Direction of velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatVel(void) const {
+   [[nodiscard]] GeoVector HatVel(void) const {
       if constexpr (HatVel_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatVel_offset);
       else
          return UnitVec(Vel());
    };
@@ -1093,18 +1177,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Elc (Electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& Elc(void) {
+   GeoVector& Elc(char w) {
       return reinterpret_cast<GeoVector&>(*(data + Elc_offset));
    };
 
 /*!
-\brief Get Elc (Electric field) from the data type, as const rvalue.
+\brief Get Elc (Electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& Elc(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + Elc_offset));
+   [[nodiscard]] GeoVector Elc(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Elc_offset);
    };
    
 
@@ -1150,25 +1236,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsElc (Electric field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsElc(void) {
-      if constexpr (AbsElc_found())
-         return reinterpret_cast<double&>(*(data + AbsElc_offset));
-      else
-            if constexpr (FConfig::Elc_radial)
-               return Elc()[0];
-            else
-               return Elc().Norm();
+   double& AbsElc(char w) {
+        if constexpr (FConfig::Elc_radial)
+           return Elc()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsElc_offset));
    };
 
 /*!
-\brief Get AbsElc (Electric field magnitude) from the data type, as const rvalue.
+\brief Get AbsElc (Electric field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsElc(void) const {
+   [[nodiscard]] double AbsElc(void) const {
       if constexpr (AbsElc_found())
-         return reinterpret_cast<double&>(*(data + AbsElc_offset));
+         return *reinterpret_cast<const double*>(data + AbsElc_offset);
       else
          if constexpr (FConfig::Elc_radial)
             return Elc()[0];
@@ -1191,22 +1276,21 @@ As an array of double, the size is given by the static member size().
 \brief Get HatElc (Electric field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatElc(void) {
-      if constexpr (HatElc_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
-      else
-         return UnitVec(Elc());
+   GeoVector& HatElc(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
    };
 
 /*!
-\brief Get HatElc (Electric field direction) from the data type, as const rvalue.
+\brief Get HatElc (Electric field direction) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatElc(void) const {
+   [[nodiscard]] GeoVector HatElc(void) const {
       if constexpr (HatElc_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatElc_offset);
       else
          return UnitVec(Elc());
    };
@@ -1226,25 +1310,24 @@ As an array of double, the size is given by the static member size().
 \brief Get AbsMag (Magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& AbsMag(void) {
-      if constexpr (AbsMag_found())
-         return reinterpret_cast<double&>(*(data + AbsMag_offset));
-      else
-            if constexpr (FConfig::Mag_radial)
-               return Mag()[0];
-            else
-               return Mag().Norm();
+   double& AbsMag(char w) {
+        if constexpr (FConfig::Mag_radial)
+           return Mag()[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsMag_offset));
    };
 
 /*!
-\brief Get AbsMag (Magnetic field magnitude) from the data type, as const rvalue.
+\brief Get AbsMag (Magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& AbsMag(void) const {
+   [[nodiscard]] double AbsMag(void) const {
       if constexpr (AbsMag_found())
-         return reinterpret_cast<double&>(*(data + AbsMag_offset));
+         return *reinterpret_cast<const double*>(data + AbsMag_offset);
       else
          if constexpr (FConfig::Mag_radial)
             return Mag()[0];
@@ -1267,22 +1350,21 @@ As an array of double, the size is given by the static member size().
 \brief Get HatMag (Magnetic field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatMag(void) {
-      if constexpr (HatMag_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
-      else
-         return UnitVec(Mag());
+   GeoVector& HatMag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
    };
 
 /*!
-\brief Get HatMag (Magnetic field direction) from the data type, as const rvalue.
+\brief Get HatMag (Magnetic field direction) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& HatMag(void) const {
+   [[nodiscard]] GeoVector HatMag(void) const {
       if constexpr (HatMag_found())
-         return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
+         return *reinterpret_cast<const GeoVector*>(data + HatMag_offset);
       else
          return UnitVec(Mag());
    };
@@ -1302,18 +1384,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DelFluv (Gradient of fluid flow velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoMatrix& DelFluv(void) {
+   GeoMatrix& DelFluv(char w) {
       return reinterpret_cast<GeoMatrix&>(*(data + DelFluv_offset));
    };
 
 /*!
-\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type, as const rvalue.
+\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoMatrix& DelFluv(void) const {
-      return reinterpret_cast<const GeoMatrix&>(*(data + DelFluv_offset));
+   [[nodiscard]] GeoMatrix DelFluv(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelFluv_offset);
    };
    
 
@@ -1332,18 +1416,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DelElc (Gradient of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoMatrix& DelElc(void) {
+   GeoMatrix& DelElc(char w) {
       return reinterpret_cast<GeoMatrix&>(*(data + DelElc_offset));
    };
 
 /*!
-\brief Get DelElc (Gradient of electric field) from the data type, as const rvalue.
+\brief Get DelElc (Gradient of electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoMatrix& DelElc(void) const {
-      return reinterpret_cast<const GeoMatrix&>(*(data + DelElc_offset));
+   [[nodiscard]] GeoMatrix DelElc(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelElc_offset);
    };
    
 
@@ -1362,18 +1448,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DelMag (Gradient of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoMatrix& DelMag(void) {
+   GeoMatrix& DelMag(char w) {
       return reinterpret_cast<GeoMatrix&>(*(data + DelMag_offset));
    };
 
 /*!
-\brief Get DelMag (Gradient of magnetic field) from the data type, as const rvalue.
+\brief Get DelMag (Gradient of magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoMatrix& DelMag(void) const {
-      return reinterpret_cast<const GeoMatrix&>(*(data + DelMag_offset));
+   [[nodiscard]] GeoMatrix DelMag(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelMag_offset);
    };
    
 
@@ -1392,18 +1480,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& DelAbsMag(void) {
+   GeoVector& DelAbsMag(char w) {
       return reinterpret_cast<GeoVector&>(*(data + DelAbsMag_offset));
    };
 
 /*!
-\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DelAbsMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DelAbsMag_offset));
+   [[nodiscard]] GeoVector DelAbsMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DelAbsMag_offset);
    };
    
 
@@ -1422,18 +1512,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& DotFluv(void) {
+   GeoVector& DotFluv(char w) {
       return reinterpret_cast<GeoVector&>(*(data + DotFluv_offset));
    };
 
 /*!
-\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type, as const rvalue.
+\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DotFluv(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DotFluv_offset));
+   [[nodiscard]] GeoVector DotFluv(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotFluv_offset);
    };
    
 
@@ -1452,18 +1544,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& DotElc(void) {
+   GeoVector& DotElc(char w) {
       return reinterpret_cast<GeoVector&>(*(data + DotElc_offset));
    };
 
 /*!
-\brief Get DotElc (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get DotElc (Time derivative of electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DotElc(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DotElc_offset));
+   [[nodiscard]] GeoVector DotElc(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotElc_offset);
    };
    
 
@@ -1482,18 +1576,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   GeoVector& DotMag(void) {
+   GeoVector& DotMag(char w) {
       return reinterpret_cast<GeoVector&>(*(data + DotMag_offset));
    };
 
 /*!
-\brief Get DotMag (Time derivative of magnetic field) from the data type, as const rvalue.
+\brief Get DotMag (Time derivative of magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const GeoVector& DotMag(void) const {
-      return reinterpret_cast<const GeoVector&>(*(data + DotMag_offset));
+   [[nodiscard]] GeoVector DotMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotMag_offset);
    };
    
 
@@ -1512,18 +1608,20 @@ As an array of double, the size is given by the static member size().
 \brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& DotAbsMag(void) {
+   double& DotAbsMag(char w) {
       return reinterpret_cast<double&>(*(data + DotAbsMag_offset));
    };
 
 /*!
-\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& DotAbsMag(void) const {
-      return reinterpret_cast<const double&>(*(data + DotAbsMag_offset));
+   [[nodiscard]] double DotAbsMag(void) const {
+      return *reinterpret_cast<const double*>(data + DotAbsMag_offset);
    };
    
 
@@ -1542,18 +1640,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv0(void) {
+   double& Iv0(char w) {
       return reinterpret_cast<double&>(*(data + Iv0_offset));
    };
 
 /*!
-\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv0(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv0_offset));
+   [[nodiscard]] double Iv0(void) const {
+      return *reinterpret_cast<const double*>(data + Iv0_offset);
    };
    
 
@@ -1572,18 +1672,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv1(void) {
+   double& Iv1(char w) {
       return reinterpret_cast<double&>(*(data + Iv1_offset));
    };
 
 /*!
-\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv1(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv1_offset));
+   [[nodiscard]] double Iv1(void) const {
+      return *reinterpret_cast<const double*>(data + Iv1_offset);
    };
    
 
@@ -1602,18 +1704,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv2(void) {
+   double& Iv2(char w) {
       return reinterpret_cast<double&>(*(data + Iv2_offset));
    };
 
 /*!
-\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv2(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv2_offset));
+   [[nodiscard]] double Iv2(void) const {
+      return *reinterpret_cast<const double*>(data + Iv2_offset);
    };
    
 
@@ -1632,18 +1736,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv3(void) {
+   double& Iv3(char w) {
       return reinterpret_cast<double&>(*(data + Iv3_offset));
    };
 
 /*!
-\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv3(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv3_offset));
+   [[nodiscard]] double Iv3(void) const {
+      return *reinterpret_cast<const double*>(data + Iv3_offset);
    };
    
 
@@ -1662,18 +1768,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv4(void) {
+   double& Iv4(char w) {
       return reinterpret_cast<double&>(*(data + Iv4_offset));
    };
 
 /*!
-\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv4(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv4_offset));
+   [[nodiscard]] double Iv4(void) const {
+      return *reinterpret_cast<const double*>(data + Iv4_offset);
    };
    
 
@@ -1692,18 +1800,20 @@ As an array of double, the size is given by the static member size().
 \brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& Iv5(void) {
+   double& Iv5(char w) {
       return reinterpret_cast<double&>(*(data + Iv5_offset));
    };
 
 /*!
-\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as const rvalue.
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& Iv5(void) const {
-      return reinterpret_cast<const double&>(*(data + Iv5_offset));
+   [[nodiscard]] double Iv5(void) const {
+      return *reinterpret_cast<const double*>(data + Iv5_offset);
    };
    
 
@@ -1722,18 +1832,20 @@ As an array of double, the size is given by the static member size().
 \brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& IvLISM(void) {
+   double& IvLISM(char w) {
       return reinterpret_cast<double&>(*(data + IvLISM_offset));
    };
 
 /*!
-\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as const rvalue.
+\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& IvLISM(void) const {
-      return reinterpret_cast<const double&>(*(data + IvLISM_offset));
+   [[nodiscard]] double IvLISM(void) const {
+      return *reinterpret_cast<const double*>(data + IvLISM_offset);
    };
    
 
@@ -1752,18 +1864,20 @@ As an array of double, the size is given by the static member size().
 \brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& IvBmix(void) {
+   double& IvBmix(char w) {
       return reinterpret_cast<double&>(*(data + IvBmix_offset));
    };
 
 /*!
-\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
+\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& IvBmix(void) const {
-      return reinterpret_cast<const double&>(*(data + IvBmix_offset));
+   [[nodiscard]] double IvBmix(void) const {
+      return *reinterpret_cast<const double*>(data + IvBmix_offset);
    };
    
 
@@ -1782,18 +1896,20 @@ As an array of double, the size is given by the static member size().
 \brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   double& IvSolarCycle(void) {
+   double& IvSolarCycle(char w) {
       return reinterpret_cast<double&>(*(data + IvSolarCycle_offset));
    };
 
 /*!
-\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
+\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const double& IvSolarCycle(void) const {
-      return reinterpret_cast<const double&>(*(data + IvSolarCycle_offset));
+   [[nodiscard]] double IvSolarCycle(void) const {
+      return *reinterpret_cast<const double*>(data + IvSolarCycle_offset);
    };
    
 
@@ -1970,6 +2086,12 @@ For a conversion operation, use Convert().
             out.HatMom() = fields.HatMom();
          else
             out.HatMom() = HatMom_t();
+      }
+      if constexpr (Fields::MomMu_found()) {
+         if constexpr (ParentFields::MomMu_found())
+            out.MomMu() = fields.MomMu();
+         else
+            out.MomMu() = MomMu_t();
       }
       if constexpr (Fields::Vel_found()) {
          if constexpr (ParentFields::Vel_found())
@@ -2160,7 +2282,7 @@ To obtain fields in the type TypeX from given fields y in the type TypeY:
 ```auto x = TypeX::Convert(y);```
 */
    template <typename ParentFields>
-   static inline Fields Convert(ParentFields& fields) {
+   [[nodiscard]] static inline Fields Convert(ParentFields& fields) {
       Fields X;
       if constexpr (std::same_as<Fields, ParentFields>) {
          X = fields;
@@ -2168,15 +2290,15 @@ To obtain fields in the type TypeX from given fields y in the type TypeY:
       else {
          // todo: the method is implemented as-needed.
          if constexpr (Time_found()) {
-            X.Time() = fields.Time();
+            X.Time('w') = fields.Time();
          }
          if constexpr (Pos_found()) {
             if constexpr (ParentFields::Pos_found()) {
                if constexpr (ParentFields::FConfig::Pos_sys == FConfig::Pos_sys)
-                  X.Pos() = fields.Pos();
+                  X.Pos('w') = fields.Pos();
                else
                   // todo - Pos_sys != Pos_sys
-                  X.Pos() = {1e30,1e30,1e30};
+                  X.Pos('w') = {1e30,1e30,1e30};
             }
          }
          if constexpr (Mom_found() || Vel_found()) {
@@ -2198,24 +2320,24 @@ To obtain fields in the type TypeX from given fields y in the type TypeY:
             }
             // write value
             if constexpr (Mom_found()) {
-               X.Mom() = Mom_tmp;
+               X.Mom('w') = Mom_tmp;
             }
             if constexpr (Vel_found()) {
                // todo check!!
-               X.Vel() = Vel<FConfig::specie>(Mom_tmp);
+               X.Vel('w') = Vel<FConfig::specie>(Mom_tmp);
             }
          }
          if constexpr (Rad_found()) {
             // todo review if Pos not in fields
-            X.Rad() = fields.Rad();
+            X.Rad('w') = fields.Rad();
          }
          if constexpr (AbsVel_found()) {
             // todo review if Vel/Mom not in fields
-            X.AbsVel() = fields.AbsVel();
+            X.AbsVel('w') = fields.AbsVel();
          }
          if constexpr (AbsMom_found()) {
             // todo review if Vel/Mom not in fields
-            X.AbsMom() = fields.AbsMom();
+            X.AbsMom('w') = fields.AbsMom();
          }
       }
       return X;
@@ -2232,30 +2354,39 @@ and azimuthal angle (unused in a reduced model).
 \note The velocity coordinates must generally be anisotropic or pitch-angle for this to work.
 The assumption that the fields type holds Mag() is unsatisfied in practice.
 */
-   double VelPerp() const
+   [[nodiscard]] double VelPerp(void) const
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
          return Vel()[0];
       }
-      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
          return Vel()[0]*sqrt(1 - Sqr(Vel()[1]));
       }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
       return 0.0;
    }
-   double VelPara() const
+   [[nodiscard]] double VelPara(void) const
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
          return Vel()[1];
       }
-      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
          return Vel()[0]*Vel()[1];
+      }
+      else if constexpr (Mag_found()) {
+         // todo
       }
       return 0.0;
    }
-   double VelAzim() const
+   [[nodiscard]] double VelAzim(void) const
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
          return Vel()[2];
+      }
+      else if constexpr (Mag_found()) {
+         // todo
       }
       return 0.0;
    };
@@ -2267,44 +2398,32 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
 \date 10/12/2025
 \return VelPerp, VelPara, VelAzim as lvalue
 */
-   double& VelPerp()
+   double& VelPerp(char w)
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
          return Vel()[0];
       }
-      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
-         return Vel()[0]*sqrt(1 - Sqr(Vel()[1]));
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      else if (Mag_found()) {
-         // todo
-      }
-      // todo exception
-      return Vel()[0];
    }
-   double& VelPara()
+   double& VelPara(char w)
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
          return Vel()[1];
       }
-      if (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
-         return Vel()[0]*Vel()[1];
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      else if (Mag_found()) {
-         // todo
-      }
-      // todo exception
-      return Vel()[0];
    }
-   double& VelAzim()
+   double& VelAzim(char w)
    {
-      if (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
          return Vel()[2];
       }
-      else if (Mag_found()) {
-         // todo
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      // todo exception
-      return Vel()[0];
    };
 
 
@@ -2317,20 +2436,20 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
 Namely, they are magnitude in Mag direction, magnitude in Mag-perpendicular direction,
 and azimuthal angle (unused in a reduced model).
 */
-   double MomPerp() const
+   [[nodiscard]] double MomPerp() const
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
          return Mom()[0];
       }
-      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
          return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
       }
-      else if (Mag_found()) {
+      else if constexpr (Mag_found()) {
          // todo
       }
       return 0.0;
    }
-   double MomPara() const
+   [[nodiscard]] double MomPara() const
    {
       if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
          return Mom()[2];
@@ -2343,15 +2462,15 @@ and azimuthal angle (unused in a reduced model).
       }
       return 0.0;
    }
-   double MomAzim() const
+   [[nodiscard]] double MomAzim() const
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
          return Mom()[1];
       }
-      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
          return Mom()[2];
       }
-      else if (Mag_found()) {
+      else if constexpr (Mag_found()) {
          // todo
       }
       return 0.0;
@@ -2364,94 +2483,119 @@ and azimuthal angle (unused in a reduced model).
 \date 10/12/2025
 \return MomPerp, MomPara, MomAzim as lvalue
 */
-   double& MomPerp()
+   double& MomPerp(char w)
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
          return Mom()[0];
       }
-      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
-         return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      else if (Mag_found()) {
-         // todo
-      }
-      // todo exception
-      return Mom()[0];
    }
-   double& MomPara()
+   double& MomPara(char w)
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
          return Mom()[1];
       }
-      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
-         return Mom()[0]*Mom()[1];
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      else if (Mag_found()) {
-         // todo
-      }
-      // todo exception
-      return Mom()[0];
    }
-   double& MomAzim()
+   double& MomAzim(char w)
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
          return Mom()[2];
       }
-      else if (Mag_found()) {
-         // todo
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
       }
-      // todo exception
-      return Mom()[0];
    };
 
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/25/2025
+Momentum transformation on reflection at a boundary.
+This operation is designed for cases arising in plasma physics.
+*/
+// Base (px, py, pz)
+//    Mom('w') *= -1.0;
+// Guiding (p_perp, p_para)
+//    MomPara('w') = -MomPara();
+// Focused (p, mu, 0)
+//    Mom('w')[1] = -_coords.Mom()[1];
+// Parker (p, mu, 0)
+//    ;
+   void ReflectMomentum() {
+      if constexpr (Mom_found()) {
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::cartesian) {
+            Mom('w')[0] *= -1;
+         }
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+            MomPara('w') = -MomPara();
+         }
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+            Mom('w')[1] = -Mom()[1];
+         }
+         else {
+            // Do nothing.
+         }
+      }
+      // todo if Vel_found, reflect Vel
+   }
 
 
 /*!
 \author Lucius Schoenbaum
 \date 10/12/2025
 Make all fields consistent, including fields stored for quick lookup.
+todo this should be reviewed periodically.
 */
    template <typename RequestedFields>
-   void MakeConsistent() {
+   status_t MakeConsistent() {
       if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
          auto AbsMag = Mag().Norm();
          if constexpr (RequestedFields::AbsMag_found())
-            AbsMag() = AbsMag;
+            this->AbsMag('w') = AbsMag;
          if constexpr (RequestedFields::HatMag_found())
-            HatMag() = Mag() / AbsMag;
+            HatMag('w') = Mag() / AbsMag;
       }
       if constexpr (RequestedFields::Rad_found()) {
          if constexpr (FConfig::Pos_Radial)
-            Rad() = Pos()[0];
+            Rad('w') = Pos()[0];
          else
-            Rad() = Pos().Norm();
+            Rad('w') = Pos().Norm();
       }
       if constexpr (RequestedFields::AbsMom_found()) {
          if constexpr (FConfig::Mom_Radial)
-            AbsMom() = Mom()[0];
+            AbsMom('w') = Mom()[0];
          else
-            AbsMom() = Mom().Norm();
+            AbsMom('w') = Mom().Norm();
       }
       if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
          if constexpr (RequestedFields::AbsVel_found()) {
             if constexpr (FConfig::Vel_Radial)
-               AbsVel() = Vel()[0];
+               AbsVel('w') = Vel()[0];
             else
-               AbsVel() = Vel().Norm();
+               AbsVel('w') = Vel().Norm();
          }
          if constexpr (RequestedFields::HatVel_found())
-            HatVel() = Vel() / AbsVel();
+            HatVel('w') = Vel() / AbsVel();
       }
+      status_t status = 0;
+      if (AbsMag() < sp_tiny) RAISE_BITS(status, STATE_INVALID);
+      return status;
    }
 
 
 /*!
 \author Lucius Schoenbaum
 \date 10/21/2025
-\return bool: whether there is a derived field in the fields list
+\return bool: whether there is a derived field in the fields list.
 */
-   constexpr bool Derived_found() {
-      return (Ts::derived || ...);
+   static constexpr bool Derived_found() {
+      return (Ts::derived || ... || false);
    }
 
 
@@ -2462,7 +2606,7 @@ Make all fields consistent, including fields stored for quick lookup.
 \return Divergence of direction of magnetic field
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
-   double DivHatMag()
+   [[nodiscard]] double DivHatMag()
    {
       return (DivMag() - (DelAbsMag() * HatMag())) / AbsMag();
    };
@@ -2473,7 +2617,7 @@ Make all fields consistent, including fields stored for quick lookup.
 \return Curl of direction of magnetic field
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
-   GeoVector CurlHatMag()
+   [[nodiscard]] GeoVector CurlHatMag()
    {
       return (CurlMag() - (DelAbsMag() ^ HatMag())) / AbsMag();
    };
@@ -2484,7 +2628,7 @@ Make all fields consistent, including fields stored for quick lookup.
 \return Gradient of direction of magnetic field
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
-   GeoMatrix DelHatMag()
+   [[nodiscard]] GeoMatrix DelHatMag()
    {
       return (DelMag() - Dyadic(DelAbsMag(), HatMag())) / AbsMag();
    };
@@ -2494,7 +2638,7 @@ Make all fields consistent, including fields stored for quick lookup.
 \date 07/02/2024
 \return Time derivative of direction of magnetic field
 */
-   GeoVector DotHatMag()
+   [[nodiscard]] GeoVector DotHatMag()
    {
       return (DotMag() - (DotAbsMag() * HatMag())) / AbsMag();
    };
@@ -2505,7 +2649,7 @@ Make all fields consistent, including fields stored for quick lookup.
 \date 05/28/2025
 \return string representation of state, for testing purposes
 */
-   std::string str() const {
+   [[nodiscard]] std::string str() const {
       std::string out = "{";
       // todo - foreach
       out += "}";

@@ -10,191 +10,49 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SERVER_CARTESIAN_HH
 
 #include "server_base.hh"
-#include "common/derivativedata.hh"
+#include "server_interface.hh"
+
+// todo review
+//#include "common/derivativedata.hh"
 
 namespace Spectrum {
-
-/*!
-\brief Interpolation stencil for Cartesian
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-*/
-struct StencilCartesian {
-
-//! Number of elements in the stencil
-   int n_elements = 8;
-
-//! List of blocks (can also be used to store global nodes)
-   int blocks[8];
-
-//! List of zones
-   MultiIndex zones[8];
-
-//! Weights
-   double weights[8];
-
-//! Partial derivatives of weights
-   double derivatives[24];
-
-//! Print the list of blocks, zones, and weights
-   void Print(void);
-};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // ServerCartesian class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-class ServerCartesian : virtual public ServerBase {
+template <typename HConfig_>
+class ServerCartesian : public ServerBase<HConfig_>, public ServerInterface<HConfig_> {
+public:
 
-protected:
+   using HConfig = HConfig_;
+   using Config = HConfig::BackgroundConfig;
+   using ServerInterface = ServerInterface<HConfig>;
+   using Block = Block<HConfig>;
+   using MPI = MPI<HConfig>;
 
-//! A working stencil variable
-   StencilCartesian stencil;
+   using ServerBase = ServerBase<HConfig>;
+   using ServerBase::block_served;
+   using ServerBase::buf_needblock;
+   using ServerBase::buf_needstencil;
+   using ServerBase::buf_needvars;
+   using ServerBase::index_needblock;
+   using ServerBase::index_needstencil;
+   using ServerBase::index_needvars;
 
-//! Default constructor - disabled
+   static constexpr int server_interp_order = Config::server_interp_order;
+   static constexpr int num_ghost_cells = Config::num_ghost_cells;
+
+public:
+
+//! Default constructor
    ServerCartesian(void) = default;
 
-//! Initialize block pointer
-   virtual void InitializeBlockPtr(BlockBase* &block_ptr);
-
-//! Create block datatype
-   void CreateBlockDatatype(void);
-
-//! Create stencil datatype
-   void CreateStencilDatatype(void);
-
-//! Create Cartesian specific datatypes
-   void CreateMPIDatatypes(void);
-
-public:
-
-//! Destructor
-   virtual ~ServerCartesian() = default;
-
-//! Common set up prior to main loop
-   void ServerStart(void) override;
-
-//! Common clean up tasks after the main loop
-   void ServerFinish(void) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// ServerCartesianFront class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-class ServerCartesianFront : virtual public ServerCartesian, virtual public ServerBaseFront {
-
-protected:
-
-//! Status of the most recently computed stencil
-   int stencil_status = 0;
-
-//! Counts of different stencil outcomes
-   int stencil_outcomes[3];
-
-//! Count of total blocks requested
-   int num_blocks_requested;
-
-//! Primary block pointer
-   BlockPtrType block_pri;
-
-//! Secondary block pointer
-   BlockPtrType block_sec;
-
-//! Stencil block pointer
-   BlockPtrType block_stn;
-
-//! Make shared block
-   virtual void MakeSharedBlock(BlockPtrType &block_new);
-
-//! Load interpolation stencil using interior zones
-   void InteriorInterpolationStencil(const MultiIndex zone_lo, const MultiIndex zone_hi, const GeoVector offset_lo, const GeoVector offset_hi, const GeoVector delta);
-
-#ifdef NEED_SERVER
-//! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos) override;
-
-//! Find block order in the cache or get a block from the server if not in the cache
-   int RequestBlock(void) override;
-#else
-//! Generate an interpolation stencil in 3D
-   virtual int BuildInterpolationStencil(const GeoVector& pos);
-
-//! Find block order in the cache or get a block from the server if not in the cache
-   int RequestBlock(void);
-#endif
-
-//! Get variables directly from data reader
-   template <typename Fields>
-   void GetVariablesFromReader(Fields& fields);
-
-//! Get variables using 0th order interpolation
-   template <typename Fields>
-   void GetVariablesInterp0(const GeoVector& pos, Fields& fields);
-
-//! Get variables using 1st order interpolation
-   template <typename Fields>
-   void GetVariablesInterp1(const GeoVector& pos, Fields& fields);
-
-//! Get gradients using 1st order interpolation
-   template <typename Fields>
-   void GetGradientsInterp1(Fields& fields, DerivativeData& ddata);
-
-public:
-
-//! Default constructor
-   ServerCartesianFront(void) = default;
-
-//! Destructor
-   ~ServerCartesianFront() override = default;
-
-//! Front end set up prior to main loop
-   void ServerStart(void) override;
-
-//! Front end clean up tasks after the main loop
-   void ServerFinish(void) override;
-
-#ifdef NEED_SERVER
-//! Obtain the variables
-   template <typename Fields>
-   void GetVariables(double t, const GeoVector& pos, Fields& fields) override;
-
-//! Obtain the gradients
-   template <typename Fields>
-   void GetGradients(Fields& fields, DerivativeData& ddata) override;
-#else
-//! Obtain the variables
-   template <typename Fields>
-   void GetVariables(double t, const GeoVector& pos, Fields& fields, double& dmax);
-
-//! Obtain the gradients
-   template <typename Fields>
-   void GetGradients(Fields& fields, DerivativeData& ddata);
-#endif
-
-//! Print how many times internal/external interpolators were used
-   void PrintStencilOutcomes(void) override;
-
-//! Print how many blocks were requested
-   void PrintNumBlocksRequested(void);
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// ServerCartesianBack class declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-class ServerCartesianBack : virtual public ServerCartesian, virtual public ServerBaseBack {
-
-public:
-
-//! Default constructor
-   ServerCartesianBack(void) = default;
-
 //! Constructor with arguments
-   ServerCartesianBack(const std::string& file_name_pattern_in);
+   ServerCartesian(const std::string& file_name_pattern_in);
 
 //! Destructor
-   ~ServerCartesianBack() override = default;
+   ~ServerCartesian() override = default;
 
 //! Read data file
    virtual void ReadData(const std::string data_file);
@@ -227,15 +85,9 @@ public:
    int HandleStopServeRequests(void);
 };
 
-//! Server types
-#if SERVER_TYPE == SERVER_CARTESIAN
-typedef ServerCartesian ServerType;
-typedef ServerCartesianFront ServerFrontType;
-typedef ServerCartesianBack ServerBackType;
-#endif
 
 };
 
-#include "server_cartesian_templated.cc"
+#include "server_cartesian.cc"
 
 #endif

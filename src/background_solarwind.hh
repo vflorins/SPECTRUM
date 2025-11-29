@@ -10,7 +10,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SOLARWIND_HH
 #define SPECTRUM_BACKGROUND_SOLARWIND_HH
 
-#include "background_base.hh"
+#include "utils_numerical_derivatives.hh"
+
+// todo replace later - still early stages testing
+constexpr double constexpr_sin_est(double x) {
+   return x - x/3.0*x/2.0*x + x/5.0*x/4.0*x/3.0*x/2.0*x;
+}
+constexpr double constexpr_cos_est(double x) {
+   return 1.0 - x/2.0*x + x/4.0*x/3.0*x/2.0*x;
+}
+
 
 namespace Spectrum {
 
@@ -26,33 +35,33 @@ namespace Spectrum {
 Parameters: (BackgroundBase), GeoVector Omega, double r_ref, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSolarWind : public BackgroundBase<HConfig_> {
-private:
+class BackgroundSolarWind {//: public BackgroundBase<HConfig_> {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundSolarWind";
+   static constexpr std::string_view name = "BackgroundSolarWind";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSolarWind<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   //
-   // todo review (solar wind is the only background using this)
-   using BackgroundBase::t0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+   using BackgroundConfig = HConfig::BackgroundConfig;
+
+//   using BackgroundBase = BackgroundBase<HConfig>;
+//   using BackgroundBase::_status;
+//   using BackgroundBase::container;
+//   using BackgroundBase::_ddata;
+//   using BackgroundBase::dmax0;
+//   using BackgroundBase::r0;
+//   using BackgroundBase::u0;
+//   using BackgroundBase::B0;
+//   //
+//   // todo review (solar wind is the only background using this)
+//   using BackgroundBase::t0;
+//   // methods
+//   using BackgroundBase::EvaluateDmax;
+//   using BackgroundBase::GetDmax;
+//   using BackgroundBase::StopServerFront;
+//   using BackgroundBase::SetupBackground;
 
    using BackgroundConfig::derivative_method;
    using BackgroundConfig::solarwind_speed_latitude_profile;
@@ -87,6 +96,12 @@ protected:
 //! [solarwind_polar_correction == 2] Polar correction angle
    static constexpr double polar_offset_sw = 30.0 * M_PI / 180.0;
 
+//! [solarwind_polar_correction == 2] Ratio of polar differential rotation to angular frequency of rotation
+   static constexpr double dwt_sw = delta_omega_sw * constexpr_sin_est(polar_offset_sw);
+
+//! [solarwind_polar_correction == 2] Ratio of azimuthal differential rotation to angular frequency of rotation
+   static constexpr double dwp_sw = delta_omega_sw * constexpr_cos_est(polar_offset_sw);
+
 //! [solarwind_speed_latitude_profile > 0] Ratio of fast to slow wind speed
    static constexpr double fast_slow_ratio_sw = 2.0;
 
@@ -104,7 +119,7 @@ protected:
 \param[in] t periodic time to stretch between 0 and M_2PI
 \return stretched time
 */
-   constexpr double CubicStretch(double t)
+   static constexpr double CubicStretch(double t)
    {
       double t_pi = t / M_PI;
       return t * ((1.0 - stilt_ang_sw) * t_pi * (t_pi - 3.0) + 3.0 - 2.0 * stilt_ang_sw);
@@ -112,64 +127,52 @@ protected:
 
 protected:
 
-   //! [solarwind_polar_correction == 2] Ratio of polar differential rotation to angular frequency of rotation
-   const double dwt_sw = delta_omega_sw * sin(polar_offset_sw);
-
-//! [solarwind_polar_correction == 2] Ratio of azimuthal differential rotation to angular frequency of rotation
-   const double dwp_sw = delta_omega_sw * cos(polar_offset_sw);
-
-   //! Angular velocity vector of a rotating star (persistent)
-   GeoVector Omega;
-
-//! Reference radius (persistent)
-   double r_ref;
-
-//! Maximum fraction of the radial distance per step (persistent)
-   double dmax_fraction;
-
-//! Local coordinate system tied to the rotation axis (persistent)
-   GeoVector eprime[3];
-
-//! Velocity magnitude for slow wind (persistent)
-   double ur0;
-
-//! Radial magnetic field at "r_ref" (persistent)
-   double Br0;
-
-//! Angular frequency magnitude (persistent)
-   double w0;
-
-//! Position relative to origin (transient)
-   GeoVector posprime;
-
-//! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from slow wind (persistent)
-//! [SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio plus 1 (persistent)
-   double fsl_pls;
-
-//! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from fast wind (persistent)
-//! SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio minus 1 (persistent)
-   double fsl_mns;
+//   //! Angular velocity vector of a rotating star (persistent)
+//   static GeoVector Omega;
+//
+////! Reference radius (persistent)
+//   static double r_ref;
+//
+////! Maximum fraction of the radial distance per step (persistent)
+//   static double dmax_fraction;
+//
+////! Local coordinate system tied to the rotation axis (persistent)
+//   static GeoVector eprime[3];
+//
+////! Velocity magnitude for slow wind (persistent)
+//   static double ur0;
+//
+////! Angular frequency magnitude (persistent)
+//   static double w0;
+//
+////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from slow wind (persistent)
+////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio plus 1 (persistent)
+//   static double fsl_pls;
+//
+////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from fast wind (persistent)
+////! SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio minus 1 (persistent)
+//   static double fsl_mns;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);
 
 //! Modify radial flow (if necessary)
-   virtual void ModifyUr(const double r, double &ur_mod);
+   static void ModifyUr(const double r, double &ur_mod);
 
 //! Get time lag for time dependent current sheet (if necessary)
-   virtual double TimeLag(const double r);
+   static double TimeLag(const double r);
 
    //! Compute the maximum distance per time step
    template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
+   static double EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -177,16 +180,13 @@ public:
    BackgroundSolarWind(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundSolarWind(const std::string& name_in, uint16_t status_in);
+   BackgroundSolarWind(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    BackgroundSolarWind(const BackgroundSolarWind& other);
 
 //! Destructor
    ~BackgroundSolarWind() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundSolarWind);
 
 };
 

@@ -2,7 +2,7 @@
 #include "common/fields.hh"
 #include "src/simulation.hh"
 #include "src/distribution_other.hh"
-#include "src/background_server_cartesian.hh"
+#include "src/background_data_cartesian.hh"
 #include "src/diffusion_other.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
@@ -112,11 +112,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double momentum1 = Mom<specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum1 = Mom<Config::specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum1);
 
 // Upper bound for momentum
-   double momentum2 = Mom<specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum2 = Mom<Config::specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum2);
 
 // Log bias
@@ -239,11 +239,11 @@ int main(int argc, char** argv)
    container.Insert(n_bins);
    
 // Smallest value
-   GeoVector minval(EnrKin<specie>(momentum1), 0.0, 0.0);
+   GeoVector minval(EnrKin<Config::specie>(momentum1), 0.0, 0.0);
    container.Insert(minval);
 
 // Largest value
-   GeoVector maxval(EnrKin<specie>(momentum2), 0.0, 0.0);
+   GeoVector maxval(EnrKin<Config::specie>(momentum2), 0.0, 0.0);
    container.Insert(maxval);
 
 // Linear or logarithmic bins

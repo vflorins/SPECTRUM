@@ -49,12 +49,12 @@ void TrajectoryLorentz<HConfig>::SetStart(void)
 template <typename HConfig>
 void TrajectoryLorentz<HConfig>::PhysicalStep(void)
 {
-   constexpr int steps_per_orbit = HConfig::steps_per_orbit;
-   constexpr double cfl_adv = HConfig::cfl_advection;
+   constexpr int steps_per_orbit = Config::steps_per_orbit;
+   constexpr double cfl_adv = Config::cfl_advection;
    auto AbsVel = _coords.AbsVel();
 
 // Obtain the time step based on the orbit resolution. If B is zero, use a small but finite value of "Omega".
-   double Omega = fmax(CyclotronFrequency<specie>(AbsVel, _fields.AbsMag()), sp_tiny);
+   double Omega = fmax(CyclotronFrequency<Config::specie>(AbsVel, _fields.AbsMag()), sp_tiny);
    dt_physical = M_2PI / Omega / steps_per_orbit;
 
 // Obtain the grid based time step based on grid max distance.
@@ -71,7 +71,7 @@ template <typename HConfig>
 void TrajectoryLorentz<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    slope_pos_istage = _coords.Vel();
-   slope_mom_istage = specie.q * (_fields.Elc() + (_coords.Vel() ^ _fields.Mag()) / c_code);
+   slope_mom_istage = Config::specie.q * (_fields.Elc() + (_coords.Vel() ^ _fields.Mag()) / c_code);
 };
 
 /*!

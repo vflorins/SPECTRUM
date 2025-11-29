@@ -22,7 +22,7 @@ namespace Spectrum {
 using namespace DiffusionOptions;
 
 //! The diffusion model is independent of the background
-constexpr uint16_t DIFF_NOBACKGROUND = 0x0010;
+constexpr status_t DIFF_NOBACKGROUND = 0x0010;
 
 //! Clone function pattern
 #define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
@@ -44,17 +44,17 @@ class DiffusionBase : public Params {
 public:
 
    using HConfig = HConfig_;
-   using DiffusionCoordinates = HConfig::DiffusionConfig::Coordinates;
-   using DiffusionFields = HConfig::DiffusionConfig::Fields;
-   using HConfig::specie;
+   using Config = HConfig::DiffusionConfig;
+   using Coordinates = Config::Coordinates;
+   using Fields = Config::Fields;
 
 protected:
 
 //! Coordinates (transient)
-   DiffusionCoordinates _coords;
+   Coordinates _coords;
 
 //! Fields data (transient)
-   DiffusionFields _fields;
+   Fields _fields;
 
 //! Square of the pitch angle sine (transient)
    double st2;
@@ -69,7 +69,7 @@ protected:
    DiffusionBase(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DiffusionBase(const std::string& name_in, uint16_t status_in);
+   DiffusionBase(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DiffusionBase(const DiffusionBase& other);
@@ -86,13 +86,13 @@ public:
    virtual ~DiffusionBase() = default;
 
 //! Clone function (stub)
-   virtual std::unique_ptr<DiffusionBase> Clone(void) const = 0;
+//   virtual std::unique_ptr<DiffusionBase> Clone(void) const = 0;
 
 //! Set up the class parameters
    void SetupObject(const DataContainer& cont_in);
 
 //! Stage at target coordinates for any kind of diffusion evaluation
-   void Stage(const DiffusionCoordinates& coords, const DiffusionFields& fields);
+   void Stage(const Coordinates& coords, const Fields& fields);
 
 //! Evaluate and return one diffusion component
    double Get(Component comp);

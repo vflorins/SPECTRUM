@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_VLISM_BOCHUM_HH
 #define SPECTRUM_BACKGROUND_VLISM_BOCHUM_HH
 
-#include "background_base.hh"
+#include "utils_numerical_derivatives.hh"
 
 namespace Spectrum {
 
@@ -27,30 +27,30 @@ This class calculates the velocity and magnetic fields around the heliopause, re
 Parameters: (BackgroundBase), double z_nose
 */
 template <typename HConfig_>
-class BackgroundVLISMBochum : public BackgroundBase<HConfig_> {
-private:
+class BackgroundVLISMBochum {//: public BackgroundBase<HConfig_> {
+public:
 
    //! Readable name of the class
-   const std::string bg_name = "BackgroundVLISMBochum";
+   const std::string name = "BackgroundVLISMBochum";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundVLISMBochum<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+   using BackgroundConfig = HConfig::BackgroundConfig;
+
+//   using BackgroundBase = BackgroundBase<HConfig>;
+//   using BackgroundBase::_status;
+//   using BackgroundBase::container;
+//   using BackgroundBase::_ddata;
+//   using BackgroundBase::dmax0;
+//   using BackgroundBase::r0;
+//   using BackgroundBase::u0;
+//   using BackgroundBase::B0;
+//   // methods
+//   using BackgroundBase::EvaluateDmax;
+//   using BackgroundBase::GetDmax;
+//   using BackgroundBase::StopServerFront;
+//   using BackgroundBase::SetupBackground;
 
    using BackgroundConfig::derivative_method;
    using BackgroundConfig::mod_rpos;
@@ -73,44 +73,44 @@ private:
          return 1.0;
    }
 
-   static constexpr double ztr = Getztr();
-
-//static constexpr double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
-//static constexpr double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
-   static constexpr double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
-//static constexpr double scB = 30.0 / 3.0;
-
-
-protected:
-
-//! Distance to the heliopause in the nose direction (persistent)
-   double z_nose;
-
-//! Sine of the angle between u0 and B0 (persistent)
-   double sin_theta_B0;
-
-//! Amplification factor at the nose (persistent)
-   double fzoom;
-
-//! Local flow-aligned coordinate system (persistent)
-   GeoVector eprime[3];
+//   static constexpr double ztr = Getztr();
+//
+////static constexpr double scB = 8.958 / 3.0; // 60 deg gives 8/3 ratio
+////static constexpr double scB = 11.6 / 3.0; // 40 deg gives 8/3 ratio
+//   static constexpr double scB = 8.0 / 3.0; // 90 deg gives 8/3 ratio <- use this!
+////static constexpr double scB = 30.0 / 3.0;
+//
+//
+//protected:
+//
+////! Distance to the heliopause in the nose direction (persistent)
+//   static double z_nose;
+//
+////! Sine of the angle between u0 and B0 (persistent)
+//   static double sin_theta_B0;
+//
+////! Amplification factor at the nose (persistent)
+//   static double fzoom;
+//
+////! Local flow-aligned coordinate system (persistent)
+//   static GeoVector eprime[3];
 
 //! Strength of unmodified transversal B field at s=0 normalized to B0 for use in MOD_TYPE={2,3}.
-   double RelBtrans(double z) const;
+   static double RelBtrans(double z);
 
 //! Returns the amplification factor for current isochrone
-   double GetAmpFactor(double zeta) const;
+   static double GetAmpFactor(double zeta);
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -122,9 +122,6 @@ public:
 
 //! Destructor
    ~BackgroundVLISMBochum() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundVLISMBochum);
 
 };
 

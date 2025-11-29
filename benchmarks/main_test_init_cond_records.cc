@@ -119,7 +119,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom<specie>(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum = Mom<Config::specie>(100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    double theta = DegToRad(90.0);

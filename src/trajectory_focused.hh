@@ -29,10 +29,11 @@ class TrajectoryFocused : public TrajectoryBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using TrajectoryCoordinates = HConfig::TrajectoryCoordinates;
-   using TrajectoryFields = HConfig::TrajectoryFields;
+   using Config = HConfig::TrajectoryConfig;
+
    using TrajectoryBase = TrajectoryBase<HConfig>;
-   using HConfig::specie;
+   using Coordinates = TrajectoryBase::Coordinates;
+   using Fields = TrajectoryBase::Fields;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
@@ -47,7 +48,7 @@ public:
 
    using TrajectoryBase::local_coords;
 
-   static_assert(TrajectoryCoordinates::FConfig::Mom_Sys == CoordinateSystem::pitchangle, "Momentum coordinates must use `pitchangle` coordinate system.");
+   static_assert(Coordinates::FConfig::Mom_Sys == CoordinateSystem::pitchangle, "Momentum coordinates must use `pitchangle` coordinate system.");
 
 protected:
 
@@ -70,9 +71,6 @@ protected:
 //! Load the local trajectory point
    void LoadLocal(void) override;
 
-//! Momentum transformation on reflection at a boundary
-   void ReverseMomentum(void) override;
-
 //! Compute the drift coefficient
    virtual void DriftCoeff(void);
 
@@ -94,7 +92,7 @@ public:
    TrajectoryFocused(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   TrajectoryFocused(const std::string& name_in, uint16_t status_in);
+   TrajectoryFocused(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (class not copyable)
    TrajectoryFocused(const TrajectoryFocused& other) = delete;
@@ -121,7 +119,7 @@ public:
 //template <typename HConfig>
 //inline void TrajectoryFocused<HConfig>::Load(void)
 //{
-//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
+//   _coords.Vel()[0] = Vel<Config::specie>(_coords.Mom()[0]);
 //   _coords.Vel()[1] = _coords.Mom()[1];
 //   _coords.Vel()[2] = 0.0;
 //};
@@ -135,21 +133,10 @@ public:
 //inline void TrajectoryFocused<HConfig>::LoadLocal(void)
 //{
 //   _coords = local_coords;
-//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
+//   _coords.Vel()[0] = Vel<Config::specie>(_coords.Mom()[0]);
 //   _coords.Vel()[1] = _coords.Mom()[1];
 //   _coords.Vel()[2] = 0.0;
 //};
-
-/*!
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-\date 08/07/2023
-*/
-template <typename HConfig>
-inline void TrajectoryFocused<HConfig>::ReverseMomentum(void)
-{
-   _coords.Mom()[1] = -_coords.Mom()[1];
-};
 
 };
 

@@ -32,7 +32,7 @@ TrajectoryFocused<HConfig>::TrajectoryFocused(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryFocused<HConfig>::TrajectoryFocused(const std::string& name_in, uint16_t status_in)
+TrajectoryFocused<HConfig>::TrajectoryFocused(const std::string_view& name_in, status_t status_in)
                  : TrajectoryBase(name_in, status_in)
 {
 };
@@ -48,7 +48,7 @@ void TrajectoryFocused<HConfig>::SetStart(void)
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment<specie>(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag());
+   mag_mom = MagneticMoment<Config::specie>(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag());
 };
 
 /*!
@@ -73,7 +73,7 @@ void TrajectoryFocused<HConfig>::DriftCoeff(void)
       drift_vel += ( 0.5 * st2 * bhat * (B * _fields.CurlMag())
                      + ct2 * (bhat ^ (B * _fields.DelMag())) ) / Sqr(absB);
 // Scale by pvc/qB
-      drift_vel *= LarmorRadius<specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0];
+      drift_vel *= LarmorRadius<Config::specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0];
 // Add bulk flow and parallel velocities
       drift_vel += U + _coords.Vel()[0] * _coords.Mom()[1] * bhat;
    }
@@ -90,8 +90,8 @@ void TrajectoryFocused<HConfig>::DriftCoeff(void)
 template <typename HConfig>
 void TrajectoryFocused<HConfig>::PhysicalStep(void)
 {
-   constexpr double cfl_adv = HConfig::cfl_advection;
-   constexpr double drift_safety = HConfig::drift_safety;
+   constexpr double cfl_adv = Config::cfl_advection;
+   constexpr double drift_safety = Config::drift_safety;
 // If the pitch angle is at 90 degrees we only have the perpendicular component of "drift_vel", which may be too small, but can increase by a large (relative) factor during the integration step. For this reason a small fraction of the total speed is added to the characteristic speed.
    dt_physical = cfl_adv * _dmax / (drift_vel.Norm() + drift_safety * _coords.Vel()[0]);
 };
@@ -164,7 +164,7 @@ inline void TrajectoryFocused<HConfig>::MomentumCorrection(void)
 {
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum<specie>(mag_mom, _fields.AbsMag()) / _coords.Mom()[0]));
+      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum<Config::specie>(mag_mom, _fields.AbsMag()) / _coords.Mom()[0]));
    }
 
 // Check to enforce |mu| <= 1.0

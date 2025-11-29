@@ -3,6 +3,7 @@
 \brief Declares a dipole magnetic field background without a flow
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -10,7 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_DIPOLE_HH
 #define SPECTRUM_BACKGROUND_DIPOLE_HH
 
-#include "background_base.hh"
 
 namespace Spectrum {
 
@@ -25,68 +25,46 @@ namespace Spectrum {
 Parameters: (BackgroundBase), double r_ref, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundDipole : public BackgroundBase<HConfig_> {
-private:
+class BackgroundDipole {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundDipole";
+   static constexpr std::string_view name = "BackgroundDipole";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundDipole<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
-
-   using BackgroundConfig::derivative_method;
+   using Config = HConfig::BackgroundConfig;
 
 protected:
 
-//! Dipole moment (persistent)
-   GeoVector M;
+   static constexpr double dmax0 = Config::dmax0;
 
 //! Maximum fraction of the radial distance per step (persistent)
-   double dmax_fraction;
+   static constexpr double dmax_fraction = Config::dmax_fraction;
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
+   static constexpr GeoVector r0 = Config::r0;
 
-//! Compute the maximum distance per time step
-   template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
+   static constexpr double r_ref = Config::r_ref;
 
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static constexpr GeoVector B0 = Config::B0;
 
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+//! Dipole moment (persistent)
+   static constexpr GeoVector M = B0*Cube(r_ref);
 
 public:
 
-//! Default constructor
-   BackgroundDipole(void);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
-//! Copy constructor
-   BackgroundDipole(const BackgroundDipole& other);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Destructor
-   ~BackgroundDipole() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundDipole);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

@@ -33,7 +33,7 @@ BoundaryPlane<HConfig>::BoundaryPlane(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryPlane<HConfig>::BoundaryPlane(const std::string& name_in, uint16_t status_in)
+BoundaryPlane<HConfig>::BoundaryPlane(const std::string_view& name_in, status_t status_in)
              : BoundaryBase(name_in, status_in)
 {
 };
@@ -237,7 +237,7 @@ BoundaryBox<HConfig>::BoundaryBox(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryBox<HConfig>::BoundaryBox(const std::string& name_in, uint16_t status_in)
+BoundaryBox<HConfig>::BoundaryBox(const std::string_view& name_in, status_t status_in)
            : BoundaryBase(name_in, status_in)
 {
 };
@@ -378,7 +378,7 @@ BoundarySphere<HConfig>::BoundarySphere(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundarySphere<HConfig>::BoundarySphere(const std::string& name_in, uint16_t status_in)
+BoundarySphere<HConfig>::BoundarySphere(const std::string_view& name_in, status_t status_in)
               : BoundaryBase(name_in, status_in)
 {
 };
@@ -542,7 +542,7 @@ BoundaryRankine<HConfig>::BoundaryRankine(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryRankine<HConfig>::BoundaryRankine(const std::string& name_in, uint16_t status_in)
+BoundaryRankine<HConfig>::BoundaryRankine(const std::string_view& name_in, status_t status_in)
                : BoundaryBase(name_in, status_in)
 {
 };
@@ -657,7 +657,7 @@ BoundaryCylinder<HConfig>::BoundaryCylinder(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryCylinder<HConfig>::BoundaryCylinder(const std::string& name_in, uint16_t status_in)
+BoundaryCylinder<HConfig>::BoundaryCylinder(const std::string_view& name_in, status_t status_in)
                 : BoundaryBase(name_in, status_in)
 {
 };
@@ -790,7 +790,7 @@ BoundaryRegion<HConfig>::BoundaryRegion(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryRegion<HConfig>::BoundaryRegion(const std::string& name_in, uint16_t status_in)
+BoundaryRegion<HConfig>::BoundaryRegion(const std::string_view& name_in, status_t status_in)
               : BoundaryBase(name_in, status_in)
 {
 };

@@ -32,7 +32,7 @@ TrajectoryParker<HConfig>::TrajectoryParker(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-TrajectoryParker<HConfig>::TrajectoryParker(const std::string& name_in, uint16_t status_in)
+TrajectoryParker<HConfig>::TrajectoryParker(const std::string_view& name_in, status_t status_in)
       : TrajectoryBase(name_in, status_in)
 {
 };
@@ -48,7 +48,7 @@ bool TrajectoryParker<HConfig>::IsSimulationReady(void) const
 
 // A diffusion object is required
    if (diffusion == nullptr) return false;
-   else if (BITS_LOWERED(diffusion->GetStatus(), STATE_SETUP_COMPLETE)) return false;
+   else if (BITS_LOWERED(diffusion.GetStatus(), STATE_SETUP_COMPLETE)) return false;
    return true;
 };
 
@@ -89,62 +89,62 @@ try {
     * REMINDER TO SELF: the dcoords are always (t, x, y, z, p, mu) !
     *
     */
-   auto dcoords = DiffusionCoordinates::Convert(_coords);
-   DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
-   CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
+   auto dcoords = TrajectoryBase::DiffusionCoordinates::Convert(_coords);
+   typename TrajectoryBase::DiffusionFields dfields = TrajectoryBase::DiffusionCoordinates::Get(_fields);
+   CommonFields<TrajectoryBase::DiffusionCoordinates, TrajectoryBase::DiffusionFields, TrajectoryBase::DiffusionFieldsRemainder>(dcoords, dfields);
+   diffusion.Stage(dcoords, dfields);
 
    if constexpr (HConfig::divk_method == TrajectoryOptions::DivkMethod::direct) {
 // Compute using Diffusion Fields type, this only compute fields needed by diffusion
       double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-      double delta = fmin(LarmorRadius<specie>(_coords.AbsMom(), _fields.AbsMag()), _dmax);
+      double delta = fmin(LarmorRadius<Config::specie>(_coords.AbsMom(), _fields.AbsMag()), _dmax);
 
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
-      Kperp = diffusion->Get(Component::perp);
-      Kpara = diffusion->Get(Component::para);
+      Kperp = diffusion.Get(Component::perp);
+      Kpara = diffusion.Get(Component::para);
 
 // Loop over dimensions to find derivatives of Kappa.
       divK = gv_zeros;
 // TODO: check if CommonFields returns a STATE_INVALID flag and revert to forward/backward (1st order) FD.
       for (j = 0; j < 3; j++) {
 // Forward evaluation
-         dcoords.Pos()[j] += delta;
+         dcoords.Pos('w')[j] += delta;
          CommonFields(dcoords, dfields);
-         diffusion->Stage(dcoords, dfields);
-         Kperp_forw = diffusion->Get(Component::perp);
-         Kpara_forw = diffusion->Get(Component::para);
+         diffusion.Stage(dcoords, dfields);
+         Kperp_forw = diffusion.Get(Component::perp);
+         Kpara_forw = diffusion.Get(Component::para);
          for (i = 0; i < 3; i++) {
             Kappa_forw = Kperp_forw * (i == j ? 1.0 : 0.0) + (Kpara_forw - Kperp_forw) * dfields.HatMag()[j] * dfields.HatMag()[i];
          };
 // Backward evaluation
-         dcoords.Pos()[j] -= 2.0 * delta;
+         dcoords.Pos('w')[j] -= 2.0 * delta;
          CommonFields(dcoords, dfields);
-         diffusion->Stage(dcoords, dfields);
-         Kperp_back = diffusion->Get(Component::perp);
-         Kpara_back = diffusion->Get(Component::para);
+         diffusion.Stage(dcoords, dfields);
+         Kperp_back = diffusion.Get(Component::perp);
+         Kpara_back = diffusion.Get(Component::para);
          for (i = 0; i < 3; i++) {
             Kappa_back = Kperp_back * (i == j ? 1.0 : 0.0) + (Kpara_back - Kperp_back) * dfields.HatMag()[j] * dfields.HatMag()[i];
             divK[i] += 0.5 * (Kappa_forw - Kappa_back) / delta;
          };
-         dcoords.Pos()[j] += delta;
+         dcoords.Pos('w')[j] += delta;
       };
    }
    else {
       GeoVector gradKpara, gradKperp;
 
 // Compute Kperp and grad(Kperp)
-      Kperp = diffusion->Get(Component::perp);
-      auto ddata = background->GetDerivativeData();
-      gradKperp[0] = diffusion->GetDirectionalDerivative(Component::perp, 0, ddata);
-      gradKperp[1] = diffusion->GetDirectionalDerivative(Component::perp, 1, ddata);
-      gradKperp[2] = diffusion->GetDirectionalDerivative(Component::perp, 2, ddata);
+      Kperp = diffusion.Get(Component::perp);
+      auto ddata = backgroundderivatives.GetDerivativeData();
+      gradKperp[0] = diffusion.GetDirectionalDerivative(Component::perp, 0, ddata);
+      gradKperp[1] = diffusion.GetDirectionalDerivative(Component::perp, 1, ddata);
+      gradKperp[2] = diffusion.GetDirectionalDerivative(Component::perp, 2, ddata);
 
 // Compute Kpara and grad(Kpara)
-      Kpara = diffusion->Get(Component::para);
-      ddata = background->GetDerivativeData();
-      gradKpara[0] = diffusion->GetDirectionalDerivative(Component::para, 0, ddata);
-      gradKpara[1] = diffusion->GetDirectionalDerivative(Component::para, 1, ddata);
-      gradKpara[2] = diffusion->GetDirectionalDerivative(Component::para, 2, ddata);
+      Kpara = diffusion.Get(Component::para);
+      ddata = backgroundderivatives.GetDerivativeData();
+      gradKpara[0] = diffusion.GetDirectionalDerivative(Component::para, 0, ddata);
+      gradKpara[1] = diffusion.GetDirectionalDerivative(Component::para, 1, ddata);
+      gradKpara[2] = diffusion.GetDirectionalDerivative(Component::para, 2, ddata);
 
 // Assemble diffusion tensor
       GeoVector HatMag = _fields.HatMag();
@@ -175,12 +175,12 @@ void TrajectoryParker<HConfig>::EulerDiffSlopes(void)
    dWz = sqrt(dt) * rng->GetNormal();
 
 // Recompute Kperp and Kpara at the beginning of the step
-   auto dcoords = DiffusionCoordinates::Convert(_coords);
-   DiffusionFields dfields = DiffusionCoordinates::Get(_fields);
-   CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>(dcoords, dfields);
-   diffusion->Stage(dcoords, dfields);
-   Kperp = diffusion->Get(Component::perp);
-   Kpara = diffusion->Get(Component::para);
+   auto dcoords = TrajectoryBase::DiffusionCoordinates::Convert(_coords);
+   typename TrajectoryBase::DiffusionFields dfields = TrajectoryBase::DiffusionCoordinates::Get(_fields);
+   CommonFields<TrajectoryBase::DiffusionCoordinates, TrajectoryBase::DiffusionFields, TrajectoryBase::DiffusionFieldsRemainder>(dcoords, dfields);
+   diffusion.Stage(dcoords, dfields);
+   Kperp = diffusion.Get(Component::perp);
+   Kpara = diffusion.Get(Component::para);
 
 // Compute random displacement
    dr_perp[0] = sqrt(2.0 * Kperp) * dWx;
@@ -205,7 +205,7 @@ void TrajectoryParker<HConfig>::DriftCoeff(void)
       // Compute |B|*curl(b/|B|)
       drift_vel = (_fields.CurlMag() - 2.0 * (_fields.DelAbsMag() ^ _fields.HatMag())) / _fields.AbsMag();
 // Scale by pvc/3q|B| = r_L*v/3
-      drift_vel *= LarmorRadius<specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0] / 3.0;
+      drift_vel *= LarmorRadius<Config::specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
       if (drift_vel.Norm() > 0.5 * _coords.Vel()[0]) {
          drift_vel.Normalize();
@@ -226,11 +226,11 @@ void TrajectoryParker<HConfig>::DriftCoeff(void)
 template <typename HConfig>
 void TrajectoryParker<HConfig>::PhysicalStep(void)
 {
-   constexpr double cfl_adv = HConfig::cfl_advection;
-   constexpr double cfl_dif = HConfig::cfl_diffusion;
-   constexpr double cfl_acc = HConfig::cfl_acceleration;
-   constexpr double dlnpmax = HConfig::dlnp_max;
-   if constexpr (HConfig::time_flow == TimeFlow::forward) {
+   constexpr double cfl_adv = Config::cfl_advection;
+   constexpr double cfl_dif = Config::cfl_diffusion;
+   constexpr double cfl_acc = Config::cfl_acceleration;
+   constexpr double dlnpmax = Config::dlnp_max;
+   if constexpr (Config::time_flow == TimeFlow::forward) {
       dt_physical = cfl_adv * _dmax / (drift_vel + divK).Norm();
    }
    else {
@@ -256,7 +256,7 @@ void TrajectoryParker<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& s
    slope_pos_istage = drift_vel;
 
 
-   if constexpr (HConfig::time_flow == TimeFlow::forward) {
+   if constexpr (Config::time_flow == TimeFlow::forward) {
       slope_pos_istage += divK;
    }
    else {
@@ -317,7 +317,7 @@ bool TrajectoryParker<HConfig>::Advance(void)
    if (RKStep()) return false;
 
 // Stochastic displacement
-   _coords.Pos() += dr_perp;
+   _coords.Pos('w') += dr_perp;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Handle boundaries

@@ -71,7 +71,7 @@ protected:
    DistributionUniform(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionUniform(const std::string& name_in, uint16_t status_in);
+   DistributionUniform(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionUniform(const DistributionUniform& other);
@@ -364,7 +364,7 @@ public:
    using DistributionBase = DistributionBase<HConfig>;
    using DistributionTemplated = DistributionTemplated<HConfig, double>;
 
-   static_assert(std::same_as<Trajectory, TrajectoryLorentz<HConfig>>, "DistributionAnisotropyLISM requires Lorentz Trajectory.");
+   static_assert(HConfig::trajectory == Config::Trajectory::Lorentz, "DistributionAnisotropyLISM requires Lorentz Trajectory.");
 
 protected:
 
@@ -507,7 +507,7 @@ public:
    DistributionSpectrumKineticEnergyPowerLaw(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionSpectrumKineticEnergyPowerLaw(const std::string& name_in, uint16_t status_in);
+   DistributionSpectrumKineticEnergyPowerLaw(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    DistributionSpectrumKineticEnergyPowerLaw(const DistributionSpectrumKineticEnergyPowerLaw& other);

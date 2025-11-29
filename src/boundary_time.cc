@@ -31,7 +31,7 @@ BoundaryTime<HConfig>::BoundaryTime(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryTime<HConfig>::BoundaryTime(const std::string& name_in, uint16_t status_in)
+BoundaryTime<HConfig>::BoundaryTime(const std::string_view& name_in, status_t status_in)
             : BoundaryBase(name_in, status_in)
 {
 };

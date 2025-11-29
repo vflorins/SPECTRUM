@@ -24,89 +24,55 @@ namespace Spectrum {
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSmoothDiscontinuity : public BackgroundDiscontinuity<HConfig_> {
-private:
+class BackgroundSmoothDiscontinuity: public BackgroundDiscontinuity<HConfig_> {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundSmoothDiscontinuity";
+   static constexpr std::string_view name = "BackgroundSmoothDiscontinuity";
 
 public:
 
    using HConfig = HConfig_;
+   using Config = HConfig::BackgroundConfig;
    using BackgroundDiscontinuity = BackgroundDiscontinuity<HConfig>;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSmoothDiscontinuity<HConfig>>, typename HConfig::BackgroundConfig>;
-
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
 
    using BackgroundDiscontinuity::n_discont;
    using BackgroundDiscontinuity::v_discont;
+   using BackgroundDiscontinuity::dmax0;
+   using BackgroundDiscontinuity::r0;
+   using BackgroundDiscontinuity::u0;
    using BackgroundDiscontinuity::u1;
+   using BackgroundDiscontinuity::B0;
    using BackgroundDiscontinuity::B1;
-
-   using BackgroundConfig::derivative_method;
-   using BackgroundConfig::smooth_discontinuity_order;
-
-//! Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
-   const double tanh_width_factor = 4.0;
 
 protected:
 
-//! Width of discontinuity transition region (persistent)
-   double width_discont;
-
-//! Fraction of the discontinuity width to assign to dmax near discontinuity (persistent)
-   double dmax_fraction;
-
-//! Relative distance to discontinuity (transient)
-   double ds_discont;
-
-//! Shock transition region function
-   double DiscontinuityTransition(double x);
+   //! Shock transition region function
+   static constexpr double DiscontinuityTransition(double x);
 
 //! Derivative of discontinuity transition region function
-   double DiscontinuityTransitionDerivative(double x);
-
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-//! Compute the maximum distance per time step
-   template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static constexpr double DiscontinuityTransitionDerivative(double x);
 
 public:
 
-//! Default constructor
-   BackgroundSmoothDiscontinuity(void);
+//! Width of discontinuity transition region (persistent)
+   static constexpr double width_discont = Config::width_discont;
 
-//! Copy constructor
-   BackgroundSmoothDiscontinuity(const BackgroundSmoothDiscontinuity& other);
+//! Fraction of the discontinuity width to assign to dmax near discontinuity (persistent)
+   static constexpr double dmax_fraction = Config::dmax_fraction;
 
-//! Destructor
-   ~BackgroundSmoothDiscontinuity() = default;
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Clone function
-   CloneFunctionBackground(BackgroundSmoothDiscontinuity);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
+
 
 };
 

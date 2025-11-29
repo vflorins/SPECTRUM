@@ -25,7 +25,7 @@ using namespace BackgroundOptions;
 */
 template <typename HConfig>
 BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(void)
-                     : BackgroundBase(bg_name, MODEL_STATIC)
+                     : BackgroundBase(name, MODEL_STATIC)
 {
 // https://www.gnu.org/software/gsl/doc/html/err.html#c.gsl_set_error_handler
 // Turn gsl error handler off
@@ -39,7 +39,7 @@ BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(void)
 \return Normalized transverse field
 */
 template <typename HConfig>
-double BackgroundVLISMBochum<HConfig>::RelBtrans(double z) const
+double BackgroundVLISMBochum<HConfig>::RelBtrans(double z)
 {
    return 1.0 / sqrt(1.0 - 1.0 / Sqr(z));
 };
@@ -99,7 +99,7 @@ void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
 \return Field amplification factor
 */
 template <typename HConfig>
-double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta) const
+double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta)
 {
    if constexpr (mod_type == 0) {
       return 1.0;
@@ -179,19 +179,19 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 
 // Test for inside of the HP
    if ((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
-      fields.Mag() = gv_zeros;
+      fields.Mag('w') = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
-      fields.Elc() = gv_zeros;
-      fields.Iv0() = -1.0;
+      fields.Elc('w') = gv_zeros;
+      fields.Iv0('w') = -1.0;
 
       RAISE_BITS(_status, STATE_INVALID);
       return;
    }
-   else fields.Iv0() = 1.0;
+   else fields.Iv0('w') = 1.0;
 
 // Compute the velocity (valid in every region). The velocity is transformed to the global frame and un-normalized.
-   fields.Fluv() = (posprime / r3 - gv_nz) * u0.Norm();
-   fields.Fluv().ChangeFromBasis(eprime);
+   fields.Fluv('w') = (posprime / r3 - gv_nz) * u0.Norm();
+   fields.Fluv('w').ChangeFromBasis(eprime);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -206,8 +206,8 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
    if (s < sp_tiny) {
       if (z > 1.0 + sp_tiny) {
          wus = sqrt(1.0 - 1.0 / Sqr(z));
-         fields.Mag()[0] = B0[0] / wus;
-         fields.Mag()[1] = B0[1] / wus;
+         fields.Mag('w')[0] = B0[0] / wus;
+         fields.Mag('w')[1] = B0[1] / wus;
          zeta = z + 0.5 * log((z - 1.0) / (z + 1.0));
       }
       else {
@@ -215,8 +215,8 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
          if constexpr (mod_type == 3 && mod_rpos == 0) {
             // GetAmpFactor() could diverge, so we cannot use it right at the nose. Instead the amplification is computed by hand and "zeta" is artificially set to be larger than "ztr" so that GetAmpFactor() returns 1
             wus = 0.0;
-            fields.Mag()[0] = B0[0] * scB / sin_theta_B0;
-            fields.Mag()[1] = B0[1] * scB / sin_theta_B0;
+            fields.Mag('w')[0] = B0[0] * scB / sin_theta_B0;
+            fields.Mag('w')[1] = B0[1] * scB / sin_theta_B0;
             zeta = ztr + sp_small;
          }
          else {
@@ -272,24 +272,24 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
              - (2.0 * kappa - 1.0 / kappa) * ellintF + 2.0 * kappa * ellintE;
 
 // Transform components from cylindrical back to Cartesian.
-      fields.Mag()[0] = Bs * cosphi - Bp * sinphi;
-      fields.Mag()[1] = Bs * sinphi + Bp * cosphi;
-      fields.Mag()[2] = Bz;
+      fields.Mag('w')[0] = Bs * cosphi - Bp * sinphi;
+      fields.Mag('w')[1] = Bs * sinphi + Bp * cosphi;
+      fields.Mag('w')[2] = Bz;
    };
 
 // Apply isochrone-based scaling.
-   fields.Mag() *= GetAmpFactor(zeta);
+   fields.Mag('w') *= GetAmpFactor(zeta);
 
 // Add unmodified longitudinal (flow-parallel) part.
    if (!small_s_eval) {
-      fields.Mag()[0] -= B0[2] * posprime[0] / r3;
-      fields.Mag()[1] -= B0[2] * posprime[1] / r3;
-      fields.Mag()[2] -= B0[2] * (z / r3 - 1.0);
+      fields.Mag('w')[0] -= B0[2] * posprime[0] / r3;
+      fields.Mag('w')[1] -= B0[2] * posprime[1] / r3;
+      fields.Mag('w')[2] -= B0[2] * (z / r3 - 1.0);
    }
-   else fields.Mag()[2] = B0[2] * Sqr(wus);
+   else fields.Mag('w')[2] = B0[2] * Sqr(wus);
 
 // Convert back to global frame and compute the electric field.
-   fields.Mag().ChangeFromBasis(eprime);
+   fields.Mag('w').ChangeFromBasis(eprime);
 
 
 // --------------------------------------------------------------------------------
@@ -302,7 +302,7 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   fields.Elc() = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -316,7 +316,7 @@ template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
 void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+   NumericalDerivatives<BackgroundVLISMBochum<HConfig>, Coordinates, Fields, RequestedFields>(coords, fields);
 };
 
 };

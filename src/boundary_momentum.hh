@@ -59,7 +59,7 @@ protected:
    BoundaryMomentum(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryMomentum(const std::string& name_in, uint16_t status_in);
+   BoundaryMomentum(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    BoundaryMomentum(const BoundaryMomentum& other);
@@ -109,7 +109,7 @@ public:
    BoundaryMomentumInject(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BoundaryMomentumInject(const std::string& name_in, uint16_t status_in);
+   BoundaryMomentumInject(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    BoundaryMomentumInject(const BoundaryMomentumInject& other);
@@ -323,7 +323,7 @@ public:
    using BoundaryBase::max_crossings;
    using BoundaryBase::_delta;
 
-   static_assert(!(HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Parker || HConfig::TrajectoryConfig::trajectoryid == TrajectoryId::Fieldline), "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
+   static_assert(!(HConfig::trajectory == Config::Trajectory::Parker || HConfig::trajectory == Config::Trajectory::Fieldline), "BoundaryMirror boundary type cannot be applied to the selected Trajectory type.");
 
 protected:
 

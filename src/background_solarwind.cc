@@ -24,7 +24,7 @@ using namespace BackgroundOptions;
 */
 template <typename HConfig>
 BackgroundSolarWind<HConfig>::BackgroundSolarWind(void)
-                           : BackgroundBase(bg_name, STATE_NONE)
+                           : BackgroundBase(name, STATE_NONE)
 {
 };
 
@@ -33,7 +33,7 @@ BackgroundSolarWind<HConfig>::BackgroundSolarWind(void)
 \date 02/22/2024
 */
 template <typename HConfig>
-BackgroundSolarWind<HConfig>::BackgroundSolarWind(const std::string& name_in, uint16_t status_in)
+BackgroundSolarWind<HConfig>::BackgroundSolarWind(const std::string_view& name_in, status_t status_in)
                            : BackgroundBase(name_in, status_in)
 {
 };
@@ -132,7 +132,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
    double tilt_amp, t_lag, ur, Br, Bt, Bp, arg;
 
 // Convert position into solar rotation frame
-   posprime = coords.Pos() - r0;
+   auto posprime = coords.Pos() - r0;
    posprime.ChangeToBasis(eprime);
    r = posprime.Norm();
    r_mns = r - r_ref;
@@ -141,6 +141,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
    t_lag = (coords.Time() - t0) - TimeLag(r);
 
 // Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
+   double Br0;
    if constexpr (solarwind_current_sheet == CurrentSheet::wavy_time_dependent) {
       arg = 2.0 * W0_sw * t_lag;
       Br0 = B0[0] + B0[1] * cos(arg);
@@ -156,11 +157,11 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 
 // indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1); region[2] = time-lagged solar cycle phase
    if constexpr (RequestedFields::Iv0_found())
-      fields.Iv0() = (r < hp_rad_sw ? 1.0 : -1.0);
+      fields.Iv0('w') = (r < hp_rad_sw ? 1.0 : -1.0);
    if constexpr (RequestedFields::Iv1_found())
-      fields.Iv1() = -1.0;
+      fields.Iv1('w') = -1.0;
    if constexpr (RequestedFields::Iv2_found())
-      fields.Iv2() = arg;
+      fields.Iv2('w') = arg;
 
 // Assign magnetic mixing region
    if constexpr (solarwind_current_sheet == CurrentSheet::wavy_static
@@ -174,7 +175,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       }
       if constexpr (solarwind_sectored_region == SectoredRegion::HCS) {
          if (M_PI_2 - fs_theta_sym < tilt_amp) {
-            fields.Iv1() = 1.0;
+            fields.Iv1('w') = 1.0;
          }
       }
    }
@@ -201,8 +202,8 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 
 // Compute the (radial) velocity and convert back to global frame
    if constexpr (RequestedFields::Fluv_found()) {
-      fields.Fluv() = ur * UnitVec(posprime);
-      fields.Fluv().ChangeFromBasis(eprime);
+      fields.Fluv('w') = ur * UnitVec(posprime);
+      fields.Fluv('w').ChangeFromBasis(eprime);
    };
    
 // Compute (Parker spiral) magnetic field and convert back to global frame
@@ -240,18 +241,18 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
          // TODO
       }
 
-      fields.Mag()[0] = Br * sintheta * cosphi - Bp * sinphi;
-      fields.Mag()[1] = Br * sintheta * sinphi + Bp * cosphi;
-      fields.Mag()[2] = Br * costheta;
+      fields.Mag('w')[0] = Br * sintheta * cosphi - Bp * sinphi;
+      fields.Mag('w')[1] = Br * sintheta * sinphi + Bp * cosphi;
+      fields.Mag('w')[2] = Br * costheta;
 
 
       if constexpr (solarwind_polar_correction != PolarCorrection::none
                && solarwind_polar_correction != PolarCorrection::Smith_Bieber
       ) {
 // Add theta component from polar correction
-         fields.Mag()[0] += Bt * costheta * cosphi;
-         fields.Mag()[1] += Bt * costheta * sinphi;
-         fields.Mag()[2] -= Bt * sintheta;
+         fields.Mag('w')[0] += Bt * costheta * cosphi;
+         fields.Mag('w')[1] += Bt * costheta * sinphi;
+         fields.Mag('w')[2] -= Bt * sintheta;
       }
 
 // Correct polarity based on current sheet
@@ -260,7 +261,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
       }
       else if constexpr (solarwind_current_sheet == CurrentSheet::flat) {
 // Flat current sheet at the equator
-         if (acos(costheta) > M_PI_2) fields.Mag() *= -1.0;
+         if (acos(costheta) > M_PI_2) fields.Mag('w') *= -1.0;
       }
       else {
 // Wavy current sheet
@@ -268,17 +269,17 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
          sinphase = sin(phase0);
          cosphase = cos(phase0);
          if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase)))
-            fields.Mag() *= -1.0;
+            fields.Mag('w') *= -1.0;
          if constexpr (solarwind_current_sheet == CurrentSheet::wavy_time_dependent) {
 // Solar cycle polarity changes
-            if (sin(W0_sw * t_lag) < 0.0) fields.Mag() *= -1.0;
+            if (sin(W0_sw * t_lag) < 0.0) fields.Mag('w') *= -1.0;
          }
       }
-      fields.Mag().ChangeFromBasis(eprime);
+      fields.Mag('w').ChangeFromBasis(eprime);
    };
 
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
-   if constexpr (RequestedFields::Elc_found()) fields.Elc() = -(fields.Fluv() ^ fields.Fluv()) / c_code;
+   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Fluv()) / c_code;
 
    LOWER_BITS(_status, STATE_INVALID);
 };
@@ -296,22 +297,22 @@ void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
 
       if constexpr (RequestedFields::DelFluv_found()) {
 // Expression valid only for radial flow
-         posprime = coords.Pos() - r0;
+         auto posprime = coords.Pos() - r0;
          GeoMatrix rr = Dyadic(posprime);
-         fields.DelFluv() = (fields.AbsFluv() / posprime.Norm()) * (gm_unit - rr);
+         fields.DelFluv('w') = (fields.AbsFluv() / posprime.Norm()) * (gm_unit - rr);
       };
       if constexpr (RequestedFields::DelMag_found()) {
 //TODO: complete
       };
       if constexpr (RequestedFields::DelElc_found()) {
-         fields.DelElc() = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
+         fields.DelElc('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
       };
-      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv() = gv_zeros;
-      if constexpr (RequestedFields::DotMag_found()) fields.DotMag() = gv_zeros;
-      if constexpr (RequestedFields::DotElc_found()) fields.DotElc() = gv_zeros;
+      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
+      if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
+      if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
    }
    else {
-      NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+      NumericalDerivatives<BackgroundSolarWind<HConfig>, Coordinates, Fields, RequestedFields>(coords, fields);
    };
 };
 
@@ -321,7 +322,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
 */
 template <typename HConfig>
 template <typename Coordinates>
-void BackgroundSolarWind<HConfig>::EvaluateDmax(Coordinates& coords)
+double BackgroundSolarWind<HConfig>::EvaluateDmax(Coordinates& coords)
 {
    _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    LOWER_BITS(_status, STATE_INVALID);

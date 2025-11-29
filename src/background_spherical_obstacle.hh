@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SPHERICAL_OBSTACLE_HH
 #define SPECTRUM_BACKGROUND_SPHERICAL_OBSTACLE_HH
 
-#include "background_base.hh"
+#include "utils_numerical_derivatives.hh"
 
 namespace Spectrum {
 
@@ -25,57 +25,57 @@ Parameters: (BackgroundBase), double r_sphere, double dmax_fraction
 */
 template <typename HConfig_>
 class BackgroundSphericalObstacle : public BackgroundBase<HConfig_>{
-private:
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundSphericalObstacle";
+   static constexpr std::string_view name = "BackgroundSphericalObstacle";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSphericalObstacle<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+   using BackgroundConfig = HConfig::BackgroundConfig;
+
+//   using BackgroundBase = BackgroundBase<HConfig>;
+//   using BackgroundBase::_status;
+//   using BackgroundBase::container;
+//   using BackgroundBase::_ddata;
+//   using BackgroundBase::dmax0;
+//   using BackgroundBase::r0;
+//   using BackgroundBase::u0;
+//   using BackgroundBase::B0;
+//   // methods
+//   using BackgroundBase::EvaluateDmax;
+//   using BackgroundBase::GetDmax;
+//   using BackgroundBase::StopServerFront;
+//   using BackgroundBase::SetupBackground;
 
    using BackgroundConfig::derivative_method;
 
 protected:
 
-//! Radius of spherical obstacle (persistent)
-   double r_sphere;
-
-//! Dipole moment (persistent)
-   GeoVector M;
-
-//! Maximum fraction of the radial distance per step (persistent)
-   double dmax_fraction;
+////! Radius of spherical obstacle (persistent)
+//   static double r_sphere;
+//
+////! Dipole moment (persistent)
+//   static GeoVector M;
+//
+////! Maximum fraction of the radial distance per step (persistent)
+//   static double dmax_fraction;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);
 
    //! Compute the maximum distance per time step
    template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
+   static double EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -83,16 +83,13 @@ public:
    BackgroundSphericalObstacle(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundSphericalObstacle(const std::string& name_in, uint16_t status_in);
+   BackgroundSphericalObstacle(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other);
 
 //! Destructor
    ~BackgroundSphericalObstacle() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundSphericalObstacle);
 
 };
 

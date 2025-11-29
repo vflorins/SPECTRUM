@@ -34,7 +34,7 @@ DiffusionBase<HConfig>::DiffusionBase(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-DiffusionBase<HConfig>::DiffusionBase(const std::string& name_in,  uint16_t status_in)
+DiffusionBase<HConfig>::DiffusionBase(const std::string_view& name_in,  status_t status_in)
              : Params(name_in, status_in)
 {
 };
@@ -120,14 +120,14 @@ but it is not necessarily the case that the fields need to be computed at the po
 so the caller is again given the responsibility to prepare the argument.
 */
 template <typename HConfig>
-void DiffusionBase<HConfig>::Stage(const DiffusionCoordinates& coords, const DiffusionFields& fields)
+void DiffusionBase<HConfig>::Stage(const Coordinates& coords, const Fields& fields)
 {
    _coords = coords;
    _fields = fields;
    // todo this is in Convert
    // todo MomMu, VelMu, MomSt2, VelSt2
-//   vmag = Vel<specie>(coords.AbsMom());
-   Omega = CyclotronFrequency<specie>(_coords.AbsVel(), _fields.AbsMag());
+//   vmag = Vel<Config::specie>(coords.AbsMom());
+   Omega = CyclotronFrequency<Config::specie>(_coords.AbsVel(), _fields.AbsMag());
    // todo review
    st2 = 1.0 - Sqr(_coords.MomMu());
 };
@@ -183,9 +183,9 @@ double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz,
       _dr = 0.5 * ddata._dr[xyz];
       if (ddata._dr_forw_fail[xyz]) Kappa_forw[comp] = Kappa_saved[comp];
       else {
-         _coords.Pos()[xyz] += _dr;
-         _fields.Mag() += _fields.DelMag().row[xyz] * _dr;
-         _fields.AbsMag() += _fields.DelAbsMag()[xyz] * _dr;
+         _coords.Pos('w')[xyz] += _dr;
+         _fields.Mag('w') += _fields.DelMag().row[xyz] * _dr;
+         _fields.AbsMag('w') += _fields.DelAbsMag()[xyz] * _dr;
          EvaluateDiffusion(comp);
          Kappa_forw[comp] = Kappa[comp];
       };
@@ -193,9 +193,9 @@ double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz,
       _dr *= 2.0;
       if (ddata._dr_back_fail[xyz]) Kappa_back[comp] = Kappa_saved[comp];
       else {
-         _coords.Pos()[xyz] -= _dr;
-         _fields.Mag() -= _fields.DelMag().row[xyz] * _dr;
-         _fields.AbsMag() -= _fields.DelAbsMag()[xyz] * _dr;
+         _coords.Pos('w')[xyz] -= _dr;
+         _fields.Mag('w') -= _fields.DelMag().row[xyz] * _dr;
+         _fields.AbsMag('w') -= _fields.DelAbsMag()[xyz] * _dr;
          EvaluateDiffusion(comp);
          Kappa_back[comp] = Kappa[comp];
       };
@@ -204,7 +204,7 @@ double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz,
       derivative = (Kappa_forw[comp] - Kappa_back[comp]) / _dr;
 
 // Restore position
-      _coords.Pos() = _pos_saved;
+      _coords.Pos('w') = _pos_saved;
    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -217,19 +217,19 @@ double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz,
 //A similar comment as the one in the spatial derivatives applies here for "_dt".
       _dt = 0.5 * ddata._dt;
       if (ddata._dt_forw_fail) {
-         _coords.Time() += _dt;
-         _fields.Mag() += _fields.DotMag() * _dt;
-         _fields.AbsMag() += _fields.DotAbsMag() * _dt;
+         _coords.Time('w') += _dt;
+         _fields.Mag('w') += _fields.DotMag() * _dt;
+         _fields.AbsMag('w') += _fields.DotAbsMag() * _dt;
          EvaluateDiffusion(comp);
          Kappa_forw[comp] = Kappa[comp];
       }
       else Kappa_forw[comp] = Kappa_saved[comp];
 
-      _coords.Time() += 2.0;
+      _coords.Time('w') += 2.0;
       if (ddata._dt_back_fail) {
-         _coords.Time() -= _dt;
-         _fields.Mag() -= _fields.DotMag() * _dt;
-         _fields.AbsMag() -= _fields.DotAbsMag() * _dt;
+         _coords.Time('w') -= _dt;
+         _fields.Mag('w') -= _fields.DotMag() * _dt;
+         _fields.AbsMag('w') -= _fields.DotAbsMag() * _dt;
          EvaluateDiffusion(comp);
          Kappa_back[comp] = Kappa[comp];
       }
@@ -239,13 +239,13 @@ double DiffusionBase<HConfig>::GetDirectionalDerivative(Component comp, int xyz,
       derivative = (Kappa_forw[comp] - Kappa_back[comp]) / _dt;
 
 // Restore time
-      _coords.Time() = _t_saved;
+      _coords.Time('w') = _t_saved;
    };
 
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
-   _fields.Mag() = Bvec_saved;
-   _fields.AbsMag() = Bmag_saved;
+   _fields.Mag('w') = Bvec_saved;
+   _fields.AbsMag('w') = Bmag_saved;
 
    return derivative;
 };
@@ -267,7 +267,7 @@ double DiffusionBase<HConfig>::GetMuDerivative(Component comp)
    double derivative;
    double dmu = sp_small * (mu_saved + sp_small < 1.0 ? 1.0 : -1.0);
 
-   _coords.MomMu() += dmu;
+   _coords.MomMu('w') += dmu;
    st2 = 1.0 - Sqr(_coords.MomMu());
 
    EvaluateDiffusion(comp);
@@ -276,7 +276,7 @@ double DiffusionBase<HConfig>::GetMuDerivative(Component comp)
 // Restore diffusion and field values at "current" position
    Kappa = Kappa_saved;
 
-   _coords.MomMu() = mu_saved;
+   _coords.MomMu('w') = mu_saved;
    st2 = 1.0 - Sqr(mu_saved);
 
    return derivative;

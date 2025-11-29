@@ -9,7 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_CYLINDRICAL_OBSTACLE_HH
 #define SPECTRUM_BACKGROUND_CYLINDRICAL_OBSTACLE_HH
 
-#include "background_base.hh"
 
 namespace Spectrum {
 
@@ -20,79 +19,52 @@ namespace Spectrum {
 /*!
 \brief Magnetic field around a cylindrical obstacle
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 Parameters: (BackgroundBase), GeoVector axis, double r_obstacle, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundCylindricalObstacle : public BackgroundBase<HConfig_> {
-private:
+class BackgroundCylindricalObstacle {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundCylindricalObstacle";
+   static constexpr std::string_view name = "BackgroundCylindricalObstacle";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundCylindricalObstacle<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
-
-   using BackgroundConfig::derivative_method;
+   using Config = HConfig::BackgroundConfig;
 
 protected:
 
-//! Axis of the cylinder (persistent)
-   GeoVector axis;
+   static constexpr GeoVector r0 = Config::r0;
 
-//! Radius of cylindrical obstacle (persistent)
-   double r_cylinder;
+   //! Axis of the cylinder (persistent)
+   static constexpr GeoVector axis = Config::axis.Normalize();
+
+   static constexpr GeoVector B0 = Config::B0.SubtractParallel(axis);
+
+   static constexpr double dmax0 = Config::dmax0;
 
 //! Maximum fraction of the radial distance per step (persistent)
-   double dmax_fraction;
+   static constexpr double dmax_fraction = Config::dmax_fraction;
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-//! Compute the maximum distance per time step
-   template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+//! Radius of cylindrical obstacle (persistent)
+   static constexpr double r_cylinder = Config::r_cylinder;
 
 public:
 
-//! Default constructor
-   BackgroundCylindricalObstacle(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundCylindricalObstacle(const std::string& name_in, uint16_t status_in);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundCylindricalObstacle(const BackgroundCylindricalObstacle& other);
-
-//! Destructor
-   ~BackgroundCylindricalObstacle() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundCylindricalObstacle);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
 };
 

@@ -18,42 +18,16 @@ using namespace BackgroundOptions;
 
 /*!
 \author Juan G Alonso Guzman
-\date 08/20/2024
-*/
-template <typename HConfig>
-BackgroundMagnetizedSphere<HConfig>::BackgroundMagnetizedSphere(void)
-                          : BackgroundSphericalObstacle(bg_name, MODEL_STATIC)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/20/2024
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundMagnetizedSphere<HConfig>::BackgroundMagnetizedSphere(const BackgroundMagnetizedSphere& other)
-                          : BackgroundSphericalObstacle(other)
-{
-   RAISE_BITS(_status, MODEL_STATIC);
-   if(BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 \date 09/10/2025
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    BackgroundSphericalObstacle::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
-   if constexpr (RequestedFields::Mag_found()) fields.Mag() = B0 - fields.Mag();
-
-   LOWER_BITS(_status, STATE_INVALID);
+   if constexpr (RequestedFields::Mag_found()) fields.Mag('w') = B0 - fields.Mag();
+   return 0;
 };
 
 /*!
@@ -63,15 +37,23 @@ void BackgroundMagnetizedSphere<HConfig>::EvaluateBackground(Coordinates& coords
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundMagnetizedSphere<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundMagnetizedSphere<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (derivative_method == DerivativeMethod::analytic) {
-      BackgroundSphericalObstacle::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
-      if constexpr (RequestedFields::DelMag_found()) fields.DelMag() *= -1.0;
-   }
-   else {
-      BackgroundBase::template NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
-   };
+   BackgroundSphericalObstacle::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+   if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') *= -1.0;
+   return 0;
+};
+
+
+/*!
+\author Lucius Schoenbaum
+\date 11/24/2025
+*/
+template <typename HConfig>
+template <typename Coordinates>
+status_t BackgroundMagnetizedSphere<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+{
+   return BackgroundSphericalObstacle::template EvaluateBackgroundDerivatives<Coordinates>(coords, dmax);
 };
 
 };

@@ -82,7 +82,7 @@ protected:
    DistributionTemplated(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   DistributionTemplated(const std::string& name_in, uint16_t status_in);
+   DistributionTemplated(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor (protected, class not designed to be instantiated)
    DistributionTemplated(const DistributionTemplated& other);

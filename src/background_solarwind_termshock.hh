@@ -25,77 +25,74 @@ namespace Spectrum {
 Parameters: (BackgroundSolarWind), double r_TS, double w_TS, double s_TS
 */
 template <typename HConfig_>
-class BackgroundSolarWindTermShock : public BackgroundSolarWind<HConfig_> {
-private:
+class BackgroundSolarWindTermShock {//: public BackgroundSolarWind<HConfig_> {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundSolarWindTermShock";
+   static constexpr std::string_view name = "BackgroundSolarWindTermShock";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSolarWindTermShock<HConfig>>, typename HConfig::BackgroundConfig>;
+   using Config = HConfig::BackgroundConfig;
    using BackgroundSolarWind = BackgroundSolarWind<HConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+
+//   using BackgroundBase = BackgroundBase<HConfig>;
+//   using BackgroundBase::_status;
+//   using BackgroundBase::container;
+//   using BackgroundBase::_ddata;
+//   using BackgroundBase::dmax0;
+//   using BackgroundBase::r0;
+//   using BackgroundBase::u0;
+//   using BackgroundBase::B0;
+//   // methods
+//   using BackgroundBase::GetDmax;
+//   using BackgroundBase::StopServerFront;
+//   using BackgroundBase::SetupBackground;
 
    using BackgroundSolarWind::dmax_fraction;
    using BackgroundSolarWind::ur0;
 
-   using BackgroundConfig::derivative_method;
-   using BackgroundConfig::solarwind_termshock_speed_exponent;
-
 protected:
 
-//! Radius of termination shock (persistent)
-   double r_TS;
-
-//! Width of termination shock (persistent)
-   double w_TS;
-
-//! Strength of termination shock (persistent)
-   double s_TS;
-
-//! Inverse of s_TS (persistent)
-   double s_TS_inv;
-
-//! Maximum displacement in the shock region (persistent)
-   double dmax_TS;
+////! Radius of termination shock (persistent)
+//   static double r_TS;
+//
+////! Width of termination shock (persistent)
+//   static double w_TS;
+//
+////! Strength of termination shock (persistent)
+//   static double s_TS;
+//
+////! Inverse of s_TS (persistent)
+//   static double s_TS_inv;
+//
+////! Maximum displacement in the shock region (persistent)
+//   static double dmax_TS;
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
+   static double EvaluateDmax(Coordinates&);
 
 //! Modify radial flow (if necessary)
-   void ModifyUr(double r, double &ur_mod);
+   static void ModifyUr(double r, double &ur_mod);
 
 //! Radial derivative of radial flow
-   double dUrdr(double r, double v_norm);
+   static double dUrdr(double r, double v_norm);
 
 //! Get time lag for time dependent current sheet (if necessary)
-   double TimeLag(double r);
+   static double TimeLag(double r);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -107,9 +104,6 @@ public:
 
 //! Destructor
    ~BackgroundSolarWindTermShock() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundSolarWindTermShock);
 
 };
 

@@ -32,7 +32,7 @@ BoundaryBase<HConfig>::BoundaryBase(void)
 \param[in] status_in Initial status
 */
 template <typename HConfig>
-BoundaryBase<HConfig>::BoundaryBase(const std::string& name_in, uint16_t status_in)
+BoundaryBase<HConfig>::BoundaryBase(const std::string_view& name_in, status_t status_in)
             : Params(name_in, status_in)
 {
 };

@@ -20,7 +20,7 @@ template <
       CoordinateSystem Pos_sys_ = CoordinateSystem::cartesian,
       CoordinateSystem Mom_sys_ = CoordinateSystem::cartesian
 >
-class FConfig {
+struct FConfig {
    static constexpr auto specie = Specie<specieid>();
    static constexpr auto Pos_sys = Pos_sys_;
    static constexpr auto Mom_sys = Mom_sys_;

@@ -22,7 +22,7 @@ namespace Spectrum {
 \param[in] name_in   Readable name of the class
 \param[in] status_in Initial status
 */
-Params::Params(const std::string_view& name_in, uint16_t status_in)
+Params::Params(const std::string_view& name_in, status_t status_in)
       : class_name(name_in),
         _status(status_in)
 {

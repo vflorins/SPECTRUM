@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SHOCK_HH
 #define SPECTRUM_BACKGROUND_SHOCK_HH
 
-#include "background_base.hh"
+#include "utils_numerical_derivatives.hh"
 
 namespace Spectrum {
 
@@ -24,77 +24,72 @@ namespace Spectrum {
 Parameters: (BackgroundBase), GeoVector n_shock, double v_shock, double compression
 */
 template <typename HConfig_>
-class BackgroundShock : public BackgroundBase<HConfig_> {
-private:
+class BackgroundShock {
+public:
 
 //! Readable name of the class
-   static constexpr std::string_view bg_name = "BackgroundShock";
+   static constexpr std::string_view name = "BackgroundShock";
 
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundShock<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+   using Config = HConfig::BackgroundConfig;
 
-   using BackgroundConfig::derivative_method;
+private:
+
+   static constexpr GeoVector compute_u1() {
+      auto u0t = u0 - (u0 * n_shock) * n_shock;
+      return u0n / compression + v_shock * n_shock + u0t;
+   }
+
+   static constexpr GeoVector compute_B1() {
+      auto B0n = (B0 * n_shock) * n_shock;
+      auto B0t = B0 - B0n;
+      return B0n + B0t * compression;
+   }
 
 protected:
 
-//! Shock normal (persistent)
-   GeoVector n_shock;
+   static constexpr double dmax0 = Config::dmax0;
 
-//! Shock velocity (persistent)
-   double v_shock;
+   static constexpr GeoVector r0 = Config::r0;
 
-//! Compression ratio (persistent)
-   double compression;
+   static constexpr GeoVector B0 = Config::B0;
+
+   static constexpr GeoVector u0 = Config::u0;
+
+   //! Shock normal (persistent)
+   static constexpr GeoVector n_shock = Config::n_shock.Normalize();
+
+   //! Shock velocity (persistent)
+   static constexpr double v_shock = Config::v_shock;
+
+   static constexpr GeoVector u0n = (u0 * n_shock - v_shock) * n_shock;
+
+   //! Compression ratio (persistent)
+   static constexpr double compression = Config::compression;
 
 //! Downstream velocity (persistent), "u0" is upstream flow vector
-   GeoVector u1;
+   static constexpr GeoVector u1 = compute_u1();
 
 //! Downstream magnetic field (persistent), "B0" is upstream magnetic field
-   GeoVector B1;
+   static constexpr GeoVector B1 = compute_B1();
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static_assert(u0n * n_shock <= 0.0, "Upstream normal velocity is in the wrong direction");
 
 public:
 
-//! Default constructor
-   BackgroundShock(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundShock(const std::string& name_in, uint16_t status_in);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundShock(const BackgroundShock& other);
-
-//! Destructor
-   ~BackgroundShock() = default;
-
-//! Clone function
-   CloneFunctionBackground(BackgroundShock);
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double&);
 
 };
 

@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 
 // Initial momentum
    double MeV_kinetic_energy = 100.0;
-   container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
+   container.Insert(Mom<Config::specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
    trajectory->AddInitial(InitialMomentum(), container);
 

@@ -1,6 +1,6 @@
 /*!
 \file simulation.hh
-\brief Declares application level classes to perform a complete simulation from start to finish
+\brief Declares application level methods to perform a complete simulation from start to finish
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 
@@ -10,381 +10,34 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SIMULATION_HH
 #define SPECTRUM_SIMULATION_HH
 
-#include "common/mpi_config.hh"
-#include "common/workload_manager.hh"
-#include "server_config.hh"
-#include "trajectory_base.hh"
-#include "background_base.hh"
-#include "diffusion_base.hh"
-#include "distribution_base.hh"
-#include "initial_base.hh"
-#include "boundary_base.hh"
-#include "trajectory_base.hh"
-#include <memory>
-#include <chrono>
+#include "simulation_master.hh"
 
 namespace Spectrum {
-
-//! Whether to print the last trajectory
-const bool print_last_trajectory = false;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// SimulationWorker (base) class
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief Application level base class describing a compete simulation process controlled from without
-\author Juan G Alonso Guzman
-\author Vladimir Florinski
-*/
-template <typename SimulationConfig_, typename Trajectory_>
-class SimulationWorker {
-public:
-
-   using SimulationConfig = SimulationConfig_;
-   using BackgroundConfig = SimulationConfig::BackgroundConfig;
-   using TrajectoryConfig = SimulationConfig::TrajectoryConfig;
-   using DistributionConfig = SimulationConfig::DistributionConfig;
-   using DiffusionConfig = SimulationConfig::DiffusionConfig;
-   using BoundaryConfig = SimulationConfig::BoundaryConfig;
-   using InitialConfig = SimulationConfig::InitialConfig;
-
-
-//   using BackgroundBase = BackgroundBase<BackgroundConfig>;
-//   using TrajectoryBase = TrajectoryBase<TrajectoryConfig>;
-   using Trajectory = Trajectory_;
-   using Background = Trajectory::Background;
-   using DistributionBase = DistributionBase<DistributionConfig>;
-   using DiffusionBase = DiffusionBase<DiffusionConfig>;
-   using BoundaryBase = BoundaryBase<BoundaryConfig>;
-   using InitialBase = InitialBase<InitialConfig>;
-
-protected:
-
-//! Whether this is a parallel or a serial run
-   bool is_parallel = false;
-
-//! Particle's specie
-   unsigned int specie = 0;
-
-//! Random number generator object
-   std::shared_ptr<RNG> rng;
-
-//! Local distribution objects
-   std::vector<std::shared_ptr<DistributionBase>> local_distros;
-
-//! Trajectory object
-   std::unique_ptr<Trajectory> trajectory = nullptr;
-
-//! Number of trajectories in this batch
-   int current_batch_size;
-
-//! Number of batches completed by this worker
-   int jobsdone;
-
-//! Shortest simulated trajectory time
-   double shortest_sim_time;
-
-//! Longest simulated trajectory time
-   double longest_sim_time;
-
-//! Elapsed time (both virtual and real)
-   double elapsed_time;
-
-//! Send data to master
-   void SendDataToMaster(void);
-
-//! Set up for worker prior to main loop
-   void WorkerStart(void);
-
-//! Worker finish tasks (reporting partial cumulative)
-   void WorkerFinish(void);
-
-//! Worker Duties
-   void WorkerDuties(void);
-
-public:
-
-//! Default constructor
-   SimulationWorker(void);
-
-//! Destructor
-   virtual ~SimulationWorker() = default;
-//   virtual ~SimulationWorker() {std::cerr << "Destructor called\n";};
-
-//! Set distro base filename
-   virtual void DistroFileName(const std::string& file_name);
-
-//! Set the particle count and the size of one batch
-   virtual void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0);
-
-//! Get name (type) of trajectory
-   std::string GetTrajectoryName(void) const;
-
-//! Get number of completed batches
-   int GetJobsDone(void) const {return jobsdone;};
-
-//! Add a background object (passthrough to trajectory)
-   void AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
-
-   // TODO: experiment
-//! Add a distribution object
-   virtual void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) {
-         local_distros.push_back(distribution_in.Clone());
-         local_distros.back()->SetSpecie(specie);
-         local_distros.back()->SetupObject(container_in);
-         trajectory->ConnectDistribution(local_distros.back());
-         PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI_Config::is_master);
-   }
-
-
-   // TODO: experiment
-//! Add boundary condition object (passthrough to trajectory)
-   virtual void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in) {
-      trajectory->AddBoundary(boundary_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI_Config::is_master);
-   }
-
-// TODO: experiment
-//! Add initial condition object (passthrough to trajectory)
-   virtual void AddInitial(const InitialBase& initial_in, const DataContainer& container_in) {
-      trajectory->AddInitial(initial_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI_Config::is_master);
-   }
-
-// TODO: experiment
-//! Add diffusion object (passthrough to trajectory)
-   virtual void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in) {
-      trajectory->AddDiffusion(diffusion_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI_Config::is_master);
-   }
-
-//! Restore distribution (stub)
-   virtual void RestoreDistro(int distro);
-
-//! Print the reduced distribution (stub)
-   virtual void PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const;
-
-//! Print the reduced distribution in 2D (stub)
-   virtual void PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const;
-
-//! Print the distribution records (stub)
-   virtual void PrintRecords(int distro, const std::string& file_name, bool phys_units) const;
-
-//! Main simulation loop
-   virtual void MainLoop(void);
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// SimulationServer (derived) class
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief A server class
-\author Juan G Alonso Guzman
-*/
-template <typename HConfig_, typename Trajectory_>
-class SimulationServer : public SimulationWorker<HConfig_, Trajectory_> {
-public:
-
-   using HConfig = HConfig_;
-   using Trajectory = Trajectory_;
-   using Background = Trajectory::Background;
-
-   using DistributionBase = DistributionBase<HConfig>;
-   using DiffusionBase = DiffusionBase<HConfig>;
-   using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
-   using SimulationWorker::current_batch_size;
-   using SimulationWorker::is_parallel;
-   using SimulationWorker::specie;
-   // methods:
-   using SimulationWorker::WorkerStart;
-   using SimulationWorker::WorkerFinish;
-   using SimulationWorker::WorkerDuties;
-
-protected:
-
-//! Number of active workers in node
-   int active_local_workers;
-
-#ifdef NEED_SERVER
-
-//! Server backend object
-   std::shared_ptr<ServerBaseBack> server_back = nullptr;
-
-#endif
-
-//! Set up for server prior to main loop
-   void ServerStart(void);
-
-//! Server finish tasks
-   void ServerFinish(void);
-
-//! Server duties
-   void ServerDuties(void);
-
-public:
-
-//! Default constructor
-   SimulationServer(void);
-
-//! Add a background object
-   void AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
-
-//! Main simulation loop
-   void MainLoop(void) override;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// SimulationMaster (derived) class
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\brief A master class
-\author Juan G Alonso Guzman
-*/
-template <typename HConfig_, typename Trajectory_>
-class SimulationMaster : public SimulationServer<HConfig_, Trajectory_> {
-public:
-
-   using HConfig = HConfig_;
-   using Trajectory = Trajectory_;
-   using Background = Trajectory::Background;
-
-   using DistributionBase = DistributionBase<HConfig>;
-   using DiffusionBase = DiffusionBase<HConfig>;
-   using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
-   using SimulationServer = SimulationServer<HConfig, Trajectory>;
-   using SimulationWorker::current_batch_size;
-   using SimulationWorker::is_parallel;
-   using SimulationWorker::specie;
-   using SimulationWorker::local_distros;
-   using SimulationWorker::elapsed_time;
-   using SimulationWorker::shortest_sim_time;
-   using SimulationWorker::longest_sim_time;
-   using SimulationWorker::trajectory;
-   // methods:
-   using SimulationWorker::WorkerDuties;
-
-protected:
-
-//! Total number of trajectories in the simulation
-   int n_trajectories_total;
-
-//! Number of remaining trajectories
-   int n_trajectories;
-
-//! Ratio between completed and total trajectory counts * 100
-   int percentage_work_done;
-
-//! Number of active workers in node (workers that have not finished all their tasks)
-   int active_workers;
-
-//! Maximum number of trajectories per worker. 0 (default) means no maximum.
-   int max_traj_per_worker;
-
-//! Number of trajectories already processed and assigned to each worker (for accounting/debugging purposes)
-   std::vector <int> trajectories_assigned;
-
-//! Number of trajectories currently being processed on each CPU
-   std::vector <int> worker_processing;
-
-//! Total time spent processing trajectories for each worker
-   std::vector <double> time_spent_processing;
-
-//! Base file name for partial distros
-   std::string distro_file_name = "distribution_";
-
-//! Flag to signal whether to restore distros or not
-   std::vector <bool> restore_distros;
-
-//! Local distribution object
-// TODO make this a unique pointer
-   std::vector<std::shared_ptr<DistributionBase>> partial_distros;
-
-//! MPI request information for worker availability
-   std::unique_ptr<MPI_Request_Info> req_cpuavail = nullptr;
-
-//! Workload manager handler
-   Workload_Manager_Handler workload_manager_handler;
-
-//! Simulation start time
-   std::chrono::system_clock::time_point sim_start_time;
-
-//! Decrement the number of trajectories remaining
-   void DecrementTrajectoryCount(void);
-
-//! Receive data from worker
-   void RecvDataFromWorker(int cpu);
-
-//! Set up for master prior to main loop
-   void MasterStart(void);
-
-//! Master final tasks (gathering partial cumulatives)
-   void MasterFinish(void);
-
-//! Master Duties
-   void MasterDuties(void);
-
-public:
-
-//! Default constructor
-   SimulationMaster(void);
-
-//! Set distro base filename
-   void DistroFileName(const std::string& file_name) override;
-
-//! Set the particle count and the size of one batch
-   void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0) override;
-
-// TODO: experiment
-//! Add a distribution object
-   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) override {
-      // TODO this should use make_unique instead of shared
-      partial_distros.push_back(distribution_in.Clone());
-      partial_distros.back()->SetSpecie(specie);
-      partial_distros.back()->SetupObject(container_in);
-      SimulationWorker::AddDistribution(distribution_in, container_in);
-
-// Preset all restore_distro flags to false
-      restore_distros.push_back(false);
-   }
-
-//! Print simulation info
-   void PrintMPICommsInfo(void);
-
-//! Main simulation loop
-   void MainLoop(void) override;
-
-//! Restore distribution
-   void RestoreDistro(int distro) override;
-
-//! Print the reduced distribution
-   void PrintDistro1D(int distro, int ijk, const std::string& file_name, bool phys_units) const override;
-
-//! Print the reduced distribution in 2D
-   void PrintDistro2D(int distro, int ijk1, int ijk2, const std::string& file_name, bool phys_units) const override;
-
-//! Print the distribution records
-   void PrintRecords(int distro, const std::string& file_name, bool phys_units) const override;
-};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Top level methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\date 01/07/2025
+\param[in] argc Number of command line arguments
+\param[in] argv Command line arguments
+*/
+template <typename HConfig, typename Trajectory>
+std::unique_ptr<SimulationWorker<HConfig, Trajectory>> CreateSimulation(int argc, char** argv)
+{
+   using MPI = MPI<HConfig>;
+// Initialize a single instance of "MPI" that will persist until the program terminates
+   static MPI mpicfg(argc, argv);
 
-//template <typename HConfig>
-//using Simulation = std::variant<std::unique_ptr<SimulationWorker<Trajectory>>, std::unique_ptr<SimulationServer<Trajectory>>, std::unique_ptr<SimulationMaster<Trajectory>>>;
-
-////! Generate a complete simulation object
-//template <typename HConfig>
-//std::unique_ptr<SimulationWorker<Trajectory>> CreateSimulation(int argc, char** argv);
-
+   if (MPI::is_master) return std::make_unique<SimulationMaster<HConfig, Trajectory>>();
+   else if (MPI::is_server) return std::make_unique<SimulationServer<HConfig, Trajectory>>();
+   else return std::make_unique<SimulationWorker<HConfig, Trajectory>>();
+};
 
 };
 
-// Something like this is needed for templated classes
-#include "simulation.cc"
 
 #endif

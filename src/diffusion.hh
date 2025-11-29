@@ -20,11 +20,12 @@ using DiffusionList = Fields<
 FConfig<>,
 DiffusionNone<HConfig>,
 DiffusionIsotropicConstant<HConfig>,
-DiffusionParaConstant<HConfig>,
-DiffusionPerpConstant<HConfig>,
 DiffusionQLTConstant<HConfig>,
 DiffusionWNLTConstant<HConfig>,
 DiffusionWNLTRampVLISM<HConfig>,
+DiffusionParaConstant<HConfig>,
+DiffusionPerpConstant<HConfig>,
+DiffusionFullConstant<HConfig>,
 DiffusionFlowMomentumPowerLaw<HConfig>,
 DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>,
 DiffusionRigidityMagneticFieldPowerLaw<HConfig>,
@@ -36,7 +37,7 @@ DiffusionEmpiricalSOQLTandUNLT<HConfig>
 
 
 template<typename HConfig>
-using Diffusion = FieldOps::Nth<DiffusionList<HConfig>, reinterpret_cast<int>(HConfig::DiffusionConfig::diffusionid)>;
+using Diffusion = FieldOps::Nth<DiffusionList<HConfig>, static_cast<int>(HConfig::diffusion)>;
 
 
 }
@@ -44,5 +45,3 @@ using Diffusion = FieldOps::Nth<DiffusionList<HConfig>, reinterpret_cast<int>(HC
 
 
 #endif
-
-

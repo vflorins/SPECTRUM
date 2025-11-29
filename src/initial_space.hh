@@ -104,7 +104,7 @@ protected:
    GeoVector increment;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceLine(const std::string& name_in, uint16_t status_in);
+   InitialSpaceLine(const std::string_view& name_in, status_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -163,7 +163,7 @@ protected:
    GeoVector radius_y;
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceCircle(const std::string& name_in, uint16_t status_in);
+   InitialSpaceCircle(const std::string_view& name_in, status_t status_in);
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;
@@ -280,7 +280,7 @@ public:
    InitialSpaceSphere(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceSphere(const std::string& name_in, uint16_t status_in);
+   InitialSpaceSphere(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    InitialSpaceSphere(const InitialSpaceSphere& other);
@@ -515,7 +515,7 @@ public:
    InitialSpaceCylinder(void);
 
 //! Constructor with arguments (to speed up construction of derived classes)
-   InitialSpaceCylinder(const std::string& name_in, uint16_t status_in);
+   InitialSpaceCylinder(const std::string_view& name_in, status_t status_in);
 
 //! Copy constructor
    InitialSpaceCylinder(const InitialSpaceCylinder& other);

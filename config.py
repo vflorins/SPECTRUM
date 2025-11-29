@@ -22,20 +22,11 @@ from importlib.machinery import SourceFileLoader
 
 physical_defaults = SourceFileLoader("config.physical", "config.physical.py").load_module().physical_defaults
 PM = SourceFileLoader("config.parameters", "config.parameters.py").load_module()
-backgrounds = PM.backgrounds
-servers = PM.servers
-trajectories = PM.trajectories
-diffusions = PM.diffusions
-parameters_general = PM.parameters_general
-parameters_background = PM.parameters_background
-parameters_trajectory = PM.parameters_trajectory
-parameters_diffusion = PM.parameters_diffusion
-parameters = PM.parameters
 
 
 only_generate_test_files = False
 
-def get(key, args, special_name = None, special_value = None):
+def get(key, args, spectrum_type, special_type):
     """
     This function implements resolutions of values based on the default lists.
     This logic is the heart of the config system setup.
@@ -44,46 +35,36 @@ def get(key, args, special_name = None, special_value = None):
 
         key (string):
         args (argparse structure): argparse structure
-        special_name (optional string): optional string
-        special_value (optional string): optional string
+        spectrum_type (string): spectrum type, or 'general'
+        special_type (string): special type
 
     Returns:
 
         value for given key
 
     """
-    # todo better doc'n, nomenclature for special_name, special_value
-    parameterinfo = parameters[key]
+    parameterinfo = PM.parameters[spectrum_type][key]
     preamble = parameterinfo.parameter_type + "::" if isinstance(parameterinfo.parameter_type, str) else ""
-    if not key in args:
-        raise KeyError(f"[get] The option {key} is undefined.")
-    if args.__dict__[key] is not None:
-        return args.__dict__[key]
-    elif special_name is not None:
-        if special_value in physical_defaults[special_name]:
-            if key in physical_defaults[special_name][special_value]:
-                if parameterinfo.parameter_type == float:
-                    return str(physical_defaults[special_name][special_value][key])
-                elif parameterinfo.parameter_type == int:
-                    return str(physical_defaults[special_name][special_value][key])
-                elif parameterinfo.parameter_type == bool:
-                    return str(physical_defaults[special_name][special_value][key]).lower()
-                else:
-                    return preamble + physical_defaults[special_name][special_value][key]
+    if parameterinfo.parameter_type != type:
+        if not key in args:
+            raise KeyError(f"[get] The option {key} is undefined.")
+        if args.__dict__[key] is not None:
+            return args.__dict__[key]
+    if special_type in physical_defaults[spectrum_type]:
+        if key in physical_defaults[spectrum_type][special_type]:
+            if parameterinfo.parameter_type == float:
+                return str(physical_defaults[spectrum_type][special_type][key])
+            elif parameterinfo.parameter_type == int:
+                return str(physical_defaults[spectrum_type][special_type][key])
+            elif parameterinfo.parameter_type == bool:
+                return str(physical_defaults[spectrum_type][special_type][key]).lower()
             else:
-                # the value is not in the list. Idiomatically, this means the option is not used by the special class.
-                pass
+                return preamble + physical_defaults[spectrum_type][special_type][key]
         else:
-            print(f"[get] Warning: {special_name} {special_value} not found in physical default list. Using general default for key {key}.")
-    if parameterinfo.parameter_type == float:
-        return str(parameterinfo.default)
-    elif parameterinfo.parameter_type == int:
-        # todo this branch handles some cases where the type is not int.
-        #  It works but should still be revised.
-        return str(parameterinfo.default)
-    elif parameterinfo.parameter_type == bool:
-        return str(parameterinfo.default).lower()
-    return preamble + str(parameterinfo.default)
+            ValueError(f"[get] {spectrum_type}:{special_type}:{key} not found in physical default list.")
+            pass
+    else:
+        ValueError(f"[get] {spectrum_type}:{special_type} not found in physical default list.")
 
 
 def check_defaults():
@@ -91,11 +72,11 @@ def check_defaults():
     Check that there is always a fallthrough default value for every default used.
     This helps ensure that developers keep the script up to date.
     """
-    for special_name in physical_defaults:
-        for special_value in physical_defaults[special_name]:
-            for key in physical_defaults[special_name][special_value]:
-                if not key in parameters:
-                    print(f"[check_defaults] Warning: key {key} found in the list of {special_name} {special_value} physical defaults, but not found in the list of baseline defaults.")
+    for spectrum_type in physical_defaults:
+        for special_type in physical_defaults[spectrum_type]:
+            for key in physical_defaults[spectrum_type][special_type]:
+                if not key in PM.parameters[spectrum_type]:
+                    print(f"[check_defaults] Warning: key {key} found in the list of {spectrum_type}:{special_type} physical defaults, but not found in the list of {spectrum_type} parameters.")
 
 
 def ratio(fp):
@@ -132,22 +113,24 @@ if __name__ == "__main__":
         help="Whether to operate in default mode (generate source config files) or in user mode (generate a local config file).",
     )
     parser.set_defaults(mkdefaults=True)
-    for key in parameters:
-        parser.add_argument(
-            f"--{key}",
-            type=parameters[key].argparse_parameter_type,
-            # todo cf. config.py --help - these descriptions in parameters/physical data files?
-            help="(todo)",
-            required=False,
-        )
-    # todo check loading of values of enum types via command line
+    for spectrum_type in PM.parameters:
+        parameters_ = PM.parameters[spectrum_type]
+        for key in parameters_:
+            if parameters_[key].parameter_type != type:
+                parser.add_argument(
+                    f"--{key}",
+                    type=parameters_[key].argparse_parameter_type,
+                    help=PM.parameters[spectrum_type][key].description,
+                    required=False,
+                )
     args = parser.parse_args()
 
     check_defaults()
 
-
     ################################################################
     # argparse draft - wip
+
+    # todo check loading of values of enum types via command line
 
     found_traj = '--trajectory' in sys.argv
     found_background = '--background' in sys.argv
@@ -159,24 +142,14 @@ if __name__ == "__main__":
     #     print("[config] not found traj")
 
     ################################################################
-    # generate defaults (mkdefaults)
 
+    local_config = ""
 
-    if args.mkdefaults:
+    PM.update_special_types_source(PM.special_types, only_generate_test_files)
 
-        # todo automated config should modify/update background.hh, trajectory.hh, diffusion.hh (lists)
-
-        spectrum_types = [
-            "background",
-            "trajectory",
-            "diffusion",
-        ]
-
-        for spectrum_type in spectrum_types:
-            Spectrum_type = spectrum_type[0].upper() + spectrum_type[1:]
-            include = 'common/fields.hh' if spectrum_type != 'trajectory' else 'trajectory.config.fields.hh'
-            content = f"""/*!
-\\file {spectrum_type}.config.hh
+    for spectrum_type in PM.spectrum_types:
+        content = f"""/*!
+\\file {spectrum_type.lower()}.config.hh
 \\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class
 \\author Lucius Schoenbaum
 \\date 09/29/2025
@@ -185,82 +158,87 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 /*
- * This file is automatically generated by config.py. Do not edit this file, instead edit config.py. 
- */
- 
+* This file is automatically generated by config.py. Do not edit this file, instead edit config.py. 
+*/
+
 #ifndef SPECTRUM_{spectrum_type.upper()}_CONFIG_HH
 #define SPECTRUM_{spectrum_type.upper()}_CONFIG_HH
 
 #include "common/compiletime_lists.hh"
-#include "{include}"
+#include "common/fields.hh"
 
 namespace Spectrum {{
 
-template<Config::{Spectrum_type} {spectrum_type}_, SpecieId specieid_>
-struct {Spectrum_type}Config;
+// forward declaration of vector type
+// class GeoVector;
+
+template<Config::{spectrum_type} {spectrum_type.lower()}_, SpecieId specieid_>
+struct {spectrum_type}Config;
 """
-            special_types = backgrounds if spectrum_type == 'background' else trajectories if spectrum_type == 'trajectory' else diffusions
-            for special_type in special_types:
-                    content += f"""
+        special_types_ = PM.special_types[spectrum_type]
+        for special_type in special_types_:
+                content += f"""
 /*!
-\\brief (Hyper)parameters and config(uration) options for a SPECTRUM {Spectrum_type} class
+\\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class
 \\author Lucius Schoenbaum
 \\date 09/29/2025
-{Spectrum_type}: {special_type}
+{spectrum_type}: {special_type}
 */
 template<SpecieId specieid_>
-struct {Spectrum_type}Config<Config::{Spectrum_type}::{special_type}, specieid_> {{
-   static constexpr Specie<specieid_> specie;"""
-                    # > set fields/coords types.
-                    # todo review/improve
-                    if spectrum_type == 'trajectory':
-                        content += f"""
-   using Coordinates = TrajectoryCoordinates<Config::{Spectrum_type}::{special_type}, specieid_>;
-   using Fields = TrajectoryFields<Config::{Spectrum_type}::{special_type}, specieid_>;
-   using RecordCoordinates = Coordinates;
+struct {spectrum_type}Config<Config::{spectrum_type}::{special_type}, specieid_> {{
+   static constexpr Specie<specieid_> specie;
 """
-                        if special_type == 'Fieldline':
-                            # todo make configurable
-                            content += "   using FieldlineField_t = Mag_t;\n"
-                    elif spectrum_type == 'diffusion':
-                        # todo Flum or AbsFlum in DiffusionFlowMomentumPowerLaw
-                        # todo those that have indicator fields
-                        content += f"""
-   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
-   using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
-"""
+                for key in physical_defaults[spectrum_type][special_type]:
+                    parameterinfo = PM.parameters[spectrum_type][key]
+                    content += parameterinfo.str() + "\n"
+                    value_definition = f"{key} = {get(key, args, spectrum_type, special_type)}"
+                    if parameterinfo.parameter_type == int:
+                        type_definition = "static constexpr int"
+                    elif parameterinfo.parameter_type == bool:
+                        type_definition = "static constexpr bool"
+                    elif parameterinfo.parameter_type == float:
+                        type_definition = "static constexpr double"
+                    elif parameterinfo.parameter_type == type:
+                        type_definition = "using"
+                    elif parameterinfo.parameter_type == "GeoVector":
+                        type_definition = "static constexpr GeoVector"
                     else:
-                        content += "\n"
-                    for key in physical_defaults[spectrum_type][special_type]:
-                        content += parameters[key].str() + "\n"
-                        # todo for double/int types, make the type explicit
-                        content += f"   static constexpr auto {key} = {get(key, args, spectrum_type, special_type)};\n"
-                    content += f"""}};
+                        # todo deprecate in favor of string, like GeoVector
+                        type_definition = "static constexpr auto"
+                    content += f"   {type_definition} {value_definition};\n"
+                content += f"""}};
 
 """
-            content += f"""
+        content += f"""
 
 }}
 
 #endif
 
 """
-            if only_generate_test_files:
-                with open(f"{spectrum_type}.config.TEST.hh", 'w') as f:
-                    f.write(content)
-            else:
-                with open(f"src/{spectrum_type}.config.hh", 'w') as f:
-                    f.write(content)
+        if only_generate_test_files:
+            with open(f"CONFIG.{spectrum_type.lower()}.config.TEST.hh", 'w') as f:
+                f.write(content)
+        elif args.mkdefaults:
+            with open(f"src/{spectrum_type.lower()}.config.hh", 'w') as f:
+                f.write(content)
+        else:
+            print("[config.py] running in !mkdefaults mode")
+            # todo operate on --trajectory, --diffusion, --background
+            # todo push config to local_config
+            # todo writing into the source should be non-default behavior
+            raise NotImplementedError
 
 
-    ################################################################
-    # generate a local config file
+# gen (generate) mode
+# sketch:
+# python $SPECTRUM/config.py --gen config.hh --trajectory Guiding --background Dipole --diffusion None --diffusion_coefficient 1.0 --etc.
+# g++ compile it
+# ./a.out
 
-
-    else:
-        print("[config.py] running in !mkdefaults mode")
-        # todo generate a local script - can do this later
-        raise NotImplementedError
+# re (reconfigure) mode
+# sketch:
+# python $SPECTRUM/config.py --re main.cc --param1 1.234 --param2 2.345
 
 
 

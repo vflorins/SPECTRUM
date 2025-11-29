@@ -34,7 +34,8 @@ template <
       typename DiffusionConfig_ = Default,
       int num_trajectories_ = 1,
       int batch_size_ = 1,
-      int max_trajectories_per_worker_ = 1
+      int max_trajectories_per_worker_ = 1,
+      bool supervisor_exists_ = false
 >
 struct SimulationConfig {
 
@@ -49,12 +50,29 @@ struct SimulationConfig {
    static constexpr auto batch_size = batch_size_;
    static constexpr auto max_trajectories_per_worker = max_trajectories_per_worker_;
 
+   static constexpr auto supervisor_exists = supervisor_exists_;
+
+// todo in data background config
+//      bool servers_are_workers;
+
 /*
  * The coordinates for ALL backgrounds are: Pos_t, Time_t, with cartesian coordinates for position.
  * However, these coordinates are unused in the *current* implementation.
  * This information is stored here but this is only done in order to make an update easier if this assumption changes.
  */
    using BackgroundCoordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian>, Time_t, Pos_t>;
+
+   static constexpr bool MPI_enabled() {
+#ifdef USE_MPI
+      return true;
+#else
+      return false;
+#endif
+   }
+
+   static constexpr bool data_background() {
+      return (background_ == Config::Background::DataCartesian || background_ == Config::Background::DataBATL);
+   }
 
 };
 

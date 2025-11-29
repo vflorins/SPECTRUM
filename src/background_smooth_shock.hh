@@ -24,74 +24,65 @@ namespace Spectrum {
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSmoothShock : public BackgroundShock<HConfig_> {
-private:
+class BackgroundSmoothShock {//: public BackgroundShock<HConfig_> {
+public:
 
 //! Readable name of the class
-   const std::string bg_name = "BackgroundSmoothShock";
+   const std::string name = "BackgroundSmoothShock";
 
 public:
 
    using HConfig = HConfig_;
+   using Config = HConfig::BackgroundConfig;
    using BackgroundShock = BackgroundShock<HConfig>;
-   using BackgroundConfig = Cond<std::same_as<typename HConfig::BackgroundConfig, Default>, BackgroundDefault<BackgroundSmoothShock<HConfig>>, typename HConfig::BackgroundConfig>;
-   using BackgroundBase = BackgroundBase<HConfig>;
-   using BackgroundBase::_status;
-   using BackgroundBase::container;
-   using BackgroundBase::_ddata;
-   using BackgroundBase::dmax0;
-   using BackgroundBase::r0;
-   using BackgroundBase::u0;
-   using BackgroundBase::B0;
-   // methods
-   using BackgroundBase::EvaluateAbsMag;
-   using BackgroundBase::EvaluateDmax;
-   using BackgroundBase::GetDmax;
-   using BackgroundBase::StopServerFront;
-   using BackgroundBase::SetupBackground;
+
+//   using BackgroundBase = BackgroundBase<HConfig>;
+//   using BackgroundBase::_status;
+//   using BackgroundBase::container;
+//   using BackgroundBase::_ddata;
+//   using BackgroundBase::dmax0;
+//   using BackgroundBase::r0;
+//   using BackgroundBase::u0;
+//   using BackgroundBase::B0;
+//   // methods
+//   using BackgroundBase::EvaluateDmax;
+//   using BackgroundBase::GetDmax;
+//   using BackgroundBase::StopServerFront;
+//   using BackgroundBase::SetupBackground;
 
    using BackgroundShock::u1;
    using BackgroundShock::B1;
    using BackgroundShock::n_shock;
    using BackgroundShock::v_shock;
 
-   using BackgroundConfig::derivative_method;
-   using BackgroundConfig::smooth_discontinuity_order;
-
-   //! Scaling factor to better match shock width when using smooth shock (tanh)
-   const double tanh_width_factor = 4.0;
-
 protected:
 
-//! Width of shock transition region (persistent)
-   double width_shock;
-
-//! Fraction of the shock width to assign to dmax near shock (persistent)
-   double dmax_fraction;
-
-//! Relative distance to shock (transient)
-   double ds_shock;
+////! Width of shock transition region (persistent)
+//   static double width_shock;
+//
+////! Fraction of the shock width to assign to dmax near shock (persistent)
+//   static double dmax_fraction;
 
 //! Shock transition region function
-   double ShockTransition(double x);
+   static double ShockTransition(double x);
 
 //! Derivative of shock transition region function
-   double ShockTransitionDerivative(double x);
+   static double ShockTransitionDerivative(double x);
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);
 
    //! Compute the maximum distance per time step
    template <typename Coordinates>
-   void EvaluateDmax(Coordinates&);
+   static double EvaluateDmax(Coordinates&);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackground(Coordinates&, Fields&);
+   static void EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 
@@ -104,8 +95,6 @@ public:
 //! Destructor
    ~BackgroundSmoothShock() = default;
 
-//! Clone function
-   CloneFunctionBackground(BackgroundSmoothShock);
 };
 
 };
