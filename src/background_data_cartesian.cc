@@ -313,7 +313,7 @@ int BackgroundDataCartesian<HConfig>::RequestBlock(void)
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \author Lucius Schoenbaum
-\date 08/15/2025
+\date 11/28/2025
 \param[out] fields Fields
 */
 template <typename HConfig>
@@ -375,9 +375,9 @@ status_t BackgroundDataCartesian<HConfig>::Evaluate_FromReader(Fields& fields)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 12/01/2023
+\author Lucius Schoenbaum
+\date 11/28/2025
 \param[in]  pos    Position
-\param[in]  block  Block containing pos
 \param[out] fields Fields
 */
 template <typename HConfig>
@@ -474,9 +474,9 @@ status_t BackgroundDataCartesian<HConfig>::Evaluate_Interp0(const GeoVector& pos
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \author Lucius Schoenbaum
-\date 11/25/2025
+\date 11/28/2025
 \param[in]  pos    Position
-\param[out] spdata Fields, dmax, etc.
+\param[out] spdata Fields
 */
 template <typename HConfig>
 template <typename Fields, typename RequestedFields>
@@ -648,7 +648,7 @@ status_t BackgroundDataCartesian<HConfig>::Evaluate_Interp1(const GeoVector& pos
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \author Lucius Schoenbaum
-\date 11/11/2025
+\date 11/28/2025
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>

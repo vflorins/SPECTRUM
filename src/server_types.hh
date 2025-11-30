@@ -11,6 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SERVER_TYPES_HH
 #define SPECTRUM_SERVER_TYPES_HH
 
+#include "common/mpi_config.hh"
 #include "common/vectors.hh"
 
 namespace Spectrum {

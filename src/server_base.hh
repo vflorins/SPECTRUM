@@ -38,6 +38,12 @@ public:
    using Block  = Block<HConfig>;
    using MPI = MPI<HConfig>;
 
+   using ServerInterface::_inquiry;
+   using ServerInterface::stencil;
+   using ServerInterface::MPIInquiryType;
+   using ServerInterface::MPIStencilType;
+   using ServerInterface::MPIBlockType;
+
 
 protected:
 

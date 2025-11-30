@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_BACKGROUND_DATA_CARTESIAN_HH
 
 #include "server_interface.hh"
+#include "cache_lru.hh"
 #include "common/status.hh"
 
 namespace Spectrum {

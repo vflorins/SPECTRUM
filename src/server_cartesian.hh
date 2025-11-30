@@ -30,6 +30,7 @@ public:
    using ServerInterface = ServerInterface<HConfig>;
    using Block = Block<HConfig>;
    using MPI = MPI<HConfig>;
+   using DataFields = Config::DataFields;
 
    using ServerBase = ServerBase<HConfig>;
    using ServerBase::block_served;
@@ -39,9 +40,16 @@ public:
    using ServerBase::index_needblock;
    using ServerBase::index_needstencil;
    using ServerBase::index_needvars;
+   using ServerBase::index_stopserve;
    using ServerBase::domain_max;
    using ServerBase::domain_min;
    using ServerBase::file_name_pattern;
+
+   using ServerInterface::_inquiry;
+   using ServerInterface::stencil;
+   using ServerInterface::MPIInquiryType;
+   using ServerInterface::MPIStencilType;
+   using ServerInterface::MPIBlockType;
 
    static constexpr int server_interp_order = Config::server_interp_order;
    static constexpr int num_ghost_cells = Config::num_ghost_cells;

@@ -135,7 +135,7 @@ template <typename HConfig>
 void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
 {
    GeoVector pos_cart;
-   double vars[n_variables];
+   DataFields datafields;
    int found, cpu, cpu_idx, count_needvars = 0;
 
 // Service the "needvars" requests
@@ -146,11 +146,11 @@ void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
 
 // Obtain the variables requested
       pos_cart = buf_needvars[cpu].pos / unit_length_server * unit_length_fluid;
-      GetBlockData(pos_cart.Data(), vars, &found);
+      GetBlockData(pos_cart.Data(), datafields.Array(), &found);
       if (!found) std::cerr << "Position not found\n";
 
 // Send the variables to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, MPI::tag::sendvars, MPI::node_comm);
+      MPI_Send(datafields.Array(), DataFields::size(), MPI_DOUBLE, cpu, MPI::tag::sendvars, MPI::node_comm);
 
 // Post the receive for the next variables request from this worker.
       MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, MPI::tag::needvars, MPI::node_comm, &req_needvars[cpu]);

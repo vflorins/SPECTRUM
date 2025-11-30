@@ -42,9 +42,9 @@ void ServerBATL<HConfig>::ReadData(const std::string data_file)
    spectrum_init_mpi(fcomm);
 
    wrapamr_read_header(data_file.c_str(), line_width, 1);
-   int vars_inds_fortran[n_variables];
-   for (int i = 0; i < n_variables; i++) vars_inds_fortran[i] = i+1;
-   wrapamr_read_file_partial(data_file.c_str(), line_width, 0, 0, n_variables, vars_inds_fortran);
+   int vars_inds_fortran[DataFields::size()];
+   for (int i = 0; i < DataFields::size(); i++) vars_inds_fortran[i] = i+1;
+   wrapamr_read_file_partial(data_file.c_str(), line_width, 0, 0, DataFields::size(), vars_inds_fortran);
    wrapamr_get_domain(domain_min.Data(), domain_max.Data());
 };
 
@@ -69,13 +69,14 @@ void ServerBATL<HConfig>::CleanReader(void)
 template <typename HConfig>
 int ServerBATL<HConfig>::ServerFunctions(void)
 {
-#if SERVER_INTERP_ORDER == -1
+   if constexpr (server_interp_order == -1) {
 // Handle "needvars" requests
-   HandleNeedVarsRequests();
-#elif SERVER_INTERP_ORDER == 1 && (SERVER_NUM_GHOST_CELLS == 0 || REQUEST_STENCIL_FROM_BATL == 1)
+      HandleNeedVarsRequests();
+   }
+   else if constexpr (server_interp_order == 1 && (num_ghost_cells == 0 || request_stencil_from_batl)) {
 // Handle "needstencil" requests
-   HandleNeedStencilRequests();
-#endif
+      HandleNeedStencilRequests();
+   }
 // Handle "needblock" requests
    HandleNeedBlockRequests();
 // Handle "stopserve" requests
@@ -128,10 +129,10 @@ void ServerBATL<HConfig>::HandleNeedStencilRequests(void)
       spectrum_get_interpolation_stencil(pos_batl.Data(), &stencil.n_elements, stencil.blocks, &stencil.zones[0][0], stencil.weights);
 
 // Send the stencil to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(&stencil, 1, MPIStencilType, cpu, tag_sendstencil, MPI_Config::node_comm);
+      MPI_Send(&stencil, 1, MPIStencilType, cpu, MPI::tag::sendstencil, MPI::node_comm);
 
 // Post the receive for the next stencil request from this worker.
-      MPI_Irecv(&buf_needstencil[cpu], 1, MPIInquiryType, cpu, tag_needstencil, MPI_Config::node_comm, &req_needstencil[cpu]);
+      MPI_Irecv(&buf_needstencil[cpu], 1, MPIInquiryType, cpu, MPI::tag::needstencil, MPI::node_comm, &req_needstencil[cpu]);
    };
 };
 
