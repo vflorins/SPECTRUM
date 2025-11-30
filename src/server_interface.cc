@@ -17,18 +17,6 @@ namespace Spectrum {
 // ServerInterface methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Juan G Alonso Guzman
-\date 07/28/2023
-\param[out] block_ptr pointer to block type
-*/
-// TODO: look up all calls to this function for possible replacement with a simple "new"
-template <typename HConfig>
-void ServerInterface<HConfig>::InitializeBlockPtr(Block* &block_ptr)
-{
-   block_ptr = new Block();
-};
-
 
 /*!
 \author Vladimir Florinski
@@ -66,11 +54,9 @@ void ServerInterface<HConfig>::CreateBlockDatatype(void)
    int i;
 
 // Temporary object for displacement calculations
-   Block* block_tmp;
-   InitializeBlockPtr(block_tmp);
-//   n_variables = block_tmp->GetVariableCount();
+   auto block_tmp = new Block();
 
-// Set up MPI data type for "BlockXXXX" (without the dynamic storage)
+// Set up MPI data type for Block (without the dynamic storage)
    MPI_Datatype block_types[] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
    int block_lengths[] = {1, 3, 3, 3, 3};
    MPI_Aint block_start, block_displ[5];
@@ -131,10 +117,10 @@ void ServerInterface<HConfig>::ServerInterfaceStart(void)
 {
 // Set up MPI data type for "Inquiry"
    CreateInquiryDatatype();
-// Create block datatype
-   CreateBlockDatatype();
 // Create stencil datatype
    CreateStencilDatatype();
+// Create block datatype
+   CreateBlockDatatype();
 };
 
 /*!
@@ -149,6 +135,63 @@ void ServerInterface<HConfig>::ServerInterfaceFinish(void)
    MPI_Type_free(&MPIStencilType);
    MPI_Type_free(&MPIInquiryType);
 };
+
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Request the bounding dimensions
+*/
+template <typename HConfig>
+void ServerInterface<HConfig>::LoadFromReader(BlockPtr &blockptr) const
+{
+   // todo review for header/include/linking issues
+   if constexpr (HConfig::background == Config::Background::DataCartesian)
+      ReadCartesianGetBlockCorners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
+   else if constexpr (HConfig::background == Config::Background::DataBATL)
+      spectrum_get_block_corners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
+}
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Request all neighbors
+*/
+template <typename HConfig>
+void ServerInterface<HConfig>::LoadNeighborsFromReader(BlockPtr &blockptr) const
+{
+   if constexpr (HConfig::background == Config::Background::DataCartesian)
+      ReadCartesianGetNodeNeighbors(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
+   else if constexpr (HConfig::background == Config::Background::DataBATL)
+      spectrum_get_all_neighbor_copies(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
+}
+
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Load all fields into the block
+*/
+template <typename HConfig>
+void ServerInterface<HConfig>::LoadFieldsFromReader(BlockPtr &blockptr) const
+{
+   if constexpr (HConfig::background == Config::Background::DataCartesian)
+      ReadCartesianGetBlockData(blockptr->node, blockptr->fields[0].Array());
+   else if constexpr (HConfig::background == Config::Background::DataBATL)
+      spectrum_get_block_data(blockptr->node, blockptr->fields[0].Array());
+}
+
+
+
 
 };
 

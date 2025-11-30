@@ -39,6 +39,9 @@ public:
    using ServerBase::index_needblock;
    using ServerBase::index_needstencil;
    using ServerBase::index_needvars;
+   using ServerBase::domain_max;
+   using ServerBase::domain_min;
+   using ServerBase::file_name_pattern;
 
    static constexpr int server_interp_order = Config::server_interp_order;
    static constexpr int num_ghost_cells = Config::num_ghost_cells;

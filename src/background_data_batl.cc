@@ -18,17 +18,6 @@ namespace Spectrum {
 
 /*!
 \author Juan G Alonso Guzman
-\date 07/27/2023
-\param[out] block_new pointer to block type
-*/
-template <typename HConfig>
-void BackgroundDataBATL<HConfig>::MakeSharedBlock(BlockPtr &block_new)
-{
-   block_new = std::make_shared<Block>();
-};
-
-/*!
-\author Juan G Alonso Guzman
 \author Vladimir Florinski
 \date 09/18/2020
 */
@@ -49,6 +38,7 @@ int BackgroundDataBATL<HConfig>::RequestStencil(const GeoVector& pos)
       stencil.blocks[iz] = RequestBlock();
    };
 
+   // todo status_t?
    return 4;
 };
 

@@ -42,15 +42,22 @@ public:
 
    using BackgroundDataCartesian = BackgroundDataCartesian<HConfig>;
    using BackgroundDataCartesian::RequestBlock;
-   using BackgroundDataCartesian::LoadFromReader;
-   using BackgroundDataCartesian::LoadNeighborsFromReader;
-   using BackgroundDataCartesian::LoadFieldsFromReader;
    using BackgroundDataCartesian::cache_line;
+   using BackgroundDataCartesian::block_pri;
+   using BackgroundDataCartesian::block_sec;
+   using BackgroundDataCartesian::server_interp_order;
+   using BackgroundDataCartesian::num_ghost_cells;
+   using BackgroundDataCartesian::InteriorInterpolationStencil;
    using BlockPtr = BackgroundDataCartesian::BlockCache::BlockPtr;
 
    using ServerInterface = ServerInterface<HConfig>;
    using ServerInterface::_inquiry;
    using ServerInterface::stencil;
+   using ServerInterface::MPIInquiryType;
+   using ServerInterface::MPIStencilType;
+   using ServerInterface::MPIBlockType;
+
+   static constexpr bool request_stencil_from_batl = Config::request_stencil_from_batl;
 
 /*!
 \brief Convert a node multi-index to a level multi-index
@@ -74,9 +81,6 @@ public:
 
 
 protected:
-
-//! Make shared block
-   void MakeSharedBlock(BlockPtr &block_new) override;
 
 //! Obtain an interpolation stencil from the server
    int RequestStencil(const GeoVector& pos);

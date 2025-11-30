@@ -97,7 +97,6 @@ template <typename HConfig>
 template <typename Coordinates>
 status_t BackgroundDipole<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
 {
-   std::cout << "EvaluateDmax DIPOLE" << std::endl;
    dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    return 0;
 };

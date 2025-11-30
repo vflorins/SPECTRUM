@@ -40,6 +40,7 @@ public:
    using Config = HConfig::BackgroundConfig;
    using Block = Block<HConfig>;
    using Stencil = Stencil<Config::stencil_n_elements>;
+   using BlockPtr = std::shared_ptr<Block>;
 
 protected:
 
@@ -63,9 +64,6 @@ protected:
    //! Default constructor - disabled
    ServerInterface(void) = default;
 
-//! Initialize block pointer
-   void InitializeBlockPtr(Block* &block_ptr);
-
 //! Create block datatype
    void CreateBlockDatatype(void);
 
@@ -85,6 +83,12 @@ public:
 
 //! Common clean up tasks after the main loop
    void ServerInterfaceFinish(void);
+
+   void LoadFromReader(BlockPtr&) const;
+
+   void LoadNeighborsFromReader(BlockPtr&) const;
+
+   void LoadFieldsFromReader(BlockPtr&) const;
 
 };
 
