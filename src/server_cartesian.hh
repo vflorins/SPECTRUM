@@ -12,9 +12,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "server_base.hh"
 #include "server_interface.hh"
 
-// todo review
-//#include "common/derivativedata.hh"
-
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
