@@ -15,57 +15,33 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Request the bounding dimensions
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::LoadFromReader(BlockPtr &blockptr) const
-{
-   // todo review for header/include/linking issues
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetBlockCorners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_block_corners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
-}
+///*!
+//\author Vladimir Florinski
+//\author Juan G Alonso Guzman
+//\date 01/04/2024
+//\param [in] construct Whether called from a copy constructor or separately
+//
+//This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+//*/
+//template <typename HConfig, typename ServerFront>
+//void BackgroundServer<HConfig, ServerFront>::SetupBackground(bool construct)
+//{
+//
+//   // todo - this macro-block
+//   //  can be executed constexpr-conditionally during init by trajectory,
+//   //  that way backgrounds are lightweight and
+//   //  much easier to reason about.
+// todo UPDATE: this is replaced by the protocol that trajectory (simulation???) should call background.Start() and background.Finish() generically (for any and all backgrounds).
+//    ...here, we are doing this in SetupBackground ----> TASK: trace back and see who calls SetupBackground
+//#ifdef NEED_SERVER
+//
+//   if (MPI_Config::is_worker) {
+//      server_front = std::make_unique<ServerFrontType>();
+//      server_front->ServerStart();
+//   };
+//#endif
+//};
 
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Request all neighbors
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::LoadNeighborsFromReader(BlockPtr &blockptr) const
-{
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetNodeNeighbors(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_all_neighbor_copies(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
-}
-
-
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Load all fields into the block
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::LoadFieldsFromReader(BlockPtr &blockptr) const
-{
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetBlockData(blockptr->node, blockptr->fields[0].Array());
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_block_data(blockptr->node, blockptr->fields[0].Array());
-}
 
 
 
@@ -81,7 +57,7 @@ void BackgroundDataCartesian<HConfig>::Start(void) {
 
    ServerInterface::ServerInterfaceStart();
 
-   BlockCache::Empty();
+   cache_line.Empty();
    stencil_outcomes[0] = stencil_outcomes[1] = stencil_outcomes[2] = 0;
    num_blocks_requested = 0;
 
@@ -90,39 +66,35 @@ void BackgroundDataCartesian<HConfig>::Start(void) {
 
 // Prime "block_pri" and "block_sec" with stub blocks that always fail tests.
 // These and "block_stn" must be smart pointers to avoid double free or corruption errors.
-   MakeSharedBlock(block_pri);
+   block_pri = std::make_shared<Block>();
    block_pri->SetDimensions(domain_max, domain_min);
-   LoadFromReader(block_pri);
+   ServerInterface::LoadFromReader(block_pri);
    block_pri->LoadDimensions(1.0);
-   MakeSharedBlock(block_sec);
+   block_sec = std::make_shared<Block>();
    block_sec->SetDimensions(domain_max, domain_min);
-   LoadFromReader(block_sec);
+   ServerInterface::LoadFromReader(block_sec);
    block_sec->LoadDimensions(1.0);
-   MakeSharedBlock(block_stn);
+   block_stn = std::make_shared<Block>();
 };
+
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 07/19/2023
+\author Lucius Schoenbaum
+\date 11/22/2025
 */
 template <typename HConfig>
 void BackgroundDataCartesian<HConfig>::Finish(void)
 {
+   if constexpr (HConfig::buildmode == BuildMode::debug) {
+      PrintStencilOutcomes();
+   }
    MPI_Send(nullptr, 0, MPI_BYTE, 0, MPI::tag::stopserve, MPI::node_comm);
    ServerInterface::ServerInterfaceFinish();
 };
 
-/*!
-\author Juan G Alonso Guzman
-\date 07/27/2023
-\param[out] block_new pointer to block type
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::MakeSharedBlock(BlockPtr &block_new)
-{
-   block_new = std::make_shared<Block>();
-};
+
 
 /*!
 \author Juan G Alonso Guzman
@@ -270,6 +242,7 @@ int BackgroundDataCartesian<HConfig>::BuildInterpolationStencil(const GeoVector&
    return status;
 };
 
+
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -300,27 +273,22 @@ int BackgroundDataCartesian<HConfig>::RequestBlock(void)
       num_blocks_requested++;
 
 // Allocate memory for block.
-      MakeSharedBlock(block_new);
+      block_new = std::make_shared<Block>();
 
-// Adjust for ghost cells if necessary
-// todo deprecated, happens at compile time
-//#if SERVER_NUM_GHOST_CELLS > 0
-//      block_new->SetGhostCells(SERVER_NUM_GHOST_CELLS);
-//#endif
-
-// Receive the block in 4 parts (member data plus 3 dynamic arrays). This is called even if SERVER_INTERP_ORDER is -1 to import the block dimensions
+// Receive the block in 4 parts (member data plus 3 dynamic arrays).
+// This is called even if SERVER_INTERP_ORDER is -1 to import the block dimensions
       MPI_Recv(block_new.get(), 1, MPIBlockType, 0, MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
 
-#if SERVER_INTERP_ORDER > -1
-      MPI_Recv(block_new->GetVariablesAddress(), block_new->GetVariableCount() * block_new->GetZoneCount(), MPI_DOUBLE, 0,
-               MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
-#endif
-#if SERVER_INTERP_ORDER > 0 && SERVER_NUM_GHOST_CELLS == 0
-      MPI_Recv(block_new->GetNeighborNodesAddress(), block_new->GetNeighborCount(), MPI_INT, 0,
-               tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
-      MPI_Recv(block_new->GetNeighborLevelsAddress(), block_new->GetNeighborLevelCount(), MPI_INT, 0,
-               tag_sendblock, MPI_Config::node_comm, MPI_STATUS_IGNORE);
-#endif
+      if constexpr (server_interp_order > -1) {
+         MPI_Recv(block_new->GetVariablesAddress(), block_new->GetVariableCount() * block_new->GetZoneCount(), MPI_DOUBLE, 0,
+                  MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
+      }
+      if constexpr (server_interp_order > 0 && num_ghost_cells == 0) {
+         MPI_Recv(block_new->GetNeighborNodesAddress(), block_new->GetNeighborCount(), MPI_INT, 0,
+                  MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
+         MPI_Recv(block_new->GetNeighborLevelsAddress(), block_new->GetNeighborLevelCount(), MPI_INT, 0,
+                  MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
+      }
 
 // Insert the block into the cache
       block_new->ConfigureProperties();
@@ -329,30 +297,6 @@ int BackgroundDataCartesian<HConfig>::RequestBlock(void)
    };
 
    return bidx;
-};
-
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 07/19/2023
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::PrintStencilOutcomes(void)
-{
-   std::cerr << "Stencil outcomes: " << std::setw(10) << stencil_outcomes[0]
-             << std::setw(10) << stencil_outcomes[1]
-             << std::setw(10) << stencil_outcomes[2] << std::endl;
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 08/04/2023
-*/
-template <typename HConfig>
-void BackgroundDataCartesian<HConfig>::PrintNumBlocksRequested(void)
-{
-   std::cerr << "Number of blocks requested: " << std::setw(10) << num_blocks_requested << std::endl;
 };
 
 
@@ -373,102 +317,59 @@ void BackgroundDataCartesian<HConfig>::PrintNumBlocksRequested(void)
 \param[out] fields Fields
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetVariablesFromReader(Fields& fields)
+template <typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::Evaluate_FromReader(Fields& fields)
 {
-   int xyz;
-   double rho, vars[Fields::size()] = {0.0};
-
+   DataFields datafields;
 // Get variables
    MPI_Send(&_inquiry, 1, MPIInquiryType, 0, MPI::tag::needvars, MPI::node_comm);
-   MPI_Recv(vars, DataFields::size(), MPI_DOUBLE, 0, MPI::tag::sendvars, MPI::node_comm, MPI_STATUS_IGNORE);
+   MPI_Recv(datafields.Array(), DataFields::size(), MPI_DOUBLE, 0, MPI::tag::sendvars, MPI::node_comm, MPI_STATUS_IGNORE);
    stencil_outcomes[2]++;
 
-// Mass density, if provided
-#ifdef SERVER_VAR_INDEX_RHO
-   rho = vars[SERVER_VAR_INDEX_RHO];
-#endif
-
-// Number density, if provided
-#ifdef SERVER_VAR_INDEX_DEN
-   // Note: fields.Den(), formerly spdata.n_dens
-   if constexpr (Fields::Den_found())
-      fields.Den() = vars[SERVER_VAR_INDEX_DEN];
-#endif
-
-// Thermal pressure, if provided
-// Note: fields.Prs(), formerly spdata.p_ther
-#ifdef SERVER_VAR_INDEX_PTH
-   if constexpr (Fields::Prs_found())
-      fields.Prs() = vars[SERVER_VAR_INDEX_PTH];
-#endif
-
-   if constexpr (Fields::Vel_found()) {
-// Bulk flow from mass density and momentum, if provided
-// Note: fields.Vel(), formerly spdata.Uvec
-#if defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO)
-      for (xyz = 0; xyz < 3; ++xyz)
-         fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_MOM + xyz] / rho;
-#elif defined(SERVER_VAR_INDEX_FLO)
-      for (xyz = 0; xyz < 3; ++xyz)
-         fields.Vel()[xyz] = vars[SERVER_VAR_INDEX_FLO + xyz];
-#else
-      fields.Vel() = gv_zeros;
-#endif
+// Mass density
+   if constexpr (RequestedFields::MassDen_found()) {
+      fields.MassDen('w') = datafields.MassDen();
    }
-
-// The magnetic field must be always provided
-   for (xyz = 0; xyz < 3; ++xyz)
-      fields.Mag()[xyz] = vars[SERVER_VAR_INDEX_MAG + xyz];
-
-   if constexpr (Fields::Elc_found()) {
-// Electric field, if provided
-#if defined(SERVER_VAR_INDEX_ELE)
-      for (xyz = 0; xyz < 3; ++xyz)
-         fields.Elc()[xyz] = vars[SERVER_VAR_INDEX_ELE + xyz];
-#elif defined(SERVER_VAR_INDEX_FLO) && !(defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-      fields.Elc() = gv_zeros;
-#endif
-      // Electric field, if B and U provided
-#ifndef SERVER_VAR_INDEX_ELE
-#if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-      fields.Elc() = -(fields.Vel() ^ fields.Mag()) / c_code;
-#endif
-#endif
+// Number density
+   if constexpr (RequestedFields::MassDen_found()) {
+      fields.Den('w') = datafields.Den();
    }
-
-// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
-
-// Region(s) indicator variable(s), if provided
-//#ifdef SERVER_VAR_INDEX_REG
-//   for (xyz = 0; xyz < SERVER_NUM_INDEX_REG; xyz++) spdata.region[xyz] = vars[SERVER_VAR_INDEX_REG + xyz];
-//#else
-//   spdata.region = gv_zeros;
-//#endif
-
-// Region(s) indicator variable(s), if provided
-   if constexpr (Fields::Iv0_found()) {
-#ifdef SERVER_VAR_INDEX_REG
-      fields.Iv0() = vars[SERVER_VAR_INDEX_REG + 0];
-#else
-      fields.Iv0() = 0.0;
-#endif
+// Thermal pressure
+   if constexpr (RequestedFields::Prs_found()) {
+      fields.Prs('w') = datafields.Prs();
    }
-   if constexpr (Fields::Iv1_found()) {
-#ifdef SERVER_VAR_INDEX_REG
-      fields.Iv1() = vars[SERVER_VAR_INDEX_REG + 1];
-#else
-      fields.Iv1() = 0.0;
-#endif
+// Bulk flow from mass density and momentum
+   if constexpr (RequestedFields::Fluv_found()) {
+      if constexpr (DataFields::Mom_found() && DataFields::MassDen_found())
+         fields.Fluv('w') = datafields.Mom()/datafields.MassDen();
+      else if constexpr (DataFields::Fluv_found())
+         fields.Fluv('w') = datafields.Fluv();
+      else
+         fields.Fluv('w') = gv_zeros;
    }
-   if constexpr (Fields::Iv2_found()) {
-#ifdef SERVER_VAR_INDEX_REG
-      fields.Iv2() = vars[SERVER_VAR_INDEX_REG + 2];
-#else
-      fields.Iv2() = 0.0;
-#endif
+// Magnetic field
+   if constexpr (RequestedFields::Mag_found()) {
+         fields.Mag('w') = datafields.Mag();
    }
-
+// Electric field
+   if constexpr (RequestedFields::Elc_found()) {
+      if constexpr (DataFields::Fluv_found() && !(DataFields::Flum_found() && DataFields::MassDen_found()))
+         fields.Elc('w') = gv_zeros;
+      else if constexpr (DataFields::Ele_found())
+         fields.Ele('w') = datafields.Ele();
+      else if constexpr (DataFields::Fluv_found() && DataFields::Mag_found())
+         fields.Ele('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   }
+   if constexpr (RequestedFields::Iv0_found()) {
+      fields.Iv0('w') = datafields.Iv0();
+   }
+   if constexpr (RequestedFields::Iv1_found()) {
+      fields.Iv1('w') = datafields.Iv1();
+   }
+   if constexpr (RequestedFields::Iv2_found()) {
+      fields.Iv2('w') = datafields.Iv2();
+   }
+   return 0;
 };
 
 /*!
@@ -480,44 +381,44 @@ void BackgroundDataCartesian<HConfig>::GetVariablesFromReader(Fields& fields)
 \param[out] fields Fields
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetVariablesInterp0(const GeoVector& pos, Fields& fields)
+template <typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::Evaluate_Interp0(const GeoVector& pos, Fields& fields)
 {
    int xyz;
    double rho;
 
+// Neatens expressions involving the block we will be using
+#define B (*block_pri)
 // Take the nearest cell value
-   MultiIndex zone = block_pri->GetZone(pos);
+   MultiIndex zone = B.GetZone(pos);
+
 
 // Spectrum-v1 pattern:
 //   if constexpr (Fields::Den_found())
 //      fields.Den() = block_pri->GetValue(zone, SERVER_VAR_INDEX_DEN);
 
-   // todo this only needs to be rewritten in the format assuming a RequestedFields, like the ordinary Evaluate() methods
-
    // mass density
-   if constexpr (DataFields::MassDen_found()) {
-      fields.MassDen('w') = theblock[zone].Rho();
+   if constexpr (RequestedFields::MassDen_found()) {
+      fields.MassDen('w') = B[zone].Rho();
    }
    // number density
-   if constexpr (DataFields::Den_found()) {
-      fields.Den('w') = theblock[zone].Den();
+   if constexpr (RequestedFields::Den_found()) {
+      fields.Den('w') = B[zone].Den();
    }
    // thermal pressure
-   if constexpr (DataFields::Prs_found()) {
-      fields.Prs('w') = theblock[zone].Prs();
+   if constexpr (RequestedFields::Prs_found()) {
+      fields.Prs('w') = B[zone].Prs();
    }
    // bulk flow velocity
-   if constexpr (DataFields::Fluv_found()) {
-      fields.Fluv('w') = theblock[zone].Fluv();
+   if constexpr (RequestedFields::Fluv_found()) {
+      fields.Fluv('w') = B[zone].Fluv();
       // todo if Fluv is not explicitly stored/served, it can be calculated as Mom()/MassDen()
    }
-   if constexpr (DataFields::Mag_found()) {
-      fields.Mag() = theblock[zone].Mag();
+   if constexpr (RequestedFields::Mag_found()) {
+      fields.Mag() = B[zone].Mag();
    }
 
-
-   if constexpr (Fields::Elc_found()) {
+   if constexpr (RequestedFields::Elc_found()) {
 // Electric field, if provided
 #if defined(SERVER_VAR_INDEX_ELE)
       for (xyz = 0; xyz < 3; xyz++)
@@ -578,12 +479,12 @@ void BackgroundDataCartesian<HConfig>::GetVariablesInterp0(const GeoVector& pos,
 \param[out] spdata Fields, dmax, etc.
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetVariablesInterp1(const GeoVector& pos, Fields& fields)
+template <typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::Evaluate_Interp1(const GeoVector& pos, Fields& fields)
 {
    int xyz, iz, vidx, pri_idx, sec_idx;
    // todo vars should be a Fields structured type
-   double rho, var, vars[Fields::size()] = {0.0}, _Bmag2;
+   double rho, var, vars[Fields::size()] = {0.0}, Bmag2;
 
 // Build the stencil. This is a time consuming operation.
    stencil_status = BuildInterpolationStencil(pos);
@@ -600,10 +501,10 @@ void BackgroundDataCartesian<HConfig>::GetVariablesInterp1(const GeoVector& pos,
             vars[vidx] += stencil.weights[iz] * var;
          };
 // B magnitude
-         _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(Bmag2);
       };
    }
 
@@ -623,10 +524,10 @@ void BackgroundDataCartesian<HConfig>::GetVariablesInterp1(const GeoVector& pos,
             vars[vidx] += stencil.weights[iz] * var;
          };
 // B magnitude
-         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(Bmag2);
       };
    }
 
@@ -643,10 +544,10 @@ void BackgroundDataCartesian<HConfig>::GetVariablesInterp1(const GeoVector& pos,
             vars[vidx] += stencil.weights[iz] * var;
          };
 // B magnitude
-         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         fields.AbsMag() += stencil.weights[iz] * sqrt(_Bmag2);
+         fields.AbsMag() += stencil.weights[iz] * sqrt(Bmag2);
       };
    };
 
@@ -740,87 +641,24 @@ void BackgroundDataCartesian<HConfig>::GetVariablesInterp1(const GeoVector& pos,
 
 };
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 01/04/2024
-\param[in]  t      Time
-\param[in]  pos    Position
-\param[out] fields Fields
-\param[out] dmax dmax, field dependent
-*/
-template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetVariables(double t, const GeoVector& pos, Fields& fields, double& dmax)
-{
-   int bidx;
-
-// Request the block and the zone size
-   _inquiry.type = 1;
-   _inquiry.pos = pos;
-   bidx = RequestBlock();
-
-// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
-   if (block_pri->GetNode() != bidx) {
-      if (block_sec->GetNode() == bidx) block_pri = block_sec;
-      else block_pri = cache_line[bidx];
-   };
-   dmax = fmin(dmax, block_pri->GetZoneLength().Smallest());
-
-#if SERVER_INTERP_ORDER == -1
-   // Get variables directly from reader program
-   GetVariablesFromReader(fields);
-#elif SERVER_INTERP_ORDER == 0
-// Get variables using 0th order interpolation
-   GetVariablesInterp0(pos, fields);
-#elif SERVER_INTERP_ORDER == 1
-   // Get variables using 1st order interpolation
-   GetVariablesInterp1(pos, fields);
-#else
-#error Unsupported interpolation order!
-#endif
-
-// TODO: after spdata-fields update, this section is awkward, and can be revised as needed. Old spdata section is commented out (not removed entirely).
-
-//// Perform unit conversion for fields and region
-//#ifdef SERVER_VAR_INDEX_DEN
-//   fields.region /= spdata.n_dens;
-//#endif
-
-#ifdef SERVER_VAR_INDEX_DEN
-   if constexpr (Fields::Iv0_found())
-      fields.Iv0() /= fields.Den();
-   if constexpr (Fields::Iv1_found())
-      fields.Iv1() /= fields.Den();
-   if constexpr (Fields::Iv2_found())
-      fields.Iv2() /= fields.Den();
-#endif
 
 
-   fields.Den() *= unit_number_density_server / unit_number_density_fluid;
-   fields.Vel() *= unit_velocity_server / unit_velocity_fluid;
-   fields.Mag() *= unit_magnetic_server / unit_magnetic_fluid;
-   fields.Elc() *= unit_electric_server / unit_electric_fluid;
-   fields.Prs() *= unit_pressure_server / unit_pressure_fluid;
-};
 
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 03/11/2024
-\param[out] fields Fields
+\author Lucius Schoenbaum
+\date 11/11/2025
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetGradientsInterp1(Fields& fields, DerivativeData& ddata)
+template <typename Coordinates, typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::Gradients_Interp1(Coordinates& coords, Fields& fields)
 {
-   double var, _Bmag2, rho = 0.0;
+   double var, Bmag2, rho = 0.0;
    int vidx, xyz, uvw, iz, pri_idx, sec_idx;
 
    double grads[Fields::size()][3] = {0.0};
    fields.DelAbsMag() = gv_zeros;
-
-   ddata.BACKGROUND_grad_FAIL = false;
 
 // Internal interpolation
    if (stencil_status == 0) {
@@ -834,10 +672,10 @@ void BackgroundDataCartesian<HConfig>::GetGradientsInterp1(Fields& fields, Deriv
          rho += stencil.weights[iz] * block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
 // gradient of B magnitude
-         _Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_pri->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) fields.DelMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(Bmag2);
       };
    }
 
@@ -858,10 +696,10 @@ void BackgroundDataCartesian<HConfig>::GetGradientsInterp1(Fields& fields, Deriv
          rho += stencil.weights[iz] * block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
 // gradient of B magnitude
-         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(Bmag2);
       };
    }
 
@@ -880,10 +718,10 @@ void BackgroundDataCartesian<HConfig>::GetGradientsInterp1(Fields& fields, Deriv
          rho += stencil.weights[iz] * block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_RHO);
 #endif
 // gradient of B magnitude
-         _Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
+         Bmag2 = Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 1))
                   + Sqr(block_stn->GetValue(stencil.zones[iz], SERVER_VAR_INDEX_MAG + 2));
-         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(_Bmag2);
+         for (uvw = 0; uvw < 3; uvw++) fields.DelAbsMag()[uvw] += stencil.derivatives[3 * iz + uvw] * sqrt(Bmag2);
       };
    };
 
@@ -928,43 +766,194 @@ void BackgroundDataCartesian<HConfig>::GetGradientsInterp1(Fields& fields, Deriv
 #endif
 #endif
    }
+// Perform unit conversion
+   fields.DelVel() *= unit_velocity_server / unit_velocity_fluid;
+   fields.DelMag() *= unit_magnetic_server / unit_magnetic_fluid;
+   fields.DelElc() *= unit_electric_server / unit_electric_fluid;
 
+   return 0;
 };
+
+
+
+
+
+
+
+
+
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/28/2025
+*/
+template <typename HConfig>
+template <typename Coordinates, typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+{
+   // todo static assert every field in RequestedFields is also in DataFields
+
+   int bidx;
+   status_t status;
+
+// Request the block and the zone size
+// todo awk - _inquiry type not well-typed [sic]
+   _inquiry.type = 1;
+   _inquiry.pos = coords.Pos();
+   bidx = RequestBlock();
+
+// If "block_pri" or "block_sec" is the position owner (based on the call to RequestBlock), we don't need to acccess the cache
+   if (block_pri->GetNode() != bidx) {
+      if (block_sec->GetNode() == bidx) block_pri = block_sec;
+      else block_pri = cache_line[bidx];
+   };
+
+   if constexpr (server_interp_order == -1) {
+// Get fields directly from reader program
+      status = Evaluate_FromReader<Fields, RequestedFields>(fields);
+   }
+   else if constexpr (server_interp_order == 0) {
+// Get fields using 0th order interpolation
+      status = Evaluate_Interp0<Fields, RequestedFields>(coords.Pos(), fields);
+   }
+   else if constexpr (server_interp_order == 1) {
+// Get fields using 1st order interpolation
+      status = Evaluate_Interp1<Fields, RequestedFields>(coords.Pos(), fields);
+   }
+
+   if constexpr (RequestedFields::Prs_found()) {
+      fields.Prs() *= unit_pressure_server / unit_pressure_fluid;
+   }
+   if constexpr (RequestedFields::Den_found()) {
+      fields.Den() *= unit_number_density_server / unit_number_density_fluid;
+      if constexpr (RequestedFields::Iv0_found())
+         fields.Iv0() /= fields.Den();
+      if constexpr (RequestedFields::Iv1_found())
+         fields.Iv1() /= fields.Den();
+      if constexpr (RequestedFields::Iv2_found())
+         fields.Iv2() /= fields.Den();
+      // ...adjust region modifications as needed
+   }
+   if constexpr (RequestedFields::Fluv_found()) {
+      fields.Fluv() *= unit_velocity_server / unit_velocity_fluid;
+   }
+   if constexpr (RequestedFields::Mag_found()) {
+      fields.Mag() *= unit_magnetic_server / unit_magnetic_fluid;
+   }
+   if constexpr (RequestedFields::Elc_found()) {
+      fields.Elc() *= unit_electric_server / unit_electric_fluid;
+   }
+   return status;
+};
+
+
+
+
+
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/27/2025
+*/
+template <typename HConfig>
+template <typename Coordinates, typename Fields, typename RequestedFields>
+status_t BackgroundDataCartesian<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+{
+   if constexpr (server_interp_order == -1) {
+// Gradients must be computed numerically
+      return NUMERIC_DERIVATIVES;
+   }
+   else if constexpr (server_interp_order == 0) {
+// All gradients are explicitly set to zero, and the background must not attempt to compute them using "NumericalDerivatives()"
+      if constexpr (RequestedFields::DelFluv_found()) {
+         fields.DelFluv() = gm_zeros;
+      }
+      if constexpr (RequestedFields::DelMag_found()) {
+         fields.DelMag() = gm_zeros;
+      }
+      if constexpr (RequestedFields::DelAbsMag_found()) {
+         fields.DelAbsMag() = gv_zeros;
+      }
+      if constexpr (RequestedFields::DelElc_found()) {
+         fields.DelElc() = gm_zeros;
+      }
+   }
+   else if constexpr (server_interp_order == 1) {
+// Gradients can be obtained from the stencil construction
+      Gradients_Interp1<Coordinates, Fields, RequestedFields>(coords, fields);
+   }
+   return 0;
+};
+
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/27/2025
+*/
+template <typename HConfig>
+template <typename Coordinates>
+status_t BackgroundDataCartesian<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+{
+   dmax = fmin(dmax0, block_pri->GetZoneLength().Smallest());
+   return 0;
+};
+
+
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 07/19/2023
-\param[out] spdata Field gradients
 */
 template <typename HConfig>
-template <typename Fields>
-void BackgroundDataCartesian<HConfig>::GetGradients(Fields& fields, DerivativeData& ddata)
+void BackgroundDataCartesian<HConfig>::PrintStencilOutcomes(void) const requires (HConfig::buildmode == BuildMode::debug)
 {
-#if SERVER_INTERP_ORDER == -1
-   // Gradients must be computed numerically
-   ddata.BACKGROUND_grad_FAIL = true;
-   return;
-#elif SERVER_INTERP_ORDER == 0
-// All gradients are explicitly set to zero, and the background must not attempt to compute them using "NumericalDerivatives()"
-   fields.DelVel() = gm_zeros;
-   fields.DelMag() = gm_zeros;
-   fields.DelAbsMag() = gv_zeros;
-   fields.DelElc() = gm_zeros;
-#elif SERVER_INTERP_ORDER == 1
-   // Gradients can be obtained from the stencil construction
-   GetGradientsInterp1(fields, ddata);
-#else
-#error Unsupported interpolation order!
-#endif
-
-// Perform unit conversion for gradients
-   fields.DelVel() *= unit_velocity_server / unit_velocity_fluid;
-   fields.DelMag() *= unit_magnetic_server / unit_magnetic_fluid;
-   fields.DelElc() *= unit_electric_server / unit_electric_fluid;
+   std::cerr << "Stencil outcomes: " << std::setw(10) << stencil_outcomes[0]
+             << std::setw(10) << stencil_outcomes[1]
+             << std::setw(10) << stencil_outcomes[2] << std::endl;
 };
 
+/*!
+\author Juan G Alonso Guzman
+\date 08/04/2023
+*/
+template <typename HConfig>
+void BackgroundDataCartesian<HConfig>::PrintNumBlocksRequested(void) const requires (HConfig::buildmode == BuildMode::debug)
+{
+   std::cerr << "Number of blocks requested: " << std::setw(10) << num_blocks_requested << std::endl;
+};
 
+/*!
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 11/27/2025
+\return Number of blocks in the cache
+*/
+template <typename HConfig>
+int BackgroundDataCartesian<HConfig>::GetNCachedBlocks(void) const requires (HConfig::buildmode == BuildMode::debug)
+{
+   return cache_line.size();
+};
+
+/*!
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 11/27/2025
+*/
+template <typename HConfig>
+void BackgroundDataCartesian<HConfig>::InvalidateCache(void) requires (HConfig::buildmode == BuildMode::debug)
+{
+   cache_line.Empty();
+};
 
 
 };

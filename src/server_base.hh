@@ -64,6 +64,12 @@ protected:
 //! Buffer for the block to be served
    Block* block_served = nullptr;
 
+//! Smallest position in the domain
+   GeoVector domain_min;
+
+//! Largest position in the domain
+   GeoVector domain_max;
+
 //! Default constructor
    ServerBase(void) = default;
 

@@ -40,9 +40,6 @@ struct DerivativeData {
 //! Flag for backward increment when computing time derivatives
    bool _dt_back_fail;
 
-//! Flag to indicate spatial derivatives were not computed
-   bool BACKGROUND_grad_FAIL;
-
 };
 
 };

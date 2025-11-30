@@ -52,14 +52,7 @@ template <typename HConfig>
 void ServerCartesian<HConfig>::ServerStart(void)
 {
    ServerInterface::ServerInterfaceStart();
-   CreateMPIDatatypes();
-   InitializeBlockPtr(block_served);
-
-// Adjust for ghost cells if necessary
-// todo deprecated, happens at compile time
-//#if SERVER_NUM_GHOST_CELLS > 0
-//   block_served->SetGhostCells(SERVER_NUM_GHOST_CELLS);
-//#endif
+   block_served = new Block();
 
 // Initialize the Cartesian library and read the data into memory
    std::string data_file = file_name_pattern + ".out";
@@ -68,8 +61,8 @@ void ServerCartesian<HConfig>::ServerStart(void)
    domain_min *= unit_length_server / unit_length_fluid;
    domain_max *= unit_length_server / unit_length_fluid;
 
-   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
-   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI_Config::node_comm);
+   MPI_Bcast(domain_min.Data(), 3, MPI_DOUBLE, 0, MPI::node_comm);
+   MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI::node_comm);
 };
 
 /*!
@@ -111,10 +104,10 @@ void ServerCartesian<HConfig>::ServerFinish(void)
 template <typename HConfig>
 int ServerCartesian<HConfig>::ServerFunctions(void)
 {
-#if SERVER_INTERP_ORDER == -1
+   if constexpr (server_interp_order == -1) {
 // Handle "needvars" requests
-   HandleNeedVarsRequests();
-#endif
+      HandleNeedVarsRequests();
+   }
 // Handle "needblock" requests
    HandleNeedBlockRequests();
 // Handle "stopserve" requests
@@ -146,7 +139,7 @@ void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
    int found, cpu, cpu_idx, count_needvars = 0;
 
 // Service the "needvars" requests
-   MPI_Testsome(MPI_Config::node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
+   MPI_Testsome(MPI::node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
 
    for (cpu_idx = 0; cpu_idx < count_needvars; cpu_idx++) {
       cpu = index_needvars[cpu_idx];
@@ -157,10 +150,10 @@ void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
       if (!found) std::cerr << "Position not found\n";
 
 // Send the variables to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, tag_sendvars, MPI_Config::node_comm);
+      MPI_Send(vars, n_variables, MPI_DOUBLE, cpu, MPI::tag::sendvars, MPI::node_comm);
 
 // Post the receive for the next variables request from this worker.
-      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, tag_needvars, MPI_Config::node_comm, &req_needvars[cpu]);
+      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, MPI::tag::needvars, MPI::node_comm, &req_needvars[cpu]);
    };
 };
 
@@ -200,18 +193,18 @@ void ServerCartesian<HConfig>::HandleNeedBlockRequests(void)
       };
 
       block_served->SetNode(buf_needblock[cpu].node);
-      LoadFromReader(block_served);
+      ServerInterface::LoadFromReader(block_served);
       block_served->LoadDimensions(unit_length_server);
 
 // Send the block to a worker. We use a blocking Send to ensure that the buffer can be reused.
       MPI_Send(block_served, 1, MPIBlockType, cpu, MPI::tag::sendblock, MPI::node_comm);
       if constexpr (server_interp_order > -1) {
-         LoadFieldsFromReader(block_served);
+         ServerInterface::LoadFieldsFromReader(block_served);
          MPI_Send(block_served->GetVariablesAddress(), block_served->GetVariableCount() * block_served->GetZoneCount(),
                   MPI_DOUBLE, cpu, MPI::tag::sendblock, MPI::node_comm);
       }
       if constexpr (server_interp_order > 0 && num_ghost_cells == 0) {
-         LoadNeighborsFromReader(block_served);
+         ServerInterface::LoadNeighborsFromReader(block_served);
          MPI_Send(block_served->GetNeighborNodesAddress(), block_served->GetNeighborCount(),
                   MPI_INT, cpu, MPI::tag::sendblock, MPI::node_comm);
          MPI_Send(block_served->GetNeighborLevelsAddress(), block_served->GetNeighborLevelCount(),
@@ -234,7 +227,7 @@ int ServerCartesian<HConfig>::HandleStopServeRequests(void)
    int cpu, cpu_idx, count_stopserve = 0;
 
    // Service the "stopserve" requests. We assume that each worker sends a single request at the end of the simulation. 
-   MPI_Testsome(MPI_Config::node_comm_size, req_stopserve, &count_stopserve, index_stopserve, MPI_STATUSES_IGNORE);
+   MPI_Testsome(MPI::node_comm_size, req_stopserve, &count_stopserve, index_stopserve, MPI_STATUSES_IGNORE);
    
 // Cancel all "needblock" and "needstencil" receive requests from the cpus that have finished.
    for (cpu_idx = 0; cpu_idx < count_stopserve; cpu_idx++) {
