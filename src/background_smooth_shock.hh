@@ -47,8 +47,6 @@ public:
 //   // methods
 //   using BackgroundBase::EvaluateDmax;
 //   using BackgroundBase::GetDmax;
-//   using BackgroundBase::StopServerFront;
-//   using BackgroundBase::SetupBackground;
 
    using BackgroundShock::u1;
    using BackgroundShock::B1;

@@ -8,28 +8,15 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "server_cartesian.hh"
 #include "server_types.hh"
-#include "reader_cartesian.hh"
 #include "common/print_warn.hh"
-#include <iostream>
-#include <iomanip>
+#include "common/physics.hh"
 
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// ServerCartesian public methods
+// ServerCartesian methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 07/19/2023
-\param[in] file_name_pattern_in A string describing the file naming pattern
-*/
-template <typename HConfig>
-ServerCartesian<HConfig>::ServerCartesian(const std::string& file_name_pattern_in)
-                   : ServerInterface(file_name_pattern_in)
-{
-};
 
 /*!
 \author Juan G Alonso Guzman
@@ -38,10 +25,11 @@ ServerCartesian<HConfig>::ServerCartesian(const std::string& file_name_pattern_i
 template <typename HConfig>
 void ServerCartesian<HConfig>::ReadData(const std::string data_file)
 {
-   ReadCartesianHeader(data_file.c_str(), line_width, 1);
-   ReadCartesianData(data_file.c_str(), line_width, 0, 0);
-   ReadCartesianGetDomain(domain_min.Data(), domain_max.Data());
+   reader.ReadCartesianHeader(data_file.c_str(), line_width, 1);
+   reader.ReadCartesianData(data_file.c_str(), line_width, 0, 0);
+   reader.ReadCartesianGetDomain(domain_min.Data(), domain_max.Data());
 };
+
 
 /*!
 \author Vladimir Florinski
@@ -51,7 +39,7 @@ void ServerCartesian<HConfig>::ReadData(const std::string data_file)
 template <typename HConfig>
 void ServerCartesian<HConfig>::ServerStart(void)
 {
-   ServerInterface::ServerInterfaceStart();
+   ServerBase::ServerStart();
    block_served = new Block();
 
 // Initialize the Cartesian library and read the data into memory
@@ -65,6 +53,7 @@ void ServerCartesian<HConfig>::ServerStart(void)
    MPI_Bcast(domain_max.Data(), 3, MPI_DOUBLE, 0, MPI::node_comm);
 };
 
+
 /*!
 \author Juan G Alonso Guzman
 \date 07/28/2023
@@ -72,8 +61,9 @@ void ServerCartesian<HConfig>::ServerStart(void)
 template <typename HConfig>
 void ServerCartesian<HConfig>::CleanReader(void)
 {
-   ReadCartesianClean();
+   reader.ReadCartesianClean();
 };
+
 
 /*!
 \author Vladimir Florinski
@@ -86,12 +76,13 @@ void ServerCartesian<HConfig>::ServerFinish(void)
    CleanReader();
    delete block_served;
 
-// This is a repeat of the function from ServerCartesian
+// todo review, is this done by ServerBase or ServerInterface?
    MPI_Type_free(&MPIBlockType);
    MPI_Type_free(&MPIStencilType);
 
-   ServerInterface::ServerInterfaceFinish();
+   ServerBase::ServerFinish();
 };
+
 
 /*!
 \author Vladimir Florinski
@@ -99,20 +90,64 @@ void ServerCartesian<HConfig>::ServerFinish(void)
 \date 07/19/2023
 \return Number of clients that completed their tasks during this cycle
 
-/Note "needvars" requests are only handled when SERVER_INTERP_ORDER = -1
+\note "needvars" requests are only handled when SERVER_INTERP_ORDER = -1
 */
 template <typename HConfig>
 int ServerCartesian<HConfig>::ServerFunctions(void)
 {
    if constexpr (server_interp_order == -1) {
 // Handle "needvars" requests
-      HandleNeedVarsRequests();
+      ServerBase::HandleNeedVarsRequests();
    }
 // Handle "needblock" requests
-   HandleNeedBlockRequests();
+   ServerBase::HandleNeedBlockRequests();
 // Handle "stopserve" requests
-   return HandleStopServeRequests();
+   return ServerBase::HandleStopServeRequests();
 };
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Request the bounding dimensions
+*/
+template <typename HConfig>
+void ServerCartesian<HConfig>::LoadFromReader(BlockPtr& blockptr)
+{
+   reader.ReadCartesianGetBlockCorners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
+}
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Request all neighbors
+*/
+template <typename HConfig>
+void ServerCartesian<HConfig>::LoadNeighborsFromReader(BlockPtr& blockptr)
+{
+   reader.ReadCartesianGetNodeNeighbors(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
+}
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
+Load all fields into the block
+*/
+template <typename HConfig>
+void ServerCartesian<HConfig>::LoadFieldsFromReader(BlockPtr &blockptr)
+{
+   reader.ReadCartesianGetBlockData(blockptr->node, blockptr->fields[0].Array());
+}
+
+
 
 /*!
 \author Juan G Alonso Guzman
@@ -124,38 +159,9 @@ int ServerCartesian<HConfig>::ServerFunctions(void)
 template <typename HConfig>
 void ServerCartesian<HConfig>::GetBlockData(const double* pos, double* vars, int* found)
 {
-   ReadCartesianGetBlockData(pos, vars, found);
+   reader.ReadCartesianGetBlockData(pos, vars, found);
 };
 
-/*!
-\author Juan G Alonso Guzman
-\date 08/03/2023
-*/
-template <typename HConfig>
-void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
-{
-   GeoVector pos_cart;
-   DataFields datafields;
-   int found, cpu, cpu_idx, count_needvars = 0;
-
-// Service the "needvars" requests
-   MPI_Testsome(MPI::node_comm_size, req_needvars, &count_needvars, index_needvars, MPI_STATUSES_IGNORE);
-
-   for (cpu_idx = 0; cpu_idx < count_needvars; cpu_idx++) {
-      cpu = index_needvars[cpu_idx];
-
-// Obtain the variables requested
-      pos_cart = buf_needvars[cpu].pos / unit_length_server * unit_length_fluid;
-      GetBlockData(pos_cart.Data(), datafields.Array(), &found);
-      if (!found) std::cerr << "Position not found\n";
-
-// Send the variables to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(datafields.Array(), DataFields::size(), MPI_DOUBLE, cpu, MPI::tag::sendvars, MPI::node_comm);
-
-// Post the receive for the next variables request from this worker.
-      MPI_Irecv(&buf_needvars[cpu], 1, MPIInquiryType, cpu, MPI::tag::needvars, MPI::node_comm, &req_needvars[cpu]);
-   };
-};
 
 /*!
 \author Juan G Alonso Guzman
@@ -166,81 +172,21 @@ void ServerCartesian<HConfig>::HandleNeedVarsRequests(void)
 template <typename HConfig>
 void ServerCartesian<HConfig>::GetBlock(const double* pos, int* node)
 {
-   ReadCartesianGetNode(pos, node);
+   reader.ReadCartesianGetNode(pos, node);
 };
+
 
 /*!
-\author Juan G Alonso Guzman
-\date 12/01/2023
+\author Lucius Schoenbaum
+\date 11/28/2025
+\param[in] pos    position array in reader coordinates
+\param[out] stencil  stencil to be populated
 */
 template <typename HConfig>
-void ServerCartesian<HConfig>::HandleNeedBlockRequests(void)
-{
-   GeoVector pos_cart;
-   int cpu, cpu_idx, count_needblock = 0;
+void ServerCartesian<HConfig>::GetStencil(const double* pos, Stencil* stencil) {
+// unused because HandleNeedStencilRequests is not called.
+   return;
+}
 
-   // Service the "needblock" requests
-   MPI_Testsome(MPI::node_comm_size, req_needblock, &count_needblock, index_needblock, MPI_STATUSES_IGNORE);
-
-// Load the block requested. If the requestor does not know the node, figure it out.
-   for (cpu_idx = 0; cpu_idx < count_needblock; cpu_idx++) {
-      cpu = index_needblock[cpu_idx];
-
-      if (buf_needblock[cpu].type) {
-         pos_cart = buf_needblock[cpu].pos / unit_length_server * unit_length_fluid;
-         GetBlock(pos_cart.Data(), &buf_needblock[cpu].node);
-         if (buf_needblock[cpu].node == -1) throw ExServerError();
-      };
-
-      block_served->SetNode(buf_needblock[cpu].node);
-      ServerInterface::LoadFromReader(block_served);
-      block_served->LoadDimensions(unit_length_server);
-
-// Send the block to a worker. We use a blocking Send to ensure that the buffer can be reused.
-      MPI_Send(block_served, 1, MPIBlockType, cpu, MPI::tag::sendblock, MPI::node_comm);
-      if constexpr (server_interp_order > -1) {
-         ServerInterface::LoadFieldsFromReader(block_served);
-         MPI_Send(block_served->GetVariablesAddress(), block_served->GetVariableCount() * block_served->GetZoneCount(),
-                  MPI_DOUBLE, cpu, MPI::tag::sendblock, MPI::node_comm);
-      }
-      if constexpr (server_interp_order > 0 && num_ghost_cells == 0) {
-         ServerInterface::LoadNeighborsFromReader(block_served);
-         MPI_Send(block_served->GetNeighborNodesAddress(), block_served->GetNeighborCount(),
-                  MPI_INT, cpu, MPI::tag::sendblock, MPI::node_comm);
-         MPI_Send(block_served->GetNeighborLevelsAddress(), block_served->GetNeighborLevelCount(),
-                  MPI_INT, cpu, MPI::tag::sendblock, MPI::node_comm);
-      }
-
-// Post the receive for the next block request from this worker
-      MPI_Irecv(&buf_needblock[cpu], 1, MPIInquiryType, cpu, MPI::tag::needblock, MPI::node_comm, &req_needblock[cpu]);
-   };
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/27/2023
-\return Number of clients that completed their tasks during this cycle
-*/
-template <typename HConfig>
-int ServerCartesian<HConfig>::HandleStopServeRequests(void)
-{
-   int cpu, cpu_idx, count_stopserve = 0;
-
-   // Service the "stopserve" requests. We assume that each worker sends a single request at the end of the simulation. 
-   MPI_Testsome(MPI::node_comm_size, req_stopserve, &count_stopserve, index_stopserve, MPI_STATUSES_IGNORE);
-   
-// Cancel all "needblock" and "needstencil" receive requests from the cpus that have finished.
-   for (cpu_idx = 0; cpu_idx < count_stopserve; cpu_idx++) {
-      cpu = index_stopserve[cpu_idx];
-      MPI_Cancel(&req_needblock[cpu]);
-      MPI_Cancel(&req_needstencil[cpu]);
-      MPI_Cancel(&req_needvars[cpu]);
-      MPI_Request_free(&req_needblock[cpu]);
-      MPI_Request_free(&req_needstencil[cpu]);
-      MPI_Request_free(&req_needvars[cpu]);
-   };
-
-   return count_stopserve;
-};
 
 };

@@ -27,6 +27,10 @@ TrajectoryBase<HConfig>::TrajectoryBase(void)
               : Params("", STATE_NONE),
               records(Config::record_trajectory_segment_presize)
 {
+// This always needs to occur, whereas SetupBackground is only required if there is a container to load.
+   if (HConfig::BackgroundConfig::stochastic) {
+      background.ConnectRNG(rng);
+   }
 };
 
 /*!
@@ -210,12 +214,12 @@ try {
 
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
    std::cout << "[CommonFields] EvaluateDmax" << std::endl;
-   status = Background::EvaluateDmax(coords, &_dmax);
+   status = background.EvaluateDmax(coords, &_dmax);
    if (BITS_RAISED(status, STATE_INVALID)) throw ExCoordinates();
 
 // Compute physical fields
    std::cout << "[CommonFields] EvaluateBackground" << std::endl;
-   status = Background::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
+   status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
    if (BITS_RAISED(status, STATE_INVALID)) throw ExFieldError();
 
    std::cout << "[CommonFields] MakeConsistent" << fields.AbsMag() << " " << sp_tiny << " " << fields.Mag()<< std::endl;
@@ -224,9 +228,15 @@ try {
 
 // Compute derivatives of fields
 // todo A/B test numerical derivatives for validation
-   if (RequestedFields::Derived_found()) {
+   if constexpr (RequestedFields::Derived_found()) {
+      numericalderivatives.Reset(_dmax);
       std::cout << "[CommonFields] EvaluateDerivatives" << std::endl;
-      status = BackgroundDerivatives::template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+      if constexpr (HConfig::numeric_derivatives()) {
+         status = numericalderivatives.template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+      }
+      else {
+         status = background.template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
+      }
       if (BITS_RAISED(status, STATE_INVALID)) throw ExFieldError();
    }
    std::cout << "[CommonFields] done" << std::endl;
@@ -591,11 +601,9 @@ bool TrajectoryBase<HConfig>::IsSimulationReady(void) const
 \param[in] container_in  Data container for initializating the background object
 */
 template <typename HConfig>
-void TrajectoryBase<HConfig>::AddBackground(const DataContainer& container_in)
+void TrajectoryBase<HConfig>::SetupBackground(const DataContainer& container_in)
 {
-//   background.ConnectRNG(rng);
-//   background.SetupObject(container_in);
-   
+   background.SetupObject(container_in);
    if (IsSimulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
@@ -605,10 +613,9 @@ void TrajectoryBase<HConfig>::AddBackground(const DataContainer& container_in)
 \param[in] container_in Data container for initializating the diffusion object
 */
 template <typename HConfig>
-void TrajectoryBase<HConfig>::AddDiffusion(const DataContainer& container_in)
+void TrajectoryBase<HConfig>::SetupDiffusion(const DataContainer& container_in)
 {
    diffusion.SetupObject(container_in);
-
    if (IsSimulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 
@@ -794,13 +801,33 @@ void TrajectoryBase<HConfig>::Integrate(void)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 02/17/2023
+\author Lucius Schoenbaum
+\date 11/27/2025
+*/
+template <typename HConfig>
+void TrajectoryBase<HConfig>::StartBackground(void)
+{
+   if (HConfig::data_background()) {
+// Start the background service
+      background.Start();
+   }
+}
+
+/*!
+\author Juan G Alonso Guzman
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+\date 11/27/2025
 */
 template <typename HConfig>
 void TrajectoryBase<HConfig>::StopBackground(void)
 {
-   Background::StopServerFront();
+   if constexpr (HConfig::data_background()) {
+// Stop and close up the background service
+      background.Finish();
+   }
 };
+
 
 /*!
 \author Juan G Alonso Guzman

@@ -26,7 +26,7 @@ namespace Spectrum {
 Parameters: (BackgroundBase), [double kmin, double kmax, int n_waves, double variance, double slope] x n_turb_types
 */
 template <typename HConfig_>
-class BackgroundWaves {//: public BackgroundBase<HConfig_> {
+class BackgroundWaves {
 public:
 
 //! Readable name of the class
@@ -54,6 +54,9 @@ public:
 //   using BackgroundBase::SetupBackground;
 
    using BackgroundConfig::derivative_method;
+
+//! Random number generator object (persistent)
+   std::shared_ptr<RNG> rng = nullptr;
 
 protected:
 
@@ -92,6 +95,11 @@ protected:
 
 //! PSD for component "turb_isotropic"
    static void PSD_Isotropic(void);
+
+   // todo reminder, the rng is wired and ready to go - this is stateful but otherwise exactly like the analytic backgrounds.
+
+//! Connect to an existing RNG object
+   void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct);

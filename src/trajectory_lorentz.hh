@@ -33,6 +33,10 @@ public:
    using Coordinates = TrajectoryBase::Coordinates;
    using Fields = TrajectoryBase::Fields;
 
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
+
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;

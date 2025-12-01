@@ -112,27 +112,6 @@ n_servers_per_node 1
 
 
 
-//! Unit of length
-const double unit_length_server = unit_length_fluid;
-// const double unit_length_server = 1.4959787e+13;
-
-//! Unit of number density
-const double unit_number_density_server = 1.0;
-
-//! Unit of velocity
-const double unit_velocity_server = unit_velocity_fluid;
-// const double unit_velocity_server = 1.0E5;
-
-//! Unit of magnetic field
-const double unit_magnetic_server = unit_magnetic_fluid;
-// const double unit_magnetic_server = 1.0E-5;
-
-//! Unit of electric field
-const double unit_electric_server = unit_electric_fluid;
-// const double unit_electric_server = unit_velocity_server * unit_magnetic_server / unit_velocity_fluid;
-
-//! Unit of pressure
-const double unit_pressure_server = 1.0;
 
 
 

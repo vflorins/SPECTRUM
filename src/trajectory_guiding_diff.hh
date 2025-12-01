@@ -49,6 +49,10 @@ public:
    using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
 
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
+
    using typename TrajectoryBase::DiffusionCoordinates;
    using typename TrajectoryBase::DiffusionFields;
    using typename TrajectoryBase::DiffusionFieldsRemainder;

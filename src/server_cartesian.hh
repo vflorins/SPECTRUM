@@ -11,6 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "server_base.hh"
 #include "server_interface.hh"
+#include "reader_cartesian.hh"
 
 namespace Spectrum {
 
@@ -26,14 +27,21 @@ public:
    using Config = HConfig::BackgroundConfig;
    using ServerInterface = ServerInterface<HConfig>;
    using Block = Block<HConfig>;
-   using MPI = MPI<HConfig>;
+   using Stencil = Stencil<Config::stencil_n_elements>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
+
    using DataFields = Config::DataFields;
+   using BlockPtr = ServerInterface::BlockPtr;
 
    using ServerBase = ServerBase<HConfig>;
    using ServerBase::block_served;
    using ServerBase::buf_needblock;
    using ServerBase::buf_needstencil;
    using ServerBase::buf_needvars;
+   using ServerBase::req_needblock;
+   using ServerBase::req_needstencil;
+   using ServerBase::req_needvars;
+   using ServerBase::req_stopserve;
    using ServerBase::index_needblock;
    using ServerBase::index_needstencil;
    using ServerBase::index_needvars;
@@ -51,46 +59,53 @@ public:
    static constexpr int server_interp_order = Config::server_interp_order;
    static constexpr int num_ghost_cells = Config::num_ghost_cells;
 
-public:
+protected:
+
+//! Cartesian data structure
+   ReaderCartesian<HConfig> reader;
+
+public: // API:
 
 //! Default constructor
    ServerCartesian(void) = default;
 
-//! Constructor with arguments
-   ServerCartesian(const std::string& file_name_pattern_in);
-
 //! Destructor
-   ~ServerCartesian() override = default;
-
-//! Read data file
-   virtual void ReadData(const std::string data_file);
+   ~ServerCartesian() = default;
 
 //! Back end set up prior to main loop
-   void ServerStart(void) override;
+   void ServerStart(void);
+
+//! Back end clean up tasks after the main loop
+   void ServerFinish(void);
+
+//! Backend tasks during the main loop
+   int ServerFunctions(void);
+
+protected: // internal virtual dispatch API
+
+   void LoadFromReader(BlockPtr&) final;
+
+   void LoadNeighborsFromReader(BlockPtr&) final;
+
+   void LoadFieldsFromReader(BlockPtr&) final;
+
+//! Get block data from reader
+   virtual void GetBlockData(const double* pos, double* vars, int* found) final;
+
+//! Get block from reader
+   virtual void GetBlock(const double* pos, int* node) final;
+
+//! Serve stencil
+   void GetStencil(const double* pos, Stencil* stencil) final;
+
+private: // helpers
+
+   //! Read data file
+   virtual void ReadData(const std::string data_file);
 
 //! Clean reader
    virtual void CleanReader(void);
 
-//! Back end clean up tasks after the main loop
-   void ServerFinish(void) override;
-
-//! Backend tasks during the main loop
-   int ServerFunctions(void) override;
-
-//! Get block data from reader
-   virtual void GetBlockData(const double* pos, double* vars, int* found);
-
-//! Handle "needvars" requests
-   void HandleNeedVarsRequests(void);
-
-//! Get block from reader
-   virtual void GetBlock(const double* pos, int* node);
-
-//! Handle "needblock" requests
-   void HandleNeedBlockRequests(void);
-
-//! Handle "stopserve" requests
-   int HandleStopServeRequests(void);
 };
 
 

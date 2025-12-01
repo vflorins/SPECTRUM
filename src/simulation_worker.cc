@@ -13,7 +13,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <memory>
 #include <chrono>
 
-
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -21,6 +20,7 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
+\brief Application level class for all worker processes
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \date 01/15/2024
@@ -34,17 +34,13 @@ SimulationWorker<HConfig, Trajectory>::SimulationWorker(void)
       PrintError(__FILE__, __LINE__, "Simulation will exit immediately.", MPI::is_master);
       exit(1);
    }
-   else is_parallel = true;
-// The master is always present in the worker communicator. Thus, without a server, a run can only be parallel if this communicator has more than 1 member.
-#ifndef NEED_SERVER
-   if (MPI::work_comm_size == 1) is_parallel = false;
-#endif
 
 // Create a common RNG object
    rng = std::make_shared<RNG>(time(NULL) + MPI::glob_comm_rank);
-#ifdef GEO_DEBUG
-   std::cerr << "process " << MPI::glob_comm_rank << " random seed = " << time(NULL) + MPI::glob_comm_rank << std::endl;
-#endif
+
+   if constexpr (HConfig::build_mode == BuildMode::debug) {
+      std::cerr << "process " << MPI::glob_comm_rank << " random seed = " << time(NULL) + MPI::glob_comm_rank << std::endl;
+   }
 
 // Create a unique trajectory object based on the user preference stored in "traj_config.hh".
    trajectory = std::make_unique<Trajectory>();
@@ -93,29 +89,13 @@ std::string SimulationWorker<HConfig, Trajectory>::GetTrajectoryName(void) const
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-//template <typename HConfig, typename Trajectory>
-//void SimulationWorker<HConfig, Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
-//{
-//   local_distros.push_back(distribution_in.Clone());
-//   local_distros.back()->SetSpecie(specie);
-//   local_distros.back()->SetupObject(container_in);
-//   trajectory->ConnectDistribution(local_distros.back());
-//   PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI::is_master);
-//};
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 05/27/2022
-\param[in] background_in    Background object for type recognition
-\param[in] container_in     Data container for initializating the background object
-\param[in] fname_pattern_in Unused
-*/
 template <typename HConfig, typename Trajectory>
-void SimulationWorker<HConfig, Trajectory>::AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in)
+void SimulationWorker<HConfig, Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
 {
-   trajectory->AddBackground(background_in, container_in);
-   PrintMessage(__FILE__, __LINE__, "Background object added", MPI::is_master);
+   local_distros.push_back(distribution_in.Clone());
+   local_distros.back()->SetupObject(container_in);
+   trajectory->ConnectDistribution(local_distros.back());
+   PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI::is_master);
 };
 
 /*!
@@ -125,12 +105,12 @@ void SimulationWorker<HConfig, Trajectory>::AddBackground(const Background& back
 \param[in] boundary_in  Boundary object for type recognition
 \param[in] container_in Data container for initializating the boundary object
 */
-//template <typename HConfig, typename Boundary>
-//void SimulationWorker<HConfig, Trajectory>::AddBoundary(const Boundary& boundary_in, const DataContainer& container_in)
-//{
-//   trajectory->AddBoundary(boundary_in, container_in);
-//   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI::is_master);
-//};
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in)
+{
+   trajectory->AddBoundary(boundary_in, container_in);
+   PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI::is_master);
+};
 
 /*!
 \author Vladimir Florinski
@@ -138,25 +118,12 @@ void SimulationWorker<HConfig, Trajectory>::AddBackground(const Background& back
 \param[in] initial_in   Initial object for type recognition
 \param[in] container_in Data container for initializating the initial object
 */
-//template <typename HConfig, typename Initial>
-//void SimulationWorker<HConfig, Trajectory>::AddInitial(const Initial& initial_in, const DataContainer& container_in)
-//{
-//   trajectory->AddInitial(initial_in, container_in);
-//   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI::is_master);
-//};
-
-/*!
-\author Vladimir Florinski
-\date 05/27/2022
-\param[in] diffusion_in Diffusion object for type recognition
-\param[in] container_in Data container for initializating the diffusion object
-*/
-//template <typename HConfig, typename Diffusion>
-//void SimulationWorker<HConfig, Trajectory>::AddDiffusion(const Diffusion& diffusion_in, const DataContainer& container_in)
-//{
-//   trajectory->AddDiffusion(diffusion_in, container_in);
-//   PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI::is_master);
-//};
+template <typename HConfig, typename Trajectory>
+void SimulationWorker<HConfig, Trajectory>::AddInitial(const InitialBase& initial_in, const DataContainer& container_in)
+{
+   trajectory->AddInitial(initial_in, container_in);
+   PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI::is_master);
+};
 
 /*!
 \author Juan G Alonso Guzman
@@ -202,10 +169,11 @@ void SimulationWorker<HConfig, Trajectory>::SendDataToMaster(void)
 template <typename HConfig, typename Trajectory>
 void SimulationWorker<HConfig, Trajectory>::WorkerStart(void)
 {
+   trajectory->StartBackground();
 // Reset quantities
    for (int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
    jobsdone = 0;
-   if constexpr (HConfig::TrajectoryConfig::timeflow == TrajectoryOptions::TimeFlow::forward) {
+   if constexpr (timeflow == TrajectoryOptions::TimeFlow::forward) {
       shortest_sim_time = 1.0E300;
    }
    else {
@@ -215,7 +183,7 @@ void SimulationWorker<HConfig, Trajectory>::WorkerStart(void)
    elapsed_time = 0.0;
 
 // Signal the master (with an empty message) that this CPU is available and receive confirmation to do more work.
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       MPI_Send(NULL, 0, MPI_INT, 0, MPI::tag::cpuavail, MPI::work_comm);
       SendDataToMaster();
       MPI_Recv(&current_batch_size, 1, MPI_INT, 0, MPI::tag::needmore_MW, MPI::work_comm, MPI_STATUS_IGNORE);
@@ -240,14 +208,12 @@ void SimulationWorker<HConfig, Trajectory>::WorkerFinish(void)
       trajectory->InterpretStatus();
    };
 
-#ifdef NEED_SERVER
    trajectory->StopBackground();
-#endif
 
 // Print status message that worker left simulation
-#ifdef GEO_DEBUG
-   std::cerr << "Worker with rank " << MPI::work_comm_rank << " exited simulation." << std::endl;
-#endif
+   if constexpr (HConfig::build_mode == BuildMode::debug) {
+      std::cerr << "Worker with rank " << MPI::work_comm_rank << " exited simulation." << std::endl;
+   }
 };
 
 /*!
@@ -267,7 +233,7 @@ void SimulationWorker<HConfig, Trajectory>::WorkerDuties(void)
          trajectory->SetStart();
          trajectory->Integrate();
          traj_elapsed_time = trajectory->ElapsedTime();
-         if constexpr (HConfig::TrajectoryConfig::timeflow == TrajectoryOptions::TimeFlow::forward) {
+         if constexpr (timeflow == TrajectoryOptions::TimeFlow::forward) {
             if (shortest_sim_time > traj_elapsed_time) shortest_sim_time = traj_elapsed_time;
             if (longest_sim_time < traj_elapsed_time) longest_sim_time = traj_elapsed_time;
          }
@@ -286,14 +252,14 @@ void SimulationWorker<HConfig, Trajectory>::WorkerDuties(void)
    batch_elapsed_time = (double)std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
 // Process batch time depending on whether the code is parallel or not
-   if (is_parallel) elapsed_time = batch_elapsed_time;
+   if (MPI::is_parallel()) elapsed_time = batch_elapsed_time;
    else elapsed_time += batch_elapsed_time;
 
 // Increment counter of jobs done by this process
    jobsdone++;
 
 // Signal master that this CPU is available to do work, send batch data, and receive confirmation that more data is needed
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       MPI_Send(NULL, 0, MPI_INT, 0, MPI::tag::cpuavail, MPI::work_comm);
       SendDataToMaster();
       MPI_Recv(&current_batch_size, 1, MPI_INT, 0, MPI::tag::needmore_MW, MPI::work_comm, MPI_STATUS_IGNORE);

@@ -13,7 +13,6 @@
 #include "background_discontinuity.hh"
 #include "background_magnetized_cylinder.hh"
 #include "background_magnetized_sphere.hh"
-#include "background_data_base__old.hh"
 #include "background_data_batl.hh"
 #include "background_data_cartesian.hh"
 #include "background_shock.hh"

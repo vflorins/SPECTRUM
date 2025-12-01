@@ -13,16 +13,14 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "simulation_server.hh"
 
-
 namespace Spectrum {
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // SimulationMaster (derived) class
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief A master class
+\brief Application level class for the master/supervisor process
 \author Juan G Alonso Guzman
 */
 template <typename HConfig_, typename Trajectory_>
@@ -32,20 +30,20 @@ public:
    using HConfig = HConfig_;
    using Trajectory = Trajectory_;
    using Background = Trajectory::Background;
-   using MPI = MPI<HConfig>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
 
    using DistributionBase = DistributionBase<HConfig>;
    using DiffusionBase = DiffusionBase<HConfig>;
    using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
    using SimulationServer = SimulationServer<HConfig, Trajectory>;
    using SimulationWorker::current_batch_size;
-   using SimulationWorker::is_parallel;
    using SimulationWorker::specie;
    using SimulationWorker::local_distros;
    using SimulationWorker::elapsed_time;
    using SimulationWorker::shortest_sim_time;
    using SimulationWorker::longest_sim_time;
    using SimulationWorker::trajectory;
+   using SimulationWorker::print_last_trajectory;
    // methods:
    using SimulationWorker::WorkerDuties;
 
@@ -120,18 +118,8 @@ public:
 //! Set the particle count and the size of one batch
    void SetTasks(int n_traj_in, int batch_size_in, int max_traj_per_worker_in = 0) override;
 
-// TODO: experiment
 //! Add a distribution object
-   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) override {
-      // TODO this should use make_unique instead of shared
-      partial_distros.push_back(distribution_in.Clone());
-      partial_distros.back()->SetSpecie(specie);
-      partial_distros.back()->SetupObject(container_in);
-      SimulationWorker::AddDistribution(distribution_in, container_in);
-
-// Preset all restore_distro flags to false
-      restore_distros.push_back(false);
-   }
+   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
 
 //! Print simulation info
    void PrintMPICommsInfo(void);

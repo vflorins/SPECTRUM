@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_READER_CARTESIAN_HH
 
 #include "common/vectors.hh"
+#include "server_types.hh"
 
 namespace Spectrum {
 
@@ -17,7 +18,12 @@ namespace Spectrum {
 // ReaderCartesian structure declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+template <typename HConfig>
 struct ReaderCartesian {
+
+   using Block = Block<HConfig>;
+   static constexpr MultiIndex block_size = Block::block_size;
+   static constexpr int max_neighbors_per_dim = Block::max_neighbors_per_dim;
 
 //! Number of blocks per dimension
    MultiIndex Nblocks;
@@ -49,39 +55,38 @@ struct ReaderCartesian {
 //! Array with ALL Cartesian variables organized by dimension
    double* variables_by_dimen = nullptr;
 
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// ReaderCartesian structure global functions declaration
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Read header containing Cartesian file metadata
-void ReadCartesianHeader(const char* filename, int fname_len, int verbose);
+   //! Read header containing Cartesian file metadata
+   void ReadCartesianHeader(const char* filename, int fname_len, int verbose);
 
 //! Read file containing Cartesian data
-void ReadCartesianData(const char* filename, int fname_len, int read_header, int verbose);
+   void ReadCartesianData(const char* filename, int fname_len, int read_header, int verbose);
 
 //! De-allocate global Cartesian structure arrays
-void ReadCartesianClean(void);
+   void ReadCartesianClean(void);
 
 //! Get domain coordinate limits
-void ReadCartesianGetDomain(double* domain_min_out, double* domain_max_out);
+   void ReadCartesianGetDomain(double* domain_min_out, double* domain_max_out);
 
 //! Get variables from position
-void ReadCartesianGetBlockData(const double* pos, double* vars, int* found);
+   void ReadCartesianGetBlockData(const double* pos, double* vars, int* found);
 
 //! Get node ID from position
-void ReadCartesianGetNode(const double* pos, int* node_id);
+   void ReadCartesianGetNode(const double* pos, int* node_id);
 
 //! Get block corners from node ID
-void ReadCartesianGetBlockCorners(int node, double* face_min, double* face_max);
+   void ReadCartesianGetBlockCorners(int node, double* face_min, double* face_max);
 
 //! Get neighbor ID's from node ID
-void ReadCartesianGetNodeNeighbors(int node, int* neighbor_nodes, int* neighbor_levels);
+   void ReadCartesianGetNodeNeighbors(int node, int* neighbor_nodes, int* neighbor_levels);
 
 //! Get block variables from node ID
-void ReadCartesianGetBlockData(int node, double* block_vars);
+   void ReadCartesianGetBlockData(int node, double* block_vars);
 
 };
+
+
+};
+
+#include "reader_cartesian.cc"
 
 #endif

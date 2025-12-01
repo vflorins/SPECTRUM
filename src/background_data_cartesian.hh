@@ -37,7 +37,7 @@ public:
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
    using BlockCache = BlockCache<HConfig>;
-   using MPI = MPI<HConfig>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
    using Block = Block<HConfig>;
    using BlockPtr = std::shared_ptr<Block>;
 
@@ -50,7 +50,7 @@ public:
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
 
-   static_assert(!(!HConfig::MPI_enabled() && !Config::servers_are_workers), "Servers and worker duties cannot be divided unless the simulation is parallel.");
+   static constexpr bool allow_server_worker = Config::allow_server_worker;
 
    static constexpr int num_ghost_cells = Config::num_ghost_cells;
 
@@ -59,6 +59,8 @@ public:
    static constexpr double dmax0 = Config::dmax0;
 
    static_assert(server_interp_order <= 1, "Interpolation orders > 1 are not supported.");
+
+   static_assert(!(!HConfig::MPI_enabled() && !allow_server_worker), "Servers and worker duties cannot be divided unless the simulation is parallel.");
 
 protected:
 
@@ -121,33 +123,6 @@ public:
 
 //! Destructor
    ~BackgroundDataCartesian() override = default;
-
-   /*
-    * TODO - the change still needed is
-    *  to provide all backgrounds with Start() and Finish() for init and deinit.
-    *  These are only non-trivial in the BackgroundData cases,
-    *  where they (of course) start up and close up MPI comms.
-    *
-    * TODO
-    *  Review this class to see what can be removed from public
-    *  to establish a completely consistent background class API:
-    *  Start
-    *  EvaluateBackground
-    *  EvaluateBackroundDerivatives
-    *  Finish
-    *
-    */
-
-protected:
-
-//! Obtain the variables
-   template <typename Fields>
-   void GetVariables(double t, const GeoVector& pos, Fields& fields, double& dmax);
-
-////! Obtain the gradients
-//   template <typename Fields>
-//   void GetGradients(Fields& fields, DerivativeData& ddata);
-
 
 public: // data background API:
 

@@ -55,7 +55,7 @@ public:
    using Fields = FieldOps::Set<typename HConfig::TrajectoryConfig::Fields>;
 
    using Background = Background<HConfig>;
-   using BackgroundDerivatives = Cond<HConfig::BackgroundConfig::derivative_method == BackgroundOptions::DerivativeMethod::numeric, NumericalDerivatives<HConfig>, Background>;
+   using NumericalDerivatives = NumericalDerivatives<Background, HConfig::numeric_derivatives()>;
    using Diffusion = Diffusion<HConfig>;
 
    using DiffusionConfig = HConfig::DiffusionConfig;
@@ -75,6 +75,9 @@ protected:
 
 //! Background object (persistent)
    Background background = Background();
+
+//! Numerical Derivatives manager (persistent)
+   NumericalDerivatives numericalderivatives = NumericalDerivatives();
 
 //! Diffusion object (persistent)
    Diffusion diffusion = Diffusion();
@@ -240,7 +243,10 @@ public:
    virtual std::unique_ptr<TrajectoryBase> Clone(void) const = 0;
 
 //! Assign background model parameters
-   void AddBackground(const DataContainer& container_in);
+   void SetupBackground(const DataContainer& container_in);
+
+   //! Assign diffusion model parameters
+   void SetupDiffusion(const DataContainer& container_in);
 
 //! Connect to an existing distribution object
    void ConnectDistribution(const std::shared_ptr<DistributionBase> distribution_in);
@@ -250,9 +256,6 @@ public:
 
 //! Replace an existing distribution object with another
    void ReplaceDistribution(int distro, const std::shared_ptr<DistributionBase> distribution_in);
-
-//! Assign diffusion model parameters
-   void AddDiffusion(const DataContainer& container_in);
 
 //! Add a boundary condition
    void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
@@ -268,6 +271,9 @@ public:
 
 //! Return the time elapsed
    double ElapsedTime(void) const;
+
+//! Signals the background that its services can start
+   void StartBackground(void);
 
 //! Signals the background that its services are no longer needed
    void StopBackground(void);

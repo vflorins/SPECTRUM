@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "utils_numerical_derivatives.hh"
-#include <stdexcept>
+#include "common/status.hh"
 
 namespace Spectrum {
 
@@ -18,19 +18,6 @@ using namespace BackgroundOptions;
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // NumericalDerivatives methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-/*!
-\author Lucius Schoenbaum
-\date 08/15/2025
-\return DerivativeData, a small struct containing information about the most recent derivative computed, and dmax
-\note This information from the background is currently only needed by Diffusion classes
-when numerical directional derivatives are computed.
- */
-template <typename Background>
-DerivativeData NumericalDerivatives<Background>::GetDerivativeData(void) const
-{
-   return _ddata;
-}
 
 /*!
 \author Vladimir Florinski
@@ -45,7 +32,7 @@ DerivativeData NumericalDerivatives<Background>::GetDerivativeData(void) const
 */
 template <typename Background>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coordinates coords, Fields& fields, double scale_factor)
+void NumericalDerivatives<Background, true>::DirectionalDerivative(const int xyz, Coordinates coords, Fields& fields, double scale_factor, Background& background)
 {
 // temporaries for forward- and backward-stepped evaluation
    Fields fields_forw, fields_back;
@@ -65,7 +52,7 @@ void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coor
 // Forward increment
       _ddata._dr[xyz] = scale_factor;
       coords.Pos('w') += _ddata._dr[xyz] * fa_basis.row[xyz];
-      status = Background::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_forw);
+      status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_forw);
 
       if (BITS_RAISED(status, STATE_INVALID)) {
          fields_forw = fields;
@@ -75,7 +62,7 @@ void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coor
 // Backward increment
       _ddata._dr[xyz] *= 2.0;
       coords.Pos('w') -= _ddata._dr[xyz] * fa_basis.row[xyz];
-      status = Background::template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_back);
+      status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_back);
 
       if (BITS_RAISED(status, STATE_INVALID)) {
          fields_back = fields;
@@ -110,7 +97,7 @@ void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coor
 // Forward increment
       _ddata._dt = 1.0 / scale_factor;
       coords.Time('w') += _ddata._dt;
-      status = EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_forw);
+      status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_forw);
 
       if (BITS_RAISED(status, STATE_INVALID)) {
          fields_forw = fields;
@@ -120,7 +107,7 @@ void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coor
 // Backward increment
       _ddata._dt *= 2.0;
       coords.Time('w') -= _ddata._dt;
-      status = EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_back);
+      status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields_back);
 
       if (BITS_LOWERED(status, STATE_INVALID)) {
          fields_back = fields;
@@ -147,11 +134,11 @@ void NumericalDerivatives<Background>::DirectionalDerivative(const int xyz, Coor
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
-\date 09/08/2025
+\date 11/28/2025
 */
 template <typename Background>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void NumericalDerivatives<Background>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields, Background& background)
 {
    double AbsMom = coords.AbsMom();
    double AbsMag = fields.AbsMag();
@@ -174,7 +161,7 @@ void NumericalDerivatives<Background>::EvaluateBackgroundDerivatives(Coordinates
 
 // Compute derivatives in field-aligned basis
       for (auto xyz = 0; xyz < 3; xyz++)
-         DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(xyz, coords, fields, r_g);
+         DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(xyz, coords, fields, r_g, background);
 
 // Transform basis back to global cartesian frame
       rot_mat.Transpose(fa_basis);
@@ -198,7 +185,7 @@ void NumericalDerivatives<Background>::EvaluateBackgroundDerivatives(Coordinates
             fa_basis[1].Rotate(fa_basis.row[2], sin_lra, cos_lra);
 
             for (auto xyz = 0; xyz < 3; xyz++)
-               DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(xyz, coords, fields_tmp, r_g);
+               DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(xyz, coords, fields_tmp, r_g, background);
 
             rot_mat.Transpose(fa_basis);
             if constexpr (RequestedFields::DelFluv_found())
@@ -229,85 +216,12 @@ void NumericalDerivatives<Background>::EvaluateBackgroundDerivatives(Coordinates
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
       auto vel = Vel<Config::specie>(AbsMom);
       auto w_g = fmin(CyclotronFrequency<Config::specie>(vel, AbsMag), vel / _ddata.dmax);
-      DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(3, coords, fields, 1.0/w_g);
+      DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(3, coords, fields, 1.0/w_g, background);
    };
 
+   return 0;
 };
 
-
-/*!
-\author Vladimir Florinski
-\author Lucius Schoenbaum
-\date 08/05/2025
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-template <typename Background>
-void NumericalDerivatives<Background>::Setup(bool construct)
-{
-
-// Initialize "safe" box for derivatives
-   for (auto xyz = 0; xyz < 3; xyz++) _ddata._dr[xyz] = incr_dmax_ratio * dmax0;
-   _ddata._dt = incr_dmax_ratio * dmax0 / c_code;
-   _ddata.dmax = dmax0;
-};
-
-///*!
-//\author Vladimir Florinski
-//\author Lucius Schoenbaum
-//\date 08/05/2025
-//\note This is only a stub
-//*/
-//template <typename HConfig>
-//template <typename Coordinates, typename Fields, typename RequestedFields>
-//void BackgroundBase<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
-//{
-//   std::cout << "EvaluateBackground: BASE" << std::endl;
-//   LOWER_BITS(_status, STATE_INVALID);
-//};
-
-///*!
-//\author Vladimir Florinski
-//\author Lucius Schoenbaum
-//\date 09/30/2025
-//\note This is a stub to be filled in by particular backgrounds.
-//*/
-//template <typename HConfig>
-//template <typename Coordinates, typename Fields, typename RequestedFields>
-//void BackgroundBase<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
-//{
-//   NumericalDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
-//};
-
-///*!
-//\author Vladimir Florinski
-//\author Lucius Schoenbaum
-//\date 09/09/2025
-//\note The default method should be good enough for all grid-free backgrounds
-//*/
-//template <typename HConfig>
-//template <typename Coordinates>
-//double BackgroundBase<HConfig>::EvaluateDmax(Coordinates& coords)
-//{
-//   std::cout << "EvaluateDmax BASE" << std::endl;
-//   _ddata.dmax = dmax0;
-//   LOWER_BITS(_status, STATE_INVALID);
-//};
-
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/19/2022
-\param[in] dir Direction
-\return Safe increment in some direction (potential negative) to stay inside domain
-*/
-template <typename Background>
-double NumericalDerivatives<Background>::GetSafeIncr(const GeoVector& dir)
-{
-//FIXME: This is incomplete.
-   return incr_dmax_ratio * _ddata.dmax;
-};
 
 
 };

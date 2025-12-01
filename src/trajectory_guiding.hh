@@ -46,21 +46,9 @@ protected:
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::RKAdvance;
 
-//   using TrajectoryBase::_status;
-////   using TrajectoryBase::_t;
-//   using TrajectoryBase::_vel;
-////   using TrajectoryBase::_pos;
-//   using TrajectoryBase::_mom;
-//   using TrajectoryBase::q;
-//   using TrajectoryBase::_fields;
-//   using TrajectoryBase::_dmax;
-////   using TrajectoryBase::traj_t;
-////   using TrajectoryBase::traj_pos;
-//   using TrajectoryBase::traj_mom;
-////   using TrajectoryBase::local_t;
-////   using TrajectoryBase::local_pos;
-////   using TrajectoryBase::local_mom;
-//   using TrajectoryBase::dt_physical;
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
 
 protected:
 

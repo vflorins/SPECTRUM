@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_SERVER_BATL_HH
 #define SPECTRUM_SERVER_BATL_HH
 
-#include "server_cartesian.hh"
+#include "server_base.hh"
 #include "server_interface.hh"
 
 namespace Spectrum {
@@ -93,44 +93,87 @@ void spectrum_get_block_data(int node, double* variables);
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 template <typename HConfig_>
-class ServerBATL : public ServerCartesian<HConfig_>, public ServerInterface<HConfig_> {
+class ServerBATL : public ServerBase<HConfig_>, public ServerInterface<HConfig_> {
 public:
 
    using HConfig = HConfig_;
-   using Block = Block<HConfig>;
-   using MPI = MPI<HConfig>;
-
-   using ServerCartesian = ServerCartesian<HConfig>;
+   using Config = HConfig::BackgroundConfig;
    using ServerInterface = ServerInterface<HConfig>;
+   using Block = Block<HConfig>;
+   using Stencil = Stencil<Config::stencil_n_elements>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
 
-public:
+   using DataFields = Config::DataFields;
+   using BlockPtr = ServerInterface::BlockPtr;
+
+   using ServerBase = ServerBase<HConfig>;
+   using ServerBase::block_served;
+   using ServerBase::buf_needblock;
+   using ServerBase::buf_needstencil;
+   using ServerBase::buf_needvars;
+   using ServerBase::req_needblock;
+   using ServerBase::req_needstencil;
+   using ServerBase::req_needvars;
+   using ServerBase::req_stopserve;
+   using ServerBase::index_needblock;
+   using ServerBase::index_needstencil;
+   using ServerBase::index_needvars;
+   using ServerBase::index_stopserve;
+   using ServerBase::domain_max;
+   using ServerBase::domain_min;
+   using ServerBase::file_name_pattern;
+
+   using ServerInterface::_inquiry;
+   using ServerInterface::stencil;
+   using ServerInterface::MPIInquiryType;
+   using ServerInterface::MPIStencilType;
+   using ServerInterface::MPIBlockType;
+
+   static constexpr int server_interp_order = Config::server_interp_order;
+   static constexpr int num_ghost_cells = Config::num_ghost_cells;
+   static constexpr bool request_stencil_from_batl = Config::request_stencil_from_batl;
+
+public: // API:
 
 //! Default constructor
    ServerBATL(void) = default;
 
-//! Constructor with arguments
-   ServerBATL(const std::string& file_name_pattern_in);
-
 //! Destructor
    ~ServerBATL() override = default;
 
-//! Read data file
-   void ReadData(const std::string data_file) override;
+//! Back end set up prior to main loop
+   void ServerStart(void);
 
-//! Clean reader
-   void CleanReader(void) override;
+//! Back end clean up tasks after the main loop
+   void ServerFinish(void);
 
-//! Backend tasks during the main loop
-   int ServerFunctions(void) override;
+   //! Backend tasks during the main loop
+   int ServerFunctions(void);
 
-//! Get block data from reader
-   void GetBlockData(const double* pos, double* vars, int* found) override;
+protected: // internal virtual dispatch API
+
+   void LoadFromReader(BlockPtr&) final;
+
+   void LoadNeighborsFromReader(BlockPtr&) final;
+
+   void LoadFieldsFromReader(BlockPtr&) final;
+
+   //! Get block data from reader
+   void GetBlockData(const double* pos, double* vars, int* found) final;
 
 //! Serve block function
-   void GetBlock(const double* pos, int* node) override;
+   void GetBlock(const double* pos, int* node) final;
 
-//! Handle "needstencil" requests
-   void HandleNeedStencilRequests(void);
+//! Serve stencil
+   void GetStencil(const double* pos, Stencil* stencil) final;
+
+private: // helpers
+
+//! Read data file
+   void ReadData(const std::string data_file);
+
+//! Clean reader
+   void CleanReader(void);
 
 };
 

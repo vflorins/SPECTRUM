@@ -51,6 +51,10 @@ protected:
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::records;
 
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
+
    using typename TrajectoryBase::DiffusionCoordinates;
    using typename TrajectoryBase::DiffusionFields;
    using typename TrajectoryBase::DiffusionFieldsRemainder;

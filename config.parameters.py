@@ -80,16 +80,18 @@ class ParameterInfo:
             type refers to an enum, class, or namespace.
         possible_values (optional list of string or int or float):
             A list of possible values, if discrete
-
+        secular: If True, the parameter not configurable,
+            but instead is hard-coded in the Config data structure.
     """
 
-    def __init__(self, name, description, parameter_type, possible_values = None):
+    def __init__(self, name, description, parameter_type, possible_values = None, secular = False):
         self.name = name
         self.description = description
         self.possible_values = possible_values
         self.parameter_type = parameter_type
         # kludge:
         self.argparse_parameter_type = str if isinstance(parameter_type, str) else parameter_type
+        self.secular = secular
 
     def str(self, cpp_comment = True):
         """
@@ -102,6 +104,10 @@ class ParameterInfo:
         out += f"{nl}Description: {self.description}"
         if self.possible_values:
             out += f"{nl}Options: " + " | ".join(self.possible_values)
+        if cpp_comment and self.secular:
+            out += f"{nl}Secular (do not modify)"
+        else:
+            out += f"{nl}Secular: True"
         return out
 
 
@@ -384,7 +390,13 @@ parameters_background = {
         name = 'tanh_width_factor',
         description = "Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)",
         parameter_type=float,
-    )
+    ),
+    'stochastic': ParameterInfo(
+        name = 'stochastic',
+        description = "Whether the background is stochastic in nature",
+        parameter_type=bool,
+        secular=True,
+    ),
 }
 
 

@@ -55,6 +55,10 @@ protected:
    using TrajectoryBase::dt_physical;
    using TrajectoryBase::RKAdvance;
 
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
+
 protected:
 
 //! Conversion from (p_x,p_y,p_z) to (p,mu,phi)

@@ -1,6 +1,6 @@
 /*!
-\file simulation_worker.cc
-\brief Declares application level class for all worker processes
+\file simulation_master.cc
+\brief Declares application level class for the master/supervisor processes
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
 \author Lucius Schoenbaum
@@ -11,7 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "simulation_master.hh"
 
 #include <memory>
-#include <chrono>
 #include "common/print_warn.hh"
 #include <numeric>
 
@@ -33,7 +32,7 @@ SimulationMaster<HConfig, Trajectory>::SimulationMaster(void)
 // This takes care of the former case.
    SetTasks(HConfig::num_trajectories, HConfig::batch_size, HConfig::max_trajectories_per_worker);
 // If simulation is parallel, initialize batches assigned array and cpu available requests array
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       trajectories_assigned.assign(MPI::work_comm_size, 0);
       time_spent_processing.assign(MPI::work_comm_size, 0.0);
       worker_processing.assign(MPI::work_comm_size, 0);
@@ -85,18 +84,17 @@ void SimulationMaster<HConfig, Trajectory>::SetTasks(int n_traj_in, int batch_si
 \param[in] distribution_in Distribution object for type recognition
 \param[in] container_in    Data container for initializating the distribution object
 */
-//template <typename HConfig, typename Distribution>
-//void SimulationMaster<HConfig, Trajectory>::AddDistribution(const Distribution& distribution_in, const DataContainer& container_in)
-//{
-//// TODO this should use make_unique instead of shared
-//   partial_distros.push_back(distribution_in.Clone());
-//   partial_distros.back()->SetSpecie(specie);
-//   partial_distros.back()->SetupObject(container_in);
-//   SimulationWorker::AddDistribution(distribution_in, container_in);
-//
-//// Preset all restore_distro flags to false
-//   restore_distros.push_back(false);
-//};
+template <typename HConfig, typename Trajectory>
+void SimulationMaster<HConfig, Trajectory>::AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in)
+{
+   partial_distros.push_back(distribution_in.Clone());
+   partial_distros.back()->SetSpecie(specie);
+   partial_distros.back()->SetupObject(container_in);
+   SimulationWorker::AddDistribution(distribution_in, container_in);
+
+// Preset all restore_distro flags to false
+   restore_distros.push_back(false);
+};
 
 /*!
 \author Juan G Alonso Guzman
@@ -127,11 +125,11 @@ void SimulationMaster<HConfig, Trajectory>::DecrementTrajectoryCount(void)
    n_trajectories -= current_batch_size;
    if (n_trajectories < current_batch_size) current_batch_size = n_trajectories;
 
-#ifdef GEO_DEBUG
-   std::cerr << "Trajectories left unassigned: " + std::to_string(n_trajectories) << std::endl;
-#endif
+   if constexpr (HConfig::build_mode == BuildMode::debug) {
+      std::cerr << "Trajectories left unassigned: " + std::to_string(n_trajectories) << std::endl;
+   }
 
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       n_trajectories_remaining = n_trajectories + std::accumulate(worker_processing.begin(), worker_processing.end(), 0);
       percentage_work_new = 100 - (100 * n_trajectories_remaining) / n_trajectories_total;
    }
@@ -145,7 +143,7 @@ void SimulationMaster<HConfig, Trajectory>::DecrementTrajectoryCount(void)
 // Report the percentage of work done
       std::cerr << std::endl;
       std::cerr << "Checkpoint reached: " << percentage_work_done << "% of work completed.\n";
-      if (is_parallel) {
+      if (MPI::is_parallel()) {
          std::cerr << "Best performing process: "  << *std::max_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
                    << " trajectories\n";
          std::cerr << "Worst performing process: " << *std::min_element(trajectories_assigned.begin() + 1, trajectories_assigned.end())
@@ -158,7 +156,7 @@ void SimulationMaster<HConfig, Trajectory>::DecrementTrajectoryCount(void)
       };
 
 // Estimate the remaining silumation time
-      if (is_parallel) {
+      if (MPI::is_parallel()) {
 // time_left [s] = n_traj_rem [traj] x total_time_spent_integ [ms] x 0.001 [s/ms] / traj_completed [traj] / n_active_workers
          sim_time_left = n_trajectories_remaining * std::accumulate(time_spent_processing.begin(), time_spent_processing.end(), 0.0) * 0.001
                          / (std::accumulate(trajectories_assigned.begin(), trajectories_assigned.end(), 0)
@@ -267,7 +265,7 @@ void SimulationMaster<HConfig, Trajectory>::MasterStart(void)
    elapsed_time = 0.0;
 
 // Post an initial receive for workers to respond with availability
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       for (int cpu = 1; cpu < MPI::work_comm_size; cpu++) {
          MPI_Irecv(NULL, 0, MPI_INT, cpu, MPI::tag::cpuavail, MPI::work_comm, req_cpuavail->mpi_req + cpu);
       };
@@ -338,7 +336,7 @@ void SimulationMaster<HConfig, Trajectory>::MasterFinish(void)
 // Print shortest and longest simulated time
    std::cerr << "Shortest simulated trajectory time = " << shortest_sim_time * unit_time_fluid << " s" << std::endl;
    std::cerr << "Longest simulated trajectory time = " << longest_sim_time * unit_time_fluid << " s" << std::endl;
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       std::cerr << "Time per trajectory integration:" << std::endl;
       for (cpu = 1; cpu < MPI::work_comm_size; cpu++) {
          std::cerr << "\tcpu " << cpu << " = " << time_spent_processing[cpu] / trajectories_assigned[cpu] << " ms" << std::endl;
@@ -364,7 +362,7 @@ void SimulationMaster<HConfig, Trajectory>::MainLoop(void)
    MasterStart();
 
 // This is a parallel run in which the master does not do any simulation work, but assigns batches to worker processes.
-   if (is_parallel) {
+   if (MPI::is_parallel()) {
       while (active_workers) MasterDuties();
    }
 // This is a serial run in which the master process does the work. "active_workers" is checked because it could be 0 from an error in "mpi_config.hh" setup by the user.
@@ -432,7 +430,6 @@ void SimulationMaster<HConfig, Trajectory>::PrintRecords(int distro, const std::
 {
    local_distros[distro]->PrintRecords(file_name, phys_units);
 };
-
 
 
 }

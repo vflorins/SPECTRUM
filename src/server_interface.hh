@@ -50,7 +50,6 @@ protected:
 //! A working stencil variable
    Stencil stencil;
 
-
 //! MPI data type for the "Inquiry" class
    MPI_Datatype MPIInquiryType;
 
@@ -59,7 +58,6 @@ protected:
 
 //! MPI data type for the "Stencil" class
    MPI_Datatype MPIStencilType;
-
 
    //! Default constructor - disabled
    ServerInterface(void) = default;
@@ -83,12 +81,6 @@ public:
 
 //! Common clean up tasks after the main loop
    void ServerInterfaceFinish(void);
-
-   void LoadFromReader(BlockPtr&) const;
-
-   void LoadNeighborsFromReader(BlockPtr&) const;
-
-   void LoadFieldsFromReader(BlockPtr&) const;
 
 };
 

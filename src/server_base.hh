@@ -30,13 +30,18 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 */
 template <typename HConfig_>
-class ServerBase : virtual public ServerInterface<HConfig_> {
+class ServerBase : public ServerInterface<HConfig_> {
 public:
 
    using HConfig = HConfig_;
+   using Config = HConfig::BackgroundConfig;
    using ServerInterface = ServerInterface<HConfig>;
    using Block  = Block<HConfig>;
-   using MPI = MPI<HConfig>;
+   using Stencil = Stencil<Config::stencil_n_elements>;
+   using BlockPtr = ServerInterface::BlockPtr;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
+
+   using DataFields = Config::DataFields;
 
    using ServerInterface::_inquiry;
    using ServerInterface::stencil;
@@ -44,11 +49,13 @@ public:
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
 
+   static constexpr int server_interp_order = Config::server_interp_order;
+   static constexpr int num_ghost_cells = Config::num_ghost_cells;
 
 protected:
 
 //! File name pattern
-   std::string file_name_pattern;
+   static constexpr std::string_view file_name_pattern = HConfig::BackgroundConfig::file_name_pattern;
 
 //! Indices of processes returned by "Testsome"
    int* index_needblock = nullptr;
@@ -76,26 +83,60 @@ protected:
 //! Largest position in the domain
    GeoVector domain_max;
 
-//! Default constructor
+public: // API:
+
+   //! Default constructor
    ServerBase(void) = default;
-
-//! Constructor with arguments
-   ServerBase(const std::string& file_name_pattern_in);
-
-public:
 
 //! Destructor
    ~ServerBase(void) = default;
 
 //! Backend set up prior to main loop
-   void ServerStart(void) override;
+   void ServerStart(void);
 
 //! Backend clean up tasks after the main loop
-   void ServerFinish(void) override;
+   void ServerFinish(void);
 
 //! Backend tasks during the main loop
-   int ServerFunctions(void) override;
+   int ServerFunctions(void) {return 0;}
 
+protected: // Pure Virtual Base Server Routines
+
+   virtual void LoadFromReader(BlockPtr&) = 0;
+
+   virtual void LoadNeighborsFromReader(BlockPtr&) = 0;
+
+   virtual void LoadFieldsFromReader(BlockPtr&) = 0;
+
+   virtual void GetBlockData(const double* pos, double* vars, int* found) = 0;
+
+   virtual void GetBlock(const double* pos, int* node) = 0;
+
+   virtual void GetStencil(const double* pos, Stencil* stencil) = 0;
+
+protected: // internal server API:
+
+   void HandleNeedVarsRequests(void);
+
+   int HandleStopServeRequests(void);
+
+   void HandleNeedBlockRequests(void);
+
+   void HandleNeedStencilRequests(void);
+
+};
+
+
+/*!
+\brief Server backend (remote) specific functionality
+\author Lucius Schoenbaum
+Trivial instantiation
+ */
+template <typename HConfig_>
+struct ServerNone {
+   void ServerStart(void) {};
+   void ServerFinish(void) {};
+   int ServerFunctions(void) {return 0;};
 };
 
 };

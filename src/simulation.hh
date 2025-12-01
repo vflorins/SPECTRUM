@@ -28,7 +28,7 @@ namespace Spectrum {
 template <typename HConfig, typename Trajectory>
 std::unique_ptr<SimulationWorker<HConfig, Trajectory>> CreateSimulation(int argc, char** argv)
 {
-   using MPI = MPI<HConfig>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
 // Initialize a single instance of "MPI" that will persist until the program terminates
    static MPI mpicfg(argc, argv);
 

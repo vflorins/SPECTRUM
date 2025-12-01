@@ -17,6 +17,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/physics.hh"
 #include "common/matrix.hh"
 #include "common/derivativedata.hh"
+#include "background.hh"
 
 #include <memory>
 #ifdef USE_SILO
@@ -29,12 +30,72 @@ namespace Spectrum {
 // NumericalDerivatives class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*
- * TODO: instantiate trivially if !method==numeric.
- *   In that case, return a trivially constructed ddata, but make sure it has a valid dmax field.
- *
- *
+
+
+template <typename Config>
+struct NumericalDerivativesBase {
+
+//! Distance reference value, how far the trajectory is allowed to move in one step (persistent)
+   static constexpr double dmax0 = Config::dmax0;
+
+//! What fraction of "_dmax" to use to calculate the field increment
+   static constexpr double incr_dmax_ratio = Config::incr_dmax_ratio;
+
+   //! Derivative data object (transient)
+   DerivativeData _ddata;
+
+/*!
+\author Lucius Schoenbaum
+\date 11/25/2025
+Reset (re-initialize) the derivative data structure.
  */
+   template <typename Background>
+   void Reset(double dmax)
+   {
+      // Initialize "safe" box for derivatives
+      _ddata = DerivativeData();
+      for (auto xyz = 0; xyz < 3; xyz++) _ddata._dr[xyz] = incr_dmax_ratio * dmax0;
+      _ddata._dt = incr_dmax_ratio * dmax0 / c_code;
+      _ddata.dmax = dmax;
+   }
+
+/*!
+\author Juan G Alonso Guzman
+\date 10/19/2022
+\param[in] dir Direction
+\return Safe increment in some direction (potential negative) to stay inside domain
+*/
+   [[nodiscard]] double GetSafeIncr(const GeoVector& dir)
+   {
+//FIXME: This is incomplete.
+      return incr_dmax_ratio * _ddata.dmax;
+   };
+
+/*!
+\author Lucius Schoenbaum
+\date 08/15/2025
+\return DerivativeData, a small struct containing information about the most recent derivative computed, and dmax
+\note This information from the background is currently only needed by Diffusion classes
+when numerical directional derivatives are computed.
+ */
+   [[nodiscard]] DerivativeData GetDerivativeData(void) const
+   {
+      return _ddata;
+   }
+
+};
+
+
+
+template <typename Background, bool need_numeric>
+class NumericalDerivatives;
+
+
+
+template <typename Background>
+struct NumericalDerivatives<Background, false>: public NumericalDerivativesBase<typename Background::HConfig::BackgroundConfig> {};
+
+
 
 /*!
 \brief A stateful helper class for computing derivatives numerically and managing data.
@@ -47,18 +108,22 @@ It must maintain its state in the event of a failure or exception in numerical c
 an event which must propagate through the entire timestep.
 NumericalDerivatives
 */
-template <typename Background_>
-class NumericalDerivatives {
+template <typename Background>
+class NumericalDerivatives<Background, true>: public NumericalDerivativesBase<typename Background::HConfig_::BackgroundConfig> {
 public:
 
-   using Background = Background_;
    using HConfig = Background::HConfig;
    using Config = HConfig::BackgroundConfig;
 
-private:
+   using Base = NumericalDerivativesBase<Config>;
+   using Base::GetDerivativeData;
+   using Base::GetSafeIncr;
+   using Base::Reset;
+   using Base::dmax0;
+   using Base::_ddata;
+   using Base::incr_dmax_ratio;
 
-//! What fraction of "_dmax" to use to calculate the field increment
-   static constexpr double incr_dmax_ratio = Config::incr_dmax_ratio;
+private:
 
 //! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging
    static constexpr double local_rot_ang = M_PI / Config::num_numeric_grad_evals;
@@ -69,48 +134,27 @@ private:
 
 protected:
 
-   // TODO: *******
-   //  After refactoring, check whether/when ddata gets
-   //  reset after each trajectory advance.
-   //  *************
-
-//! Distance reference value, how far the trajectory is allowed to move in one step (persistent)
-   static constexpr double dmax0 = Config::dmax0;
-
-//! Derivative data object (transient)
-   DerivativeData _ddata;
-
 //! Field-aligned basis (transient)
    GeoMatrix fa_basis;
 
 //! Rotation matrix (transient)
    GeoMatrix rot_mat;
 
-//! Set up the field evaluator
-   void Setup(bool construct);
-
 //! Compute the fields at an incremented position or time
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   void DirectionalDerivative(int xyz, Coordinates, Fields&, double scale_factor);
-
-//! Compute the field derivatives numerically and statefully
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   void DirectionalDerivative(int xyz, Coordinates, Fields&, double scale_factor, Background& background);
 
 public:
+
+//! Constructor
+   NumericalDerivatives() = default;
 
 //! Destructor
    ~NumericalDerivatives() = default;
 
-//! Signal the backend this client no longer needs its service
-   void StopServerFront(void);
-
-//! Find "safe" increment in a given direction
-   double GetSafeIncr(const GeoVector& dir);
-
-//! Return the derivative data, a diagnostic data structure
-   [[nodiscard]]
-   DerivativeData GetDerivativeData(void) const;
+//! Compute the field derivatives numerically and statefully
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&, Background& background);
 
 };
 

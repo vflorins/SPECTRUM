@@ -19,6 +19,62 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+
+template <typename HConfig, bool MPI_enabled>
+struct MPI;
+
+
+/*!
+\brief Class to store the information about the topology of the MPI environment
+\author Vladimir Florinski
+\author Lucius Schoenbaum
+Instantiation when MPI is not enabled.
+*/
+template <typename HConfig_>
+struct MPI<HConfig_, false> {
+//! Number of processes in the global communicator
+   static constexpr int glob_comm_size = 1;
+//! Number of processes in the node communicator - not always equal to number of processes on the node
+   static constexpr int node_comm_size = 1;
+//! Number of processes in the server communicator - not always equal to the number of nodes
+   static constexpr int server_comm_size = 1;
+//! Number of processes in the worker communicator
+   static constexpr int work_comm_size = 1;
+//! Rank in the global communicator
+   static constexpr int glob_comm_rank = 0;
+//! Rank in the node communicator
+   static constexpr int node_comm_rank = 0;
+//! Rank in the server communicator
+   static constexpr int server_comm_rank = 0;
+//! Rank in the worker communicator
+   static constexpr int work_comm_rank = 0;
+//! Number of nodes
+   static constexpr int n_nodes = 1;
+//! Number of sockets per node
+   static constexpr int n_sockets_per_node = 0;
+//! Number of servers per socket
+   static constexpr int n_servers_per_socket = 1;
+//! This process's node
+   static constexpr int my_node = 0;
+//! Whether this process is a master
+   static constexpr bool is_master = true;
+//! Whether this process is a server
+   static constexpr bool is_server = true;
+//! Whether this process is a worker
+   static constexpr bool is_worker = true;
+//! Number of worker processes in this node
+   static constexpr int workers_in_node = 1;
+//! Total number of workers
+   static constexpr int n_workers = 1;
+//! Number of worker processes on each node (master only)
+   static constexpr int workers_per_node[1] = {1};
+
+   static constexpr bool is_parallel() {
+      return false;
+   }
+};
+
+
 /*!
 \brief Class to store the information about the topology of the MPI environment
 \author Vladimir Florinski
@@ -27,9 +83,11 @@ namespace Spectrum {
 This class is used to partition the simulation into nodes (shared memory) and assigning servers for each node. It sets up three communicators, between the processes in a single node, between the server processes, and between the worker processes. It also identifies how many worker processes are available in the simulation. An application should create a single instance of this type and pass a pointer to other objects. As a convenience feature, the RNG is initialized using the global rank and timer.
 */
 template <typename HConfig_>
-struct MPI
+struct MPI<HConfig_, true>
 {
+
    using HConfig = HConfig_;
+   using Config = HConfig::SimulationConfig;
 
    enum tag {
 //! MPI tag for "need block" message (W->S)
@@ -141,8 +199,17 @@ struct MPI
    //! Self-test for the class
    void TestMPIConfig(void) const requires (HConfig::buildmode == BuildMode::debug);
 
-};
+//! Whether parallel, defined to mean that there is more than one worker process, or else there is a server that is not a worker.
+   static bool is_parallel() {
+      if constexpr (HConfig::data_background()) {
+         return (work_comm_size > 1) && !HConfig::BackgroundConfig::allow_server_worker;
+      }
+      else {
+         return work_comm_size > 1;
+      }
+   }
 
+};
 
 };
 

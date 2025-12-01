@@ -9,7 +9,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include "mpi_config.hh" 
 
-
 #include <algorithm>
 #include <fstream>
 
@@ -88,7 +87,7 @@ namespace Spectrum {
 \param[in] argv Array of command line arguments
 */
 template <typename HConfig>
-MPI<HConfig>::MPI(int argc, char** argv)
+MPI<HConfig, true>::MPI(int argc, char** argv)
 {
    int proc;
 
@@ -191,42 +190,40 @@ MPI<HConfig>::MPI(int argc, char** argv)
 // Server functions
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-// TODO GOT TO HERE ________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
-#ifndef ALLOW_MASTER_SERVER
-   if constexpr ()
+   if constexpr (!HConfig::supervisor) {
 
 // If the master cannot be a server, remove the master from the respective node communicator. On the master "node_comm" will be set to MPI_COMM_NULL.
-   MPI_Comm node_comm_tmp;
-   if (!my_node) {
-      if (node_comm_size < 2) {
-         PrintError(__FILE__, __LINE__, "Less than 2 processes in the master's node.", is_master);
-#ifdef NEED_SERVER
-         PrintError(__FILE__, __LINE__, "Cannot create a server different from the master.", is_master);
-         PrintError(__FILE__, __LINE__, "Master will also be server in its own node.", is_master);
-#else
-         PrintError(__FILE__, __LINE__, "Cannot create a worker different from the master.", is_master);
-         PrintError(__FILE__, __LINE__, "Master will also be worker in its own node.", is_master);
-#endif
-      }
-      else {
-         MPI_Comm_split(node_comm, (is_master ? MPI_UNDEFINED : 1), node_comm_rank, &node_comm_tmp);
-         MPI_Comm_free(&node_comm);
-         node_comm = node_comm_tmp;
-      };
+      MPI_Comm node_comm_tmp;
+      if (!my_node) {
+         if (node_comm_size < 2) {
+            PrintError(__FILE__, __LINE__, "Less than 2 processes in the master's node.", is_master);
+            if constexpr (HConfig::need_server()) {
+               PrintError(__FILE__, __LINE__, "Cannot create a server different from the master.", is_master);
+               PrintError(__FILE__, __LINE__, "Master will also be server in its own node.", is_master);
+            }
+            else {
+               PrintError(__FILE__, __LINE__, "Cannot create a worker different from the master.", is_master);
+               PrintError(__FILE__, __LINE__, "Master will also be worker in its own node.", is_master);
+            }
+         }
+         else {
+            MPI_Comm_split(node_comm, (is_master ? MPI_UNDEFINED : 1), node_comm_rank, &node_comm_tmp);
+            MPI_Comm_free(&node_comm);
+            node_comm = node_comm_tmp;
+         };
 
 // The size and rank of the node communicator have changed, so we need to update "node_comm_size" and "node_comm_rank". A non-server master will set these to -1.
-      if (node_comm != MPI_COMM_NULL) {
-         MPI_Comm_size(node_comm, &node_comm_size);
-         MPI_Comm_rank(node_comm, &node_comm_rank);
-      }
-      else {
-         node_comm_size = -1;
-         node_comm_rank = -1;
-         my_node = -1;
+         if (node_comm != MPI_COMM_NULL) {
+            MPI_Comm_size(node_comm, &node_comm_size);
+            MPI_Comm_rank(node_comm, &node_comm_rank);
+         }
+         else {
+            node_comm_size = -1;
+            node_comm_rank = -1;
+            my_node = -1;
+         };
       };
-   };
-
-#endif
+   }
 
    is_server = (node_comm_rank ? false : true);
 
@@ -247,14 +244,22 @@ MPI<HConfig>::MPI(int argc, char** argv)
 
 // Determine the number of workers and set the worker status. The number could be zero if there is only one process on the node and a server-worker is not allowed.
    if (is_server) {
-
-#ifdef ALLOW_SERVER_WORKER
-      workers_in_node = node_comm_size;
-      is_worker = true;
-#else
-      workers_in_node = node_comm_size - 1;
-      is_worker = false;
-#endif
+// todo is_server should be false for all non-data backgrounds,
+//  but this is not assumed. If it is true, this logic can be simplified.
+      if constexpr (HConfig::data_background()) {
+         if constexpr (HConfig::BackgroundConfig::allow_server_worker) {
+            workers_in_node = node_comm_size;
+            is_worker = true;
+         }
+         else {
+            workers_in_node = node_comm_size - 1;
+            is_worker = false;
+         }
+      }
+      else {
+         workers_in_node = node_comm_size - 1;
+         is_worker = false;
+      }
       MPI_Bcast(&workers_in_node, 1, MPI_INT, 0, node_comm);
    }
    else {
@@ -309,7 +314,7 @@ MPI<HConfig>::MPI(int argc, char** argv)
 \date 06/07/2022
 */
 template <typename HConfig>
-MPI<HConfig>::~MPI()
+MPI<HConfig, true>::~MPI()
 {
    if (is_master) delete[] workers_per_node;
    if (work_comm != MPI_COMM_NULL) MPI_Comm_free(&work_comm);
@@ -326,7 +331,7 @@ MPI<HConfig>::~MPI()
 \date 12/02/2024
 */
 template <typename HConfig>
-void MPI<HConfig>::TestMPIConfig(void) const requires (HConfig::buildmode == BuildMode::debug)
+void MPI<HConfig, true>::TestMPIConfig(void) const requires (HConfig::buildmode == BuildMode::debug)
 {
 // Each process prints its config to a different file
    std::string filename = "MPI_CONFIG/mpi_config_" + std::to_string(MPI::glob_comm_rank);
@@ -368,8 +373,6 @@ void MPI<HConfig>::TestMPIConfig(void) const requires (HConfig::buildmode == Bui
 
    infofile.close();
 };
-
-
 
 
 

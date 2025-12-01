@@ -38,31 +38,20 @@ class SimulationWorker {
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = HConfig::BackgroundConfig;
-   using TrajectoryConfig = HConfig::TrajectoryConfig;
-   using DistributionConfig = HConfig::DistributionConfig;
-   using DiffusionConfig = HConfig::DiffusionConfig;
-   using BoundaryConfig = HConfig::BoundaryConfig;
-   using InitialConfig = HConfig::InitialConfig;
-   using MPI = MPI<HConfig>;
-
-
-//   using BackgroundBase = BackgroundBase<BackgroundConfig>;
-//   using TrajectoryBase = TrajectoryBase<TrajectoryConfig>;
    using Trajectory = Trajectory_;
-   using Background = Trajectory::Background;
-   using DistributionBase = DistributionBase<DistributionConfig>;
-   using DiffusionBase = DiffusionBase<DiffusionConfig>;
-   using BoundaryBase = BoundaryBase<BoundaryConfig>;
-   using InitialBase = InitialBase<InitialConfig>;
+   using Config = HConfig::SimulationConfig;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
+
+   using DistributionBase = DistributionBase<HConfig>;
+   using BoundaryBase = BoundaryBase<HConfig>;
+   using InitialBase = InitialBase<HConfig>;
+
+   static constexpr bool print_last_trajectory = Config::print_last_trajectory;
+
+   static constexpr TrajectoryOptions::TimeFlow timeflow = HConfig::TrajectoryConfig::timeflow;
 
 protected:
 
-   /*
-    * TODO: for a background with rng, a parameter needs_RNG,
-    *  then constexpr-wrap the wiring to this rng object ----> that finally takes care of Waves .........
-    *
-    */
 //! Random number generator object
    std::shared_ptr<RNG> rng;
 
@@ -120,41 +109,14 @@ public:
 //! Get number of completed batches
    int GetJobsDone(void) const {return jobsdone;};
 
-//! Add a background object (passthrough to trajectory)
-   void AddBackground(const Background& background_in, const DataContainer& container_in, const std::string& fname_pattern_in = "");
-
-   // TODO: experiment
 //! Add a distribution object
-   virtual void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in) {
-      local_distros.push_back(distribution_in.Clone());
-      // todo review Distribution::specie in Spectrum2
-//      local_distros.back()->SetSpecie(specie);
-      local_distros.back()->SetupObject(container_in);
-      trajectory->ConnectDistribution(local_distros.back());
-      PrintMessage(__FILE__, __LINE__, "Distribution object added", MPI::is_master);
-   }
+   void AddDistribution(const DistributionBase& distribution_in, const DataContainer& container_in);
 
-
-   // TODO: experiment
 //! Add boundary condition object (passthrough to trajectory)
-   virtual void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in) {
-      trajectory->AddBoundary(boundary_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Boundary condition added", MPI::is_master);
-   }
+   void AddBoundary(const BoundaryBase& boundary_in, const DataContainer& container_in);
 
-// TODO: experiment
 //! Add initial condition object (passthrough to trajectory)
-   virtual void AddInitial(const InitialBase& initial_in, const DataContainer& container_in) {
-      trajectory->AddInitial(initial_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Initial condition added", MPI::is_master);
-   }
-
-// TODO: experiment
-//! Add diffusion object (passthrough to trajectory)
-   virtual void AddDiffusion(const DiffusionBase& diffusion_in, const DataContainer& container_in) {
-      trajectory->AddDiffusion(diffusion_in, container_in);
-      PrintMessage(__FILE__, __LINE__, "Diffusion model added", MPI::is_master);
-   }
+   void AddInitial(const InitialBase& initial_in, const DataContainer& container_in);
 
 //! Restore distribution (stub)
    virtual void RestoreDistro(int distro);

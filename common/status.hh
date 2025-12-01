@@ -47,9 +47,6 @@ constexpr status_t TRAJ_MOMENTUM_CROSSED = 0x0080;
 //! Trajectory is invalid and must be discarded
 constexpr status_t TRAJ_DISCARD = 0x0100;
 
-//! Derivatives must be computed numerically
-constexpr status_t NUMERIC_DERIVATIVES = 0xcccc;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions
 //----------------------------------------------------------------------------------------------------------------------------------------------------

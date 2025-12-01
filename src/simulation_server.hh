@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SIMULATION_SERVER_HH
 
 #include "simulation_worker.hh"
+#include "server_batl.hh"
 
 namespace Spectrum {
 
@@ -20,18 +21,20 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief A server class
+\brief Application level class for server processes
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 */
-// todo if !servers_are_workers, does this need to inherit from worker?
 template<typename HConfig_, typename Trajectory_>
 class SimulationServer : public SimulationWorker<HConfig_, Trajectory_> {
 public:
 
    using HConfig = HConfig_;
    using Trajectory = Trajectory_;
-   using Background = Trajectory::Background;
-   using MPI = MPI<HConfig>;
+   using Server = Cond<HConfig::background == Config::Background::DataCartesian, ServerCartesian<HConfig>,
+         Cond<HConfig::background == Config::Background::DataBATL, ServerBATL<HConfig>,
+         ServerNone<HConfig>>>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
 
    using DistributionBase = DistributionBase<HConfig>;
    using DiffusionBase = DiffusionBase<HConfig>;
@@ -47,15 +50,10 @@ public:
 protected:
 
 //! Number of active workers in node
-// todo constexpr compute
    int active_local_workers;
 
-#ifdef NEED_SERVER
-
    //! Server backend object
-   std::shared_ptr<ServerBaseBack> server_back = nullptr;
-
-#endif
+   std::shared_ptr<Server> server = std::make_unique<Server>();
 
 //! Set up for server prior to main loop
    void ServerStart(void);
@@ -70,10 +68,6 @@ public:
 
 //! Default constructor
    SimulationServer(void);
-
-//! Add a background object
-   void AddBackground(const Background &background_in, const DataContainer &container_in,
-                      const std::string &fname_pattern_in = "");
 
 //! Main simulation loop
    void MainLoop(void) override;

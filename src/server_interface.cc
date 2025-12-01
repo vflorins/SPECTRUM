@@ -93,7 +93,6 @@ void ServerInterface<HConfig>::CreateStencilDatatype(void)
 
 // Figure out field displacements using "stencil" for template
    MPI_Get_address(&stencil, &stencil_start);
-   MPI_Get_address(&stencil.n_elements , &stencil_displ[0]);
    MPI_Get_address(&stencil.blocks     , &stencil_displ[1]);
    MPI_Get_address(&stencil.zones      , &stencil_displ[2]);
    MPI_Get_address(&stencil.weights    , &stencil_displ[3]);
@@ -135,62 +134,6 @@ void ServerInterface<HConfig>::ServerInterfaceFinish(void)
    MPI_Type_free(&MPIStencilType);
    MPI_Type_free(&MPIInquiryType);
 };
-
-
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Request the bounding dimensions
-*/
-template <typename HConfig>
-void ServerInterface<HConfig>::LoadFromReader(BlockPtr &blockptr) const
-{
-   // todo review for header/include/linking issues
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetBlockCorners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_block_corners(blockptr->node, blockptr->face_min.Data(), blockptr->face_max.Data());
-}
-
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Request all neighbors
-*/
-template <typename HConfig>
-void ServerInterface<HConfig>::LoadNeighborsFromReader(BlockPtr &blockptr) const
-{
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetNodeNeighbors(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_all_neighbor_copies(blockptr->node, blockptr->neighbor_nodes, blockptr->neighbor_levels);
-}
-
-
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 11/26/2025
-Load all fields into the block
-*/
-template <typename HConfig>
-void ServerInterface<HConfig>::LoadFieldsFromReader(BlockPtr &blockptr) const
-{
-   if constexpr (HConfig::background == Config::Background::DataCartesian)
-      ReadCartesianGetBlockData(blockptr->node, blockptr->fields[0].Array());
-   else if constexpr (HConfig::background == Config::Background::DataBATL)
-      spectrum_get_block_data(blockptr->node, blockptr->fields[0].Array());
-}
-
-
 
 
 };

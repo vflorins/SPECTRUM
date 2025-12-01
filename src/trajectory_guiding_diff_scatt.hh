@@ -39,6 +39,10 @@ public:
    using Coordinates = TrajectoryBase::Coordinates;
    using Fields = TrajectoryBase::Fields;
 
+   using TrajectoryBase::StartBackground;
+   using TrajectoryBase::SetupBackground;
+   using TrajectoryBase::StopBackground;
+
    using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
    using TrajectoryGuidingDiff = TrajectoryGuidingDiff<HConfig>;
    using TrajectoryGuidingScatt = TrajectoryGuidingScatt<HConfig>;

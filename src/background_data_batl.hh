@@ -23,6 +23,7 @@ namespace Spectrum {
 \brief Plasma background delivered by a BATL server
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 Parameters: (BackgroundServerCartesian)
 */
@@ -38,17 +39,26 @@ public:
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
    using Block = Block<HConfig>;
-   using MPI = MPI<HConfig>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled()>;
 
+   // todo as the following notes indicate, both classes can inherit independently from a BackgroundDataBase class.
+
+   // todo base class
    using BackgroundDataCartesian = BackgroundDataCartesian<HConfig>;
+   // todo base class
    using BackgroundDataCartesian::RequestBlock;
+   // todo base class
    using BackgroundDataCartesian::cache_line;
+   // todo base class
    using BackgroundDataCartesian::block_pri;
+   // todo base class
    using BackgroundDataCartesian::block_sec;
+   // todo base class
    using BackgroundDataCartesian::server_interp_order;
+   // todo base class
    using BackgroundDataCartesian::num_ghost_cells;
+   // todo base class
    using BackgroundDataCartesian::InteriorInterpolationStencil;
-   using BlockPtr = BackgroundDataCartesian::BlockCache::BlockPtr;
 
    using ServerInterface = ServerInterface<HConfig>;
    using ServerInterface::_inquiry;
@@ -56,6 +66,7 @@ public:
    using ServerInterface::MPIInquiryType;
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
+   using BlockPtr = ServerInterface::BlockPtr;
 
    static constexpr bool request_stencil_from_batl = Config::request_stencil_from_batl;
 
@@ -82,14 +93,18 @@ public:
 
 protected:
 
-//! Obtain an interpolation stencil from the server
+   // todo this is BATL-specific
+
+   //! Obtain an interpolation stencil from the server
    int RequestStencil(const GeoVector& pos);
 
 //! Generate an interpolation stencil for one plane
    int BuildInterpolationPlane(const GeoVector& pos, int plane, int half);
 
+   // todo this is virtual in base class
+
 //! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos) override;
+   int BuildInterpolationStencil(const GeoVector& pos);
 
 public:
 
@@ -98,6 +113,20 @@ public:
 
 //! Destructor
    ~BackgroundDataBATL() override = default;
+
+public: // general background API:
+
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   status_t EvaluateDmax(Coordinates&, double&);
+
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   status_t EvaluateBackground(Coordinates&, Fields&);
+
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

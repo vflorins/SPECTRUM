@@ -38,7 +38,6 @@ int BackgroundDataBATL<HConfig>::RequestStencil(const GeoVector& pos)
       stencil.blocks[iz] = RequestBlock();
    };
 
-   // todo status_t?
    return 4;
 };
 
@@ -427,8 +426,6 @@ int BackgroundDataBATL<HConfig>::BuildInterpolationStencil(const GeoVector& pos)
             stencil.derivatives[3 * iz + idx1] *= offset_pri;
             stencil.derivatives[3 * iz + idx2] *= offset_pri;
          };
-
-         stencil.n_elements = 8;
          return (nbr_level == 0 ? 1 : (nbr_level == -1 ? 2 : 3));
       }
       else if constexpr (num_ghost_cells > 0) {

@@ -17,7 +17,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/physics.hh"
 #include "common/matrix.hh"
 #include "common/derivativedata.hh"
-#include "src/server_config.hh"
 
 #include <memory>
 #ifdef USE_SILO
