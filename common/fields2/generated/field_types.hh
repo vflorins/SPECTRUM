@@ -206,21 +206,21 @@ using HatVel_t = VectorField<Field::Id::HatVel, 0, 0, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Elc_t = VectorField<Field::Id::Elc, 1, 0, 0>;
+using Ele_t = VectorField<Field::Id::Ele, 1, 0, 0>;
 
 /*!
 \brief Electric field magnitude type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using AbsElc_t = ScalarField<Field::Id::AbsElc, 1, 0, 0>;
+using AbsEle_t = ScalarField<Field::Id::AbsEle, 1, 0, 0>;
 
 /*!
 \brief Electric field direction type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using HatElc_t = VectorField<Field::Id::HatElc, 1, 0, 0>;
+using HatEle_t = VectorField<Field::Id::HatEle, 1, 0, 0>;
 
 /*!
 \brief Magnetic field magnitude type with a formatted name
@@ -248,7 +248,7 @@ using DelFluv_t = MatrixField<Field::Id::DelFluv, 1, 0, 1>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelElc_t = MatrixField<Field::Id::DelElc, 1, 0, 1>;
+using DelEle_t = MatrixField<Field::Id::DelEle, 1, 0, 1>;
 
 /*!
 \brief Gradient of magnetic field type with a formatted name
@@ -276,7 +276,7 @@ using DotFluv_t = VectorField<Field::Id::DotFluv, 1, 0, 2>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DotElc_t = VectorField<Field::Id::DotElc, 1, 0, 2>;
+using DotEle_t = VectorField<Field::Id::DotEle, 1, 0, 2>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name

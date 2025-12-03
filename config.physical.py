@@ -323,7 +323,7 @@ physical_defaults = {
         'Guiding': {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
-            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
+            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'time_flow': 'forward',
             'rk_integrator': "DormandPrince_54E",
             'record_mag_extrema': False,
@@ -342,7 +342,7 @@ physical_defaults = {
         'GuidingDiff': {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
-            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
+            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
             'time_flow': 'forward',
             'rk_integrator': "DormandPrince_54E",
             'record_mag_extrema': False,
@@ -361,7 +361,7 @@ physical_defaults = {
         'GuidingScatt': {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
-            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
+            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
             'time_flow': 'forward',
             'rk_integrator': "DormandPrince_54E",
             'record_mag_extrema': False,
@@ -384,7 +384,7 @@ physical_defaults = {
         'GuidingDiffScatt': {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
-            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
+            'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
             'time_flow': 'forward',
             'rk_integrator': "DormandPrince_54E",
             'record_mag_extrema': False,
@@ -408,7 +408,7 @@ physical_defaults = {
         'Lorentz': {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::cartesian>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
-            'Fields': "Fields<FConfig<specieid_>, Mag_t, Elc_t>",
+            'Fields': "Fields<FConfig<specieid_>, Mag_t, Ele_t>",
             'time_flow': 'forward',
             'rk_integrator': "DormandPrince_54E",
             'record_mag_extrema': False,

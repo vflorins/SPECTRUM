@@ -80,8 +80,8 @@ void NumericalDerivatives<Background, true>::DirectionalDerivative(const int xyz
          fields.DelMag('w')[xyz] = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dr[xyz];
       if constexpr (RequestedFields::DelAbsMag_found())
          fields.DelAbsMag('w')[xyz] = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dr[xyz];
-      if constexpr (RequestedFields::DelElc_found())
-         fields.DelElc('w')[xyz] = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dr[xyz];
+      if constexpr (RequestedFields::DelEle_found())
+         fields.DelEle('w')[xyz] = (fields_forw.Ele() - fields_back.Ele()) / _ddata._dr[xyz];
    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -125,8 +125,8 @@ void NumericalDerivatives<Background, true>::DirectionalDerivative(const int xyz
          fields.DotMag('w') = (fields_forw.Mag() - fields_back.Mag()) / _ddata._dt;
       if constexpr (RequestedFields::DotAbsMag_found())
          fields.DotAbsMag('w') = (fields_forw.AbsMag() - fields_back.AbsMag()) / _ddata._dt;
-      if constexpr (RequestedFields::DotElc_found())
-         fields.DotElc('w') = (fields_forw.Elc() - fields_back.Elc()) / _ddata._dt;
+      if constexpr (RequestedFields::DotEle_found())
+         fields.DotEle('w') = (fields_forw.Ele() - fields_back.Ele()) / _ddata._dt;
    };
 };
 
@@ -143,8 +143,8 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
    double AbsMom = coords.AbsMom();
    double AbsMag = fields.AbsMag();
    GeoVector HatMag = fields.HatMag();
-   constexpr bool gradients = RequestedFields::DelFluv_found() || RequestedFields::DelMag_found() || RequestedFields::DelAbsMag_found() || RequestedFields::DelElc_found();
-   constexpr bool time_derivatives =  RequestedFields::DotFluv_found() || RequestedFields::DotMag_found() || RequestedFields::DotAbsMag_found() || RequestedFields::DotElc_found();
+   constexpr bool gradients = RequestedFields::DelFluv_found() || RequestedFields::DelMag_found() || RequestedFields::DelAbsMag_found() || RequestedFields::DelEle_found();
+   constexpr bool time_derivatives =  RequestedFields::DotFluv_found() || RequestedFields::DotMag_found() || RequestedFields::DotAbsMag_found() || RequestedFields::DotEle_found();
 
 // This method is only valid in the presence of a magnetic field.
 // Normally magnetic field magnitude+direction is tracked but we can make do with magnetic field only.
@@ -171,8 +171,8 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
          fields.DelMag('w') = rot_mat * fields.DelMag();
       if constexpr (RequestedFields::DelAbsMag_found())
          fields.DelAbsMag('w') = rot_mat * fields.DelAbsMag();
-      if constexpr (RequestedFields::DelElc_found())
-         fields.DelElc('w') = rot_mat * fields.DelElc();
+      if constexpr (RequestedFields::DelEle_found())
+         fields.DelEle('w') = rot_mat * fields.DelEle();
 
       if constexpr (Config::num_numeric_grad_evals > 1) {
          constexpr int num_evals = Config::num_numeric_grad_evals;
@@ -194,8 +194,8 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
                fields.DelMag('w') += rot_mat * fields_tmp.DelMag();
             if constexpr (RequestedFields::DelAbsMag_found())
                fields.DelAbsMag('w') += rot_mat * fields_tmp.DelAbsMag();
-            if constexpr (RequestedFields::DelElc_found())
-               fields.DelElc('w') += rot_mat * fields_tmp.DelElc();
+            if constexpr (RequestedFields::DelEle_found())
+               fields.DelEle('w') += rot_mat * fields_tmp.DelEle();
 
          };
 
@@ -206,8 +206,8 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
             fields.DelMag('w') /= num_evals;
          if constexpr (RequestedFields::DelAbsMag_found())
             fields.DelAbsMag('w') /= num_evals;
-         if constexpr (RequestedFields::DelElc_found())
-            fields.DelElc('w') /= num_evals;
+         if constexpr (RequestedFields::DelEle_found())
+            fields.DelEle('w') /= num_evals;
       };
    };
 

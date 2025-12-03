@@ -63,12 +63,13 @@ Ref: Tao, X., Chan, A. A., and Brizard, A. J., Hamiltonian theory of adiabatic m
 template <typename HConfig>
 void TrajectoryGuiding<HConfig>::ModifiedFields(void)
 try {
-   double rL, rR;
+auto MP = _coords.MomPerp();
+auto AM = _fields.AbsMag();
 
 // Modified fields
-   rL = LarmorRadius<Config::specie>(_coords.MomPerp(), _fields.AbsMag());
-   rR = LarmorRadius<Config::specie>(_coords.MomPara(), _fields.AbsMag());
-   Evec_star = _fields.Elc();
+   auto rL = LarmorRadius<Config::specie>(MP, AM);
+   auto rR = LarmorRadius<Config::specie>(_coords.MomPara(), _fields.AbsMag());
+   Evec_star = _fields.Ele();
    Evec_star = Evec_star - rR * _fields.AbsMag() * _fields.DotHatMag() / c_code;
    Evec_star = Evec_star - rL * _coords.VelPerp() * _fields.DelAbsMag() / (2.0 * c_code);
    Bvec_star = _fields.Mag();

@@ -38,7 +38,7 @@ status_t BackgroundDiscontinuity<HConfig>::EvaluateBackground(Coordinates& coord
       if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 2.0;
    };
 
-   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Ele_found()) fields.Ele('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
    return 0;
 };
@@ -54,12 +54,12 @@ status_t BackgroundDiscontinuity<HConfig>::EvaluateBackgroundDerivatives(Coordin
 // Spatial derivatives are zero
    if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
    if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') = gm_zeros;
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DelEle_found()) fields.DelEle('w') = gm_zeros;
 
 // Time derivatives are zero
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found()) fields.DotEle('w') = gv_zeros;
 
    return 0;
 };

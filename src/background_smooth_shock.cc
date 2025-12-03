@@ -34,7 +34,7 @@ status_t BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords,
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
    if constexpr (RequestedFields::Fluv_found()) fields.Fluv('w') = u0 * a1 + u1 * a2;
    if constexpr (RequestedFields::Mag_found()) fields.Mag('w') = B0 * a1 + B1 * a2;
-   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   if constexpr (RequestedFields::Ele_found()) fields.Ele('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
    if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    return 0;
@@ -69,8 +69,8 @@ status_t BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinat
    if constexpr (RequestedFields::DotMag_found()) {
       fields.DotMag('w') = (TransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
    };
-   if constexpr (RequestedFields::DotElc_found()) {
-      fields.DotElc('w') = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
+   if constexpr (RequestedFields::DotEle_found()) {
+      fields.DotEle('w') = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
    };
    return 0;
 };

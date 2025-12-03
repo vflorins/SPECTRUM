@@ -38,35 +38,35 @@ using ConservedGasDyn_t = Species<Field::Id::ConservedGasDyn, Den_t, Mom_t, Enr_
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using PrimitiveMHD_t = Species<Field::Id::PrimitiveMHD, Den_t, Vel_t, Prs_t, Mag_t, Elc_t>;
+using PrimitiveMHD_t = Species<Field::Id::PrimitiveMHD, Den_t, Vel_t, Prs_t, Mag_t, Ele_t>;
 
 /*!
 \brief Fields of the conserved form for general MHD type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ConservedMHD_t = Species<Field::Id::ConservedMHD, Den_t, Mom_t, Enr_t, Mag_t, Elc_t>;
+using ConservedMHD_t = Species<Field::Id::ConservedMHD, Den_t, Mom_t, Enr_t, Mag_t, Ele_t>;
 
 /*!
 \brief Fields of the conserved form for general MHD-GLM type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using PrimitiveMHDGLM_t = Species<Field::Id::PrimitiveMHDGLM, Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Glm_t>;
+using PrimitiveMHDGLM_t = Species<Field::Id::PrimitiveMHDGLM, Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Glm_t>;
 
 /*!
 \brief Fields of the conserved form for general MHD-GLM type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ConservedMHDGLM_t = Species<Field::Id::ConservedMHDGLM, Den_t, Mom_t, Enr_t, Mag_t, Elc_t, Glm_t>;
+using ConservedMHDGLM_t = Species<Field::Id::ConservedMHDGLM, Den_t, Mom_t, Enr_t, Mag_t, Ele_t, Glm_t>;
 
 /*!
 \brief Fields of the primitive form for species type with a formatted name
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ElectronCore_t = Species<Field::Id::ElectronCore, Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t>;
+using ElectronCore_t = Species<Field::Id::ElectronCore, Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Iv0_t>;
 
 /*!
 \brief Fields of the primitive form for species type with a formatted name
@@ -87,7 +87,7 @@ using ElectronBeam_t = Species<Field::Id::ElectronBeam, Den_t, Vel_t, Prs_t>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using ProtonCore_t = Species<Field::Id::ProtonCore, Den_t, Vel_t, Prs_t, Mag_t, Elc_t, Iv0_t>;
+using ProtonCore_t = Species<Field::Id::ProtonCore, Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Iv0_t>;
 
 /*!
 \brief Fields of the primitive form for species type with a formatted name

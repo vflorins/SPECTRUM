@@ -62,8 +62,8 @@ status_t BackgroundDipole<HConfig>::EvaluateBackground(Coordinates& coords, Fiel
       r5 *= r2;
       fields.Mag('w') = (3.0 * (posprime * M) * posprime - r2 * M) / r5;
    }
-   if constexpr (RequestedFields::Elc_found()) {
-      fields.Elc('w') = gv_zeros;
+   if constexpr (RequestedFields::Ele_found()) {
+      fields.Ele('w') = gv_zeros;
    }
    if constexpr (RequestedFields::Iv0_found()) {
       fields.Iv0('w') = 1.0;
@@ -101,16 +101,16 @@ status_t BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& c
          fields.DelAbsMag('w') = DelMag * fields.HatMag();
       }
    };
-   if constexpr (RequestedFields::DelElc_found())
-      fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DelEle_found())
+      fields.DelEle('w') = gm_zeros;
    if constexpr (RequestedFields::DotFluv_found())
       fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found())
       fields.DotMag('w') = gv_zeros;
    if constexpr (RequestedFields::DotAbsMag_found())
       fields.DotAbsMag('w') = 0.0;
-   if constexpr (RequestedFields::DotElc_found())
-      fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found())
+      fields.DotEle('w') = gv_zeros;
    return 0;
 };
 

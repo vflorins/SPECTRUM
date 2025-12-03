@@ -216,16 +216,16 @@ try {
    status_t status;
 
 // If "EvaluateDmax()" fails, the state will be set to "STATE_INVALID" and background will not be evaluated
-   std::cout << "[CommonFields] EvaluateDmax" << std::endl;
+//   std::cout << "[CommonFields] EvaluateDmax" << std::endl;
    status = background.EvaluateDmax(coords, &_dmax);
    if (BITS_RAISED(status, STATE_INVALID)) throw ExCoordinates();
 
 // Compute physical fields
-   std::cout << "[CommonFields] EvaluateBackground" << std::endl;
+//   std::cout << "[CommonFields] EvaluateBackground" << std::endl;
    status = background.template EvaluateBackground<Coordinates, Fields, RequestedFields>(coords, fields);
    if (BITS_RAISED(status, STATE_INVALID)) throw ExFieldError();
 
-   std::cout << "[CommonFields] MakeConsistent" << fields.AbsMag() << " " << sp_tiny << " " << fields.Mag()<< std::endl;
+//   std::cout << "[CommonFields] MakeConsistent" << fields.AbsMag() << " " << sp_tiny << " " << fields.Mag()<< std::endl;
    status = fields.template MakeConsistent<RequestedFields>();
    if (BITS_RAISED(status, STATE_INVALID)) throw ExFieldError();
 
@@ -233,7 +233,7 @@ try {
 // todo A/B test numerical derivatives for validation
    if constexpr (RequestedFields::Derived_found()) {
       numericalderivatives.Reset(_dmax);
-      std::cout << "[CommonFields] EvaluateDerivatives" << std::endl;
+//      std::cout << "[CommonFields] EvaluateDerivatives" << std::endl;
       if constexpr (HConfig::numeric_derivatives()) {
          status = numericalderivatives.template EvaluateBackgroundDerivatives<Coordinates, Fields, RequestedFields>(coords, fields);
       }
@@ -242,7 +242,7 @@ try {
       }
       if (BITS_RAISED(status, STATE_INVALID)) throw ExFieldError();
    }
-   std::cout << "[CommonFields] done" << std::endl;
+//   std::cout << "[CommonFields] done" << std::endl;
 
 }
 

@@ -749,40 +749,40 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get Elc (Electric field) from the data type, as lvalue.
+\brief Get Ele (Electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Elc_t& Elc(void) {
-      if constexpr (std::is_same<T, Elc_t>::value)
+   Ele_t& Ele(void) {
+      if constexpr (std::is_same<T, Ele_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::Elc();
+         return Species<nameid, Ts...>::Ele();
    };
 
 /*!
-\brief Get Elc (Electric field) from the data type, as const rvalue.
+\brief Get Ele (Electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Elc_t& Elc(void) const {
-      if constexpr (std::is_same<T, Elc_t>::value)
+   const Ele_t& Ele(void) const {
+      if constexpr (std::is_same<T, Ele_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::Elc();
+         return Species<nameid, Ts...>::Ele();
    };
 
 
 /*!
-\brief Whether Elc (Electric field) is in the data type.
+\brief Whether Ele (Electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Elc_found(void) {
-      if constexpr (std::is_same<T, Elc_t>::value)
+   static constexpr bool Ele_found(void) {
+      if constexpr (std::is_same<T, Ele_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::Elc_found();
+         return Species<nameid, Ts...>::Ele_found();
    };
    
 
@@ -901,40 +901,40 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get DelElc (Gradient of electric field) from the data type, as lvalue.
+\brief Get DelEle (Gradient of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DelElc_t& DelElc(void) {
-      if constexpr (std::is_same<T, DelElc_t>::value)
+   DelEle_t& DelEle(void) {
+      if constexpr (std::is_same<T, DelEle_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DelElc();
+         return Species<nameid, Ts...>::DelEle();
    };
 
 /*!
-\brief Get DelElc (Gradient of electric field) from the data type, as const rvalue.
+\brief Get DelEle (Gradient of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DelElc_t& DelElc(void) const {
-      if constexpr (std::is_same<T, DelElc_t>::value)
+   const DelEle_t& DelEle(void) const {
+      if constexpr (std::is_same<T, DelEle_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DelElc();
+         return Species<nameid, Ts...>::DelEle();
    };
 
 
 /*!
-\brief Whether DelElc (Gradient of electric field) is in the data type.
+\brief Whether DelEle (Gradient of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelElc_found(void) {
-      if constexpr (std::is_same<T, DelElc_t>::value)
+   static constexpr bool DelEle_found(void) {
+      if constexpr (std::is_same<T, DelEle_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DelElc_found();
+         return Species<nameid, Ts...>::DelEle_found();
    };
    
 
@@ -1091,40 +1091,40 @@ This should not occur in fluid or MHD applications.
    
 
 /*!
-\brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
+\brief Get DotEle (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   DotElc_t& DotElc(void) {
-      if constexpr (std::is_same<T, DotElc_t>::value)
+   DotEle_t& DotEle(void) {
+      if constexpr (std::is_same<T, DotEle_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DotElc();
+         return Species<nameid, Ts...>::DotEle();
    };
 
 /*!
-\brief Get DotElc (Time derivative of electric field) from the data type, as const rvalue.
+\brief Get DotEle (Time derivative of electric field) from the data type, as const rvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DotElc_t& DotElc(void) const {
-      if constexpr (std::is_same<T, DotElc_t>::value)
+   const DotEle_t& DotEle(void) const {
+      if constexpr (std::is_same<T, DotEle_t>::value)
          return data;
       else
-         return Species<nameid, Ts...>::DotElc();
+         return Species<nameid, Ts...>::DotEle();
    };
 
 
 /*!
-\brief Whether DotElc (Time derivative of electric field) is in the data type.
+\brief Whether DotEle (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DotElc_found(void) {
-      if constexpr (std::is_same<T, DotElc_t>::value)
+   static constexpr bool DotEle_found(void) {
+      if constexpr (std::is_same<T, DotEle_t>::value)
          return true;
       else
-         return Species<nameid, Ts...>::DotElc_found();
+         return Species<nameid, Ts...>::DotEle_found();
    };
    
 
@@ -2082,28 +2082,28 @@ public:
          return false;
    };
 
-   Elc_t& Elc(void) {
+   Ele_t& Ele(void) {
       try {
-        if constexpr (std::is_same<T, Elc_t>::value)
+        if constexpr (std::is_same<T, Ele_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] Ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const Elc_t& Elc(void) const {
+  const Ele_t& Ele(void) const {
     try {
-      if constexpr (std::is_same<T, Elc_t>::value)
+      if constexpr (std::is_same<T, Ele_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] Elc (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] Ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool Elc_found(void) {
-      if constexpr (std::is_same<T, Elc_t>::value)
+   static constexpr bool Ele_found(void) {
+      if constexpr (std::is_same<T, Ele_t>::value)
          return true;
       else
          return false;
@@ -2190,28 +2190,28 @@ public:
          return false;
    };
 
-   DelElc_t& DelElc(void) {
+   DelEle_t& DelEle(void) {
       try {
-        if constexpr (std::is_same<T, DelElc_t>::value)
+        if constexpr (std::is_same<T, DelEle_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DelEle (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DelElc_t& DelElc(void) const {
+  const DelEle_t& DelEle(void) const {
     try {
-      if constexpr (std::is_same<T, DelElc_t>::value)
+      if constexpr (std::is_same<T, DelEle_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DelElc (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DelEle (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DelElc_found(void) {
-      if constexpr (std::is_same<T, DelElc_t>::value)
+   static constexpr bool DelEle_found(void) {
+      if constexpr (std::is_same<T, DelEle_t>::value)
          return true;
       else
          return false;
@@ -2325,28 +2325,28 @@ public:
          return false;
    };
 
-   DotElc_t& DotElc(void) {
+   DotEle_t& DotEle(void) {
       try {
-        if constexpr (std::is_same<T, DotElc_t>::value)
+        if constexpr (std::is_same<T, DotEle_t>::value)
           return data;
         else
-          throw std::invalid_argument( "[Species] DotElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+          throw std::invalid_argument( "[Species] DotEle (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
       }
       catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
    };
    
-  const DotElc_t& DotElc(void) const {
+  const DotEle_t& DotEle(void) const {
     try {
-      if constexpr (std::is_same<T, DotElc_t>::value)
+      if constexpr (std::is_same<T, DotEle_t>::value)
         return data;
       else
-        throw std::invalid_argument( "[Species] DotElc (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
+        throw std::invalid_argument( "[Species] DotEle (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
     }
     catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
   };
    
-   static constexpr bool DotElc_found(void) {
-      if constexpr (std::is_same<T, DotElc_t>::value)
+   static constexpr bool DotEle_found(void) {
+      if constexpr (std::is_same<T, DotEle_t>::value)
          return true;
       else
          return false;
@@ -2705,7 +2705,7 @@ public:
 */
    inline double divE(void)
    {
-      return DelElc().Trace();
+      return DelEle().Trace();
    };
 
 /*!
@@ -2743,10 +2743,10 @@ public:
 \date 10/18/2022
 \return Curl of E
 */
-   inline GeoVector CurlElc(void)
+   inline GeoVector CurlEle(void)
    {
       GeoVector vec_tmp;
-      GeoMatrix G = DelElc();
+      GeoMatrix G = DelEle();
       vec_tmp[0] = G[1][2] - G[2][1];
       vec_tmp[1] = G[2][0] - G[0][2];
       vec_tmp[2] = G[0][1] - G[1][0];

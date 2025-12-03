@@ -166,9 +166,9 @@ status_t BackgroundDataCartesian<HConfig>::Evaluate_FromReader(Fields& fields)
          fields.Mag('w') = datafields.Mag();
    }
 // Electric field
-   if constexpr (RequestedFields::Elc_found()) {
+   if constexpr (RequestedFields::Ele_found()) {
       if constexpr (DataFields::Fluv_found() && !(DataFields::Flum_found() && DataFields::MassDen_found()))
-         fields.Elc('w') = gv_zeros;
+         fields.Ele('w') = gv_zeros;
       else if constexpr (DataFields::Ele_found())
          fields.Ele('w') = datafields.Ele();
       else if constexpr (DataFields::Fluv_found() && DataFields::Mag_found())
@@ -230,7 +230,7 @@ status_t BackgroundDataCartesian<HConfig>::Evaluate_Interp0(const GeoVector& pos
 // Electric field
    if constexpr (RequestedFields::Ele_found()) {
       if constexpr (DataFields::Ele_found())
-         fields.Elc('w') = B[zone].Elc();
+         fields.Ele('w') = B[zone].Ele();
       else if constexpr (DataFields::Fluv_found() && DataFields::Mag_found())
          fields.Ele('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
       else if constexpr (DataFields::MassDen_found() && DataFields::Mom_found() && DataFields::Mag_found())
@@ -804,8 +804,8 @@ status_t BackgroundDataCartesian<HConfig>::EvaluateBackground(Coordinates& coord
    if constexpr (RequestedFields::Mag_found()) {
       fields.Mag() *= unit_magnetic_server / unit_magnetic_fluid;
    }
-   if constexpr (RequestedFields::Elc_found()) {
-      fields.Elc() *= unit_electric_server / unit_electric_fluid;
+   if constexpr (RequestedFields::Ele_found()) {
+      fields.Ele() *= unit_electric_server / unit_electric_fluid;
    }
    return status;
 };
@@ -838,8 +838,8 @@ status_t BackgroundDataCartesian<HConfig>::EvaluateBackgroundDerivatives(Coordin
       if constexpr (RequestedFields::DelAbsMag_found()) {
          fields.DelAbsMag() = gv_zeros;
       }
-      if constexpr (RequestedFields::DelElc_found()) {
-         fields.DelElc() = gm_zeros;
+      if constexpr (RequestedFields::DelEle_found()) {
+         fields.DelEle() = gm_zeros;
       }
    }
    else if constexpr (server_interp_order == 1) {

@@ -122,7 +122,7 @@ using FlxGlm_t = ScalarField<Field::Id::FlxGlm, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using Elc_t = VectorField<Field::Id::Elc, 1, 0>;
+using Ele_t = VectorField<Field::Id::Ele, 1, 0>;
 
 /*!
 \brief Magnetic field magnitude type with a formatted name
@@ -150,7 +150,7 @@ using DelVel_t = MatrixField<Field::Id::DelVel, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DelElc_t = MatrixField<Field::Id::DelElc, 1, 0>;
+using DelEle_t = MatrixField<Field::Id::DelEle, 1, 0>;
 
 /*!
 \brief Gradient of magnetic field type with a formatted name
@@ -185,7 +185,7 @@ using DotVel_t = VectorField<Field::Id::DotVel, 1, 0>;
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-using DotElc_t = VectorField<Field::Id::DotElc, 1, 0>;
+using DotEle_t = VectorField<Field::Id::DotEle, 1, 0>;
 
 /*!
 \brief Time derivative of magnetic field type with a formatted name

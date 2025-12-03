@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
+   using Fields = Fields<Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotHatMag_t, DotAbsMag_t>;
    using Trajectory = TrajectoryGuidingDiff<HConfig>;
    using Background = BackgroundUniform<HConfig>;
 

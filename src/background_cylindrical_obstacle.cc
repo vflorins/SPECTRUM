@@ -42,8 +42,8 @@ status_t BackgroundCylindricalObstacle<HConfig>::EvaluateBackground(Coordinates&
          fields.Mag('w') = B0 - Sqr(r_cylinder) / s2 * (2.0 * (posprime * B0) / s2 * posprime - B0);
       };
    };
-   if constexpr (RequestedFields::Elc_found())
-      fields.Elc('w') = gv_zeros;
+   if constexpr (RequestedFields::Ele_found())
+      fields.Ele('w') = gv_zeros;
    if constexpr (RequestedFields::Iv1_found()) {
       if (posprimenorm < r_cylinder) fields.Iv1() = 0.0;
       else fields.Iv1('w') = 1.0;
@@ -74,10 +74,10 @@ status_t BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(C
 // TODO: complete
       };
    };
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DelEle_found()) fields.DelEle('w') = gm_zeros;
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found()) fields.DotEle('w') = gv_zeros;
    return 0;
 };
 

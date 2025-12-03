@@ -16,11 +16,12 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 //! Every function marked so is compiled for both host and device
 #define SPECTRUM_DEVICE_FUNC __host__ __device__
+#define SPECTRUM_CONSTEXPR __device__ constexpr
 
 /*!
 \brief Print the GPU information (from the host)
 \author Vladimir Florinski
-\date 04/17/2023
+\date 10/28/2025
 \param[in] device The device to print information about
 */
 __host__ inline void PrintDeviceInfo(int device = 0)
@@ -38,13 +39,13 @@ __host__ inline void PrintDeviceInfo(int device = 0)
                                     << prop.regsPerMultiprocessor / 256 << " kB per MP\n";
    std::cerr << "Shared memory: " << prop.sharedMemPerBlock / 1024 << " kB per block, "
                                   << prop.sharedMemPerMultiprocessor / 1024 << " kB per MP\n";
-   std::cerr << "Single precision perfornamce ratio: " << prop.singleToDoublePrecisionPerfRatio << "\n";
 };
 
 #else
 
 //! Define as empty when compiling with a non-GPU compiler
 #define SPECTRUM_DEVICE_FUNC
+#define SPECTRUM_CONSTEXPR constexpr
 
 /*!
 \brief Empty function

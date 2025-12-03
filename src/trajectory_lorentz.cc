@@ -71,7 +71,7 @@ template <typename HConfig>
 void TrajectoryLorentz<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    slope_pos_istage = _coords.Vel();
-   slope_mom_istage = Config::specie.q * (_fields.Elc() + (_coords.Vel() ^ _fields.Mag()) / c_code);
+   slope_mom_istage = Config::specie.q * (_fields.Ele() + (_coords.Vel() ^ _fields.Mag()) / c_code);
 };
 
 /*!

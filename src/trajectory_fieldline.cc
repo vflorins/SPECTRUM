@@ -84,8 +84,8 @@ void TrajectoryFieldline<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector
    else if constexpr (std::same_as<Field_t, Mag_t>) {
       slope_pos_istage = _coords.VelPara() * _fields.HatMag();
    }
-   else if constexpr (std::same_as<Field_t, Elc_t>) {
-      slope_pos_istage = _coords.VelPara() * _fields.HatElc();
+   else if constexpr (std::same_as<Field_t, Ele_t>) {
+      slope_pos_istage = _coords.VelPara() * _fields.HatEle();
    }
    else {
       slope_pos_istage = gv_zeros;

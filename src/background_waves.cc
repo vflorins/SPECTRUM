@@ -177,7 +177,7 @@ status_t BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Field
          };
       };
    };
-   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = gv_zeros;
+   if constexpr (RequestedFields::Ele_found()) fields.Ele('w') = gv_zeros;
    if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0;
 
    return 0;
@@ -227,10 +227,10 @@ status_t BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
          };
       };
    };
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DelEle_found()) fields.DelEle('w') = gm_zeros;
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found()) fields.DotEle('w') = gv_zeros;
    return 0;
 };
 

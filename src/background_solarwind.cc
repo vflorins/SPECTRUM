@@ -313,7 +313,7 @@ status_t BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, F
    };
 
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
-   if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Fluv()) / c_code;
+   if constexpr (RequestedFields::Ele_found()) fields.Ele('w') = -(fields.Fluv() ^ fields.Fluv()) / c_code;
 
    return 0;
 };
@@ -349,7 +349,7 @@ status_t BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates
    };
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found()) fields.DotEle('w') = gv_zeros;
    return 0;
 };
 

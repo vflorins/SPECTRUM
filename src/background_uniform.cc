@@ -33,8 +33,8 @@ status_t BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fie
    if constexpr (RequestedFields::Mag_found()) {
       fields.Mag('w') = B0;
    }
-   if constexpr (RequestedFields::Elc_found()) {
-      fields.Elc('w') = E0;
+   if constexpr (RequestedFields::Ele_found()) {
+      fields.Ele('w') = E0;
    }
    return 0;
 };
@@ -51,12 +51,12 @@ status_t BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& 
 // Spatial derivatives are zero
    if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
    if constexpr (RequestedFields::DelMag_found()) fields.DelMag('w') = gm_zeros;
-   if constexpr (RequestedFields::DelElc_found()) fields.DelElc('w') = gm_zeros;
+   if constexpr (RequestedFields::DelEle_found()) fields.DelEle('w') = gm_zeros;
 
 // Time derivatives are zero
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   if constexpr (RequestedFields::DotEle_found()) fields.DotEle('w') = gv_zeros;
 
    return 0;
 };

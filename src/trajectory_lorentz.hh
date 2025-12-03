@@ -48,7 +48,7 @@ public:
    using TrajectoryBase::RKAdvance;
 
    static_assert(Fields::template found<AbsMag_t>(), "AbsMag must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
-   static_assert(Fields::template found<Elc_t>(), "Elc must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
+   static_assert(Fields::template found<Ele_t>(), "Ele must be tracked by the Trajectory. Add it to the Fields type defined during configuration.");
 
 protected:
 

@@ -117,7 +117,7 @@ status_t BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords,
    if ((z < 1.0) && ((s < sp_tiny) || (a2 < 0.0))) {
       fields.Mag('w') = gv_zeros;
 // No need to check computation flags since it's just assigning zeros
-      fields.Elc('w') = gv_zeros;
+      fields.Ele('w') = gv_zeros;
       fields.Iv0('w') = -1.0;
 
       return STATE_INVALID;
@@ -237,7 +237,7 @@ status_t BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords,
 
 
 // Note that the flags to compute U and B should be enabled in order to compute E
-   fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
+   fields.Ele('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
    return 0;
 };

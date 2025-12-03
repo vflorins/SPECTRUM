@@ -12,7 +12,7 @@ using namespace Spectrum;
 int main(void)
 {
 
-   using Fields = Fields<Vel_t, Mag_t, Elc_t>;
+   using Fields = Fields<Vel_t, Mag_t, Ele_t>;
    using Background = BackgroundSolarWind<HConfig>;
 
    Background background;
@@ -138,7 +138,7 @@ int main(void)
                      background.GetFields(t, pos, mom, fields);
                      for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Vel()[var]), sizeof(double));
                      for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Mag()[var]), sizeof(double));
-                     for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Elc()[var]), sizeof(double));
+                     for(var = 0; var < 3; var++) data_file.write((char*)(&fields.Ele()[var]), sizeof(double));
                   };
                };
             };

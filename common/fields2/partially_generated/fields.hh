@@ -123,17 +123,17 @@ public: // test
    static constexpr const std::size_t Vel_offset = compute_offset<Vel_t>();
    static constexpr const std::size_t AbsVel_offset = compute_offset<AbsVel_t>();
    static constexpr const std::size_t HatVel_offset = compute_offset<HatVel_t>();
-   static constexpr const std::size_t Elc_offset = compute_offset<Elc_t>();
-   static constexpr const std::size_t AbsElc_offset = compute_offset<AbsElc_t>();
-   static constexpr const std::size_t HatElc_offset = compute_offset<HatElc_t>();
+   static constexpr const std::size_t Ele_offset = compute_offset<Ele_t>();
+   static constexpr const std::size_t AbsEle_offset = compute_offset<AbsEle_t>();
+   static constexpr const std::size_t HatEle_offset = compute_offset<HatEle_t>();
    static constexpr const std::size_t AbsMag_offset = compute_offset<AbsMag_t>();
    static constexpr const std::size_t HatMag_offset = compute_offset<HatMag_t>();
    static constexpr const std::size_t DelFluv_offset = compute_offset<DelFluv_t>();
-   static constexpr const std::size_t DelElc_offset = compute_offset<DelElc_t>();
+   static constexpr const std::size_t DelEle_offset = compute_offset<DelEle_t>();
    static constexpr const std::size_t DelMag_offset = compute_offset<DelMag_t>();
    static constexpr const std::size_t DelAbsMag_offset = compute_offset<DelAbsMag_t>();
    static constexpr const std::size_t DotFluv_offset = compute_offset<DotFluv_t>();
-   static constexpr const std::size_t DotElc_offset = compute_offset<DotElc_t>();
+   static constexpr const std::size_t DotEle_offset = compute_offset<DotEle_t>();
    static constexpr const std::size_t DotMag_offset = compute_offset<DotMag_t>();
    static constexpr const std::size_t DotAbsMag_offset = compute_offset<DotAbsMag_t>();
    static constexpr const std::size_t Iv0_offset = compute_offset<Iv0_t>();
@@ -1164,33 +1164,33 @@ this should be evaluated using move semantics in all branches for memory efficie
 
 
 /*!
-\brief Whether Elc (Electric field) is in the data type.
+\brief Whether Ele (Electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Elc_found(void) {
-      return (Elc_offset != Type_not_found);
+   static constexpr bool Ele_found(void) {
+      return (Ele_offset != Type_not_found);
    };
 
 
 /*!
-\brief Get Elc (Electric field) from the data type, as lvalue.
+\brief Get Ele (Electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 This operation triggers an exception if the field is not present.
 */
-   GeoVector& Elc(char w) {
-      return reinterpret_cast<GeoVector&>(*(data + Elc_offset));
+   GeoVector& Ele(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Ele_offset));
    };
 
 /*!
-\brief Get Elc (Electric field) from the data type. In C++17 and higher 
+\brief Get Ele (Electric field) from the data type. In C++17 and higher 
 this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   [[nodiscard]] GeoVector Elc(void) const {
-      return *reinterpret_cast<const GeoVector*>(data + Elc_offset);
+   [[nodiscard]] GeoVector Ele(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Ele_offset);
    };
    
 
@@ -1199,11 +1199,11 @@ this should be evaluated using move semantics in all branches for memory efficie
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 \date 10/12/2025
-\return Divergence of Elc
+\return Divergence of Ele
 */
-   inline double DivElc(void)
+   inline double DivEle(void)
    {
-      return DelElc().Trace();
+      return DelEle().Trace();
    };
     
 
@@ -1212,87 +1212,87 @@ this should be evaluated using move semantics in all branches for memory efficie
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 \date 10/12/2025
-\return Divergence of Elc
+\return Divergence of Ele
 */
-   inline GeoVector CurlElc(void)
+   inline GeoVector CurlEle(void)
    {
-      GeoMatrix G = DelElc();
+      GeoMatrix G = DelEle();
       return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
    };
 
 
 
 /*!
-\brief Whether AbsElc (Electric field magnitude) is in the data type.
+\brief Whether AbsEle (Electric field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool AbsElc_found(void) {
-      return (AbsElc_offset != Type_not_found);
+   static constexpr bool AbsEle_found(void) {
+      return (AbsEle_offset != Type_not_found);
    };
 
 
 /*!
-\brief Get AbsElc (Electric field magnitude) from the data type, as lvalue.
+\brief Get AbsEle (Electric field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 This operation triggers an exception if the field is not present.
 */
-   double& AbsElc(char w) {
-        if constexpr (FConfig::Elc_radial)
-           return Elc()[0];
+   double& AbsEle(char w) {
+        if constexpr (FConfig::Ele_radial)
+           return Ele()[0];
         else
-           return reinterpret_cast<double&>(*(data + AbsElc_offset));
+           return reinterpret_cast<double&>(*(data + AbsEle_offset));
    };
 
 /*!
-\brief Get AbsElc (Electric field magnitude) from the data type. In C++17 and higher 
+\brief Get AbsEle (Electric field magnitude) from the data type. In C++17 and higher 
 this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   [[nodiscard]] double AbsElc(void) const {
-      if constexpr (AbsElc_found())
-         return *reinterpret_cast<const double*>(data + AbsElc_offset);
+   [[nodiscard]] double AbsEle(void) const {
+      if constexpr (AbsEle_found())
+         return *reinterpret_cast<const double*>(data + AbsEle_offset);
       else
-         if constexpr (FConfig::Elc_radial)
-            return Elc()[0];
+         if constexpr (FConfig::Ele_radial)
+            return Ele()[0];
          else
-            return Elc().Norm();
+            return Ele().Norm();
    };
 
 
 /*!
-\brief Whether HatElc (Electric field direction) is in the data type.
+\brief Whether HatEle (Electric field direction) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool HatElc_found(void) {
-      return (HatElc_offset != Type_not_found);
+   static constexpr bool HatEle_found(void) {
+      return (HatEle_offset != Type_not_found);
    };
 
 
 /*!
-\brief Get HatElc (Electric field direction) from the data type, as lvalue.
+\brief Get HatEle (Electric field direction) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 This operation triggers an exception if the field is not present.
 */
-   GeoVector& HatElc(char w) {
-      return reinterpret_cast<GeoVector&>(*(data + HatElc_offset));
+   GeoVector& HatEle(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatEle_offset));
    };
 
 /*!
-\brief Get HatElc (Electric field direction) from the data type. In C++17 and higher 
+\brief Get HatEle (Electric field direction) from the data type. In C++17 and higher 
 this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   [[nodiscard]] GeoVector HatElc(void) const {
-      if constexpr (HatElc_found())
-         return *reinterpret_cast<const GeoVector*>(data + HatElc_offset);
+   [[nodiscard]] GeoVector HatEle(void) const {
+      if constexpr (HatEle_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatEle_offset);
       else
-         return UnitVec(Elc());
+         return UnitVec(Ele());
    };
 
 
@@ -1403,33 +1403,33 @@ this should be evaluated using move semantics in all branches for memory efficie
 
 
 /*!
-\brief Whether DelElc (Gradient of electric field) is in the data type.
+\brief Whether DelEle (Gradient of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelElc_found(void) {
-      return (DelElc_offset != Type_not_found);
+   static constexpr bool DelEle_found(void) {
+      return (DelEle_offset != Type_not_found);
    };
 
 
 /*!
-\brief Get DelElc (Gradient of electric field) from the data type, as lvalue.
+\brief Get DelEle (Gradient of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 This operation triggers an exception if the field is not present.
 */
-   GeoMatrix& DelElc(char w) {
-      return reinterpret_cast<GeoMatrix&>(*(data + DelElc_offset));
+   GeoMatrix& DelEle(char w) {
+      return reinterpret_cast<GeoMatrix&>(*(data + DelEle_offset));
    };
 
 /*!
-\brief Get DelElc (Gradient of electric field) from the data type. In C++17 and higher 
+\brief Get DelEle (Gradient of electric field) from the data type. In C++17 and higher 
 this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   [[nodiscard]] GeoMatrix DelElc(void) const {
-      return *reinterpret_cast<const GeoMatrix*>(data + DelElc_offset);
+   [[nodiscard]] GeoMatrix DelEle(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelEle_offset);
    };
    
 
@@ -1531,33 +1531,33 @@ this should be evaluated using move semantics in all branches for memory efficie
 
 
 /*!
-\brief Whether DotElc (Time derivative of electric field) is in the data type.
+\brief Whether DotEle (Time derivative of electric field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DotElc_found(void) {
-      return (DotElc_offset != Type_not_found);
+   static constexpr bool DotEle_found(void) {
+      return (DotEle_offset != Type_not_found);
    };
 
 
 /*!
-\brief Get DotElc (Time derivative of electric field) from the data type, as lvalue.
+\brief Get DotEle (Time derivative of electric field) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
 This operation triggers an exception if the field is not present.
 */
-   GeoVector& DotElc(char w) {
-      return reinterpret_cast<GeoVector&>(*(data + DotElc_offset));
+   GeoVector& DotEle(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + DotEle_offset));
    };
 
 /*!
-\brief Get DotElc (Time derivative of electric field) from the data type. In C++17 and higher 
+\brief Get DotEle (Time derivative of electric field) from the data type. In C++17 and higher 
 this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   [[nodiscard]] GeoVector DotElc(void) const {
-      return *reinterpret_cast<const GeoVector*>(data + DotElc_offset);
+   [[nodiscard]] GeoVector DotEle(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotEle_offset);
    };
    
 
@@ -2118,30 +2118,30 @@ For a conversion operation, use Convert().
          else
             out.HatVel() = HatVel_t();
       }
-      if constexpr (Fields::Elc_found()) {
-         if constexpr (ParentFields::Elc_found())
-            out.Elc() = fields.Elc();
+      if constexpr (Fields::Ele_found()) {
+         if constexpr (ParentFields::Ele_found())
+            out.Ele() = fields.Ele();
          else
-            out.Elc() = Elc_t();
+            out.Ele() = Ele_t();
       }
-      if constexpr (Fields::AbsElc_found()) {
-         if constexpr (ParentFields::AbsElc_found())
-            out.AbsElc() = fields.AbsElc();
+      if constexpr (Fields::AbsEle_found()) {
+         if constexpr (ParentFields::AbsEle_found())
+            out.AbsEle() = fields.AbsEle();
          else
-            if constexpr (ParentFields::Elc_found()) {
-               if constexpr (ParentFields::FConfig::Elc_radial)
-                  out.AbsElc() = fields.Elc[0];
+            if constexpr (ParentFields::Ele_found()) {
+               if constexpr (ParentFields::FConfig::Ele_radial)
+                  out.AbsEle() = fields.Ele[0];
                else
-                  out.AbsElc() = fields.Elc.Norm();
+                  out.AbsEle() = fields.Ele.Norm();
             }
             else
-                out.AbsElc() = AbsElc_t();
+                out.AbsEle() = AbsEle_t();
       }
-      if constexpr (Fields::HatElc_found()) {
-         if constexpr (ParentFields::HatElc_found())
-            out.HatElc() = fields.HatElc();
+      if constexpr (Fields::HatEle_found()) {
+         if constexpr (ParentFields::HatEle_found())
+            out.HatEle() = fields.HatEle();
          else
-            out.HatElc() = HatElc_t();
+            out.HatEle() = HatEle_t();
       }
       if constexpr (Fields::AbsMag_found()) {
          if constexpr (ParentFields::AbsMag_found())
@@ -2168,11 +2168,11 @@ For a conversion operation, use Convert().
          else
             out.DelFluv() = DelFluv_t();
       }
-      if constexpr (Fields::DelElc_found()) {
-         if constexpr (ParentFields::DelElc_found())
-            out.DelElc() = fields.DelElc();
+      if constexpr (Fields::DelEle_found()) {
+         if constexpr (ParentFields::DelEle_found())
+            out.DelEle() = fields.DelEle();
          else
-            out.DelElc() = DelElc_t();
+            out.DelEle() = DelEle_t();
       }
       if constexpr (Fields::DelMag_found()) {
          if constexpr (ParentFields::DelMag_found())
@@ -2192,11 +2192,11 @@ For a conversion operation, use Convert().
          else
             out.DotFluv() = DotFluv_t();
       }
-      if constexpr (Fields::DotElc_found()) {
-         if constexpr (ParentFields::DotElc_found())
-            out.DotElc() = fields.DotElc();
+      if constexpr (Fields::DotEle_found()) {
+         if constexpr (ParentFields::DotEle_found())
+            out.DotEle() = fields.DotEle();
          else
-            out.DotElc() = DotElc_t();
+            out.DotEle() = DotEle_t();
       }
       if constexpr (Fields::DotMag_found()) {
          if constexpr (ParentFields::DotMag_found())

@@ -42,7 +42,7 @@ public:
 
    using Field_t = Config::FieldlineField_t;
 
-   static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Elc_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");
+   static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Ele_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");
 
    using TrajectoryBase::SetupBackground;
 

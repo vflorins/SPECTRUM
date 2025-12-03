@@ -165,7 +165,7 @@ struct TrajectoryConfig<Config::Trajectory::Guiding, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -230,7 +230,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingDiff, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -295,7 +295,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingScatt, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -375,7 +375,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingDiffScatt, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Elc_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -459,7 +459,7 @@ struct TrajectoryConfig<Config::Trajectory::Lorentz, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Mag_t, Elc_t>;
+   using Fields = Fields<FConfig<specieid_>, Mag_t, Ele_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
