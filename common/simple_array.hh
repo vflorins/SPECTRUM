@@ -12,10 +12,81 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <ostream>
 
-#include <common/definitions.hh>
-#include <common/arithmetic.hh>
+#include "common/definitions.hh"
+#include "common/arithmetic.hh"
 
 namespace Spectrum {
+
+/*!
+\brief An embedded type containing different aliases for the data
+\author Vladimir Florinski
+*/
+template <typename data_type, int n_vars, std::enable_if_t<(n_vars > 0), bool> = true>
+struct SimpleArrayBase
+{
+   union {
+      data_type data[n_vars];
+      struct {
+         data_type x, y, z;
+      };
+      data_type ijk[n_vars];
+      struct {
+         data_type i, j, k;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+// FIXME: nvcc bug prevents the following from compiling. For now, don't use "n_vars" of 1 or 2 in CUDA code.
+#ifndef __CUDACC__
+
+/*!
+\brief Specialization of "SimpleArrayBase" for a one-component array
+\author Vladimir Florinski
+*/
+template <typename data_type>
+struct SimpleArrayBase<data_type, 1>
+{
+   union {
+      data_type data[1];
+      struct {
+         data_type x;
+      };
+      data_type ijk[1];
+      struct {
+         data_type i;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+/*!
+\brief Specialization of "SimpleArrayBase" for a two-component array
+\author Vladimir Florinski
+*/
+template <typename data_type>
+struct SimpleArrayBase<data_type, 2>
+{
+   union {
+      data_type data[2];
+      struct {
+         data_type x, y;
+      };
+      data_type ijk[2];
+      struct {
+         data_type i, j;
+      };
+   };
+
+//! Default constructor, required because gcc makes it deleted
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArrayBase(void) {};
+};
+
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // SimpleArray class declaration
@@ -27,37 +98,22 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \note Copy constructor and "operator=" are compiler provided (same for derived classes), so they are not implemented here. Binary operators are external to the class. Derived classes must provide a conversion constructor from the base class to use those.
 */
-template <typename data_type_, int n_vars_>
-struct SimpleArray
+template <typename data_type, int n_vars>
+struct SimpleArray : SimpleArrayBase<data_type, n_vars>
 {
-   using data_type = data_type_;
-
-   static constexpr int n_vars = n_vars_;
-
 //! A trait to be used in template specializations
    static constexpr bool is_simple_array = true;
 
-//! Storage
-   union {
-      EmptyStruct _empty;
-      data_type data[n_vars];
-      struct {
-         data_type x, y, z;
-      };
-      data_type ijk[n_vars];
-      struct {
-         data_type i, j, k;
-      };
-   };
+   using SimpleArrayBase<data_type, n_vars>::data;
 
-//! Default constructor - we initialize the "_empty" member to make it constexpr (requires c++20)
-   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) : _empty() {};
+//! Default constructor
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray(void) {};
 
 //! Constructor from a single value
-   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(data_type val) {operator =(val);};
 
 //! Constructor from an array
-   SPECTRUM_DEVICE_FUNC explicit SimpleArray(const data_type* other);
+   SPECTRUM_DEVICE_FUNC explicit constexpr SimpleArray(const data_type* other);
 
 //! Return the number of components
    SPECTRUM_DEVICE_FUNC static constexpr int size(void) {return n_vars;};
@@ -87,38 +143,22 @@ struct SimpleArray
    SPECTRUM_DEVICE_FUNC SimpleArray& operator +=(data_type a);
 
 //! Add another simple array to this
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator +=(const SimpleArray& other)
-   {
-      for (auto i = 0; i < n_vars; i++) data[i] += other.data[i];
-      return *this;
-   };
+   SPECTRUM_DEVICE_FUNC SimpleArray& operator +=(const SimpleArray& other);
 
 //! Subtract a number from each components
    SPECTRUM_DEVICE_FUNC SimpleArray& operator -=(data_type a);
 
 //! Subtract another simple array from this
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator -=(const SimpleArray& other)
-   {
-      for (auto i = 0; i < n_vars; i++) data[i] -= other.data[i];
-      return *this;
-   };
+   SPECTRUM_DEVICE_FUNC SimpleArray& operator -=(const SimpleArray& other);
 
 //! Multiply each component by a number
-   SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator *=(data_type a);
+   SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(data_type a);
 
 //! Compute a result of component-wise multiplication of two simple arrays
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(const SimpleArray& other)
-   {
-      for (auto i = 0; i < n_vars; i++) data[i] *= other.data[i];
-      return *this;
-   };
+   SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(const SimpleArray& other);
 
 //! Divide each component by a number
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator /=(data_type a)
-   {
-      for (auto i = 0; i < n_vars; i++) data[i] /= a;
-      return *this;
-   };
+   SPECTRUM_DEVICE_FUNC SimpleArray& operator /=(data_type a);
 
 //! Compute a result of component-wise division of two simple arrays
    SPECTRUM_DEVICE_FUNC SimpleArray& operator /=(const SimpleArray& other);
@@ -158,22 +198,10 @@ struct SimpleArray
 /*!
 \author Vladimir Florinski
 \date 03/08/2024
-\param[in] val Value to be asigned to each component
-*/
-template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(data_type val):
-   data(val)
-{
-   operator =(val);
-};
-
-/*!
-\author Vladimir Florinski
-\date 03/08/2024
 \param[in] other Array to initialize from
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>::SimpleArray(const data_type* other)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>::SimpleArray(const data_type* other)
 {
    memcpy(data, other, n_vars * sizeof(data_type));
 };
@@ -228,14 +256,18 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
    return *this;
 };
 
-///*!
-//\author Vladimir Florinski
-//\date 03/08/2024
-//\param[in] other Right operand \f$\mathbf{v}_1\f$
-//\return \f$\mathbf{v}+\mathbf{v}_1\f$
-//*/
-//SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator +=(const SimpleArray<data_type, n_vars>& other)
-//
+/*!
+\author Vladimir Florinski
+\date 03/08/2024
+\param[in] other Right operand \f$\mathbf{v}_1\f$
+\return \f$\mathbf{v}+\mathbf{v}_1\f$
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator +=(const SimpleArray<data_type, n_vars>& other)
+{
+   for (auto i = 0; i < n_vars; i++) data[i] += other.data[i];
+   return *this;
+};
 
 /*!
 \author Vladimir Florinski
@@ -250,15 +282,18 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
    return *this;
 };
 
-///*!
-//\author Vladimir Florinski
-//\date 03/13/2024
-//\param[in] other Right operand \f$\mathbf{v}_1\f$
-//\return \f$\mathbf{v}-\mathbf{v}_1\f$
-//*/
-//template <typename data_type, int n_vars>
-//SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator -=(const SimpleArray<data_type, n_vars>& other)
-
+/*!
+\author Vladimir Florinski
+\date 03/13/2024
+\param[in] other Right operand \f$\mathbf{v}_1\f$
+\return \f$\mathbf{v}-\mathbf{v}_1\f$
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator -=(const SimpleArray<data_type, n_vars>& other)
+{
+   for (auto i = 0; i < n_vars; i++) data[i] -= other.data[i];
+   return *this;
+};
 
 /*!
 \author Vladimir Florinski
@@ -267,31 +302,37 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 \return \f$a\mathbf{v}\f$
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(data_type a)
+SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(data_type a)
 {
    for (auto i = 0; i < n_vars; i++) data[i] *= a;
    return *this;
 };
 
-///*!
-//\author Vladimir Florinski
-//\date 03/13/2024
-//\param[in] other Right operand \f$\mathbf{v}_1\f$
-//\return This simple array scaled by the other simple array
-//*/
-//template <typename data_type, int n_vars>
-//SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(const SimpleArray<data_type, n_vars>& other)
+/*!
+\author Vladimir Florinski
+\date 03/13/2024
+\param[in] other Right operand \f$\mathbf{v}_1\f$
+\return This simple array scaled by the other simple array
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(const SimpleArray<data_type, n_vars>& other)
+{
+   for (auto i = 0; i < n_vars; i++) data[i] *= other.data[i];
+   return *this;
+};
 
-
-///*!
-//\author Vladimir Florinski
-//\date 03/13/2024
-//\param[in] a Right operand \f$a\f$
-//\return \f$a^{-1}\mathbf{v}\f$
-//*/
-//template <typename data_type, int n_vars>
-//SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator /=(data_type a)
-
+/*!
+\author Vladimir Florinski
+\date 03/13/2024
+\param[in] a Right operand \f$a\f$
+\return \f$a^{-1}\mathbf{v}\f$
+*/
+template <typename data_type, int n_vars>
+SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator /=(data_type a)
+{
+   for (auto i = 0; i < n_vars; i++) data[i] /= a;
+   return *this;
+};
 
 /*!
 \author Vladimir Florinski

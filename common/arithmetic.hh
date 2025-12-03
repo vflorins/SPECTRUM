@@ -12,7 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <type_traits>
 #include <complex>
 
-#include <common/gpu_config.hh>
+#include "common/gpu_config.hh"
 
 namespace Spectrum {
 
@@ -143,40 +143,6 @@ SPECTRUM_DEVICE_FUNC inline T operator *(arithm left, const T& right)
    return retval;
 };
 
-template <typename T>
-SPECTRUM_DEVICE_FUNC constexpr inline auto normalize_to_bytes(const T& val) {
-   static_assert(std::is_trivially_copyable_v<T>);
-   std::array<unsigned char, sizeof(T)> tmp{};
-   const unsigned char* p = reinterpret_cast<const unsigned char*>(&val);
-   for (std::size_t i = 0; i < sizeof(T); ++i) {
-      tmp[i] = p[i];
-   }
-   return tmp;
-};
-
-
-template <typename T>
-SPECTRUM_DEVICE_FUNC constexpr inline T normalize_from_bytes(const std::array<unsigned char, sizeof(T)>& val) {
-   static_assert(std::is_trivially_copyable_v<T>);
-   T out{};
-  auto p = reinterpret_cast<unsigned char*>(&out);
-   for (std::size_t i = 0; i < sizeof(T); ++i) {
-      p[i] = val[i];
-   }
-   return out;
-}
-
-template <typename T>
-SPECTRUM_DEVICE_FUNC constexpr inline T normalize_to_array(const T& val) {
-   auto tmp = normalize_to_bytes(val);
-   std::array<double,3> arr{};
-   {
-      auto tmp2 = normalize_from_bytes<decltype(arr)>(tmp);
-      arr = tmp2;
-   }
-   return T(arr);
-}
-
 /*!
 \brief Multiply each component by the same amount (as right operand)
 \author Vladimir Florinski
@@ -186,11 +152,9 @@ SPECTRUM_DEVICE_FUNC constexpr inline T normalize_to_array(const T& val) {
 \return \f$a\mathbf{v}\f$
 */
 template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
-SPECTRUM_DEVICE_FUNC constexpr inline T operator *(const T& left, arithm right)
+SPECTRUM_DEVICE_FUNC inline T operator *(const T& left, arithm right)
 {
-   auto tmp = normalize_to_array(left);
-//   auto tmp = std::bit_cast<std::array<typename T::data_type, T::n_vars>>(left);
-   T retval{tmp[0], tmp[1], tmp[2]};
+   T retval(left);
    retval *= right;
    return retval;
 };

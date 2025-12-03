@@ -36,6 +36,7 @@ void BackgroundDipole<HConfig>::SetupBackground(DataContainer& container)
    container.Read(dmax0);
    container.Read(r_ref);
    container.Read(dmax_fraction);
+   // There is an issue with constexpr SimpleArray operations
    M = B0*Cube(r_ref);
 };
 

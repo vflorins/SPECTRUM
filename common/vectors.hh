@@ -41,7 +41,7 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC explicit constexpr GeoVector(double val);
 
 //! Constructor from an array
-   SPECTRUM_DEVICE_FUNC explicit GeoVector(const double* other);
+   SPECTRUM_DEVICE_FUNC explicit constexpr GeoVector(const double* other);
 
 //! Constructor from components
    SPECTRUM_DEVICE_FUNC constexpr GeoVector(double x_in, double y_in, double z_in);
@@ -49,20 +49,13 @@ struct GeoVector : public SimpleArray<double, 3>
 //! Constructor from the base class
    SPECTRUM_DEVICE_FUNC constexpr GeoVector(const SimpleArray<double, 3>& other);
 
-//! Constructor from std::array
-   SPECTRUM_DEVICE_FUNC constexpr GeoVector(const std::array<double, 3>& other) {
-      this->data[0] = other[0];
-      this->data[1] = other[1];
-      this->data[2] = other[2];
-   }
-
 //! Constructor from a multi-index
-   SPECTRUM_DEVICE_FUNC GeoVector(const MultiIndex& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(const MultiIndex& other);
 
 //! Store the content of the vector into three separate components
    SPECTRUM_DEVICE_FUNC void Store(double& x_out, double& y_out, double& z_out) const;
 
-//! Convertion operator to MultiIndex
+//! Conversion operator to MultiIndex
    SPECTRUM_DEVICE_FUNC operator MultiIndex(void) const;
 
 //! Computes the norm of this vector
@@ -90,24 +83,6 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC GeoVector& operator /=(const MultiIndex& other);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//! Polar angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Theta(void) const;
-
-//! Azimuthal angle of a position vector
-   SPECTRUM_DEVICE_FUNC double Phi(void) const;
-
-//! Converts a position vector from r,theta,phi to x,y,z
-   SPECTRUM_DEVICE_FUNC void RTP_XYZ(void);
-
-//! Converts a position vector from x,y,z to r,theta,phi
-   SPECTRUM_DEVICE_FUNC void XYZ_RTP(void);
-
-//! Converts a vector to spherical coordinates
-   SPECTRUM_DEVICE_FUNC void ToSpherical(double sintheta, double costheta, double sinphi, double cosphi);
-
-//! Converts a vector to Cartesian coordinates
-   SPECTRUM_DEVICE_FUNC void ToCartesian(double sintheta, double costheta, double sinphi, double cosphi);
 
 //! Rotate about a given unit vector
    SPECTRUM_DEVICE_FUNC void Rotate(const GeoVector& n, double sina, double cosa);
@@ -144,7 +119,7 @@ struct GeoVector : public SimpleArray<double, 3>
 \param[in] val Value to be asigned to each component
 */
 SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double val)
-                                               : SimpleArray(val)
+      : SimpleArray(val)
 {
 };
 
@@ -153,7 +128,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double val)
 \date 05/01/2018
 \param[in] other Array to initialize the vector from
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const double* other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(const double* other)
 {
    std::memcpy(data, other, 3 * sizeof(double));
 };
@@ -177,7 +152,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y
 \date 03/10/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC constexpr inline GeoVector::GeoVector(const SimpleArray<double, 3>& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(const SimpleArray<double, 3>& other)
 {
    memcpy(data, other.data, 3 * sizeof(double));
 };
@@ -187,7 +162,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline GeoVector::GeoVector(const SimpleArray<dou
 \date 03/10/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const MultiIndex& other)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(const MultiIndex& other)
 {
    x = other.i;
    y = other.j;
@@ -223,7 +198,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector::operator MultiIndex(void) const
 \date 04/24/2024
 \return \f$|v|\f$
 */
-SPECTRUM_DEVICE_FUNC constexpr inline double GeoVector::Norm(void) const
+SPECTRUM_DEVICE_FUNC inline constexpr double GeoVector::Norm(void) const
 {
    return csqrt(Norm2());
 };
@@ -559,31 +534,22 @@ SPECTRUM_DEVICE_FUNC GeoVector GetSecondUnitVec(const GeoVector& vect_l, const G
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 //! Unit vector in the x direction
-constexpr GeoVector gv_nx(1.0, 0.0, 0.0);
+SPECTRUM_CONSTEXPR GeoVector gv_nx = {1.0, 0.0, 0.0};
 
 //! Unit vector in the y direction
-constexpr GeoVector gv_ny(0.0, 1.0, 0.0);
+SPECTRUM_CONSTEXPR GeoVector gv_ny = {0.0, 1.0, 0.0};
 
 //! Unit vector in the z direction
-constexpr GeoVector gv_nz(0.0, 0.0, 1.0);
-
-//! The unit vector in the r direction
-#define gv_nr gv_nx
-
-//! The unit vector in the theta direction
-#define gv_nt gv_ny
-
-//! The unit vector in the phi direction
-#define gv_np gv_nz
+SPECTRUM_CONSTEXPR GeoVector gv_nz = {0.0, 0.0, 1.0};
 
 //! A vector with zero components
-constexpr GeoVector gv_zeros(0.0, 0.0, 0.0);
+SPECTRUM_CONSTEXPR GeoVector gv_zeros = {0.0, 0.0, 0.0};
 
 //! A vector with unit components
-constexpr GeoVector gv_ones(1.0, 1.0, 1.0);
+SPECTRUM_CONSTEXPR GeoVector gv_ones = {1.0, 1.0, 1.0};
 
 //! Three unit vectors in an array
-constexpr GeoVector cart_unit_vec[] = {gv_nx, gv_ny, gv_nz};
+SPECTRUM_CONSTEXPR GeoVector cart_unit_vec[3] = {gv_nx, gv_ny, gv_nz};
 
 };
 
