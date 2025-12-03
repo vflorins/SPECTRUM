@@ -13,82 +13,22 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-using namespace BackgroundOptions;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // BackgroundVLISMBochum methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
 \author Vladimir Florinski
-\date 09/28/2021
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/26/2025
 */
 template <typename HConfig>
-BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(void)
-                     : BackgroundBase(name, MODEL_STATIC)
+void BackgroundVLISMBochum<HConfig>::SetupBackground(DataContainer& container_in)
 {
 // https://www.gnu.org/software/gsl/doc/html/err.html#c.gsl_set_error_handler
 // Turn gsl error handler off
    gsl_error_handler_t* gsl_default_error_handler = gsl_set_error_handler_off();
-};
-
-/*!
-\author Jens Kleimann
-\date 10/30/2019
-\param[in] z Normalized z-component of position
-\return Normalized transverse field
-*/
-template <typename HConfig>
-double BackgroundVLISMBochum<HConfig>::RelBtrans(double z)
-{
-   return 1.0 / sqrt(1.0 - 1.0 / Sqr(z));
-};
-
-/*!
-\author Vladimir Florinski
-\date 09/28/2021
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundVLISMBochum<HConfig>::BackgroundVLISMBochum(const BackgroundVLISMBochum& other)
-                     : BackgroundBase(other)
-{
-   RAISE_BITS(_status, MODEL_STATIC);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 07/26/2022
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-template <typename HConfig>
-void BackgroundVLISMBochum<HConfig>::SetupBackground(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
-   container.Read(z_nose);
-
-// Build the new coordinate system with z axis along -u0 and convert the magnetic field to the primed frame.
-   eprime[2] = -UnitVec(u0);
-   eprime[0] = GetSecondUnitVec(eprime[2]);
-   eprime[1] = eprime[2] ^ eprime[0];
-
-   u0.ChangeToBasis(eprime);
-   B0.ChangeToBasis(eprime);
-
-   sin_theta_B0 = fmax(sp_tiny, sqrt(1.0 - Sqr(UnitVec(B0) * eprime[2])));
-
-   if constexpr (mod_type == 3) {
-      double ht = Sqr(scB / sin_theta_B0) * (Sqr(ztr) - 1.0);
-      fzoom = sqrt((ht - 1.0) / (ht - Sqr(ztr)));
-   }
-
 };
 
 /*!
@@ -104,10 +44,8 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta)
    if constexpr (mod_type == 0) {
       return 1.0;
    }
-
 // Where to evaluate the custom amplification function.
    double zev;
-
 // If "mod_rpos" is zero, the scaling is done with respect to the intersection point of the isochrone with the z-axis (s=0). To find "zev" the nonlinear equaiton zev+(1/2)ln[(zev-1)/(zev+1)]=zeta is solved via Newton iterations.
    if constexpr (mod_rpos == 0) {
       // Current error of iterator loop
@@ -129,7 +67,6 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta)
 // If "mod_rpos" is one, the scaling is done with respect to the isochrone asymptotic position at s=inf, so zev=zeta.
       zev = zeta;
    }
-
    if constexpr (mod_type == 1) {
       // No modification for zev>ztr, zero for zev<ztr
       return (zev > ztr ? 1.0 : 0.0);
@@ -148,7 +85,6 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta)
       // Unmodified field
       return 1.0;
    }
-
 };
 
 /*!
@@ -159,11 +95,11 @@ double BackgroundVLISMBochum<HConfig>::GetAmpFactor(double zeta)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
 // Convert position into flow aligned coordinates and scale to "z_nose"
    GeoVector posprime = coords.Pos() - r0;
-   posprime.ChangeToBasis(eprime);
+   posprime.ChangeToBasis(eprime.data());
    posprime /= z_nose;
 
 // Position in cylindrical coordinates
@@ -184,8 +120,7 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
       fields.Elc('w') = gv_zeros;
       fields.Iv0('w') = -1.0;
 
-      RAISE_BITS(_status, STATE_INVALID);
-      return;
+      return STATE_INVALID;
    }
    else fields.Iv0('w') = 1.0;
 
@@ -304,19 +239,29 @@ void BackgroundVLISMBochum<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 // Note that the flags to compute U and B should be enabled in order to compute E
    fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 10/17/2022
+\author Lucius Schoenbaum
+\date 11/17/2025
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundVLISMBochum<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   NumericalDerivatives<BackgroundVLISMBochum<HConfig>, Coordinates, Fields, RequestedFields>(coords, fields);
+// This should never be called; derivatives should always be numeric.
+   return STATE_INVALID;
+};
+
+template <typename HConfig>
+template <typename Coordinates>
+status_t BackgroundVLISMBochum<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
+{
+   *dmax = dmax0;
+   return 0;
 };
 
 };

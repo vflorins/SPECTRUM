@@ -16,6 +16,33 @@ namespace Spectrum {
 // BackgroundDataBATL methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/28/2025
+*/
+template <typename HConfig>
+void BackgroundDataBATL<HConfig>::Start(void) {
+   BackgroundDataBase::Start();
+};
+
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 11/22/2025
+*/
+template <typename HConfig>
+void BackgroundDataBATL<HConfig>::Finish(void)
+{
+   BackgroundDataBase::Finish();
+};
+
+
+
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
@@ -43,7 +70,8 @@ int BackgroundDataBATL<HConfig>::RequestStencil(const GeoVector& pos)
 
 /*!
 \author Vladimir Florinski
-\date 07/24/2020
+\author Lucius Schoenbaum
+\date 11/24/2025
 \param[in] pos   Interpolation point position
 \param[in] plane Direction of projection (0-2)
 \param[in] half  Which half of the 3D stencil to work on (0 or 1)
@@ -53,7 +81,8 @@ template <typename HConfig>
 int BackgroundDataBATL<HConfig>::BuildInterpolationPlane(const GeoVector& pos, int plane, int half)
 {
    int idx0, idx1, idx2, bidx_self, bidx_hori, bidx_vert, bidx_diag, offset;
-   MultiIndex block_size, zones[4], node_idx, level_idx;
+   constexpr auto block_size = Block::block_size;
+   MultiIndex zones[4], node_idx, level_idx;
    GeoVector offset_lo, offset_hi, delta;
 
 // Offset based on whether this is the first or the second half of the 3D stencil.
@@ -66,7 +95,6 @@ int BackgroundDataBATL<HConfig>::BuildInterpolationPlane(const GeoVector& pos, i
    block_self->GetZoneOffset(pos, zones[0], offset_lo);
    offset_hi = 1.0 - offset_lo;
    delta = block_self->GetZoneLength();
-   block_size = block_self->GetBlockSize();
 
 // Index order. Center arrangement in a plane stencil (idx0 is out of the plane of the screen) is shown below:
 //
@@ -300,6 +328,7 @@ int BackgroundDataBATL<HConfig>::BuildInterpolationStencil(const GeoVector& pos)
    }
    else {
       int pri_idx, sec_idx, xyz, iz;
+      constexpr auto block_size = Block::block_size;
       MultiIndex zone_lo, zone_hi;
       GeoVector offset_lo, offset_hi, delta;
 
@@ -314,10 +343,9 @@ int BackgroundDataBATL<HConfig>::BuildInterpolationStencil(const GeoVector& pos)
       if constexpr (num_ghost_cells == 0) {
 
          int nbr_level, plane, idx0, idx1, idx2, outcome, ipl, oop_zone_pri, oop_zone_sec;
-         MultiIndex block_size, quadrant, planes, node_idx[3], level_idx;
+         MultiIndex quadrant, planes, node_idx[3], level_idx;
          double offset_pri, offset_sec, del;
          quadrant = block_pri->GetQuadrant(pos);
-         block_size = block_pri->GetBlockSize();
 
 // Build three neighbor node indices for up to 3 possible secondary blocks. These are face neighbors, never edge or vertex neighbors. Also, find if the stencil extends beyond the primary block.
          for (xyz = 0; xyz < 3; xyz++) {
@@ -428,13 +456,9 @@ int BackgroundDataBATL<HConfig>::BuildInterpolationStencil(const GeoVector& pos)
          };
          return (nbr_level == 0 ? 1 : (nbr_level == -1 ? 2 : 3));
       }
-      else if constexpr (num_ghost_cells > 0) {
+      else /* num_ghost_cells > 0 */ {
          // Interpolation is always internal
          InteriorInterpolationStencil(zone_lo, zone_hi, offset_lo, offset_hi, delta);
-         return 0;
-      }
-      else {
-         // ?
          return 0;
       }
    }

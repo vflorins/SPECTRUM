@@ -37,6 +37,10 @@ public:
    using BackgroundSphericalObstacle = BackgroundSphericalObstacle<HConfig>;
    using BackgroundSphericalObstacle::B0;
 
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
 public:
 
 //! Compute the internal u, B, and E fields
@@ -49,7 +53,7 @@ public:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double&);
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

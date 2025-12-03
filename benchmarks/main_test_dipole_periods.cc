@@ -9,7 +9,7 @@
 #include "src/initial_momentum.hh"
 
 #include "src/trajectory.hh"
-#include "src/simulation.config.hh"
+#include "src/hyperconfigure.hh"
 #include <iostream>
 #include <iomanip>
 
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 // Set simulation types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using HConfig = SimulationConfig<
+   using HConfig = HyperConfigure<
          BuildMode::debug,
          SpecieId::proton_core,
          Config::Background::Dipole,
@@ -32,9 +32,7 @@ int main(int argc, char **argv) {
          Default,
          Default,
          Default,
-         /* num_trajectories */ 1,
-         /* batch_size */ 1,
-         /* max_trajectories_per_worker */ 1
+         Default
    >;
 
    using Trajectory = Trajectory<HConfig>;
@@ -95,7 +93,7 @@ int main(int argc, char **argv) {
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(container);
+   trajectory->SetupBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition

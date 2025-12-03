@@ -19,7 +19,6 @@
 #include "background_smooth_discontinuity.hh"
 #include "background_smooth_shock.hh"
 #include "background_solarwind.hh"
-#include "background_solarwind_termshock.hh"
 #include "background_spherical_obstacle.hh"
 #include "background_uniform.hh"
 #include "background_vlism_bochum.hh"
@@ -32,6 +31,8 @@ template<typename HConfig>
 using BackgroundList = Fields<
 FConfig<>,
 BackgroundCylindricalObstacle<HConfig>,
+BackgroundDataBATL<HConfig>,
+BackgroundDataCartesian<HConfig>,
 BackgroundDipole<HConfig>,
 BackgroundDiscontinuity<HConfig>,
 BackgroundMagnetizedCylinder<HConfig>,
@@ -40,7 +41,6 @@ BackgroundShock<HConfig>,
 BackgroundSmoothDiscontinuity<HConfig>,
 BackgroundSmoothShock<HConfig>,
 BackgroundSolarWind<HConfig>,
-BackgroundSolarWindTermShock<HConfig>,
 BackgroundSphericalObstacle<HConfig>,
 BackgroundUniform<HConfig>,
 BackgroundVLISMBochum<HConfig>,
@@ -53,33 +53,6 @@ using Background = FieldOps::Nth<BackgroundList<HConfig>, static_cast<int>(HConf
 
 
 }
-
-
-
-/*
- *
- * Documentation (Work in Progress)
- *
- * The Background methods Evaluate, EvaluateDerivatives, and EvaluateDmax
- * are valid for any Coordinate type that includes position and time (Pos_t, Time_t) and
- * magnitude of momentum (AbsMom_t or at least Mom_t).
- * The fields type (Fields) must always contain magnetic field (Mag_t).
- *
- */
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 09/08/2025
-\param[in] coords coordinates, any coordinate system providing (time, position, p*) with p* the magnitude of momentum (access via AbsMom), and position in cartesian system.
-\param[out] fields All fields data requested by caller. Optional type RequestedFields specifies which fields to evaluate, if only a subset is needed.
-\note This is a common routine that the derived classes should not change.
-\note This public method is valid for any Coordinate type that includes
-position and time (Pos_t, Time_t) and magnitude of momentum (AbsMom_t or at least Mom_t).
-The fields type must always contain magnetic field (Mag_t).
-Magnetic field magnitude and/or direction can also be tracked but magnetic field is sufficient.
-*/
 
 
 #endif

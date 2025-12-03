@@ -87,7 +87,7 @@ try {
       Dperp = diffusion.Get(Component::perp);
 
 // Compute gradient of Dperp
-      auto ddata = backgroundderivatives.GetDerivativeData();
+      auto ddata = numericalderivatives.GetDerivativeData();
       // todo component of ddir
       gradDperp[0] = diffusion.GetDirectionalDerivative(Component::perp, 0, ddata);
       gradDperp[1] = diffusion.GetDirectionalDerivative(Component::perp, 1, ddata);
@@ -171,7 +171,7 @@ void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
 // Calculate derivatives of sqrt(2.0 * Dperp) = b_11 = b_22. Note that b_12 = b_21 = 0.
    xhat = gv_nx;
    xhat.ChangeFromBasis(fa_basis);
-   dx = backgroundderivatives.GetSafeIncr(xhat);
+   dx = numericalderivatives.GetSafeIncr(xhat);
    dcoords.Pos('w') += dx * xhat;
    CommonFields(dcoords, dfields);
    diffusion.Stage(dcoords, dfields);
@@ -180,7 +180,7 @@ void TrajectoryGuidingDiff<HConfig>::MilsteinPerpDiffSlopes(void)
 
    yhat = gv_ny;
    yhat.ChangeFromBasis(fa_basis);
-   dy = backgroundderivatives.GetSafeIncr(yhat);
+   dy = numericalderivatives.GetSafeIncr(yhat);
    dcoords.Pos('w') += dy * yhat - dx * xhat;
    CommonFields(dcoords, dfields);
    diffusion.Stage(dcoords, dfields);
@@ -261,7 +261,7 @@ bool TrajectoryGuidingDiff<HConfig>::RK2PerpDiffSlopes(void)
 // first and second x derivative
    xhat = gv_nx;
    xhat.ChangeFromBasis(fa_basis);
-   dx = backgroundderivatives.GetSafeIncr(xhat);
+   dx = numericalderivatives.GetSafeIncr(xhat);
    dcoords.Pos('w') += dx * xhat;
    CommonFields(dcoords, dfields);
    diffusion.Stage(dcoords, dfields);
@@ -280,7 +280,7 @@ bool TrajectoryGuidingDiff<HConfig>::RK2PerpDiffSlopes(void)
 // first and second y derivative
    yhat = gv_ny;
    yhat.ChangeFromBasis(fa_basis);
-   dy = backgroundderivatives.GetSafeIncr(yhat);
+   dy = numericalderivatives.GetSafeIncr(yhat);
    dcoords.Pos('w') += dy * yhat;
    CommonFields(dcoords, dfields);
    diffusion.Stage(dcoords, dfields);

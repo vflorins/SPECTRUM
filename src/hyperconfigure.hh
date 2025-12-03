@@ -41,6 +41,10 @@ struct HyperConfigure {
    using TrajectoryConfig = Cond<std::same_as<TrajectoryConfig_, Default>, TrajectoryConfig<trajectory_, specieid_>, TrajectoryConfig_>;
    using DiffusionConfig = Cond<std::same_as<DiffusionConfig_, Default>, DiffusionConfig<diffusion_, specieid_>, DiffusionConfig_>;
 
+   static constexpr auto background = background_;
+   static constexpr auto trajectory = trajectory_;
+   static constexpr auto diffusion = diffusion_;
+
    static constexpr auto build_mode = build_mode_;
    static constexpr auto specie = Specie<specieid_>();
 

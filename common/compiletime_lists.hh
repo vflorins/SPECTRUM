@@ -57,7 +57,6 @@ enum class Background {
    SmoothDiscontinuity,
    SmoothShock,
    SolarWind,
-   SolarWindTermShock,
    SphericalObstacle,
    Uniform,
    VLISMBochum,

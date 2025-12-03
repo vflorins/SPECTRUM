@@ -114,6 +114,34 @@ n_servers_per_node 1
 
 
 
+/*
+ *
+ * Documentation (Work in Progress)
+ *
+ * The Background methods Evaluate, EvaluateDerivatives, and EvaluateDmax
+ * are valid for any Coordinate type that includes position and time (Pos_t, Time_t) and
+ * magnitude of momentum (AbsMom_t or at least Mom_t).
+ * The fields type (Fields) must always contain magnetic field (Mag_t).
+ *
+ */
+
+/*!
+\author Vladimir Florinski
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 09/08/2025
+\param[in] coords coordinates, any coordinate system providing (time, position, p*) with p* the magnitude of momentum (access via AbsMom), and position in cartesian system.
+\param[out] fields All fields data requested by caller. Optional type RequestedFields specifies which fields to evaluate, if only a subset is needed.
+\note This is a common routine that the derived classes should not change.
+\note This public method is valid for any Coordinate type that includes
+position and time (Pos_t, Time_t) and magnitude of momentum (AbsMom_t or at least Mom_t).
+The fields type must always contain magnetic field (Mag_t).
+Magnetic field magnitude and/or direction can also be tracked but magnetic field is sufficient.
+*/
+
+
+
+
 
 
 
@@ -140,6 +168,11 @@ physical_defaults = {
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
+            'dmax_fraction': 0.1, # todo
+            'r0': "{0.0, 0.0, 0.0}", # todo
+            'u0': "{0.0, 0.0, 0.0}", # todo
+            'B0': "{1.0, 1.0, 1.0}", # todo
+            'r_ref': 1.0, # todo
         },
         'MagnetizedCylinder': {
             'derivative_method': 'analytic',
@@ -158,6 +191,7 @@ physical_defaults = {
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
+            'r_ref': 1.0, # todo
         },
         'Discontinuity': {
             'derivative_method': 'analytic',
@@ -192,24 +226,18 @@ physical_defaults = {
             'tanh_width_factor': 4.0,
         },
         'SolarWind': {
-            'derivative_method': 'analytic',
+            'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
-            'incr_dmax_ratio': 0.0001,
-            'dmax0': 0.1, # todo
+            # todo discuss
+            # 'dmax0':  "0.1 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid",
+            # 'dmax_fraction': 0.1,
             ####
             'solarwind_current_sheet': 'disabled',
             'solarwind_sectored_region': 'nowhere',
             'solarwind_polar_correction': 'none',
             'solarwind_speed_latitude_profile': 'constant',
-            'solarwind_termshock_speed_exponent': 'square',
-        },
-        'SolarWindTermShock': {
-            'derivative_method': 'analytic',
-            'num_numeric_grad_evals': 1,
-            'incr_dmax_ratio': 0.0001,
-            'dmax0': 0.1, # todo
-            ####
-            'tanh_width_factor': 4.0,
+            'with_termination_shock': False,
+            'termshock_speed_exponent': 'square',
         },
         'VLISMBochum': {
             'derivative_method': 'numeric',
@@ -219,6 +247,7 @@ physical_defaults = {
             ####
             'mod_type': 'scaled',
             'mod_rpos': 'scale_rel_zero',
+            'z_nose': 1.0, # todo
         },
         'Waves': {
             'derivative_method': 'analytic',
@@ -235,7 +264,7 @@ physical_defaults = {
             'server_num_ghost_cells': 2,
             'server_interpolation_order': 1,
         },
-        'ServerBATL': {
+        'DataBATL': {
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -244,7 +273,7 @@ physical_defaults = {
             'server_num_ghost_cells': 2,
             'server_interpolation_order': 1,
         },
-        'ServerCartesian': {
+        'DataCartesian': {
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -512,7 +541,7 @@ physical_defaults = {
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'kappa0': 1.0,
             'T0': 1.0,
-            'r0': 1.0,
+            'r0_nf': 1.0,
             'pow_law_T': 1.0,
             'pow_law_r': 1.0,
             'kappa_ratio': 1.0,
@@ -526,8 +555,8 @@ physical_defaults = {
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'lam0': 1.0,
-            'R0': 1.0,
-            'B0': 1.0,
+            'R0_nf': 1.0,
+            'B0_nf': 1.0,
             'pow_law_R': 1.0,
             'pow_law_B': 1.0,
             'kappa_ratio': 1.0,
@@ -538,8 +567,8 @@ physical_defaults = {
             'LISM_idx': 1,
             'lam_inner': 1.0,
             'lam_outer': 1.0,
-            'R0': 1.0,
-            'B0': 1.0,
+            'R0_nf': 1.0,
+            'B0_nf': 1.0,
             'kappa_ratio_inner': 1.0,
             'kappa_ratio_outer': 1.0,
         },
@@ -550,8 +579,8 @@ physical_defaults = {
             'LISM_idx': 1,
             'lam_inner': 1.0,
             'lam_outer': 1.0,
-            'R0': 1.0,
-            'B0': 1.0,
+            'R0_nf': 1.0,
+            'B0_nf': 1.0,
             'kappa_ratio_inner': 1.0,
             'kappa_ratio_outer': 1.0,
         },
@@ -561,8 +590,8 @@ physical_defaults = {
             'LISM_idx': 1,
             'kappa_inner': 1.0,
             'kappa_outer': 1.0,
-            'R0': 1.0,
-            'B0': 1.0,
+            'R0_nf': 1.0,
+            'B0_nf': 1.0,
             'kappa_ratio_inner': 1.0,
             'kappa_ratio_outer': 1.0,
         },
@@ -571,8 +600,8 @@ physical_defaults = {
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'lam_para': 1.0,
             'lam_perp': 1.0,
-            'R0': 1.0,
-            'B0': 1.0,
+            'R0_nf': 1.0,
+            'B0_nf': 1.0,
             'Bmix_idx': 1,
             'kappa_ratio_red': 1.0,
             'radial_limit_perp_red': 1.0,

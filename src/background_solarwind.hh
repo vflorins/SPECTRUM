@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SOLARWIND_HH
 #define SPECTRUM_BACKGROUND_SOLARWIND_HH
 
-#include "utils_numerical_derivatives.hh"
+#include "common/vectors.hh"
 
 // todo replace later - still early stages testing
 constexpr double constexpr_sin_est(double x) {
@@ -21,6 +21,30 @@ constexpr double constexpr_cos_est(double x) {
 }
 
 
+template <bool with_terminations_shock>
+struct TerminationShock;
+
+
+template<>
+struct TerminationShock<true> {
+//! Radius of termination shock (persistent)
+   double r;
+//! Width of termination shock (persistent)
+   double w;
+//! Strength of termination shock (persistent)
+   double s;
+//! Inverse of s_TS (persistent)
+   double s_inv;
+//! Maximum displacement in the shock region (persistent)
+   double dmax;
+};
+
+template<>
+struct TerminationShock<false> {};
+
+
+
+
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,14 +52,15 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 /*!
-\brief Plasma background calculator for a radially expanding solar wind
+\brief Plasma background calculator for a radially expanding solar wind with (optional) spherical termination shock
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 Parameters: (BackgroundBase), GeoVector Omega, double r_ref, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSolarWind {//: public BackgroundBase<HConfig_> {
+class BackgroundSolarWind {
 public:
 
 //! Readable name of the class
@@ -46,28 +71,17 @@ public:
    using HConfig = HConfig_;
    using BackgroundConfig = HConfig::BackgroundConfig;
 
-//   using BackgroundBase = BackgroundBase<HConfig>;
-//   using BackgroundBase::_status;
-//   using BackgroundBase::container;
-//   using BackgroundBase::_ddata;
-//   using BackgroundBase::dmax0;
-//   using BackgroundBase::r0;
-//   using BackgroundBase::u0;
-//   using BackgroundBase::B0;
-//   //
-//   // todo review (solar wind is the only background using this)
-//   using BackgroundBase::t0;
-//   // methods
-//   using BackgroundBase::EvaluateDmax;
-//   using BackgroundBase::GetDmax;
-//   using BackgroundBase::StopServerFront;
-//   using BackgroundBase::SetupBackground;
+// secular config:
+   static constexpr bool requires_setup = true;
+   static constexpr bool stochastic = false;
 
    using BackgroundConfig::derivative_method;
    using BackgroundConfig::solarwind_speed_latitude_profile;
    using BackgroundConfig::solarwind_current_sheet;
    using BackgroundConfig::solarwind_sectored_region;
    using BackgroundConfig::solarwind_polar_correction;
+   using BackgroundConfig::with_termination_shock;
+   using BackgroundConfig::termshock_speed_exponent;
 
 protected:
 
@@ -111,6 +125,39 @@ protected:
 //! [solarwind_speed_latitude_profile > 0] Transition speed coefficient
    static constexpr double fast_slow_dlat_sw = 20.0;
 
+// Compute auxiliary quantities for fast-slow wind calculation
+   static constexpr double construct_fsl_pls() {
+      if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::constant) {
+         /* unused*/
+         return 0;
+      }
+      if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::linear_step) {
+//! Latitude separating transition region from slow wind
+         return fast_slow_lat_sw + 2.0 / fast_slow_dlat_sw;
+      }
+      else if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::smooth_step) {
+//! Half of fast-slow ratio plus 1
+         return 0.5 * (fast_slow_ratio_sw + 1.0);
+      }
+      return 0;
+   }
+
+// Compute auxiliary quantities for fast-slow wind calculation
+   static constexpr double construct_fsl_mns() {
+      if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::constant) {
+         /* unused*/
+         return 0;
+      }
+      if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::linear_step) {
+//! Latitude separating transition region from fast wind
+         return fast_slow_lat_sw - 2.0 / fast_slow_dlat_sw;
+      }
+      else if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::smooth_step) {
+//! Half of fast-slow ratio minus 1
+         return 0.5 * (fast_slow_ratio_sw - 1.0);
+      }
+      return 0;
+   }
 
 /*!
 \brief Function to compress peaks and stretch troughs
@@ -125,54 +172,63 @@ protected:
       return t * ((1.0 - stilt_ang_sw) * t_pi * (t_pi - 3.0) + 3.0 - 2.0 * stilt_ang_sw);
    };
 
+   static constexpr double fsl_pls = construct_fsl_pls();
+
+   static constexpr double fsl_mns = construct_fsl_mns();
+
 protected:
 
-//   //! Angular velocity vector of a rotating star (persistent)
-//   static GeoVector Omega;
-//
-////! Reference radius (persistent)
-//   static double r_ref;
-//
-////! Maximum fraction of the radial distance per step (persistent)
-//   static double dmax_fraction;
-//
-////! Local coordinate system tied to the rotation axis (persistent)
-//   static GeoVector eprime[3];
-//
-////! Velocity magnitude for slow wind (persistent)
-//   static double ur0;
-//
-////! Angular frequency magnitude (persistent)
-//   static double w0;
-//
-////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from slow wind (persistent)
-////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio plus 1 (persistent)
-//   static double fsl_pls;
-//
-////! [SOLARWIND_SPEED_LATITUDE_PROFILE == 1] Latitude separating transition region from fast wind (persistent)
-////! SOLARWIND_SPEED_LATITUDE_PROFILE == 2] Half of fast-slow ratio minus 1 (persistent)
-//   static double fsl_mns;
+   double dmax0;
+
+   double t0;
+
+   GeoVector r0;
+
+   GeoVector B0;
+
+   //! Velocity magnitude for slow wind (persistent)
+   double ur0;
+
+   //! Angular velocity vector of a rotating star (persistent)
+   GeoVector Omega;
+
+//! Reference radius (persistent)
+   double r_ref;
+
+//! Maximum fraction of the radial distance per step (persistent)
+   double dmax_fraction;
+
+//! Local coordinate system tied to the rotation axis (persistent)
+   GeoVector eprime[3];
+
+//! Angular frequency magnitude (persistent)
+   double w0;
+
+   TerminationShock<with_termination_shock> TS;
 
 //! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
+   void SetupBackground(DataContainer& container);
 
 //! Modify radial flow (if necessary)
-   static void ModifyUr(const double r, double &ur_mod);
+   virtual void ModifyUr(const double r, double &ur_mod);
 
-//! Get time lag for time dependent current sheet (if necessary)
-   static double TimeLag(const double r);
+//! Radial derivative of radial flow
+   double dUrdr(double r, double v_norm);
 
-   //! Compute the maximum distance per time step
+   //! Get time lag for time dependent current sheet (if necessary)
+   virtual double TimeLag(const double r);
+
+//! Compute the maximum distance per time step
    template <typename Coordinates>
-   static double EvaluateDmax(Coordinates&);
+   status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackground(Coordinates&, Fields&);
+   status_t EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 public:
 

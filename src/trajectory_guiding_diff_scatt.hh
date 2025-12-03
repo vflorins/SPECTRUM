@@ -60,24 +60,6 @@ public:
    using TrajectoryBase::dt_adaptive;
    using TrajectoryBase::dt_physical;
 
-//   using TrajectoryBase::_status;
-////   using TrajectoryBase::_t;
-//   using TrajectoryBase::_pos;
-////   using TrajectoryBase::_mom;
-////   using TrajectoryBase::_vel;
-//   using TrajectoryBase::dt;
-//   using TrajectoryBase::dt_physical;
-//   using TrajectoryBase::dt_adaptive;
-////   using TrajectoryBase::rng;
-////   using TrajectoryBase::_fields;
-////   using TrajectoryBase::_dmax;
-//////   using TrajectoryBase::traj_t;
-//////   using TrajectoryBase::traj_pos;
-//////   using TrajectoryBase::traj_mom;
-//////   using TrajectoryBase::local_t;
-//////   using TrajectoryBase::local_pos;
-//////   using TrajectoryBase::local_mom;
-////   using TrajectoryBase::diffusion;
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
 ////   // methods:

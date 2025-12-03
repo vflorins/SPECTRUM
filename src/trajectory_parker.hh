@@ -54,7 +54,7 @@ public:
 //   using typename TrajectoryBase::DiffusionCoordinates;
 //   using typename TrajectoryBase::DiffusionFields;
 //   using typename TrajectoryBase::DiffusionFieldsRemainder;
-
+   using TrajectoryBase::numericalderivatives;
    using TrajectoryBase::background;
    using TrajectoryBase::rng;
    using TrajectoryBase::slope_pos;

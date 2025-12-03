@@ -16,123 +16,6 @@ using namespace BackgroundOptions;
 // BackgroundSmoothShock methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Juan G Alonso Guzman
-\date 10/20/2023
-*/
-template <typename HConfig>
-BackgroundSmoothShock<HConfig>::BackgroundSmoothShock(void)
-                     : BackgroundShock(name, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/20/2023
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundSmoothShock<HConfig>::BackgroundSmoothShock(const BackgroundSmoothShock& other)
-                     : BackgroundShock(other)
-{
-   RAISE_BITS(_status, STATE_NONE);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/30/2024
-\param [in] x Relative transition region location
-\return Relative value of shocked quantity
-*/
-template <typename HConfig>
-double BackgroundSmoothShock<HConfig>::ShockTransition(double x)
-{
-   double y = x + 0.5;
-   if constexpr (Config::smooth_discontinuity_order == 0) {
-      // not continous
-      if (x < -0.5) return 0.0;
-      else if (x > 0.5) return 1.0;
-      else return y;
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 1){
-      // differentiable
-      if (x < -0.5) return 0.0;
-      else if (x > 0.5) return 1.0;
-      else return Sqr(y) * (3.0 - 2.0 * y);
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 2) {
-      // twice differentiable
-      if (x < -0.5) return 0.0;
-      else if (x > 0.5) return 1.0;
-      else return Cube(y) * (10.0 - 15.0 * y + 6.0 * Sqr(y));
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 3) {
-      // thrice differentiable
-      if (x < -0.5) return 0.0;
-      else if (x > 0.5) return 1.0;
-      else return Sqr(Sqr(y)) * (35.0 - 84.0 * y + 70.0 * Sqr(y) - 20.0 * Cube(y));
-   }
-   else {
-      // smooth
-      return 0.5 * (1.0 + tanh(Config::tanh_width_factor * x));
-   }
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 05/30/2024
-\param [in] x Relative transition region location 
-\return Derivative of relative value of shocked quantity
-*/
-template <typename HConfig>
-double BackgroundSmoothShock<HConfig>::ShockTransitionDerivative(double x)
-{
-   double y = x + 0.5;
-   if constexpr (Config::smooth_discontinuity_order == 0) {
-      if (x < -0.5) return 0.0;
-      if (x > 0.5) return 0.0;
-      return 1.0;
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 1){
-      if (x < -0.5) return 0.0;
-      if (x > 0.5) return 0.0;
-      return 6.0 * y * (1.0 - y);
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 2) {
-      if (x < -0.5) return 0.0;
-      if (x > 0.5) return 0.0;
-      return 30.0 * Sqr(y) * (1.0 - 2.0 * y + Sqr(y));
-   }
-   else if constexpr (Config::smooth_discontinuity_order == 3) {
-      if (x < -0.5) return 0.0;
-      if (x > 0.5) return 0.0;
-      return 140.0 * Cube(y) * (1.0 - 3.0 * y + 3.0 * Sqr(y) - 1.0 * Cube(y));
-   }
-   else {
-      return 0.5 * Config::tanh_width_factor * (1.0 - Sqr(tanh(Config::tanh_width_factor * x)));
-   }
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 02/28/2025
-\param [in] construct Whether called from a copy constructor or separately
-
-This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
-*/
-template <typename HConfig>
-void BackgroundSmoothShock<HConfig>::SetupBackground(bool construct)
-{
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundShock::SetupBackground(false);
-
-// Unpack parameters
-   container.Read(width_shock);
-   container.Read(dmax_fraction);
-};
 
 /*!
 \author Juan G Alonso Guzman
@@ -140,12 +23,12 @@ void BackgroundSmoothShock<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double a1, a2;
    auto ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
 
-   a1 = ShockTransition(ds_shock);
+   a1 = Transition(ds_shock);
    a2 = 1.0 - a1;
 
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
@@ -154,7 +37,7 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fie
    if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Mag()) / c_code;
    if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -163,35 +46,33 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackground(Coordinates& coords, Fie
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
    auto ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
-   if constexpr (Config::derivative_method == DerivativeMethod::analytic) {
-      if constexpr (RequestedFields::DelFluv_found()) {
-         fields.DelFluv('w').Dyadic(n_shock, u0 - u1);
-         fields.DelFluv('w') *= ShockTransitionDerivative(ds_shock) / width_shock;
-      };
-      if constexpr (RequestedFields::DelMag_found()) {
-         fields.DelMag('w').Dyadic(n_shock, B0 - B1);
-         fields.DelMag('w') *= ShockTransitionDerivative(ds_shock) / width_shock;
-         fields.DelMag('w') = fields.DelMag() * fields.HatMag();
-      };
-      if constexpr (RequestedFields::DelElc_found()) {
-         fields.DelElc('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
-      };
-      if constexpr (RequestedFields::DotFluv_found()) {
-         fields.DotFluv('w') = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
-      };
-      if constexpr (RequestedFields::DotMag_found()) {
-         fields.DotMag('w') = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
-      };
-      if constexpr (RequestedFields::DotElc_found()) {
-         fields.DotElc('w') = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
-      };
-   }
-   else {
-      NumericalDerivatives<BackgroundSmoothShock<HConfig>, Coordinates, Fields, RequestedFields>(coords, fields);
+   if constexpr (RequestedFields::DelFluv_found()) {
+      fields.DelFluv('w').Dyadic(n_shock, u0 - u1);
+      fields.DelFluv('w') *= TransitionDerivative(ds_shock) / width_shock;
    };
+   if constexpr (RequestedFields::DelMag_found()) {
+      fields.DelMag('w').Dyadic(n_shock, B0 - B1);
+      fields.DelMag('w') *= TransitionDerivative(ds_shock) / width_shock;
+   };
+   if constexpr (RequestedFields::DelAbsMag_found()) {
+      fields.DelAbsMag('w') = fields.DelMag() * fields.HatMag();
+   };
+   if constexpr (RequestedFields::DelEle_found()) {
+      fields.DelEle('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
+   };
+   if constexpr (RequestedFields::DotFluv_found()) {
+      fields.DotFluv('w') = (TransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
+   };
+   if constexpr (RequestedFields::DotMag_found()) {
+      fields.DotMag('w') = (TransitionDerivative(ds_shock) * v_shock / width_shock) * (B1 - B0);
+   };
+   if constexpr (RequestedFields::DotElc_found()) {
+      fields.DotElc('w') = -((fields.DotFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DotMag())) / c_code;
+   };
+   return 0;
 };
 
 /*!
@@ -200,11 +81,11 @@ void BackgroundSmoothShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& 
 */
 template <typename HConfig>
 template <typename Coordinates>
-double BackgroundSmoothShock<HConfig>::EvaluateDmax(Coordinates& coords)
+status_t BackgroundSmoothShock<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
    auto ds_shock = ((coords.Pos() - r0) * n_shock - v_shock * coords.Time()) / width_shock;
-   _ddata.dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
-   LOWER_BITS(_status, STATE_INVALID);
+   *dmax = fmin(dmax_fraction * width_shock * fmax(1.0, fabs(ds_shock)), dmax0);
+   return 0;
 };
 
 };

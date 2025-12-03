@@ -28,8 +28,11 @@ TrajectoryBase<HConfig>::TrajectoryBase(void)
               records(Config::record_trajectory_segment_presize)
 {
 // This always needs to occur, whereas SetupBackground is only required if there is a container to load.
-   if (HConfig::BackgroundConfig::stochastic) {
+   if (Background::stochastic) {
       background.ConnectRNG(rng);
+   }
+   if (Background::requires_setup) {
+      RAISE_BITS(_status, BACKGROUND_SETUP_AWAIT);
    }
 };
 
@@ -586,6 +589,10 @@ bool TrajectoryBase<HConfig>::IsSimulationReady(void) const
    if (bcond_t.size() == 0) return false;
    else if (BITS_LOWERED(bcond_t[0]->GetStatus(), STATE_SETUP_COMPLETE)) return false;
 
+   if constexpr (Background::requires_setup) {
+      return (BITS_LOWERED(_status, BACKGROUND_SETUP_AWAIT));
+   }
+
 // A distribution need not be present if we are simulating a single trajectory
    return true;
 };
@@ -603,7 +610,11 @@ bool TrajectoryBase<HConfig>::IsSimulationReady(void) const
 template <typename HConfig>
 void TrajectoryBase<HConfig>::SetupBackground(const DataContainer& container_in)
 {
-   background.SetupObject(container_in);
+   if constexpr (Background::requires_setup) {
+      DataContainer tmp = container_in;
+      background.SetupBackground(tmp);
+      LOWER_BITS(_status, BACKGROUND_SETUP_AWAIT);
+   }
    if (IsSimulationReady()) RAISE_BITS(_status, STATE_SETUP_COMPLETE);
 };
 

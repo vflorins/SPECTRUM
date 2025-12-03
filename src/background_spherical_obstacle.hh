@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_SPHERICAL_OBSTACLE_HH
 #define SPECTRUM_BACKGROUND_SPHERICAL_OBSTACLE_HH
 
-#include "utils_numerical_derivatives.hh"
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
@@ -24,7 +24,7 @@ namespace Spectrum {
 Parameters: (BackgroundBase), double r_sphere, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSphericalObstacle : public BackgroundBase<HConfig_>{
+class BackgroundSphericalObstacle {
 public:
 
 //! Readable name of the class
@@ -33,63 +33,40 @@ public:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = HConfig::BackgroundConfig;
+   using Config = HConfig::BackgroundConfig;
 
-//   using BackgroundBase = BackgroundBase<HConfig>;
-//   using BackgroundBase::_status;
-//   using BackgroundBase::container;
-//   using BackgroundBase::_ddata;
-//   using BackgroundBase::dmax0;
-//   using BackgroundBase::r0;
-//   using BackgroundBase::u0;
-//   using BackgroundBase::B0;
-//   // methods
-//   using BackgroundBase::EvaluateDmax;
-//   using BackgroundBase::GetDmax;
-//   using BackgroundBase::StopServerFront;
-//   using BackgroundBase::SetupBackground;
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
 
-   using BackgroundConfig::derivative_method;
+   static constexpr double dmax0 = Config::dmax0;
 
-protected:
+//! Maximum fraction of the radial distance per step (persistent)
+   static constexpr double dmax_fraction = Config::dmax_fraction;
 
-////! Radius of spherical obstacle (persistent)
-//   static double r_sphere;
-//
-////! Dipole moment (persistent)
-//   static GeoVector M;
-//
-////! Maximum fraction of the radial distance per step (persistent)
-//   static double dmax_fraction;
+   static constexpr GeoVector r0 = Config::r0;
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
+//! Radius of spherical obstacle (persistent)
+   static constexpr double r_ref = Config::r_ref;
 
-   //! Compute the maximum distance per time step
-   template <typename Coordinates>
-   static double EvaluateDmax(Coordinates&);
+   static constexpr GeoVector B0 = Config::B0;
 
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+//! Dipole moment (persistent)
+   static constexpr GeoVector M = B0*Cube(r_ref);
 
 public:
 
-//! Default constructor
-   BackgroundSphericalObstacle(void);
+   //! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double*);
 
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundSphericalObstacle(const std::string_view& name_in, status_t status_in);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundSphericalObstacle(const BackgroundSphericalObstacle& other);
-
-//! Destructor
-   ~BackgroundSphericalObstacle() = default;
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

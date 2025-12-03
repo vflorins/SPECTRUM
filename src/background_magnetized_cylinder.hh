@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_MAGNETIZED_CYLINDER_HH
 #define SPECTRUM_BACKGROUND_MAGNETIZED_CYLINDER_HH
 
+#include "background_cylindrical_obstacle.hh"
 
 namespace Spectrum {
 
@@ -38,6 +39,10 @@ public:
    using BackgroundCylindricalObstacle = BackgroundCylindricalObstacle<HConfig>;
    using BackgroundCylindricalObstacle::B0;
 
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
 public:
 
 //! Compute the internal u, B, and E fields
@@ -50,7 +55,7 @@ public:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double&);
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

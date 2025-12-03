@@ -24,7 +24,7 @@ namespace Spectrum {
 Parameters: (BackgroundShock), double width_shock, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSmoothShock {//: public BackgroundShock<HConfig_> {
+class BackgroundSmoothShock: public BackgroundShock<HConfig_>, BackgroundSmoothBase<HConfig_> {
 public:
 
 //! Readable name of the class
@@ -34,64 +34,44 @@ public:
 
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
+
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
+   using BackgroundSmoothBase = BackgroundSmoothBase<HConfig>;
+   using BackgroundSmoothBase::Transition;
+   using BackgroundSmoothBase::TransitionDerivative;
+
    using BackgroundShock = BackgroundShock<HConfig>;
-
-//   using BackgroundBase = BackgroundBase<HConfig>;
-//   using BackgroundBase::_status;
-//   using BackgroundBase::container;
-//   using BackgroundBase::_ddata;
-//   using BackgroundBase::dmax0;
-//   using BackgroundBase::r0;
-//   using BackgroundBase::u0;
-//   using BackgroundBase::B0;
-//   // methods
-//   using BackgroundBase::EvaluateDmax;
-//   using BackgroundBase::GetDmax;
-
+   using BackgroundShock::dmax0;
+   using BackgroundShock::r0;
+   using BackgroundShock::u0;
+   using BackgroundShock::B0;
    using BackgroundShock::u1;
    using BackgroundShock::B1;
    using BackgroundShock::n_shock;
    using BackgroundShock::v_shock;
 
+   //! Width of shock transition region (persistent)
+   static constexpr double width_shock = Config::width_shock;
+
+//! Fraction of the shock width to assign to dmax near shock (persistent)
+   static constexpr double dmax_fraction = Config::dmax_fraction;
+
 protected:
-
-////! Width of shock transition region (persistent)
-//   static double width_shock;
-//
-////! Fraction of the shock width to assign to dmax near shock (persistent)
-//   static double dmax_fraction;
-
-//! Shock transition region function
-   static double ShockTransition(double x);
-
-//! Derivative of shock transition region function
-   static double ShockTransitionDerivative(double x);
-
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
 
    //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static double EvaluateDmax(Coordinates&);
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackground(Coordinates&, Fields&);
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
-
-public:
-
-//! Default constructor
-   BackgroundSmoothShock(void);
-
-//! Copy constructor
-   BackgroundSmoothShock(const BackgroundSmoothShock& other);
-
-//! Destructor
-   ~BackgroundSmoothShock() = default;
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

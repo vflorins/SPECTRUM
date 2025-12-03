@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_DIPOLE_HH
 #define SPECTRUM_BACKGROUND_DIPOLE_HH
 
+#include "common/vectors.hh"
+#include "common/data_container.hh"
 
 namespace Spectrum {
 
@@ -36,35 +38,63 @@ public:
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
 
+// secular config:
+   static constexpr bool requires_setup = true;
+   static constexpr bool stochastic = false;
+
+   // TODO: there appears to be no way to proceed based on SimpleArray's design using this "stateless" construction.
+   //  To test, set 'requires_setup' to false, uncomment, and comment 'SetupBackground'.
+
+//   static constexpr double dmax0 = Config::dmax0;
+//
+////! Maximum fraction of the radial distance per step (persistent)
+//   static constexpr double dmax_fraction = Config::dmax_fraction;
+//
+//   static constexpr GeoVector r0 = Config::r0;
+//
+//   static constexpr double r_ref = Config::r_ref;
+//
+//   static constexpr GeoVector B0 = Config::B0;
+//
+////! Dipole moment (persistent)
+//   static constexpr GeoVector M = B0*Cube(r_ref);
+
 protected:
 
-   static constexpr double dmax0 = Config::dmax0;
+   double t0;
+
+   GeoVector r0;
+
+   GeoVector u0;
+
+   double dmax0;
 
 //! Maximum fraction of the radial distance per step (persistent)
-   static constexpr double dmax_fraction = Config::dmax_fraction;
+   double dmax_fraction;
 
-   static constexpr GeoVector r0 = Config::r0;
+   double r_ref;
 
-   static constexpr double r_ref = Config::r_ref;
-
-   static constexpr GeoVector B0 = Config::B0;
+   GeoVector B0;
 
 //! Dipole moment (persistent)
-   static constexpr GeoVector M = B0*Cube(r_ref);
+   GeoVector M;
 
 public:
 
+   //! Set up the field evaluator based on "params"
+   void SetupBackground(DataContainer& container_in);
+
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double&);
+   status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static status_t EvaluateBackground(Coordinates&, Fields&);
+   status_t EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+   status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

@@ -50,9 +50,9 @@ status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateBackgroundDerivatives(Co
 */
 template <typename HConfig>
 template <typename Coordinates>
-status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+status_t BackgroundMagnetizedCylinder<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   return BackgroundCylindricalObstacle::template EvaluateBackgroundDerivatives<Coordinates>(coords, dmax);
+   return BackgroundCylindricalObstacle::template EvaluateDmax<Coordinates>(coords, dmax);
 };
 
 

@@ -19,6 +19,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+// forward declaration of vector type
+// class GeoVector;
+
 template<Config::Background background_, SpecieId specieid_>
 struct BackgroundConfig;
 
@@ -32,8 +35,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::CylindricalObstacle, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -41,6 +44,71 @@ struct BackgroundConfig<Config::Background::CylindricalObstacle, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+};
+
+
+/*!
+\brief (Hyper)parameters and config(uration) options for a SPECTRUM Background class
+\author Lucius Schoenbaum
+\date 09/29/2025
+Background: DataBATL
+*/
+template<SpecieId specieid_>
+struct BackgroundConfig<Config::Background::DataBATL, specieid_> {
+   static constexpr Specie<specieid_> specie;
+//! Name: derivative_method
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
+   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
+//! Name: num_numeric_grad_evals
+// Description: The number of derivative evaluations applied in the derivative-averaging method
+   static constexpr int num_numeric_grad_evals = 1;
+//! Name: incr_dmax_ratio
+// Description: What fraction of _dmax to use to calculate the field increment
+   static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+//! Name: server_num_ghost_cells
+// Description: number of ghost cells (server parameter)
+   static constexpr int server_num_ghost_cells = 2;
+//! Name: server_interpolation_order
+// Description: server_interpolation_order
+   static constexpr int server_interpolation_order = 1;
+};
+
+
+/*!
+\brief (Hyper)parameters and config(uration) options for a SPECTRUM Background class
+\author Lucius Schoenbaum
+\date 09/29/2025
+Background: DataCartesian
+*/
+template<SpecieId specieid_>
+struct BackgroundConfig<Config::Background::DataCartesian, specieid_> {
+   static constexpr Specie<specieid_> specie;
+//! Name: derivative_method
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
+   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
+//! Name: num_numeric_grad_evals
+// Description: The number of derivative evaluations applied in the derivative-averaging method
+   static constexpr int num_numeric_grad_evals = 1;
+//! Name: incr_dmax_ratio
+// Description: What fraction of _dmax to use to calculate the field increment
+   static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+//! Name: server_num_ghost_cells
+// Description: number of ghost cells (server parameter)
+   static constexpr int server_num_ghost_cells = 2;
+//! Name: server_interpolation_order
+// Description: server_interpolation_order
+   static constexpr int server_interpolation_order = 1;
 };
 
 
@@ -54,8 +122,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Dipole, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -63,6 +131,24 @@ struct BackgroundConfig<Config::Background::Dipole, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+//! Name: dmax_fraction
+// Description: Fraction of dmax in a reduced region (background dependent)
+   static constexpr double dmax_fraction = 0.1;
+//! Name: r0
+// Description: value (todo: description)
+   static constexpr GeoVector r0 = {0.0, 0.0, 0.0};
+//! Name: u0
+// Description: u0
+   static constexpr GeoVector u0 = {0.0, 0.0, 0.0};
+//! Name: B0
+// Description: B0
+   static constexpr GeoVector B0 = {1.0, 1.0, 1.0};
+//! Name: r_ref
+// Description: Reference equatorial distance
+   static constexpr double r_ref = 1.0;
 };
 
 
@@ -76,8 +162,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Discontinuity, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -85,6 +171,9 @@ struct BackgroundConfig<Config::Background::Discontinuity, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 };
 
 
@@ -98,8 +187,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::MagnetizedCylinder, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -107,6 +196,9 @@ struct BackgroundConfig<Config::Background::MagnetizedCylinder, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 };
 
 
@@ -120,8 +212,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::MagnetizedSphere, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -129,6 +221,9 @@ struct BackgroundConfig<Config::Background::MagnetizedSphere, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 };
 
 
@@ -142,8 +237,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Shock, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -151,6 +246,12 @@ struct BackgroundConfig<Config::Background::Shock, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+//! Name: tanh_width_factor
+// Description: Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   static constexpr double tanh_width_factor = 4.0;
 };
 
 
@@ -164,8 +265,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SmoothDiscontinuity, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -173,10 +274,16 @@ struct BackgroundConfig<Config::Background::SmoothDiscontinuity, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 //! Name: smooth_discontinuity_order
 // Description: Parameter controlling smoothness of discontinuity/shock
 // Options: 0: not continuous | 1: differentiable | 2: twice differentiable | 3: thrice differentiable | 4, 5, >5: smooth
    static constexpr int smooth_discontinuity_order = 4;
+//! Name: tanh_width_factor
+// Description: Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   static constexpr double tanh_width_factor = 4.0;
 };
 
 
@@ -190,8 +297,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SmoothShock, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -199,10 +306,16 @@ struct BackgroundConfig<Config::Background::SmoothShock, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 //! Name: smooth_discontinuity_order
 // Description: Parameter controlling smoothness of discontinuity/shock
 // Options: 0: not continuous | 1: differentiable | 2: twice differentiable | 3: thrice differentiable | 4, 5, >5: smooth
    static constexpr int smooth_discontinuity_order = 4;
+//! Name: tanh_width_factor
+// Description: Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
+   static constexpr double tanh_width_factor = 4.0;
 };
 
 
@@ -216,15 +329,12 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SolarWind, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
-   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
+   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
    static constexpr int num_numeric_grad_evals = 1;
-//! Name: incr_dmax_ratio
-// Description: What fraction of _dmax to use to calculate the field increment
-   static constexpr double incr_dmax_ratio = 0.0001;
 //! Name: solarwind_current_sheet
 // Description: Heliospheric current sheet
 // Options: disabled | flat | wavy_static: wavy (Jokipii-Thomas 1981) and static | wavy_time_dependent: wavy and time-dependent
@@ -241,32 +351,13 @@ struct BackgroundConfig<Config::Background::SolarWind, specieid_> {
 // Description: Latitudinal profile for bulk speed
 // Options: constant | linear_step | smooth_step
    static constexpr auto solarwind_speed_latitude_profile = BackgroundOptions::SpeedLatitudeProfile::constant;
-//! Name: solarwind_termshock_speed_exponent
+//! Name: with_termination_shock
+// Description: Whether the model has a spherical termination shock feature (requires extra setup, see source/documentation)
+   static constexpr bool with_termination_shock = false;
+//! Name: termshock_speed_exponent
 // Description: Integer exponent of decrease of solar wind speed beyond the termination shock
 // Options: zero | one | square | cube
-   static constexpr auto solarwind_termshock_speed_exponent = BackgroundOptions::TermShockSpeedExponent::square;
-};
-
-
-/*!
-\brief (Hyper)parameters and config(uration) options for a SPECTRUM Background class
-\author Lucius Schoenbaum
-\date 09/29/2025
-Background: SolarWindTermShock
-*/
-template<SpecieId specieid_>
-struct BackgroundConfig<Config::Background::SolarWindTermShock, specieid_> {
-   static constexpr Specie<specieid_> specie;
-//! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
-   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
-//! Name: num_numeric_grad_evals
-// Description: The number of derivative evaluations applied in the derivative-averaging method
-   static constexpr int num_numeric_grad_evals = 1;
-//! Name: incr_dmax_ratio
-// Description: What fraction of _dmax to use to calculate the field increment
-   static constexpr double incr_dmax_ratio = 0.0001;
+   static constexpr auto termshock_speed_exponent = BackgroundOptions::TermShockSpeedExponent::square;
 };
 
 
@@ -280,8 +371,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SphericalObstacle, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -289,6 +380,12 @@ struct BackgroundConfig<Config::Background::SphericalObstacle, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
+//! Name: r_ref
+// Description: Reference equatorial distance
+   static constexpr double r_ref = 1.0;
 };
 
 
@@ -302,8 +399,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Uniform, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -311,6 +408,9 @@ struct BackgroundConfig<Config::Background::Uniform, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 };
 
 
@@ -324,9 +424,18 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::VLISMBochum, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
+//! Name: num_numeric_grad_evals
+// Description: The number of derivative evaluations applied in the derivative-averaging method
+   static constexpr int num_numeric_grad_evals = 1;
+//! Name: incr_dmax_ratio
+// Description: What fraction of _dmax to use to calculate the field increment
+   static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 //! Name: mod_type
 // Description: What function to use within 'get_ampfactor'
 // Options: none | zero | constant | scaled
@@ -335,12 +444,9 @@ struct BackgroundConfig<Config::Background::VLISMBochum, specieid_> {
 // Description: Whether to scale relative to s=0 or s=+inf
 // Options: scale_rel_zero | scale_rel_inf
    static constexpr auto mod_rpos = BackgroundOptions::ModRPos::scale_rel_zero;
-//! Name: num_numeric_grad_evals
-// Description: The number of derivative evaluations applied in the derivative-averaging method
-   static constexpr int num_numeric_grad_evals = 1;
-//! Name: incr_dmax_ratio
-// Description: What fraction of _dmax to use to calculate the field increment
-   static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: z_nose
+// Description: todo
+   static constexpr double z_nose = 1.0;
 };
 
 
@@ -354,8 +460,8 @@ template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Waves, specieid_> {
    static constexpr Specie<specieid_> specie;
 //! Name: derivative_method
-// Description: The method used to evaluate derivatives of spatially located field quantities
-// Options: analytic | numeric
+// Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
+// Options: numeric | nonnumeric | analytic | datadefined
    static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
@@ -363,6 +469,9 @@ struct BackgroundConfig<Config::Background::Waves, specieid_> {
 //! Name: incr_dmax_ratio
 // Description: What fraction of _dmax to use to calculate the field increment
    static constexpr double incr_dmax_ratio = 0.0001;
+//! Name: dmax0
+// Description: baseline simulation-wide dmax value
+   static constexpr double dmax0 = 0.1;
 };
 
 

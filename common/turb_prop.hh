@@ -12,9 +12,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Number of turbulence types
-const int n_turb_types = 4;
-
 //! Turbulence types that can be generated
 enum turb_type {turb_alfven, turb_transverse, turb_longitudinal, turb_isotropic};
 
@@ -25,7 +22,10 @@ enum turb_type {turb_alfven, turb_transverse, turb_longitudinal, turb_isotropic}
 */
 struct TurbProp {
 
-//! Smallest wavenumber
+//! Number of turbulence types
+   static constexpr int n_turb_types = 4;
+
+   //! Smallest wavenumber
    double kmin;
 
 //! Largest wavenumber

@@ -44,6 +44,8 @@ public:
 
    static_assert((std::same_as<Field_t, Vel_t> || std::same_as<Field_t, Mag_t> || std::same_as<Field_t, Elc_t>), "The trace field for TrajectoryFieldline is not supported by the implementation. Choose another field, or else modify the implementation.");
 
+   using TrajectoryBase::SetupBackground;
+
 protected:
 
    using TrajectoryBase::_status;
@@ -56,7 +58,6 @@ protected:
    using TrajectoryBase::RKAdvance;
 
    using TrajectoryBase::StartBackground;
-   using TrajectoryBase::SetupBackground;
    using TrajectoryBase::StopBackground;
 
 protected:

@@ -35,6 +35,8 @@ public:
    using Coordinates = TrajectoryBase::Coordinates;
    using Fields = TrajectoryBase::Fields;
 
+   using TrajectoryBase::SetupBackground;
+
 protected:
 
    using TrajectoryBase::_status;
@@ -47,7 +49,6 @@ protected:
    using TrajectoryBase::RKAdvance;
 
    using TrajectoryBase::StartBackground;
-   using TrajectoryBase::SetupBackground;
    using TrajectoryBase::StopBackground;
 
 protected:

@@ -58,8 +58,9 @@ public:
    using typename TrajectoryBase::DiffusionFieldsRemainder;
    using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
-   using TrajectoryBase::diffusion;
    using TrajectoryBase::background;
+   using TrajectoryBase::numericalderivatives;
+   using TrajectoryBase::diffusion;
    using TrajectoryBase::rng;
    using TrajectoryBase::records;
    using TrajectoryBase::SpaceTerminateCheck;

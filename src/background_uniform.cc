@@ -3,6 +3,7 @@
 \brief Implements a simple uniform field background
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -17,7 +18,6 @@ using namespace BackgroundOptions;
 // BackgroundUniform methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
@@ -25,21 +25,18 @@ using namespace BackgroundOptions;
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    if constexpr (RequestedFields::Fluv_found()) {
-      fields.Fluv('w') = Cfg::u0;
+      fields.Fluv('w') = u0;
    }
    if constexpr (RequestedFields::Mag_found()) {
-      fields.Mag('w') = Cfg::B0;
+      fields.Mag('w') = B0;
    }
    if constexpr (RequestedFields::Elc_found()) {
       fields.Elc('w') = E0;
    }
-   if constexpr (RequestedFields::Iv0_found()) {
-      fields.Iv0('w') = 1.0;
-   }
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -49,7 +46,7 @@ void BackgroundUniform<HConfig>::EvaluateBackground(Coordinates& coords, Fields&
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
 // Spatial derivatives are zero
    if constexpr (RequestedFields::DelFluv_found()) fields.DelFluv('w') = gm_zeros;
@@ -60,14 +57,17 @@ void BackgroundUniform<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coor
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
    if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+
+   return 0;
 };
 
 
 template <typename HConfig>
 template <typename Coordinates>
-double BackgroundUniform<HConfig>::EvaluateDmax(Coordinates& coords)
+status_t BackgroundUniform<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   return Cfg::dmax0;
+   *dmax = dmax0;
+   return 0;
 };
 
 };

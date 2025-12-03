@@ -17,6 +17,31 @@ using namespace BackgroundOptions;
 // BackgroundDipole methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+/*!
+\author Vladimir Florinski
+\date 08/30/2022
+\param [in] construct Whether called from a copy constructor or separately
+
+This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
+*/
+template <typename HConfig>
+void BackgroundDipole<HConfig>::SetupBackground(DataContainer& container)
+{
+   container.Reset();
+   container.Read(t0);
+   container.Read(r0);
+   container.Read(u0);
+   container.Read(B0);
+   container.Read(dmax0);
+   container.Read(r_ref);
+   container.Read(dmax_fraction);
+   M = B0*Cube(r_ref);
+};
+
+
+
+
 /*!
 \author Vladimir Florinski
 \date 03/25/2022
@@ -95,9 +120,9 @@ status_t BackgroundDipole<HConfig>::EvaluateBackgroundDerivatives(Coordinates& c
 */
 template <typename HConfig>
 template <typename Coordinates>
-status_t BackgroundDipole<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+status_t BackgroundDipole<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
+   *dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
    return 0;
 };
 

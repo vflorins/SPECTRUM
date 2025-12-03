@@ -19,6 +19,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+// forward declaration of vector type
+// class GeoVector;
+
 template<Config::Trajectory trajectory_, SpecieId specieid_>
 struct TrajectoryConfig;
 

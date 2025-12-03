@@ -134,14 +134,14 @@ try {
 
 // Compute Kperp and grad(Kperp)
       Kperp = diffusion.Get(Component::perp);
-      auto ddata = backgroundderivatives.GetDerivativeData();
+      auto ddata = numericalderivatives.GetDerivativeData();
       gradKperp[0] = diffusion.GetDirectionalDerivative(Component::perp, 0, ddata);
       gradKperp[1] = diffusion.GetDirectionalDerivative(Component::perp, 1, ddata);
       gradKperp[2] = diffusion.GetDirectionalDerivative(Component::perp, 2, ddata);
 
 // Compute Kpara and grad(Kpara)
       Kpara = diffusion.Get(Component::para);
-      ddata = backgroundderivatives.GetDerivativeData();
+      ddata = numericalderivatives.GetDerivativeData();
       gradKpara[0] = diffusion.GetDirectionalDerivative(Component::para, 0, ddata);
       gradKpara[1] = diffusion.GetDirectionalDerivative(Component::para, 1, ddata);
       gradKpara[2] = diffusion.GetDirectionalDerivative(Component::para, 2, ddata);

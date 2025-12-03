@@ -10,6 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_BACKGROUND_SMOOTH_DISCONTINUITY_HH
 
 #include "background_discontinuity.hh"
+#include "background_smooth_base.hh"
 
 namespace Spectrum {
 
@@ -24,7 +25,7 @@ namespace Spectrum {
 Parameters: (BackgroundShock), double width_discont, double dmax_fraction
 */
 template <typename HConfig_>
-class BackgroundSmoothDiscontinuity: public BackgroundDiscontinuity<HConfig_> {
+class BackgroundSmoothDiscontinuity: public BackgroundDiscontinuity<HConfig_>, BackgroundSmoothBase<HConfig_> {
 public:
 
 //! Readable name of the class
@@ -34,8 +35,16 @@ public:
 
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
-   using BackgroundDiscontinuity = BackgroundDiscontinuity<HConfig>;
 
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
+   using BackgroundSmoothBase = BackgroundSmoothBase<HConfig>;
+   using BackgroundSmoothBase::Transition;
+   using BackgroundSmoothBase::TransitionDerivative;
+
+   using BackgroundDiscontinuity = BackgroundDiscontinuity<HConfig>;
    using BackgroundDiscontinuity::n_discont;
    using BackgroundDiscontinuity::v_discont;
    using BackgroundDiscontinuity::dmax0;
@@ -44,14 +53,6 @@ public:
    using BackgroundDiscontinuity::u1;
    using BackgroundDiscontinuity::B0;
    using BackgroundDiscontinuity::B1;
-
-protected:
-
-   //! Shock transition region function
-   static constexpr double DiscontinuityTransition(double x);
-
-//! Derivative of discontinuity transition region function
-   static constexpr double DiscontinuityTransitionDerivative(double x);
 
 public:
 
@@ -71,8 +72,7 @@ public:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double&);
-
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

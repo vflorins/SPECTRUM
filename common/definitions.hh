@@ -99,7 +99,7 @@ struct EmptyStruct{};
 \param[in] rad Angle in radians
 \return Angle in degrees
 */
-SPECTRUM_DEVICE_FUNC inline double RadToDeg(double rad)
+SPECTRUM_DEVICE_FUNC constexpr inline double RadToDeg(double rad)
 {
    return rad * 180.0 / M_PI;
 };
@@ -111,7 +111,7 @@ SPECTRUM_DEVICE_FUNC inline double RadToDeg(double rad)
 \param[in] rad Angle in degrees
 \return Angle in radians
 */
-SPECTRUM_DEVICE_FUNC inline double DegToRad(double deg)
+SPECTRUM_DEVICE_FUNC constexpr inline double DegToRad(double deg)
 {
    return deg / 180.0 * M_PI;
 };
@@ -123,7 +123,7 @@ SPECTRUM_DEVICE_FUNC inline double DegToRad(double deg)
 \param[in] n The exponent
 \return \f$2^n\f$
 */
-SPECTRUM_DEVICE_FUNC inline int Pow2(int n)
+SPECTRUM_DEVICE_FUNC constexpr inline int Pow2(int n)
 {
    return 1 << n;
 };
@@ -138,7 +138,7 @@ SPECTRUM_DEVICE_FUNC inline int Pow2(int n)
 
 Reference: http://www.graphics.stanford.edu/~seander/bithacks.htm
 */
-SPECTRUM_DEVICE_FUNC inline bool IsPow2(int n)
+SPECTRUM_DEVICE_FUNC constexpr inline bool IsPow2(int n)
 {
    return !(n & (n - 1));
 };
@@ -153,7 +153,7 @@ SPECTRUM_DEVICE_FUNC inline bool IsPow2(int n)
 
 Reference: http://www.graphics.stanford.edu/~seander/bithacks.htm
 */
-SPECTRUM_DEVICE_FUNC inline int Log2(int n)
+SPECTRUM_DEVICE_FUNC constexpr inline int Log2(int n)
 {
    int log2 = 0;
    while (n >>= 1) log2++;
@@ -168,7 +168,7 @@ SPECTRUM_DEVICE_FUNC inline int Log2(int n)
 \return Sign of x (-1 or 1, never 0)
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T sign(T x)
+SPECTRUM_DEVICE_FUNC constexpr inline T sign(T x)
 {
    return (x >= 0 ? 1 : -1);
 };
@@ -181,7 +181,7 @@ SPECTRUM_DEVICE_FUNC inline T sign(T x)
 \return \f$x^2\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
+SPECTRUM_DEVICE_FUNC constexpr inline T Sqr(T x)
 {
    return x * x;
 };
@@ -194,7 +194,7 @@ SPECTRUM_DEVICE_FUNC inline T Sqr(T x)
 \return \f$x^3\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Cube(T x)
+SPECTRUM_DEVICE_FUNC constexpr inline T Cube(T x)
 {
    return x * x * x;
 };
@@ -207,7 +207,7 @@ SPECTRUM_DEVICE_FUNC inline T Cube(T x)
 \return \f$x^4\f$
 */
 template <typename T>
-SPECTRUM_DEVICE_FUNC inline T Quad(T x)
+SPECTRUM_DEVICE_FUNC constexpr inline T Quad(T x)
 {
    return x * x * x * x;
 };

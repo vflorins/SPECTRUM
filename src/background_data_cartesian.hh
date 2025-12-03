@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_DATA_CARTESIAN_HH
 #define SPECTRUM_BACKGROUND_DATA_CARTESIAN_HH
 
-#include "server_interface.hh"
+#include "background_data_base.hh"
 #include "cache_lru.hh"
 #include "common/status.hh"
 
@@ -26,7 +26,7 @@ namespace Spectrum {
 
 */
 template <typename HConfig_>
-class BackgroundDataCartesian : public ServerInterface<HConfig_> {
+class BackgroundDataCartesian : public BackgroundDataBase<HConfig_> {
 public:
 
 //! Readable name of the class
@@ -36,69 +36,56 @@ public:
 
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
-   using BlockCache = BlockCache<HConfig>;
-   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
-   using Block = Block<HConfig>;
-   using BlockPtr = std::shared_ptr<Block>;
 
-   using DataFields = Config::DataFields;
+   using BackgroundDataBase = BackgroundDataBase<HConfig>;
+   using Block = BackgroundDataBase::Block;
+   using BlockPtr = BackgroundDataBase::BlockPtr;
+   using MPI = BackgroundDataBase::MPI;
+   using DataFields = BackgroundDataBase::DataFields;
 
-   using ServerInterface = ServerInterface<HConfig>;
+   using ServerInterface = BackgroundDataBase::ServerInterface;
    using ServerInterface::_inquiry;
    using ServerInterface::stencil;
    using ServerInterface::MPIInquiryType;
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
 
-   static constexpr bool allow_server_worker = Config::allow_server_worker;
+// constexpr values:
+   using BackgroundDataBase::allow_server_worker;
+   using BackgroundDataBase::num_ghost_cells;
+   using BackgroundDataBase::server_interp_order;
+   using BackgroundDataBase::dmax0;
 
-   static constexpr int num_ghost_cells = Config::num_ghost_cells;
+   using BackgroundDataBase::cache_line;
+   using BackgroundDataBase::domain_min;
+   using BackgroundDataBase::domain_max;
+   using BackgroundDataBase::stencil_status;
+   using BackgroundDataBase::stencil_outcomes;
+   using BackgroundDataBase::block_pri;
+   using BackgroundDataBase::block_sec;
+   using BackgroundDataBase::block_stn;
 
-   static constexpr int server_interp_order = Config::server_interp_order;
+// debug methods:
+   using BackgroundDataBase::PrintStencilOutcomes;
+   using BackgroundDataBase::PrintNumBlocksRequested;
+   using BackgroundDataBase::GetNCachedBlocks;
+   using BackgroundDataBase::InvalidateCache;
 
-   static constexpr double dmax0 = Config::dmax0;
+   // secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
 
-   static_assert(server_interp_order <= 1, "Interpolation orders > 1 are not supported.");
 
-   static_assert(!(!HConfig::MPI_enabled() && !allow_server_worker), "Servers and worker duties cannot be divided unless the simulation is parallel.");
+public:
 
-protected:
+//! Default constructor
+   BackgroundDataCartesian(void) = default;
 
-//! locally cached blocks, with LRU policy
-   BlockCache cache_line;
-
-//! Smallest position in the domain
-   GeoVector domain_min;
-
-//! Largest position in the domain
-   GeoVector domain_max;
-
-//! Status of the most recently computed stencil
-   int stencil_status = 0;
-
-//! Counts of different stencil outcomes
-   int stencil_outcomes[3];
-
-//! Count of total blocks requested
-   int num_blocks_requested;
-
-//! Primary block pointer
-   BlockPtr block_pri;
-
-//! Secondary block pointer
-   BlockPtr block_sec;
-
-//! Stencil block pointer
-   BlockPtr block_stn;
-
-//! Load interpolation stencil using interior zones
-   void InteriorInterpolationStencil(const MultiIndex zone_lo, const MultiIndex zone_hi, const GeoVector offset_lo, const GeoVector offset_hi, const GeoVector delta);
+//! Destructor
+   ~BackgroundDataCartesian() override = default;
 
 //! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos);
-
-//! Find block order in the cache or get a block from the server if not in the cache
-   int RequestBlock(void);
+   int BuildInterpolationStencil(const GeoVector& pos) final;
 
 //! Get variables directly from data reader
    template <typename Fields, typename RequestedFields>
@@ -116,13 +103,6 @@ protected:
    template <typename Coordinates, typename Fields, typename RequestedFields>
    status_t Gradients_Interp1(Coordinates& coords, Fields& fields);
 
-public:
-
-//! Default constructor
-   BackgroundDataCartesian(void) = default;
-
-//! Destructor
-   ~BackgroundDataCartesian() override = default;
 
 public: // data background API:
 
@@ -136,7 +116,7 @@ public: // general background API:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   status_t EvaluateDmax(Coordinates&, double&);
+   status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
@@ -145,18 +125,6 @@ public: // general background API:
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
    status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
-
-public: // debug:
-
-   //! Print how many times internal/external interpolators were used
-   void PrintStencilOutcomes(void) const requires (HConfig::buildmode == BuildMode::debug);
-
-//! Print how many blocks were requested
-   void PrintNumBlocksRequested(void) const requires (HConfig::buildmode == BuildMode::debug);
-
-   int GetNCachedBlocks(void) const requires (HConfig::buildmode == BuildMode::debug);
-
-   void InvalidateCache(void) requires (HConfig::buildmode == BuildMode::debug);
 
 };
 

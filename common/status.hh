@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_STATUS_HH
 
 #include <cstdint>
+#include <exception>
 
 namespace Spectrum {
 
@@ -46,6 +47,9 @@ constexpr status_t TRAJ_MOMENTUM_CROSSED = 0x0080;
 
 //! Trajectory is invalid and must be discarded
 constexpr status_t TRAJ_DISCARD = 0x0100;
+
+//! Background requires setup but setup has not occured
+constexpr status_t BACKGROUND_SETUP_AWAIT = 0x0400;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Exceptions

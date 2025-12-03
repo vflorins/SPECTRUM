@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_WAVES_HH
 #define SPECTRUM_BACKGROUND_WAVES_HH
 
-#include "utils_numerical_derivatives.hh"
+#include "common/vectors.hh"
 #include "common/matrix.hh"
 #include "common/turb_prop.hh"
 
@@ -35,7 +35,11 @@ public:
 public:
 
    using HConfig = HConfig_;
-   using BackgroundConfig = HConfig::BackgroundConfig;
+   using Config = HConfig::BackgroundConfig;
+
+// secular config:
+   static constexpr bool requires_setup = true;
+   static constexpr bool stochastic = true;
 
 //   using BackgroundBase = BackgroundBase<HConfig>;
 //   using BackgroundBase::_status;
@@ -53,79 +57,74 @@ public:
 //   using BackgroundBase::StopServerFront;
 //   using BackgroundBase::SetupBackground;
 
-   using BackgroundConfig::derivative_method;
+   static constexpr double dmax0 = Config::dmax0;
+
+   static constexpr GeoVector r0 = Config::r0;
+
+   static constexpr GeoVector B0 = Config::B0;
+
+   static constexpr int n_turb_types = TurbProp::n_turb_types;
 
 //! Random number generator object (persistent)
    std::shared_ptr<RNG> rng = nullptr;
 
 protected:
 
-////! Number of waves of each kind (persistent)
-//   static int n_waves[n_turb_types];
-//
-////! Wave amplitudes (persistent)
-//   static std::vector<double> Ampl[n_turb_types];
-//
-////! Wavenumbers
-//   static std::vector<double> k[n_turb_types];
-//
-////! Cosines of the polarization angles (persistent)
-//   static std::vector<double> cosa[n_turb_types];
-//
-////! Sines of the polarization angles (persistent)
-//   static std::vector<double> sina[n_turb_types];
-//
-////! Phase angles (persistent)
-//   static std::vector<double> phase[n_turb_types];
-//
-////! Basis vectors in the frame aligned with the wavevector (persistent)
-//   static std::vector<GeoMatrix> basis[n_turb_types];
-//
-////! Shortest wave in the ensemble for time step (persistent)
-//   static double shortest_wave;
+//! Number of waves of each kind (persistent)
+   int n_waves[n_turb_types];
 
-//! PSD for component "turb_alfven"
-   static void PSD_Alfven(void);
+//! Wave amplitudes (persistent)
+   std::vector<double> Ampl[n_turb_types];
 
-//! PSD for component "turb_transverse"
-   static void PSD_Transverse(void);
+//! Wavenumbers
+   std::vector<double> k[n_turb_types];
 
-//! PSD for component "turb_longitudinal"
-   static void PSD_Longitudinal(void);
+//! Cosines of the polarization angles (persistent)
+   std::vector<double> cosa[n_turb_types];
 
-//! PSD for component "turb_isotropic"
-   static void PSD_Isotropic(void);
+//! Sines of the polarization angles (persistent)
+   std::vector<double> sina[n_turb_types];
 
-   // todo reminder, the rng is wired and ready to go - this is stateful but otherwise exactly like the analytic backgrounds.
+//! Phase angles (persistent)
+   std::vector<double> phase[n_turb_types];
+
+//! Basis vectors in the frame aligned with the wavevector (persistent)
+   std::vector<GeoMatrix> basis[n_turb_types];
+
+//! Shortest wave in the ensemble for time step (persistent)
+   double shortest_wave;
+
+////! PSD for component "turb_alfven"
+//   static void PSD_Alfven(void);
+//
+////! PSD for component "turb_transverse"
+//   static void PSD_Transverse(void);
+//
+////! PSD for component "turb_longitudinal"
+//   static void PSD_Longitudinal(void);
+//
+////! PSD for component "turb_isotropic"
+//   static void PSD_Isotropic(void);
 
 //! Connect to an existing RNG object
    void ConnectRNG(const std::shared_ptr<RNG> rng_in) {rng = rng_in;};
 
-//! Set up the field evaluator based on "params"
-   void SetupBackground(bool construct);
-
-   //! Compute the maximum distance per time step
-   template <typename Coordinates>
-   static double EvaluateDmax(Coordinates&);
-
-//! Compute the internal u, B, and E fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackground(Coordinates&, Fields&);
-
-//! Compute the internal derivatives of the fields
-   template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
+//! Set up the field evaluator
+   void SetupBackground(DataContainer& container_in);
 
 public:
 
-//! Default constructor
-   BackgroundWaves(void);
+//! Compute the internal u, B, and E fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   status_t EvaluateBackground(Coordinates&, Fields&);
 
-//! Copy constructor
-   BackgroundWaves(const BackgroundWaves& other);
+//! Compute the internal derivatives of the fields
+   template <typename Coordinates, typename Fields, typename RequestedFields>
+   status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
-//! Destructor
-   ~BackgroundWaves() = default;
+   //! Compute the maximum distance per time step
+   template <typename Coordinates>
+   status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

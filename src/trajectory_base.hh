@@ -19,6 +19,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "boundary_base.hh"
 #include "initial_base.hh"
 #include "common/rk_lists.hh"
+#include "utils_numerical_derivatives.hh"
 #include "utils_records.hh"
 
 #include "common/fields2/field_ops.hh"
@@ -37,6 +38,7 @@ namespace Spectrum {
 /*!
 \brief A base class to integrate a trajectory
 \author Vladimir Florinski
+\author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 
 A trajectory should be thought of as a self-contained simulation. There are four ingredients to a trajectory: (a) the transport physics that is built into the class itself, (b) the background u, E, B fields provided through "background", (c) the boundary conditions contained in "bcond_t", "bcond_s", and "bcond_m", and (d) the initial conditions provided by "icond_s" and "icond_m". The trajectory is responsible for computing the derived transport coefficients. This is done for efficiency purposes because a separate transport class hierarchy would have to interact with the other components and exchanging different kinds of transport parameters must be done through a container, hence require extra load/store operations.
@@ -109,7 +111,7 @@ protected:
 
    Coordinates local_coords;
 
-//! Background-dependent dmax (transient)
+//! Background-dependent dmax (transient), used during physical step
    double _dmax;
 
 //! Spatial data (transient)

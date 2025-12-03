@@ -118,7 +118,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define unit_momentum_fluid (unit_density_fluid * unit_velocity_fluid)
 
 //! Magnetic field: derived, should be uG-mG
-#define unit_magnetic_fluid (unit_velocity_fluid * csqrt(unit_density_fluid))
+#define unit_magnetic_fluid (unit_velocity_fluid * Spectrum::csqrt(unit_density_fluid))
 
 //! Electric field: derived, should be the same as magnetic field because of cgs-Gaussian unit system
 #define unit_electric_fluid unit_magnetic_fluid
@@ -185,7 +185,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define unit_momentum_fluid (unit_density_fluid * unit_velocity_fluid)
 
 //! Magnetic field: derived, should be uG-mG
-#define unit_magnetic_fluid (unit_velocity_fluid * csqrt(unit_density_fluid))
+#define unit_magnetic_fluid (unit_velocity_fluid * Spectrum::csqrt(unit_density_fluid))
 
 //! Electric field: derived, should be the same as magnetic field because of cgs-Gaussian unit system
 #define unit_electric_fluid unit_magnetic_fluid

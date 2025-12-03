@@ -17,41 +17,6 @@ using namespace BackgroundOptions;
 // BackgroundSolarWind methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\date 10/28/2022
-*/
-template <typename HConfig>
-BackgroundSolarWind<HConfig>::BackgroundSolarWind(void)
-                           : BackgroundBase(name, STATE_NONE)
-{
-};
-
-/*!
-\author Juan G Alonso Guzman
-\date 02/22/2024
-*/
-template <typename HConfig>
-BackgroundSolarWind<HConfig>::BackgroundSolarWind(const std::string_view& name_in, status_t status_in)
-                           : BackgroundBase(name_in, status_in)
-{
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/26/2022
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundSolarWind<HConfig>::BackgroundSolarWind(const BackgroundSolarWind& other)
-                           : BackgroundBase(other)
-{
-   RAISE_BITS(_status, MODEL_STATIC);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
 
 /*!
 \author Vladimir Florinski
@@ -61,10 +26,14 @@ BackgroundSolarWind<HConfig>::BackgroundSolarWind(const BackgroundSolarWind& oth
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
 template <typename HConfig>
-void BackgroundSolarWind<HConfig>::SetupBackground(bool construct)
+void BackgroundSolarWind<HConfig>::SetupBackground(DataContainer& container)
 {
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
+// todo this is provisional
+   container.Read(dmax0);
+   container.Read(t0);
+   container.Read(r0);
+   container.Read(B0);
+   container.Read(ur0);
    container.Read(Omega);
    container.Read(r_ref);
    container.Read(dmax_fraction);
@@ -76,23 +45,13 @@ void BackgroundSolarWind<HConfig>::SetupBackground(bool construct)
    eprime[0] = GetSecondUnitVec(eprime[2]);
    eprime[1] = eprime[2] ^ eprime[0];
 
-// Only the first components of velocity is used.
-   ur0 = fabs(u0[0]);
+   if constexpr (with_termination_shock) {
+      container.Read(TS.r);
+      container.Read(TS.w);
+      container.Read(TS.s);
 
-// Compute auxiliary quantities for fast-slow wind calculation
-   if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::constant) {
-      // do nothing.
-   }
-   if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::linear_step) {
-      fsl_pls = fast_slow_lat_sw + 2.0 / fast_slow_dlat_sw;
-      fsl_mns = fast_slow_lat_sw - 2.0 / fast_slow_dlat_sw;
-   }
-   else if constexpr (solarwind_speed_latitude_profile == SpeedLatitudeProfile::smooth_step) {
-      fsl_pls = 0.5 * (fast_slow_ratio_sw + 1.0);
-      fsl_mns = 0.5 * (fast_slow_ratio_sw - 1.0);
-   }
-   else {
-      // (undefined)
+      TS.s_inv = 1.0 / TS.s;
+      TS.dmax = dmax_fraction * TS.w;
    }
 };
 
@@ -105,6 +64,61 @@ void BackgroundSolarWind<HConfig>::SetupBackground(bool construct)
 template <typename HConfig>
 void BackgroundSolarWind<HConfig>::ModifyUr(const double r, double &ur_mod)
 {
+   if constexpr (with_termination_shock) {
+      if (r > TS.r) {
+         if (r > TS.r + TS.w) {
+            if constexpr (termshock_speed_exponent == TermShockSpeedExponent::zero) {
+               ur_mod *= TS.s_inv;
+            }
+            else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::one) {
+               ur_mod *= TS.s_inv * (TS.r + TS.w) / r;
+            }
+            else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::square) {
+               ur_mod *= TS.s_inv * Sqr((TS.r + TS.w) / r);
+            }
+            else {
+// not implemented
+               ur_mod *= 1e30;
+            }
+         }
+         else {
+            ur_mod *= 1.0 + (TS.s_inv - 1.0) * (r - TS.r) / TS.w;
+         }
+      };
+   }
+};
+
+/*!
+\author Juan G Alonso Guzman
+\date 05/14/2025
+\param[in]  r      radial distance
+*/
+template <typename HConfig>
+double BackgroundSolarWind<HConfig>::dUrdr(const double r, const double v_norm)
+{
+   if constexpr (with_termination_shock) {
+      if (r > TS.r) {
+         if (r > TS.r + TS.w) {
+            if constexpr (termshock_speed_exponent == TermShockSpeedExponent::zero) {
+               return 0.0;
+            }
+            else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::one) {
+               return -v_norm / r;
+            }
+            else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::square) {
+               return -2.0 * v_norm / r;
+            }
+            else {
+// not implemented
+               return 1e30;
+            }
+         }
+         else {
+            return (TS.s_inv - 1.0) * (TS.r / TS.w) * ur0;
+         }
+      }
+   }
+   return 0.0;
 };
 
 /*!
@@ -116,7 +130,27 @@ void BackgroundSolarWind<HConfig>::ModifyUr(const double r, double &ur_mod)
 template <typename HConfig>
 double BackgroundSolarWind<HConfig>::TimeLag(const double r)
 {
-   return r / ur0;
+   if constexpr (with_termination_shock) {
+      if (r < TS.r) return r / ur0;
+      else {
+         if constexpr (termshock_speed_exponent == TermShockSpeedExponent::zero) {
+            return (TS.r + TS.s * (r - TS.r)) / ur0;
+         }
+         else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::one) {
+            return (TS.r + TS.s * (Sqr(r) - Sqr(TS.r)) / (2.0 * TS.r)) / ur0;
+         }
+         else if constexpr (termshock_speed_exponent == TermShockSpeedExponent::square) {
+            return (TS.r + TS.s * (Cube(r) - Cube(TS.r)) / (3.0 * Sqr(TS.r))) / ur0;
+         }
+         else {
+// not implemented
+            return 1e30;
+         }
+      }
+   }
+   else {
+      return r / ur0;
+   }
 };
 
 /*!
@@ -125,7 +159,7 @@ double BackgroundSolarWind<HConfig>::TimeLag(const double r)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
    double r_mns, phase0, phase, sinphase, cosphase;
@@ -281,7 +315,7 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 // Compute electric field, already in global frame. Note that the flags to compute U and B should be enabled in order to compute E.
    if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = -(fields.Fluv() ^ fields.Fluv()) / c_code;
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -291,29 +325,32 @@ void BackgroundSolarWind<HConfig>::EvaluateBackground(Coordinates& coords, Field
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-   if constexpr (derivative_method == DerivativeMethod::analytic) {
-
-      if constexpr (RequestedFields::DelFluv_found()) {
+   if constexpr (RequestedFields::DelFluv_found()) {
 // Expression valid only for radial flow
-         auto posprime = coords.Pos() - r0;
+      GeoVector posprime = coords.Pos() - r0;
+      if constexpr (with_termination_shock) {
+         double r = posprime.Norm();
+         double v_norm = fields.AbsFluv();
+         GeoMatrix rr = Dyadic(posprime / r);
+         fields.DelFluv('w') = dUrdr(r, v_norm) * rr + (v_norm / r) * (gm_unit - rr);
+      }
+      else {
          GeoMatrix rr = Dyadic(posprime);
          fields.DelFluv('w') = (fields.AbsFluv() / posprime.Norm()) * (gm_unit - rr);
-      };
-      if constexpr (RequestedFields::DelMag_found()) {
-//TODO: complete
-      };
-      if constexpr (RequestedFields::DelElc_found()) {
-         fields.DelElc('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
-      };
-      if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
-      if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
-      if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
-   }
-   else {
-      NumericalDerivatives<BackgroundSolarWind<HConfig>, Coordinates, Fields, RequestedFields>(coords, fields);
+      }
    };
+   if constexpr (RequestedFields::DelMag_found()) {
+//TODO: complete
+   };
+   if constexpr (RequestedFields::DelEle_found()) {
+      fields.DelEle('w') = -((fields.DelFluv() ^ fields.Mag()) + (fields.Fluv() ^ fields.DelMag())) / c_code;
+   };
+   if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
+   if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
+   if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   return 0;
 };
 
 /*!
@@ -322,10 +359,20 @@ void BackgroundSolarWind<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
 */
 template <typename HConfig>
 template <typename Coordinates>
-double BackgroundSolarWind<HConfig>::EvaluateDmax(Coordinates& coords)
+status_t BackgroundSolarWind<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   _ddata.dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
-   LOWER_BITS(_status, STATE_INVALID);
+   *dmax = fmin(dmax_fraction * (coords.Pos() - r0).Norm(), dmax0);
+   if constexpr (with_termination_shock) {
+// Reduce "dmax" around the shock. This implemenation assumes that "dmax" = "dmax0" near "TS.r" by default.
+      double r = (coords.Pos() - r0).Norm();
+      if (TS.r - dmax0 < r && r < TS.r + TS.w + dmax0) {
+         if (r < TS.r) *dmax += (TS.dmax - dmax0) * (r - TS.r + dmax0) / dmax0;
+         else if (r > TS.r + TS.w) *dmax -= (TS.dmax - dmax0) * (r - TS.r - TS.w - dmax0) / dmax0;
+         else *dmax = TS.dmax;
+      };
+   }
+   return 0;
 };
 
 };
+

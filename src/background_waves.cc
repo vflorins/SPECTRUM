@@ -2,6 +2,7 @@
 \file background_waves.cc
 \brief Implements a background consisting of a superposition of waves
 \author Vladimir Florinski
+\author Lucius Schoenbaum
 
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
@@ -16,30 +17,6 @@ using namespace BackgroundOptions;
 // BackgroundWaves methods
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-/*!
-\author Vladimir Florinski
-\date 08/29/2022
-*/
-template <typename HConfig>
-BackgroundWaves<HConfig>::BackgroundWaves(void)
-               : BackgroundBase(name, MODEL_STATIC)
-{
-};
-
-/*!
-\author Vladimir Florinski
-\date 08/29/2022
-\param[in] other Object to initialize from
-
-A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupBackground()" with the argument of "true".
-*/
-template <typename HConfig>
-BackgroundWaves<HConfig>::BackgroundWaves(const BackgroundWaves& other)
-               : BackgroundBase(other)
-{
-   RAISE_BITS(_status, MODEL_STATIC);
-   if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupBackground(true);
-};
 
 /*!
 \author Vladimir Florinski
@@ -49,16 +26,13 @@ BackgroundWaves<HConfig>::BackgroundWaves(const BackgroundWaves& other)
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
 */
 template <typename HConfig>
-void BackgroundWaves<HConfig>::SetupBackground(bool construct)
+void BackgroundWaves<HConfig>::SetupBackground(DataContainer& container)
 {
    int dim, wave;
    turb_type t_type;
    double kn, phi, sint, cost, sinp, cosp, alpha, dlnk, psd, psd_tot;
    GeoMatrix basis_b, basis_k;
    TurbProp properties;
-
-// The parent version must be called explicitly if not constructing
-   if (!construct) BackgroundBase::SetupBackground(false);
 
 // Build the field-aligned coordinate system
    basis_b.AxisymmetricBasis(B0);
@@ -172,7 +146,7 @@ void BackgroundWaves<HConfig>::SetupBackground(bool construct)
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
+status_t BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& fields)
 {
    int wave;
    double arg, z_rot;
@@ -206,7 +180,7 @@ void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
    if constexpr (RequestedFields::Elc_found()) fields.Elc('w') = gv_zeros;
    if constexpr (RequestedFields::Iv0_found()) fields.Iv0('w') = 1.0;
 
-   LOWER_BITS(_status, STATE_INVALID);
+   return 0;
 };
 
 /*!
@@ -216,7 +190,7 @@ void BackgroundWaves<HConfig>::EvaluateBackground(Coordinates& coords, Fields& f
 */
 template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
-void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
+status_t BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
    int wave, xyz;
    double arg, z_rot;
@@ -257,18 +231,20 @@ void BackgroundWaves<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords
    if constexpr (RequestedFields::DotFluv_found()) fields.DotFluv('w') = gv_zeros;
    if constexpr (RequestedFields::DotMag_found()) fields.DotMag('w') = gv_zeros;
    if constexpr (RequestedFields::DotElc_found()) fields.DotElc('w') = gv_zeros;
+   return 0;
 };
 
 /*!
 \author Vladimir Florinski
-\date 10/14/2022
+\author Lucius Schoenbaum
+\date 11/27/2025
 */
 template <typename HConfig>
 template <typename Coordinates>
-double BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords)
+status_t BackgroundWaves<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   _ddata.dmax = fmin(shortest_wave, dmax0);
-   LOWER_BITS(_status, STATE_INVALID);
+   *dmax = fmin(shortest_wave, dmax0);
+   return 0;
 };
 
 };

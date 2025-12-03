@@ -213,7 +213,6 @@ struct MPI<HConfig_, true>
 
 };
 
-
 // Something like this is needed for templated classes
 #include "mpi_config.cc"
 

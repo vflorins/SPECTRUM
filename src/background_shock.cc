@@ -73,9 +73,9 @@ status_t BackgroundShock<HConfig>::EvaluateBackgroundDerivatives(Coordinates& co
 */
 template <typename HConfig>
 template <typename Coordinates>
-status_t BackgroundShock<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+status_t BackgroundShock<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   dmax = dmax0;
+   *dmax = dmax0;
    return 0;
 };
 

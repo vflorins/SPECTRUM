@@ -19,6 +19,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
+// forward declaration of vector type
+// class GeoVector;
+
 template<Config::Diffusion diffusion_, SpecieId specieid_>
 struct DiffusionConfig;
 
@@ -291,7 +294,7 @@ struct DiffusionConfig<Config::Diffusion::FlowMomentumPowerLaw, specieid_> {
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment for the diffusion computation during the simulation.
-   using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t, Fluv_t, AbsFluv_t, DotFluv_t, DelFluv_t>;
 //! Name: kappa0
 // Description: Reference diffusion coefficient
    static constexpr double kappa0 = 1.0;
@@ -334,9 +337,9 @@ struct DiffusionConfig<Config::Diffusion::KineticEnergyRadialDistancePowerLaw, s
 //! Name: T0
 // Description: Kinetic Energy normalization factor
    static constexpr double T0 = 1.0;
-//! Name: r0
+//! Name: r0_nf
 // Description: Radial distance normalization factor
-   static constexpr double r0 = 1.0;
+   static constexpr double r0_nf = 1.0;
 //! Name: pow_law_T
 // Description: Power law slope for kinetic energy
    static constexpr double pow_law_T = 1.0;
@@ -382,12 +385,12 @@ struct DiffusionConfig<Config::Diffusion::RigidityMagneticFieldPowerLaw, speciei
 //! Name: lam0
 // Description: Parallel mean free path
    static constexpr double lam0 = 1.0;
-//! Name: R0
+//! Name: R0_nf
 // Description: Rigidity normalization factor
-   static constexpr double R0 = 1.0;
-//! Name: B0
+   static constexpr double R0_nf = 1.0;
+//! Name: B0_nf
 // Description: Magnetic field normalization factor
-   static constexpr double B0 = 1.0;
+   static constexpr double B0_nf = 1.0;
 //! Name: pow_law_R
 // Description: Power law slope for rigidity
    static constexpr double pow_law_R = 1.0;
@@ -424,12 +427,12 @@ struct DiffusionConfig<Config::Diffusion::StraussEtAl2013, specieid_> {
 //! Name: lam_outer
 // Description: Parallel outer heliosphere mean free path
    static constexpr double lam_outer = 1.0;
-//! Name: R0
+//! Name: R0_nf
 // Description: Rigidity normalization factor
-   static constexpr double R0 = 1.0;
-//! Name: B0
+   static constexpr double R0_nf = 1.0;
+//! Name: B0_nf
 // Description: Magnetic field normalization factor
-   static constexpr double B0 = 1.0;
+   static constexpr double B0_nf = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -463,12 +466,12 @@ struct DiffusionConfig<Config::Diffusion::GuoEtAl2014, specieid_> {
 //! Name: lam_outer
 // Description: Parallel outer heliosphere mean free path
    static constexpr double lam_outer = 1.0;
-//! Name: R0
+//! Name: R0_nf
 // Description: Rigidity normalization factor
-   static constexpr double R0 = 1.0;
-//! Name: B0
+   static constexpr double R0_nf = 1.0;
+//! Name: B0_nf
 // Description: Magnetic field normalization factor
-   static constexpr double B0 = 1.0;
+   static constexpr double B0_nf = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -502,12 +505,12 @@ struct DiffusionConfig<Config::Diffusion::PotgieterEtAl2015, specieid_> {
 //! Name: kappa_outer
 // Description: Parallel outer heliosphere diffusion coefficient
    static constexpr double kappa_outer = 1.0;
-//! Name: R0
+//! Name: R0_nf
 // Description: Rigidity normalization factor
-   static constexpr double R0 = 1.0;
-//! Name: B0
+   static constexpr double R0_nf = 1.0;
+//! Name: B0_nf
 // Description: Magnetic field normalization factor
-   static constexpr double B0 = 1.0;
+   static constexpr double B0_nf = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -538,12 +541,12 @@ struct DiffusionConfig<Config::Diffusion::EmpiricalSOQLTandUNLT, specieid_> {
 //! Name: lam_perp
 // Description: Perpendicular mean free path mean free path
    static constexpr double lam_perp = 1.0;
-//! Name: R0
+//! Name: R0_nf
 // Description: Rigidity normalization factor
-   static constexpr double R0 = 1.0;
-//! Name: B0
+   static constexpr double R0_nf = 1.0;
+//! Name: B0_nf
 // Description: Magnetic field normalization factor
-   static constexpr double B0 = 1.0;
+   static constexpr double B0_nf = 1.0;
 //! Name: Bmix_idx
 // Description: Index for magnetic mixing indicator variable
    static constexpr int Bmix_idx = 1;

@@ -11,6 +11,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMPILETIME_MATH_HH
 #define SPECTRUM_COMPILETIME_MATH_HH
 
+#include <limits>
+
 namespace Spectrum {
 
 constexpr double csqrt(double x) {

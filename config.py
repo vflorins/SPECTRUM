@@ -26,6 +26,14 @@ PM = SourceFileLoader("config.parameters", "config.parameters.py").load_module()
 
 only_generate_test_files = False
 
+
+def argkey(key, spectrum_type):
+    """
+    This is to avoid name collisions among parameter lists for different spectrum types
+    when they are dumped into the common args dict by argparse.
+    """
+    return f"{key}_{spectrum_type}"
+
 def get(key, args, spectrum_type, special_type):
     """
     This function implements resolutions of values based on the default lists.
@@ -46,10 +54,11 @@ def get(key, args, spectrum_type, special_type):
     parameterinfo = PM.parameters[spectrum_type][key]
     preamble = parameterinfo.parameter_type + "::" if isinstance(parameterinfo.parameter_type, str) else ""
     if parameterinfo.parameter_type != type:
-        if not key in args:
-            raise KeyError(f"[get] The option {key} is undefined.")
-        if args.__dict__[key] is not None:
-            return args.__dict__[key]
+        ak = argkey(key, spectrum_type)
+        if not ak in args:
+            raise KeyError(f"[get] The option {ak} is undefined.")
+        if args.__dict__[ak] is not None:
+            return args.__dict__[ak]
     if special_type in physical_defaults[spectrum_type]:
         if key in physical_defaults[spectrum_type][special_type]:
             if parameterinfo.parameter_type == float:
@@ -58,6 +67,10 @@ def get(key, args, spectrum_type, special_type):
                 return str(physical_defaults[spectrum_type][special_type][key])
             elif parameterinfo.parameter_type == bool:
                 return str(physical_defaults[spectrum_type][special_type][key]).lower()
+            elif parameterinfo.parameter_type == "GeoVector" or \
+                parameterinfo.parameter_type == "GeoMatrix" or \
+                parameterinfo.parameter_type == "MultiIndex":
+                return physical_defaults[spectrum_type][special_type][key]
             else:
                 return preamble + physical_defaults[spectrum_type][special_type][key]
         else:
@@ -118,7 +131,7 @@ if __name__ == "__main__":
         for key in parameters_:
             if parameters_[key].parameter_type != type:
                 parser.add_argument(
-                    f"--{key}",
+                    f"--{argkey(key, spectrum_type)}",
                     type=parameters_[key].argparse_parameter_type,
                     help=PM.parameters[spectrum_type][key].description,
                     required=False,
@@ -189,9 +202,15 @@ struct {spectrum_type}Config<Config::{spectrum_type}::{special_type}, specieid_>
    static constexpr Specie<specieid_> specie;
 """
                 for key in physical_defaults[spectrum_type][special_type]:
-                    parameterinfo = PM.parameters[spectrum_type][key]
+                    try:
+                        parameterinfo = PM.parameters[spectrum_type][key]
+                    except:
+                        raise ValueError(f"Failed to find parameter {key} in the full parameter list for type {spectrum_type}.")
                     content += parameterinfo.str() + "\n"
-                    value_definition = f"{key} = {get(key, args, spectrum_type, special_type)}"
+                    try:
+                        value_definition = f"{key} = {get(key, args, spectrum_type, special_type)}"
+                    except:
+                        raise ValueError(f"Failed while trying to set config for parameter {key} of {spectrum_type}: {special_type}.")
                     if parameterinfo.parameter_type == int:
                         type_definition = "static constexpr int"
                     elif parameterinfo.parameter_type == bool:

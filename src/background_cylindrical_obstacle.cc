@@ -88,11 +88,11 @@ status_t BackgroundCylindricalObstacle<HConfig>::EvaluateBackgroundDerivatives(C
 */
 template <typename HConfig>
 template <typename Coordinates>
-status_t BackgroundCylindricalObstacle<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+status_t BackgroundCylindricalObstacle<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
    GeoVector posprime = coords.Pos() - r0;
    posprime.SubtractParallel(axis);
-   dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
+   *dmax = fmin(dmax_fraction * posprime.Norm(), dmax0);
    return 0;
 };
 

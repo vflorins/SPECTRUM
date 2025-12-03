@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_UNIFORM_HH
 #define SPECTRUM_BACKGROUND_UNIFORM_HH
 
-#include "utils_numerical_derivatives.hh"
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
@@ -33,28 +33,33 @@ public:
 public:
 
    using HConfig = HConfig_;
-   using Cfg = HConfig::BackgroundConfig;
+   using Config = HConfig::BackgroundConfig;
 
-protected:
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
+   static constexpr double dmax0 = Config::dmax0;
+
+   static constexpr GeoVector u0 = Config::u0;
+
+   static constexpr GeoVector B0 = Config::B0;
 
 //! Electric field (persistent)
-   static constexpr GeoVector E0 = -(Cfg::u0 ^ Cfg::B0) / c_code;
-
-////! Set up the field evaluator based on "params"
-//   void SetupBackground(bool construct);
+   static constexpr GeoVector E0 = -(u0 ^ B0) / c_code;
 
 public:
 
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates& coords, double*);
+
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackground(Coordinates&, Fields&);
+   static status_t EvaluateBackground(Coordinates&, Fields&);
 
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
-   static void EvaluateBackgroundDerivatives(Coordinates&, Fields&);
-
-   template <typename Coordinates>
-   static double EvaluateDmax(Coordinates& coords);
+   static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
 
 };
 

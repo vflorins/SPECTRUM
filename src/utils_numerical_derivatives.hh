@@ -49,7 +49,6 @@ struct NumericalDerivativesBase {
 \date 11/25/2025
 Reset (re-initialize) the derivative data structure.
  */
-   template <typename Background>
    void Reset(double dmax)
    {
       // Initialize "safe" box for derivatives

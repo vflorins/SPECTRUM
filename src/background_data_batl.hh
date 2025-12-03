@@ -10,7 +10,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_DATA_BATL_HH
 #define SPECTRUM_BACKGROUND_DATA_BATL_HH
 
-#include "background_data_cartesian.hh"
+#include "background_data_base.hh"
 #include "server_interface.hh"
 
 namespace Spectrum {
@@ -25,48 +25,58 @@ namespace Spectrum {
 \author Juan G Alonso Guzman
 \author Lucius Schoenbaum
 
-Parameters: (BackgroundServerCartesian)
 */
 template <typename HConfig_>
-class BackgroundDataBATL : public BackgroundDataCartesian<HConfig_>, public ServerInterface<HConfig_> {
+class BackgroundDataBATL : public BackgroundDataBase<HConfig_> {
 public:
 
 //! Readable name of the class
    static constexpr std::string_view name = "BackgroundDataBATL";
 
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
+
 public:
 
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
-   using Block = Block<HConfig>;
-   using MPI = MPI<HConfig, HConfig::MPI_enabled()>;
 
-   // todo as the following notes indicate, both classes can inherit independently from a BackgroundDataBase class.
+   using BackgroundDataBase = BackgroundDataBase<HConfig>;
+   using Block = BackgroundDataBase::Block;
+   using BlockPtr = BackgroundDataBase::BlockPtr;
+   using MPI = BackgroundDataBase::MPI;
+   using DataFields = BackgroundDataBase::DataFields;
 
-   // todo base class
-   using BackgroundDataCartesian = BackgroundDataCartesian<HConfig>;
-   // todo base class
-   using BackgroundDataCartesian::RequestBlock;
-   // todo base class
-   using BackgroundDataCartesian::cache_line;
-   // todo base class
-   using BackgroundDataCartesian::block_pri;
-   // todo base class
-   using BackgroundDataCartesian::block_sec;
-   // todo base class
-   using BackgroundDataCartesian::server_interp_order;
-   // todo base class
-   using BackgroundDataCartesian::num_ghost_cells;
-   // todo base class
-   using BackgroundDataCartesian::InteriorInterpolationStencil;
-
-   using ServerInterface = ServerInterface<HConfig>;
+   using ServerInterface = BackgroundDataBase::ServerInterface;
    using ServerInterface::_inquiry;
    using ServerInterface::stencil;
    using ServerInterface::MPIInquiryType;
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
-   using BlockPtr = ServerInterface::BlockPtr;
+
+   using BackgroundDataBase::cache_line;
+   using BackgroundDataBase::block_pri;
+   using BackgroundDataBase::block_sec;
+   using BackgroundDataBase::block_stn;
+   using BackgroundDataBase::stencil_status;
+   using BackgroundDataBase::stencil_outcomes;
+
+// base methods:
+   using BackgroundDataBase::RequestBlock;
+   using BackgroundDataBase::InteriorInterpolationStencil;
+
+// constexpr values:
+   using BackgroundDataBase::allow_server_worker;
+   using BackgroundDataBase::num_ghost_cells;
+   using BackgroundDataBase::server_interp_order;
+   using BackgroundDataBase::dmax0;
+
+// debug methods:
+   using BackgroundDataBase::PrintStencilOutcomes;
+   using BackgroundDataBase::PrintNumBlocksRequested;
+   using BackgroundDataBase::GetNCachedBlocks;
+   using BackgroundDataBase::InvalidateCache;
 
    static constexpr bool request_stencil_from_batl = Config::request_stencil_from_batl;
 
@@ -93,18 +103,14 @@ public:
 
 protected:
 
-   // todo this is BATL-specific
-
    //! Obtain an interpolation stencil from the server
    int RequestStencil(const GeoVector& pos);
 
 //! Generate an interpolation stencil for one plane
    int BuildInterpolationPlane(const GeoVector& pos, int plane, int half);
 
-   // todo this is virtual in base class
-
 //! Generate an interpolation stencil in 3D
-   int BuildInterpolationStencil(const GeoVector& pos);
+   int BuildInterpolationStencil(const GeoVector& pos) final;
 
 public:
 
@@ -114,11 +120,19 @@ public:
 //! Destructor
    ~BackgroundDataBATL() override = default;
 
+public: // data background API:
+
+//! Front end set up prior to main loop
+   void Start(void);
+
+//! Front end clean up tasks after the main loop
+   void Finish(void);
+
 public: // general background API:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   status_t EvaluateDmax(Coordinates&, double&);
+   status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>

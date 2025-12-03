@@ -35,7 +35,7 @@ struct GeoVector : public SimpleArray<double, 3>
    using SimpleArray::operator/=;
 
 //! Default constructor
-   SPECTRUM_DEVICE_FUNC GeoVector(void) {};
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(void) {};
 
 //! Constructor from a single value
    SPECTRUM_DEVICE_FUNC explicit constexpr GeoVector(double val);
@@ -47,7 +47,14 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC constexpr GeoVector(double x_in, double y_in, double z_in);
 
 //! Constructor from the base class
-   SPECTRUM_DEVICE_FUNC GeoVector(const SimpleArray<double, 3>& other);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(const SimpleArray<double, 3>& other);
+
+//! Constructor from std::array
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector(const std::array<double, 3>& other) {
+      this->data[0] = other[0];
+      this->data[1] = other[1];
+      this->data[2] = other[2];
+   }
 
 //! Constructor from a multi-index
    SPECTRUM_DEVICE_FUNC GeoVector(const MultiIndex& other);
@@ -62,10 +69,10 @@ struct GeoVector : public SimpleArray<double, 3>
    SPECTRUM_DEVICE_FUNC constexpr double Norm(void) const;
 
 //! Makes this a unit vector
-   SPECTRUM_DEVICE_FUNC GeoVector& Normalize(void);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& Normalize(void);
 
 //! Makes this a unit vector but saves the norm
-   SPECTRUM_DEVICE_FUNC GeoVector& Normalize(double& norm);
+   SPECTRUM_DEVICE_FUNC constexpr GeoVector& Normalize(double& norm);
 
 //! Vector-multiply this by another vector
    SPECTRUM_DEVICE_FUNC GeoVector& operator ^=(const GeoVector& other);
@@ -170,7 +177,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y
 \date 03/10/2024
 \param[in] other Object to initialize from
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector::GeoVector(const SimpleArray<double, 3>& other)
+SPECTRUM_DEVICE_FUNC constexpr inline GeoVector::GeoVector(const SimpleArray<double, 3>& other)
 {
    memcpy(data, other.data, 3 * sizeof(double));
 };
@@ -226,7 +233,7 @@ SPECTRUM_DEVICE_FUNC constexpr inline double GeoVector::Norm(void) const
 \date 07/23/2019
 \return Reference to this object
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::Normalize(void)
 {
    double norm = Norm();
    x /= norm;
@@ -241,7 +248,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(void)
 \param[out] norm \f$|v|\f$
 \return Reference to this object
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector& GeoVector::Normalize(double& norm)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::Normalize(double& norm)
 {
    norm = Norm();
    x /= norm;
@@ -490,7 +497,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator /(const GeoVector& vect_l, const 
 \param[in] vect Vector to rescale \f$\mathbf{v}\f$
 \return Normalized vector
 */
-SPECTRUM_DEVICE_FUNC inline GeoVector UnitVec(const GeoVector& vect)
+SPECTRUM_DEVICE_FUNC constexpr inline GeoVector UnitVec(const GeoVector& vect)
 {
    GeoVector vect_tmp(vect);
    return vect_tmp.Normalize();

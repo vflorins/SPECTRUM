@@ -9,6 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_BACKGROUND_CYLINDRICAL_OBSTACLE_HH
 #define SPECTRUM_BACKGROUND_CYLINDRICAL_OBSTACLE_HH
 
+#include "common/vectors.hh"
 
 namespace Spectrum {
 
@@ -34,6 +35,10 @@ public:
 
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
+
+// secular config:
+   static constexpr bool requires_setup = false;
+   static constexpr bool stochastic = false;
 
 protected:
 
@@ -64,7 +69,7 @@ public:
 
 //! Compute the maximum distance per time step
    template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double&);
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

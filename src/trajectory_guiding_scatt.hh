@@ -40,8 +40,6 @@ public:
 
    using TrajectoryGuiding = TrajectoryGuiding<HConfig>;
 
-protected:
-
    using TrajectoryBase::_status;
    using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;

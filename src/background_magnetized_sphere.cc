@@ -51,9 +51,9 @@ status_t BackgroundMagnetizedSphere<HConfig>::EvaluateBackgroundDerivatives(Coor
 */
 template <typename HConfig>
 template <typename Coordinates>
-status_t BackgroundMagnetizedSphere<HConfig>::EvaluateDmax(Coordinates& coords, double& dmax)
+status_t BackgroundMagnetizedSphere<HConfig>::EvaluateDmax(Coordinates& coords, double* dmax)
 {
-   return BackgroundSphericalObstacle::template EvaluateBackgroundDerivatives<Coordinates>(coords, dmax);
+   return BackgroundSphericalObstacle::template EvaluateDmax<Coordinates>(coords, dmax);
 };
 
 };

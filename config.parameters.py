@@ -106,7 +106,7 @@ class ParameterInfo:
             out += f"{nl}Options: " + " | ".join(self.possible_values)
         if cpp_comment and self.secular:
             out += f"{nl}Secular (do not modify)"
-        else:
+        elif not cpp_comment:
             out += f"{nl}Secular: True"
         return out
 
@@ -207,7 +207,7 @@ parameters_background = {
     ),
     'r0': ParameterInfo(
         name = 'r0',
-        description = "r0",
+        description = "value (todo: description)",
         parameter_type = "GeoVector",
     ),
     'u0': ParameterInfo(
@@ -289,8 +289,13 @@ parameters_background = {
     ),
     'r_ref': ParameterInfo(
         name = 'r_ref',
+        description = "Reference equatorial distance",
+        parameter_type = float,
+    ),
+    'z_nose': ParameterInfo(
+        name = 'z_nose',
         description = "todo",
-        parameter_type = "GeoVector",
+        parameter_type = float,
     ),
     'fsl_mns': ParameterInfo(
         name = 'fsl_mns',
@@ -368,8 +373,13 @@ parameters_background = {
         possible_values=["constant", "linear_step", "smooth_step"],
         parameter_type="BackgroundOptions::SpeedLatitudeProfile",
     ),
-    'solarwind_termshock_speed_exponent': ParameterInfo(
-        name = 'solarwind_termshock_speed_exponent',
+    'with_termination_shock': ParameterInfo(
+        name = 'with_termination_shock',
+        description = "Whether the model has a spherical termination shock feature (requires extra setup, see source/documentation)",
+        parameter_type=bool,
+    ),
+    'termshock_speed_exponent': ParameterInfo(
+        name = 'termshock_speed_exponent',
         description = "Integer exponent of decrease of solar wind speed beyond the termination shock",
         possible_values=["zero", "one", "square", "cube"],
         parameter_type="BackgroundOptions::TermShockSpeedExponent",
@@ -390,12 +400,6 @@ parameters_background = {
         name = 'tanh_width_factor',
         description = "Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)",
         parameter_type=float,
-    ),
-    'stochastic': ParameterInfo(
-        name = 'stochastic',
-        description = "Whether the background is stochastic in nature",
-        parameter_type=bool,
-        secular=True,
     ),
 }
 
@@ -665,6 +669,11 @@ parameters_diffusion = {
         description = "Extent of the HP in the nose direction",
         parameter_type=float,
     ),
+    'fzoom': ParameterInfo(
+        name = 'fzoom',
+        description = "Amplification factor at the nose",
+        parameter_type=float,
+    ),
     'z_sheath': ParameterInfo(
         name = 'z_sheath',
         description = "Extent of the sheath in the nose direction",
@@ -700,8 +709,8 @@ parameters_diffusion = {
         description = "Kinetic Energy normalization factor",
         parameter_type=float,
     ),
-    'r0': ParameterInfo(
-        name = 'r0',
+    'r0_nf': ParameterInfo(
+        name = 'r0_nf',
         description = "Radial distance normalization factor",
         parameter_type=float,
     ),
@@ -735,13 +744,13 @@ parameters_diffusion = {
         description = "Parallel mean free path",
         parameter_type=float,
     ),
-    'R0': ParameterInfo(
-        name = 'R0',
+    'R0_nf': ParameterInfo(
+        name = 'R0_nf',
         description = "Rigidity normalization factor",
         parameter_type=float,
     ),
-    'B0': ParameterInfo(
-        name = 'B0',
+    'B0_nf': ParameterInfo(
+        name = 'B0_nf',
         description = "Magnetic field normalization factor",
         parameter_type=float,
     ),
