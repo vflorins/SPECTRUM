@@ -19,8 +19,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-// forward declaration of vector type
-// class GeoVector;
 
 template<Config::Trajectory trajectory_, SpecieId specieid_>
 struct TrajectoryConfig;
@@ -33,7 +31,10 @@ Trajectory: Fieldline
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::Fieldline, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::Fieldline;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -88,7 +89,10 @@ Trajectory: Focused
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::Focused, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::Focused;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -156,7 +160,10 @@ Trajectory: Guiding
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::Guiding, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::Guiding;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -221,7 +228,10 @@ Trajectory: GuidingDiff
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::GuidingDiff, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::GuidingDiff;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -286,7 +296,10 @@ Trajectory: GuidingScatt
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::GuidingScatt, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::GuidingScatt;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -366,7 +379,10 @@ Trajectory: GuidingDiffScatt
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::GuidingDiffScatt, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::GuidingDiffScatt;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -450,7 +466,10 @@ Trajectory: Lorentz
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::Lorentz, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::Lorentz;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::cartesian>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -518,7 +537,10 @@ Trajectory: Parker
 */
 template<SpecieId specieid_>
 struct TrajectoryConfig<Config::Trajectory::Parker, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: trajectory
+// Description: The trajectory type used for simulation
+// Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
+   static constexpr auto trajectory = Config::Trajectory::Parker;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>;

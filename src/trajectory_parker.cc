@@ -97,7 +97,7 @@ try {
    if constexpr (HConfig::divk_method == TrajectoryOptions::DivkMethod::direct) {
 // Compute using Diffusion Fields type, this only compute fields needed by diffusion
       double Kperp_forw, Kperp_back, Kpara_forw, Kpara_back, Kappa_forw, Kappa_back;
-      double delta = fmin(LarmorRadius<Config::specie>(_coords.AbsMom(), _fields.AbsMag()), _dmax);
+      double delta = fmin(LarmorRadius<specie>(_coords.AbsMom(), _fields.AbsMag()), _dmax);
 
 // Compute perpendicular and parallel diffusion coefficients and diffusion tensor.
       Kperp = diffusion.Get(Component::perp);
@@ -205,7 +205,7 @@ void TrajectoryParker<HConfig>::DriftCoeff(void)
       // Compute |B|*curl(b/|B|)
       drift_vel = (_fields.CurlMag() - 2.0 * (_fields.DelAbsMag() ^ _fields.HatMag())) / _fields.AbsMag();
 // Scale by pvc/3q|B| = r_L*v/3
-      drift_vel *= LarmorRadius<Config::specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0] / 3.0;
+      drift_vel *= LarmorRadius<specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0] / 3.0;
 // Scale magnitude to an upper limit of v/2 if necessary.
       if (drift_vel.Norm() > 0.5 * _coords.Vel()[0]) {
          drift_vel.Normalize();

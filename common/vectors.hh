@@ -142,9 +142,12 @@ SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(const double* other)
 */
 SPECTRUM_DEVICE_FUNC inline constexpr GeoVector::GeoVector(double x_in, double y_in, double z_in)
 {
-   x = x_in;
-   y = y_in;
-   z = z_in;
+   data[0] = x_in;
+   data[1] = y_in;
+   data[2] = z_in;
+//   x = x_in;
+//   y = y_in;
+//   z = z_in;
 };
 
 /*!

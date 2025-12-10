@@ -152,7 +152,7 @@ struct SimpleArray : SimpleArrayBase<data_type, n_vars>
    SPECTRUM_DEVICE_FUNC SimpleArray& operator -=(const SimpleArray& other);
 
 //! Multiply each component by a number
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(data_type a);
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator *=(data_type a);
 
 //! Compute a result of component-wise multiplication of two simple arrays
    SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(const SimpleArray& other);
@@ -302,7 +302,7 @@ SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_typ
 \return \f$a\mathbf{v}\f$
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(data_type a)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(data_type a)
 {
    for (auto i = 0; i < n_vars; i++) data[i] *= a;
    return *this;

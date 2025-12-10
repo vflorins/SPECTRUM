@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "common/vectors.hh"
 #include "common/matrix.hh"
 #include "common/turb_prop.hh"
+#include "common/random.hh"
 
 namespace Spectrum {
 

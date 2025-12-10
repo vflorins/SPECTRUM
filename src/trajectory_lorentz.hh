@@ -38,6 +38,7 @@ public:
    using TrajectoryBase::StopBackground;
 
    using TrajectoryBase::_status;
+   using TrajectoryBase::specie;
    using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;

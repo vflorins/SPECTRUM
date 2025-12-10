@@ -42,42 +42,39 @@ public:
    static constexpr bool requires_setup = true;
    static constexpr bool stochastic = false;
 
-   // TODO: there appears to be no way to proceed based on SimpleArray's design using this "stateless" construction.
-   //  To test, set 'requires_setup' to false, uncomment, and comment 'SetupBackground'.
+   static constexpr double dmax0 = Config::dmax0;
 
-//   static constexpr double dmax0 = Config::dmax0;
-//
-////! Maximum fraction of the radial distance per step (persistent)
-//   static constexpr double dmax_fraction = Config::dmax_fraction;
-//
-//   static constexpr GeoVector r0 = Config::r0;
-//
-//   static constexpr double r_ref = Config::r_ref;
-//
-//   static constexpr GeoVector B0 = Config::B0;
-//
-////! Dipole moment (persistent)
-//   static constexpr GeoVector M = B0*Cube(r_ref);
+//! Maximum fraction of the radial distance per step (persistent)
+   static constexpr double dmax_fraction = Config::dmax_fraction;
+
+   static constexpr GeoVector r0 = Config::r0;
+
+   static constexpr double r_ref = Config::r_ref;
+
+   static constexpr GeoVector B0 = Config::B0;
+
+//! Dipole moment (persistent)
+   static constexpr GeoVector M = B0*Cube(r_ref);
 
 protected:
 
-   double t0;
-
-   GeoVector r0;
-
-   GeoVector u0;
-
-   double dmax0;
-
-//! Maximum fraction of the radial distance per step (persistent)
-   double dmax_fraction;
-
-   double r_ref;
-
-   GeoVector B0;
-
-//! Dipole moment (persistent)
-   GeoVector M;
+//   double t0;
+//
+//   GeoVector r0;
+//
+//   GeoVector u0;
+//
+//   double dmax0;
+//
+////! Maximum fraction of the radial distance per step (persistent)
+//   double dmax_fraction;
+//
+//   double r_ref;
+//
+//   GeoVector B0;
+//
+////! Dipole moment (persistent)
+//   GeoVector M;
 
 public:
 

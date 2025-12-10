@@ -73,6 +73,8 @@ public:
    using BoundaryBase = BoundaryBase<HConfig>;
    using InitialBase = InitialBase<HConfig>;
 
+   static constexpr auto specie = HConfig::specie;
+
 protected:
 
 //! Background object (persistent)
@@ -347,7 +349,7 @@ inline void TrajectoryBase<HConfig>::DisconnectDistribution(int distro)
 //template <typename HConfig>
 //inline void TrajectoryBase<HConfig>::Load(void)
 //{
-//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 //};
 
 // todo deprecated

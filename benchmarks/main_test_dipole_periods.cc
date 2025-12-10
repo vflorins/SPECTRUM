@@ -1,6 +1,8 @@
 
-#include "common/fields.hh"
-#include "src/background_dipole.hh"
+
+#include "main_test_dipole_periods.hyperconfig.hh"
+
+#include "src/trajectory.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
 #include "src/boundary_momentum.hh"
@@ -8,10 +10,9 @@
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
 
-#include "src/trajectory.hh"
-#include "src/hyperconfigure.hh"
 #include <iostream>
 #include <iomanip>
+
 
 using namespace Spectrum;
 
@@ -20,20 +21,8 @@ int main(int argc, char **argv) {
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Set simulation types
+// Set simulation types, bring in hyperparameters
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   using HConfig = HyperConfigure<
-         BuildMode::debug,
-         SpecieId::proton_core,
-         Config::Background::Dipole,
-         Config::Trajectory::Guiding,
-         Config::Diffusion::None,
-         Default,
-         Default,
-         Default,
-         Default
-   >;
 
    using Trajectory = Trajectory<HConfig>;
 
@@ -64,36 +53,36 @@ int main(int argc, char **argv) {
 // Background
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   container.Clear();
-
-// Initial time
-   double t0 = 0.0;
-   container.Insert(t0);
-
-// Origin
-   container.Insert(gv_zeros);
-
-// Velocity
-   container.Insert(gv_zeros);
-
-// Magnetic field
-   double Bmag = 0.311 / unit_magnetic_fluid;
-   GeoVector B0(0.0, 0.0, Bmag);
-   container.Insert(B0);
-
-// Effective "mesh" resolution
-   double RE = 6.37e8 / unit_length_fluid;
-   double dmax_fraction = 0.1;
-   double dmax = dmax_fraction * RE;
-   container.Insert(dmax);
-
-// Reference equatorial distance
-   container.Insert(RE);
-
-// dmax fraction for distances closer to the dipole
-   container.Insert(dmax_fraction);
-
-   trajectory->SetupBackground(container);
+//   container.Clear();
+//
+//// Initial time
+//   double t0 = 0.0;
+//   container.Insert(t0);
+//
+//// Origin
+//   container.Insert(gv_zeros);
+//
+//// Velocity
+//   container.Insert(gv_zeros);
+//
+//// Magnetic field
+//   double Bmag = 0.311 / unit_magnetic_fluid;
+//   GeoVector B0(0.0, 0.0, Bmag);
+//   container.Insert(B0);
+//
+//// Effective "mesh" resolution
+////   double RE = 6.37e8 / unit_length_fluid;
+////   double dmax_fraction = 0.1;
+//   double dmax = dmax_fraction * RE;
+//   container.Insert(dmax);
+//
+//// Reference equatorial distance
+//   container.Insert(RE);
+//
+//// dmax fraction for distances closer to the dipole
+//   container.Insert(dmax_fraction);
+//
+//   trajectory->SetupBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -127,7 +116,7 @@ int main(int argc, char **argv) {
 
 // Initial momentum
    double MeV_kinetic_energy = 1.0;
-   container.Insert(Mom<HConfig::specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
+   container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
    double theta_eq = DegToRad(30.0);
    container.Insert(theta_eq);

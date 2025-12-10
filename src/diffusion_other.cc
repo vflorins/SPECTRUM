@@ -24,7 +24,7 @@ namespace Spectrum {
 */
 template <typename HConfig>
 DiffusionNone<HConfig>::DiffusionNone(void)
-      : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+      : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -39,7 +39,6 @@ template <typename HConfig>
 DiffusionNone<HConfig>::DiffusionNone(const DiffusionNone& other)
       : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -85,7 +84,7 @@ double DiffusionNone<HConfig>::GetMuDerivative(Component comp)
 */
 template <typename HConfig>
 DiffusionIsotropicConstant<HConfig>::DiffusionIsotropicConstant(void)
-                          : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+                          : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -100,7 +99,6 @@ template <typename HConfig>
 DiffusionIsotropicConstant<HConfig>::DiffusionIsotropicConstant(const DiffusionIsotropicConstant& other)
                           : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -403,7 +401,7 @@ void DiffusionWNLTRampVLISM<HConfig>::EvaluateDiffusion(Component comp)
 */
 template <typename HConfig>
 DiffusionParaConstant<HConfig>::DiffusionParaConstant(void)
-                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -419,7 +417,6 @@ template <typename HConfig>
 DiffusionParaConstant<HConfig>::DiffusionParaConstant(const DiffusionParaConstant& other)
                      : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -488,7 +485,7 @@ double DiffusionParaConstant<HConfig>::GetMuDerivative(Component comp)
 */
 template <typename HConfig>
 DiffusionPerpConstant<HConfig>::DiffusionPerpConstant(void)
-                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -504,7 +501,6 @@ template <typename HConfig>
 DiffusionPerpConstant<HConfig>::DiffusionPerpConstant(const DiffusionPerpConstant& other)
                      : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -573,7 +569,7 @@ double DiffusionPerpConstant<HConfig>::GetMuDerivative(Component comp)
 */
 template <typename HConfig>
 DiffusionFullConstant<HConfig>::DiffusionFullConstant(void)
-                     : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+                     : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -589,7 +585,6 @@ template <typename HConfig>
 DiffusionFullConstant<HConfig>::DiffusionFullConstant(const DiffusionFullConstant& other)
                      : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -756,7 +751,7 @@ double DiffusionFlowMomentumPowerLaw<HConfig>::GetMuDerivative(Component comp)
 */
 template <typename HConfig>
 DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>::DiffusionKineticEnergyRadialDistancePowerLaw(void)
-                                            : DiffusionBase(diff_name, DIFF_NOBACKGROUND)
+                                            : DiffusionBase(diff_name, 0)
 {
 };
 
@@ -771,7 +766,6 @@ template <typename HConfig>
 DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>::DiffusionKineticEnergyRadialDistancePowerLaw(const DiffusionKineticEnergyRadialDistancePowerLaw& other)
                                             : DiffusionBase(other)
 {
-   RAISE_BITS(_status, DIFF_NOBACKGROUND);
    if (BITS_RAISED(other._status, STATE_SETUP_COMPLETE)) SetupDiffusion(true);
 };
 
@@ -803,7 +797,7 @@ template <typename HConfig>
 void DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
-   Kappa[Component::para] = kap0 * pow(EnrKin<Config::specie>(_coords.AbsMom()) / T0, pow_law_T) * pow(_coords.Rad() / r0, pow_law_r);
+   Kappa[Component::para] = kap0 * pow(EnrKin<specie>(_coords.AbsMom()) / T0, pow_law_T) * pow(_coords.Rad() / r0, pow_law_r);
    Kappa[Component::perp] = kap_rat * Kappa[Component::para];
 };
 
@@ -892,7 +886,7 @@ template <typename HConfig>
 void DiffusionRigidityMagneticFieldPowerLaw<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
-   Kappa[Component::para] = (lam0 * _coords.AbsVel() / 3.0) * pow(Rigidity<Config::specie>(_coords.AbsMom()) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
+   Kappa[Component::para] = (lam0 * _coords.AbsVel() / 3.0) * pow(Rigidity<specie>(_coords.AbsMom()) / R0, pow_law_R) * pow(_fields.AbsMag() / B0, pow_law_B);
    Kappa[Component::perp] = kap_rat * Kappa[Component::para];
 };
 
@@ -989,7 +983,7 @@ void DiffusionStraussEtAl2013<HConfig>::EvaluateDiffusion(Component comp)
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double lam_para = LISM_ind * lam_out + (1.0 - LISM_ind) * lam_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity<Config::specie>(_coords.AbsMom());
+   double rig = Rigidity<specie>(_coords.AbsMom());
    double kap_rat;
 
 // Find diffusion coefficients
@@ -1075,7 +1069,7 @@ void DiffusionPotgieterEtAl2015<HConfig>::EvaluateDiffusion(Component comp)
    else LISM_ind = (_fields.IvLISM() > 0.0 ? 0.0 : 1.0);
    double kappa_para = LISM_ind * kappa_out + (1.0 - LISM_ind) * kappa_in;
    double B0_eff = LISM_ind * _fields.Mag() + (1.0 - LISM_ind) * B0;
-   double rig = Rigidity<Config::specie>(_coords.AbsMom());
+   double rig = Rigidity<specie>(_coords.AbsMom());
    double kap_rat;
 
 // Find diffusion coefficients
@@ -1156,7 +1150,7 @@ void DiffusionEmpiricalSOQLTandUNLT<HConfig>::EvaluateDiffusion(Component comp)
 {
    if (comp == Component::mu) return;
    double lam, rig_dep;
-   double rig = Rigidity<Config::specie>(_coords.AbsMom());
+   double rig = Rigidity<specie>(_coords.AbsMom());
 
    if (comp == Component::para) {
 // Compute mean free path and rigidity dependance with a bent power law

@@ -33,7 +33,10 @@ Background: CylindricalObstacle
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::CylindricalObstacle, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::CylindricalObstacle;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -58,7 +61,10 @@ Background: DataBATL
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::DataBATL, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::DataBATL;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -78,6 +84,12 @@ struct BackgroundConfig<Config::Background::DataBATL, specieid_> {
 //! Name: server_interpolation_order
 // Description: server_interpolation_order
    static constexpr int server_interpolation_order = 1;
+//! Name: servers_are_workers
+// Description: Whether servers are workers. Servers only exist if the background is a data-serving background.
+   static constexpr bool allow_server_worker = false;
+//! Name: file_name_pattern
+// Description: File name pattern used for stored data.
+   static constexpr std::string_view file_name_pattern = "data";
 };
 
 
@@ -89,7 +101,10 @@ Background: DataCartesian
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::DataCartesian, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::DataCartesian;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -109,6 +124,12 @@ struct BackgroundConfig<Config::Background::DataCartesian, specieid_> {
 //! Name: server_interpolation_order
 // Description: server_interpolation_order
    static constexpr int server_interpolation_order = 1;
+//! Name: servers_are_workers
+// Description: Whether servers are workers. Servers only exist if the background is a data-serving background.
+   static constexpr bool allow_server_worker = false;
+//! Name: file_name_pattern
+// Description: File name pattern used for stored data.
+   static constexpr std::string_view file_name_pattern = "data";
 };
 
 
@@ -120,7 +141,10 @@ Background: Dipole
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Dipole, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::Dipole;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -160,7 +184,10 @@ Background: Discontinuity
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Discontinuity, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::Discontinuity;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -185,7 +212,10 @@ Background: MagnetizedCylinder
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::MagnetizedCylinder, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::MagnetizedCylinder;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -210,7 +240,10 @@ Background: MagnetizedSphere
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::MagnetizedSphere, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::MagnetizedSphere;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -235,7 +268,10 @@ Background: Shock
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Shock, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::Shock;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -263,7 +299,10 @@ Background: SmoothDiscontinuity
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SmoothDiscontinuity, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::SmoothDiscontinuity;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -295,7 +334,10 @@ Background: SmoothShock
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SmoothShock, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::SmoothShock;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -327,7 +369,10 @@ Background: SolarWind
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SolarWind, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::SolarWind;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -369,7 +414,10 @@ Background: SphericalObstacle
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::SphericalObstacle, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::SphericalObstacle;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -397,7 +445,10 @@ Background: Uniform
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Uniform, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::Uniform;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -422,7 +473,10 @@ Background: VLISMBochum
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::VLISMBochum, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::VLISMBochum;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
@@ -458,7 +512,10 @@ Background: Waves
 */
 template<SpecieId specieid_>
 struct BackgroundConfig<Config::Background::Waves, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: background
+// Description: The background type used for simulation
+// Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
+   static constexpr auto background = Config::Background::Waves;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined

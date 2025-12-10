@@ -48,7 +48,7 @@ void TrajectoryFocused<HConfig>::SetStart(void)
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment<Config::specie>(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag());
+   mag_mom = MagneticMoment<specie>(_coords.Mom()[0] * sqrt(1.0 - Sqr(_coords.Mom()[1])), _fields.AbsMag());
 };
 
 /*!
@@ -73,7 +73,7 @@ void TrajectoryFocused<HConfig>::DriftCoeff(void)
       drift_vel += ( 0.5 * st2 * bhat * (B * _fields.CurlMag())
                      + ct2 * (bhat ^ (B * _fields.DelMag())) ) / Sqr(absB);
 // Scale by pvc/qB
-      drift_vel *= LarmorRadius<Config::specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0];
+      drift_vel *= LarmorRadius<specie>(_coords.Mom()[0], _fields.AbsMag()) * _coords.Vel()[0];
 // Add bulk flow and parallel velocities
       drift_vel += U + _coords.Vel()[0] * _coords.Mom()[1] * bhat;
    }
@@ -164,7 +164,7 @@ inline void TrajectoryFocused<HConfig>::MomentumCorrection(void)
 {
    if constexpr (HConfig::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum<Config::specie>(mag_mom, _fields.AbsMag()) / _coords.Mom()[0]));
+      _coords.Mom()[1] = sqrt(1.0 - Sqr(PerpMomentum<specie>(mag_mom, _fields.AbsMag()) / _coords.Mom()[0]));
    }
 
 // Check to enforce |mu| <= 1.0

@@ -120,7 +120,7 @@ void TrajectoryGuidingScatt<HConfig>::EulerPitchAngleScatt(bool second)
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
@@ -173,7 +173,7 @@ void TrajectoryGuidingScatt<HConfig>::MilsteinPitchAngleScatt(bool second)
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!
@@ -299,7 +299,7 @@ void TrajectoryGuidingScatt<HConfig>::RK2PitchAngleScatt(bool second)
    // todo review: it performs these
 //   _coords.MomPerp() = mom_conv[0] * sqrt(1 - Sqr(mu_new));
 //   _coords.MomPara() = mom_conv[0] * mu_new;
-//   _coords.Vel() = Vel<Config::specie>(_coords.Mom());
+//   _coords.Vel() = Vel<specie>(_coords.Mom());
 };
 
 /*!

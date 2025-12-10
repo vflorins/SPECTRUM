@@ -152,18 +152,21 @@ Magnetic field magnitude and/or direction can also be tracked but magnetic field
 physical_defaults = {
     'Background':{
         'Uniform': {
+            'background': 'Uniform',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
         'CylindricalObstacle': {
+            'background': 'CylindricalObstacle',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
         'Dipole': {
+            'background': 'Dipole',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -175,18 +178,21 @@ physical_defaults = {
             'r_ref': 1.0, # todo
         },
         'MagnetizedCylinder': {
+            'background': 'MagnetizedCylinder',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
         'MagnetizedSphere': {
+            'background': 'MagnetizedSphere',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
         'SphericalObstacle': {
+            'background': 'SphericalObstacle',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -194,12 +200,14 @@ physical_defaults = {
             'r_ref': 1.0, # todo
         },
         'Discontinuity': {
+            'background': 'Discontinuity',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
         'Shock': {
+            'background': 'Shock',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -208,6 +216,7 @@ physical_defaults = {
             'tanh_width_factor': 4.0,
         },
         'SmoothDiscontinuity': {
+            'background': 'SmoothDiscontinuity',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -217,6 +226,7 @@ physical_defaults = {
             'tanh_width_factor': 4.0,
         },
         'SmoothShock': {
+            'background': 'SmoothShock',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -226,6 +236,7 @@ physical_defaults = {
             'tanh_width_factor': 4.0,
         },
         'SolarWind': {
+            'background': 'SolarWind',
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             # todo discuss
@@ -240,6 +251,7 @@ physical_defaults = {
             'termshock_speed_exponent': 'square',
         },
         'VLISMBochum': {
+            'background': 'VLISMBochum',
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -250,21 +262,14 @@ physical_defaults = {
             'z_nose': 1.0, # todo
         },
         'Waves': {
+            'background': 'Waves',
             'derivative_method': 'analytic',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
             'dmax0': 0.1, # todo
         },
-        'Server': {
-            'derivative_method': 'numeric',
-            'num_numeric_grad_evals': 1,
-            'incr_dmax_ratio': 0.0001,
-            'dmax0': 0.1, # todo
-            ####
-            'server_num_ghost_cells': 2,
-            'server_interpolation_order': 1,
-        },
         'DataBATL': {
+            'background': 'DataBATL',
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -272,8 +277,11 @@ physical_defaults = {
             ####
             'server_num_ghost_cells': 2,
             'server_interpolation_order': 1,
+            'allow_server_worker': False,
+            'file_name_pattern': "data",
         },
         'DataCartesian': {
+            'background': 'DataCartesian',
             'derivative_method': 'numeric',
             'num_numeric_grad_evals': 1,
             'incr_dmax_ratio': 0.0001,
@@ -281,10 +289,13 @@ physical_defaults = {
             ####
             'server_num_ghost_cells': 2,
             'server_interpolation_order': 1,
+            'allow_server_worker': False,
+            'file_name_pattern': "data",
         },
     },
     'Trajectory': {
         'Fieldline': {
+            'trajectory': "Fieldline",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>>",
@@ -301,6 +312,7 @@ physical_defaults = {
             ####
         },
         'Focused': {
+            'trajectory': "Focused",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelFluv_t, DelAbsMag_t, DelMag_t, DotFluv_t>",
@@ -321,6 +333,7 @@ physical_defaults = {
             'mirror_threshold': 10,
         },
         'Guiding': {
+            'trajectory': "Guiding",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
@@ -340,6 +353,7 @@ physical_defaults = {
             'mirror_threshold': 10,
         },
         'GuidingDiff': {
+            'trajectory': "GuidingDiff",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
@@ -359,6 +373,7 @@ physical_defaults = {
             'mirror_threshold': 10,
         },
         'GuidingScatt': {
+            'trajectory': "GuidingScatt",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
@@ -382,6 +397,7 @@ physical_defaults = {
             'cfl_pitchangle': 0.5,
         },
         'GuidingDiffScatt': {
+            'trajectory': "GuidingDiffScatt",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>",
@@ -406,6 +422,7 @@ physical_defaults = {
             'cfl_pitchangle': 0.5,
         },
         'Lorentz': {
+            'trajectory': "Lorentz",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::cartesian>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Mag_t, Ele_t>",
@@ -426,6 +443,7 @@ physical_defaults = {
             'steps_per_orbit': 100,
         },
         'Parker': {
+            'trajectory': "Parker",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>",
             'RecordCoordinates': "Fields<FConfig<>, Pos_t, Time_t>",
             'Fields': "Fields<FConfig<specieid_>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t>",
@@ -453,6 +471,7 @@ physical_defaults = {
     },
     'Diffusion': {
         'None': {
+            'diffusion': "None",
             'Coordinates': "Fields<FConfig<>>",
             'Fields': "Fields<FConfig<>>",
         },
@@ -461,27 +480,32 @@ physical_defaults = {
         # todo Flum or AbsFlum in DiffusionFlowMomentumPowerLaw
         # todo those that have indicator fields
         'IsotropicConstant': {
+            'diffusion': "IsotropicConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'D0': 1.0,
         },
         'ParaConstant': {
+            'diffusion': "ParaConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'D0': 1.0,
         },
         'PerpConstant': {
+            'diffusion': "PerpConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'D0': 1.0,
         },
         'FullConstant': {
+            'diffusion': "FullConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'Dperp': 1.0,
             'Dpara': 1.0,
         },
         'QLTConstant': {
+            'diffusion': "QLTConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'A2A': 1.0,
@@ -491,6 +515,7 @@ physical_defaults = {
             'ps_minus': 1.0,
         },
         'WNLTConstant': {
+            'diffusion': "WNLTConstant",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'use_qlt_scatt': False,
@@ -504,6 +529,7 @@ physical_defaults = {
             'ps_plus': 1.0,
         },
         'WNLTRampVLISM': {
+            'diffusion': "WNLTRampVLISM",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'use_qlt_scatt': False,
@@ -527,6 +553,7 @@ physical_defaults = {
             'nose_dz': 1.0,
         },
         'FlowMomentumPowerLaw': {
+            'diffusion': "FlowMomentumPowerLaw",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t, Fluv_t, AbsFluv_t, DotFluv_t, DelFluv_t>",
             'kappa0': 1.0,
@@ -537,6 +564,7 @@ physical_defaults = {
             'kappa_ratio': 1.0,
         },
         'KineticEnergyRadialDistancePowerLaw': {
+            'diffusion': "KineticEnergyRadialDistancePowerLaw",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'kappa0': 1.0,
@@ -552,6 +580,7 @@ physical_defaults = {
             'dn_up_ratio': 1.0,
         },
         'RigidityMagneticFieldPowerLaw': {
+            'diffusion': "RigidityMagneticFieldPowerLaw",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'lam0': 1.0,
@@ -562,6 +591,7 @@ physical_defaults = {
             'kappa_ratio': 1.0,
         },
         'StraussEtAl2013': {
+            'diffusion': "StraussEtAl2013",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'LISM_idx': 1,
@@ -573,6 +603,7 @@ physical_defaults = {
             'kappa_ratio_outer': 1.0,
         },
         'GuoEtAl2014': {
+            'diffusion': "GuoEtAl2014",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             # same as StraussEtAl2013
@@ -585,6 +616,7 @@ physical_defaults = {
             'kappa_ratio_outer': 1.0,
         },
         'PotgieterEtAl2015': {
+            'diffusion': "PotgieterEtAl2015",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'LISM_idx': 1,
@@ -596,6 +628,7 @@ physical_defaults = {
             'kappa_ratio_outer': 1.0,
         },
         'EmpiricalSOQLTandUNLT': {
+            'diffusion': "EmpiricalSOQLTandUNLT",
             'Coordinates': "Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>",
             'Fields': "Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>",
             'lam_para': 1.0,

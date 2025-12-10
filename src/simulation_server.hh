@@ -12,6 +12,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_SIMULATION_SERVER_HH
 
 #include "simulation_worker.hh"
+#include "server_cartesian.hh"
 #include "server_batl.hh"
 
 namespace Spectrum {

@@ -114,24 +114,6 @@ class ParameterInfo:
 
 
 parameters_general = {
-    'background': ParameterInfo(
-        name = 'background',
-        description = "The background type used for simulation",
-        possible_values=special_types['Background'],
-        parameter_type="Config::Background",
-    ),
-    'trajectory': ParameterInfo(
-        name = 'trajectory',
-        description = "The trajectory type used for simulation",
-        possible_values=special_types['Trajectory'],
-        parameter_type="Config::Trajectory",
-    ),
-    'diffusion': ParameterInfo(
-        name = 'diffusion',
-        description = "The diffusion type used for simulation",
-        possible_values=special_types['Diffusion'],
-        parameter_type="Config::Diffusion",
-    ),
     'specieid': ParameterInfo(
         name = 'specieid',
         description = "The specie (particle species) used for simulation",
@@ -163,6 +145,12 @@ parameters_general = {
 
 
 parameters_background = {
+    'background': ParameterInfo(
+        name = 'background',
+        description = "The background type used for simulation",
+        possible_values=special_types['Background'],
+        parameter_type="Config::Background",
+    ),
     'derivative_method': ParameterInfo(
         name = 'derivative_method',
         description = "The method used to evaluate derivatives of spatially located field quantities. "
@@ -182,10 +170,15 @@ parameters_background = {
         description = "The number servers in each node",
         parameter_type = int,
     ),
-    'servers_are_workers': ParameterInfo(
+    'allow_server_worker': ParameterInfo(
         name = 'servers_are_workers',
         description = "Whether servers are workers. Servers only exist if the background is a data-serving background.",
-        parameter_type = int,
+        parameter_type = bool,
+    ),
+    'file_name_pattern': ParameterInfo(
+        name = 'file_name_pattern',
+        description = "File name pattern used for stored data.",
+        parameter_type = str,
     ),
     #
     ########################################
@@ -405,6 +398,12 @@ parameters_background = {
 
 
 parameters_trajectory = {
+    'trajectory': ParameterInfo(
+        name = 'trajectory',
+        description = "The trajectory type used for simulation",
+        possible_values=special_types['Trajectory'],
+        parameter_type="Config::Trajectory",
+    ),
     'Coordinates': ParameterInfo(
         name = 'Coordinates',
         description = "The coordinates of the trajectory during the simulation.",
@@ -564,6 +563,12 @@ parameters_trajectory = {
 }
 
 parameters_diffusion = {
+    'diffusion': ParameterInfo(
+        name = 'diffusion',
+        description = "The diffusion type used for simulation",
+        possible_values=special_types['Diffusion'],
+        parameter_type="Config::Diffusion",
+    ),
     'Coordinates': ParameterInfo(
         name = 'Coordinates',
         description = "The coordinates where the diffusion is computed during the simulation.",

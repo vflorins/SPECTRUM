@@ -21,12 +21,6 @@ namespace Spectrum {
 
 using namespace DiffusionOptions;
 
-//! The diffusion model is independent of the background
-constexpr status_t DIFF_NOBACKGROUND = 0x0010;
-
-//! Clone function pattern
-#define CloneFunctionDiffusion(T) std::unique_ptr<DiffusionBase> Clone(void) const override {return std::make_unique<T>();};
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionBase class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -47,6 +41,8 @@ public:
    using Config = HConfig::DiffusionConfig;
    using Coordinates = Config::Coordinates;
    using Fields = Config::Fields;
+
+   static constexpr auto specie = HConfig::specie;
 
 protected:
 
@@ -84,9 +80,6 @@ public:
 
 //! Destructor
    virtual ~DiffusionBase() = default;
-
-//! Clone function (stub)
-//   virtual std::unique_ptr<DiffusionBase> Clone(void) const = 0;
 
 //! Set up the class parameters
    void SetupObject(const DataContainer& cont_in);

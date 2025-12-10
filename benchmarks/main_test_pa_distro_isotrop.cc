@@ -1,6 +1,11 @@
 
-#include "common/fields.hh"
-#include "src/simulation.hh"
+
+#include "main_test_pa_distro_isotrop.hyperconfig.hh"
+
+#include "src/trajectory.hh"
+
+#include "src/simulation_worker.hh"
+
 #include "src/distribution_other.hh"
 #include "src/background_uniform.hh"
 #include "src/diffusion_other.hh"
@@ -9,11 +14,11 @@
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-// todo when all trajectories are updated
-//#include "src/trajectory.hh"
-#include "src/trajectory_guiding_scatt.hh"
+
 #include <iostream>
 #include <iomanip>
+
+
 
 using namespace Spectrum;
 
@@ -26,11 +31,9 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Ele_t, Mag_t, HatMag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t, DotHatMag_t>;
-   using Trajectory = TrajectoryGuidingScatt<HConfig>;
-   using Background = BackgroundUniform<HConfig>;
+   using Trajectory = Trajectory<HConfig>;
 
-   using SimulationWorker = SimulationWorker<Trajectory>;
+   using SimulationWorker = SimulationWorker<HConfig, Trajectory>;
    using InitialTime = InitialTimeFixed<Trajectory>;
    using InitialSpace = InitialSpaceFixed<Trajectory>;
    using InitialMomentum = InitialMomentumRing<Trajectory>;
@@ -49,39 +52,31 @@ int main(int argc, char** argv)
    simulation = CreateSimulation<Trajectory>(argc, argv);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Particle type
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   // todo - old index Specie::proton for proton was 0, new index SPCEIES_PROTON_CORE is 3
-   int specie = SPECIES_PROTON_BEAM;
-   simulation->SetSpecie(specie);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   container.Clear();
-
-// Initial time
-   double t0 = 0.0;
-   container.Insert(t0);
-
-// Origin
-   container.Insert(gv_zeros);
-
-// Velocity
-   container.Insert(gv_zeros);
-
-// Magnetic field
-   double Bmag = 1.0 / unit_magnetic_fluid;
-   GeoVector B0(0.0, 0.0, Bmag);
-   container.Insert(B0);
-
-// Effective "mesh" resolution
-   double dmax = 0.1;
-   container.Insert(dmax);
-
-   simulation->AddBackground(Background(), container);
+//   container.Clear();
+//
+//// Initial time
+//   double t0 = 0.0;
+//   container.Insert(t0);
+//
+//// Origin
+//   container.Insert(gv_zeros);
+//
+//// Velocity
+//   container.Insert(gv_zeros);
+//
+//// Magnetic field
+//   double Bmag = 1.0 / unit_magnetic_fluid;
+//   GeoVector B0(0.0, 0.0, Bmag);
+//   container.Insert(B0);
+//
+//// Effective "mesh" resolution
+//   double dmax = 0.1;
+//   container.Insert(dmax);
+//
+//   simulation->AddBackground(Background(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -112,7 +107,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Mom<Config::specie>(1.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
+   double momentum = Mom<specie>(1.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle);
    container.Insert(momentum);
 
    double theta = DegToRad(45.0);
@@ -127,7 +122,7 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Scattering frequency
-   double D0 = 0.01 * CyclotronFrequency<Config::specie>(Vel<Config::specie>(momentum),Bmag);
+   double D0 = 0.01 * CyclotronFrequency<specie>(Vel<specie>(momentum),Bmag);
    container.Insert(D0);
 
 // Pass ownership of "diffusion" to simulation

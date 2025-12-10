@@ -126,8 +126,8 @@ void DiffusionBase<HConfig>::Stage(const Coordinates& coords, const Fields& fiel
    _fields = fields;
    // todo this is in Convert
    // todo MomMu, VelMu, MomSt2, VelSt2
-//   vmag = Vel<Config::specie>(coords.AbsMom());
-   Omega = CyclotronFrequency<Config::specie>(_coords.AbsVel(), _fields.AbsMag());
+//   vmag = Vel<specie>(coords.AbsMom());
+   Omega = CyclotronFrequency<specie>(_coords.AbsVel(), _fields.AbsMag());
    // todo review
    st2 = 1.0 - Sqr(_coords.MomMu());
 };

@@ -49,7 +49,7 @@ void TrajectoryGuiding<HConfig>::SetStart(void)
    TrajectoryBase::SetStart();
 
 // Magnetic moment is conserved (in the absence of scattering)
-   mag_mom = MagneticMoment<Config::specie>(_coords.MomPerp(), _fields.AbsMag());
+   mag_mom = MagneticMoment<specie>(_coords.MomPerp(), _fields.AbsMag());
 };
 
 /*!
@@ -67,8 +67,8 @@ auto MP = _coords.MomPerp();
 auto AM = _fields.AbsMag();
 
 // Modified fields
-   auto rL = LarmorRadius<Config::specie>(MP, AM);
-   auto rR = LarmorRadius<Config::specie>(_coords.MomPara(), _fields.AbsMag());
+   auto rL = LarmorRadius<specie>(MP, AM);
+   auto rR = LarmorRadius<specie>(_coords.MomPara(), _fields.AbsMag());
    Evec_star = _fields.Ele();
    Evec_star = Evec_star - rR * _fields.AbsMag() * _fields.DotHatMag() / c_code;
    Evec_star = Evec_star - rL * _coords.VelPerp() * _fields.DelAbsMag() / (2.0 * c_code);
@@ -128,7 +128,7 @@ void TrajectoryGuiding<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
    }
 
    slope_mom_istage[1] = 0.0;
-   slope_mom_istage[2] = Config::specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
+   slope_mom_istage[2] = specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
 };
 
 /*!
@@ -153,7 +153,7 @@ inline void TrajectoryGuiding<HConfig>::MomentumCorrection(void)
 {
    if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
 // Adjust perp component to conserve magnetic moment
-      _coords.MomPerp('w') = PerpMomentum<Config::specie>(mag_mom, _fields.AbsMag());
+      _coords.MomPerp('w') = PerpMomentum<specie>(mag_mom, _fields.AbsMag());
    }
 };
 

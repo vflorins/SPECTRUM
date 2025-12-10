@@ -130,9 +130,6 @@ public:
 //! Destructor
    ~DiffusionIsotropicConstant() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionIsotropicConstant);
-
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(Component comp) override;
 };
@@ -210,8 +207,6 @@ public:
 //! Destructor
    ~DiffusionQLTConstant() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionQLTConstant);
 };
 
 
@@ -288,8 +283,6 @@ public:
 //! Destructor
    ~DiffusionWNLTConstant() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionWNLTConstant);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -380,8 +373,6 @@ public:
 //! Destructor
    ~DiffusionWNLTRampVLISM() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionWNLTRampVLISM);
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -438,9 +429,6 @@ public:
 
 //! Destructor
    ~DiffusionParaConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionParaConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
@@ -503,9 +491,6 @@ public:
 
 //! Destructor
    ~DiffusionPerpConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionPerpConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
@@ -571,9 +556,6 @@ public:
 
 //! Destructor
    ~DiffusionFullConstant() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionFullConstant);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
@@ -651,9 +633,6 @@ public:
 
 //! Destructor
    ~DiffusionFlowMomentumPowerLaw() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionFlowMomentumPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
@@ -734,9 +713,6 @@ public:
 //! Destructor
    ~DiffusionKineticEnergyRadialDistancePowerLaw() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionKineticEnergyRadialDistancePowerLaw);
-
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
 
@@ -814,9 +790,6 @@ public:
 
 //! Destructor
    ~DiffusionRigidityMagneticFieldPowerLaw() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionRigidityMagneticFieldPowerLaw);
 
 //! Compute derivative of diffusion coefficient in position or time
    double GetDirectionalDerivative(Component comp, int xyz, const DerivativeData& ddata) override;
@@ -902,9 +875,6 @@ public:
 //! Destructor
    ~DiffusionStraussEtAl2013() override = default;
 
-//! Clone function
-   CloneFunctionDiffusion(DiffusionStraussEtAl2013);
-
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(Component comp) override;
 };
@@ -988,9 +958,6 @@ public:
 
 //! Destructor
    ~DiffusionPotgieterEtAl2015() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionPotgieterEtAl2015);
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(Component comp) override;
@@ -1076,9 +1043,6 @@ public:
 
 //! Destructor
    ~DiffusionEmpiricalSOQLTandUNLT() override = default;
-
-//! Clone function
-   CloneFunctionDiffusion(DiffusionEmpiricalSOQLTandUNLT);
 
 //! Compute derivative of diffusion coefficient in mu
    double GetMuDerivative(Component comp) override;

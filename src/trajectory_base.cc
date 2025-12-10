@@ -309,7 +309,7 @@ bool TrajectoryBase<HConfig>::RKSlopes(void)
 
 // Find velocity and acceleration.
       if constexpr (Coordinates::Vel_found())
-         _coords.Vel('w') = Vel<Config::specie>(_coords.Mom());
+         _coords.Vel('w') = Vel<specie>(_coords.Mom());
       Slopes(slope_pos[istage], slope_mom[istage]);
 
 // The slopes have been computed, so we can reset _coords to their values at the beginning of the step.
@@ -361,7 +361,7 @@ bool TrajectoryBase<HConfig>::RKStep(void)
 
    };
 // Update velocity fields
-   _coords.Vel('w') = Vel<Config::specie>(_coords.Mom());
+   _coords.Vel('w') = Vel<specie>(_coords.Mom());
 
 
 // Estimate the error in the adaptive RK method using position and compute the recommended time step.
@@ -719,7 +719,7 @@ try {
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
    _coords.Mom('w') = icond_m->GetMomSample(_fields.HatMag());
 // Get the starting momentum from the distribution along the correct axis (bhat is now determined).
-   _coords.Vel('w') = Vel<Config::specie>(_coords.Mom());
+   _coords.Vel('w') = Vel<specie>(_coords.Mom());
 
 // Record the initial spatial data for distribution purposes.
    fields0 = _fields;

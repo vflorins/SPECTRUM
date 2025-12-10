@@ -283,21 +283,22 @@ void DistributionMomentumUniform<HConfig>::EvaluateValue(void)
 
    if (val_coord == 0) _value = momentum;
    else {
-      if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
+      if constexpr (HConfig::trajectory == Config::Trajectory::Focused || HConfig::trajectory == Config::Trajectory::Parker) {
 // Focused and Parker trajectories are already in locally spherical coordinates
          _value = momentum;
       }
-      else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<HConfig>>) {
+      else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
          _value[0] = momentum[2];
          _value[1] = 0.0;
          _value[2] = 0.0;
       }
-      else if constexpr (std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
+      // todo awk
+      else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
          _value[0] = momentum.Norm();
          _value[1] = momentum[2] / _value[0];
          _value[2] = 0.0;
       }
-      else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>>) {
+      else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz) {
          _value[0] = momentum.Norm();
          _value[1] = momentum * bhat / _value[0];
          _value[2] = 0.0;
@@ -440,12 +441,13 @@ void DistributionAnisotropyLISM<HConfig>::EvaluateValue(void)
 // Find incoming direction in specified coordinate frame
    mom_rel = _coords1.Mom();
    mom_rel.ChangeToBasis(rot_matrix);
-   mom_rel.XYZ_RTP();
+   // todo fix
+//   mom_rel.XYZ_RTP();
    _value[0] = mom_rel[1];
    _value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = _coords2.Mom() - RelFactor1<Config::specie>(_coords2.Mom().Norm()) * specie.mass * U_LISM;
+   mom_rel = _coords2.Mom() - RelFactor1<specie>(_coords2.Mom().Norm()) * specie.mass * U_LISM;
 };
 
 /*!
@@ -458,7 +460,7 @@ void DistributionAnisotropyLISM<HConfig>::ComptonGettingFactor(void)
    double vel;
    GeoVector mom_hat;
 
-   vel = Vel<Config::specie>(_coords1.Mom().Norm());
+   vel = Vel<specie>(_coords1.Mom().Norm());
    mom_hat = UnitVec(_coords1.Mom());
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
@@ -503,7 +505,7 @@ template <typename HConfig>
 void DistributionAnisotropyLISM<HConfig>::bCrossGradientAnisotropy(void)
 {
 // FIXME: This is according to Zhang et al. 2020, but (perhaps) differs from Zhang et al. 2014. We should investigate this further.
-   _weight = grad_perp_dens * (_coords2.Pos() + LarmorRadius<Config::specie>(mom_rel.Norm(), _fields2.AbsMag()) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
+   _weight = grad_perp_dens * (_coords2.Pos() + LarmorRadius<specie>(mom_rel.Norm(), _fields2.AbsMag()) * (UnitVec(mom_rel) ^ _fields2.HatMag()));
 };
 
 //#endif
@@ -582,14 +584,15 @@ void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SetupDistribution(bool 
 template <typename HConfig>
 void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::EvaluateValue(void)
 {
-   if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
-      _value[0] = EnrKin<Config::specie>(_coords1.Mom()[0]);
+   if constexpr (HConfig::trajectory == Config::Trajectory::Focused || HConfig::trajectory == Config::Trajectory::Parker) {
+      _value[0] = EnrKin<specie>(_coords1.Mom()[0]);
    }
-   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<Trajectory, HConfig>>) {
-      _value[0] = EnrKin<Config::specie>(_coords1.Mom()[2]);
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      _value[0] = EnrKin<specie>(_coords1.Mom()[2]);
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>> || std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
-      _value[0] = EnrKin<Config::specie>(_coords1.Mom().Norm());
+   // todo awk
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
+      _value[0] = EnrKin<specie>(_coords1.Mom().Norm());
    }
    else {
 // stub
@@ -607,23 +610,24 @@ template <typename HConfig>
 void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SpectrumKineticEnergyPowerLawHot(void)
 {
    double mom2mag;
-   if constexpr (std::same_as<Trajectory, TrajectoryFocused<HConfig>> || std::same_as<Trajectory, TrajectoryParker<HConfig>>) {
+   if constexpr (HConfig::trajectory == Config::Trajectory::Focused || HConfig::trajectory == Config::Trajectory::Parker) {
       mom2mag = _coords2.Mom()[0];
    }
-   else if constexpr (std::derived_from<Trajectory, TrajectoryFieldlineBase<HConfig>>) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
       mom2mag = _coords2.Mom()[2];
    }
-   else if constexpr (std::same_as<Trajectory, TrajectoryLorentz<HConfig>> || std::derived_from<Trajectory, TrajectoryGuiding<HConfig>>) {
+   // todo awk
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
       mom2mag = _coords2.Mom().Norm();
    }
    else {
 // stub
       ;
    }
-   kin_energy = EnrKin<Config::specie>(mom2mag);
+   kin_energy = EnrKin<specie>(mom2mag);
 
 #if DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 0
-   double velocity = Vel<Config::specie>(mom2mag);
+   double velocity = Vel<specie>(mom2mag);
 // The power law is the differential density U=f(p)*p^2/v, but the weighting function is f(p) itself, so a division by p^2 and multiplication by v is required here.
    _weight = J0 * velocity * pow(kin_energy / T0, pow_law) / Sqr(mom2mag);
 #elif DISTRO_KINETIC_ENERGY_POWER_LAW_TYPE == 1

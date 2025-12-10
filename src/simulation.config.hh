@@ -22,6 +22,7 @@ namespace Spectrum {
 \date 11/25/2025
 */
 template <
+      SpecieId specieid_ = SpecieId::proton_core,
       bool supervisor_ = false,
       bool print_last_trajectory_ = false,
       int num_trajectories_ = 1,
@@ -30,9 +31,7 @@ template <
 >
 struct SimulationConfig {
 
-// todo remind: in data background config
-//      bool allow_server_worker;
-//      string file_name_pattern;
+   static constexpr auto specieid = specieid_;
 
 // Whether to print the last trajectory
    static constexpr auto print_last_trajectory = print_last_trajectory_;

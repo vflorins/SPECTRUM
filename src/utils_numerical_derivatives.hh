@@ -122,6 +122,8 @@ public:
    using Base::_ddata;
    using Base::incr_dmax_ratio;
 
+   static constexpr auto specie = HConfig::specie;
+
 private:
 
 //! Rotation angle of local (x,y) plane in numerical derivative evaluation/averaging

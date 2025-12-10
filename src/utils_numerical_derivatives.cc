@@ -152,7 +152,7 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
    if constexpr (gradients) {
 
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales larger than the gyro-radius.
-      auto r_g = fmin(LarmorRadius<Config::specie>(AbsMom, AbsMag), _ddata.dmax);
+      auto r_g = fmin(LarmorRadius<specie>(AbsMom, AbsMag), _ddata.dmax);
 
 // Get field aligned basis in (transpose) of rotation matrix
       fa_basis.row[2] = HatMag;
@@ -214,8 +214,8 @@ status_t NumericalDerivatives<Background, true>::EvaluateBackgroundDerivatives(C
 // Time derivatives.
    if constexpr (time_derivatives) {
 // Derivatives are only needed for trajectory types whose transport assumes the background changes on scales longer than the gyro-frequency.
-      auto vel = Vel<Config::specie>(AbsMom);
-      auto w_g = fmin(CyclotronFrequency<Config::specie>(vel, AbsMag), vel / _ddata.dmax);
+      auto vel = Vel<specie>(AbsMom);
+      auto w_g = fmin(CyclotronFrequency<specie>(vel, AbsMag), vel / _ddata.dmax);
       DirectionalDerivative<Background, Coordinates, Fields, RequestedFields>(3, coords, fields, 1.0/w_g, background);
    };
 

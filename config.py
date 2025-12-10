@@ -67,6 +67,8 @@ def get(key, args, spectrum_type, special_type):
                 return str(physical_defaults[spectrum_type][special_type][key])
             elif parameterinfo.parameter_type == bool:
                 return str(physical_defaults[spectrum_type][special_type][key]).lower()
+            elif parameterinfo.parameter_type == str:
+                return f'"{physical_defaults[spectrum_type][special_type][key]}"'
             elif parameterinfo.parameter_type == "GeoVector" or \
                 parameterinfo.parameter_type == "GeoMatrix" or \
                 parameterinfo.parameter_type == "MultiIndex":
@@ -199,7 +201,6 @@ struct {spectrum_type}Config;
 */
 template<SpecieId specieid_>
 struct {spectrum_type}Config<Config::{spectrum_type}::{special_type}, specieid_> {{
-   static constexpr Specie<specieid_> specie;
 """
                 for key in physical_defaults[spectrum_type][special_type]:
                     try:
@@ -217,10 +218,14 @@ struct {spectrum_type}Config<Config::{spectrum_type}::{special_type}, specieid_>
                         type_definition = "static constexpr bool"
                     elif parameterinfo.parameter_type == float:
                         type_definition = "static constexpr double"
+                    elif parameterinfo.parameter_type == str:
+                        type_definition = "static constexpr std::string_view"
                     elif parameterinfo.parameter_type == type:
                         type_definition = "using"
                     elif parameterinfo.parameter_type == "GeoVector":
                         type_definition = "static constexpr GeoVector"
+                    elif parameterinfo.parameter_type == "GeoMatrix":
+                        type_definition = "static constexpr GeoMatrix"
                     else:
                         # todo deprecate in favor of string, like GeoVector
                         type_definition = "static constexpr auto"

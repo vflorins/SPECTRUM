@@ -33,7 +33,10 @@ Diffusion: None
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::None, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::None;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<>>;
@@ -51,7 +54,10 @@ Diffusion: IsotropicConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::IsotropicConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::IsotropicConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -72,7 +78,10 @@ Diffusion: QLTConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::QLTConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::QLTConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -105,7 +114,10 @@ Diffusion: WNLTConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::WNLTConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::WNLTConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -150,7 +162,10 @@ Diffusion: WNLTRampVLISM
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::WNLTRampVLISM, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::WNLTRampVLISM;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -222,7 +237,10 @@ Diffusion: ParaConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::ParaConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::ParaConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -243,7 +261,10 @@ Diffusion: PerpConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::PerpConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::PerpConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -264,7 +285,10 @@ Diffusion: FullConstant
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::FullConstant, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::FullConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -288,7 +312,10 @@ Diffusion: FlowMomentumPowerLaw
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::FlowMomentumPowerLaw, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::FlowMomentumPowerLaw;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -324,7 +351,10 @@ Diffusion: KineticEnergyRadialDistancePowerLaw
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::KineticEnergyRadialDistancePowerLaw, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::KineticEnergyRadialDistancePowerLaw;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -375,7 +405,10 @@ Diffusion: RigidityMagneticFieldPowerLaw
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::RigidityMagneticFieldPowerLaw, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::RigidityMagneticFieldPowerLaw;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -411,7 +444,10 @@ Diffusion: StraussEtAl2013
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::StraussEtAl2013, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::StraussEtAl2013;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -450,7 +486,10 @@ Diffusion: GuoEtAl2014
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::GuoEtAl2014, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::GuoEtAl2014;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -489,7 +528,10 @@ Diffusion: PotgieterEtAl2015
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::PotgieterEtAl2015, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::PotgieterEtAl2015;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
@@ -528,7 +570,10 @@ Diffusion: EmpiricalSOQLTandUNLT
 */
 template<SpecieId specieid_>
 struct DiffusionConfig<Config::Diffusion::EmpiricalSOQLTandUNLT, specieid_> {
-   static constexpr Specie<specieid_> specie;
+//! Name: diffusion
+// Description: The diffusion type used for simulation
+// Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
+   static constexpr auto diffusion = Config::Diffusion::EmpiricalSOQLTandUNLT;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;

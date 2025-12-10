@@ -36,6 +36,7 @@ public:
    using Fields = TrajectoryBase::Fields;
 
    using TrajectoryBase::_status;
+   using TrajectoryBase::specie;
    using TrajectoryBase::_coords;
    using TrajectoryBase::_fields;
    using TrajectoryBase::_dmax;
@@ -123,7 +124,7 @@ public:
 //template <typename HConfig>
 //inline void TrajectoryFocused<HConfig>::Load(void)
 //{
-//   _coords.Vel()[0] = Vel<Config::specie>(_coords.Mom()[0]);
+//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
 //   _coords.Vel()[1] = _coords.Mom()[1];
 //   _coords.Vel()[2] = 0.0;
 //};
@@ -137,7 +138,7 @@ public:
 //inline void TrajectoryFocused<HConfig>::LoadLocal(void)
 //{
 //   _coords = local_coords;
-//   _coords.Vel()[0] = Vel<Config::specie>(_coords.Mom()[0]);
+//   _coords.Vel()[0] = Vel<specie>(_coords.Mom()[0]);
 //   _coords.Vel()[1] = _coords.Mom()[1];
 //   _coords.Vel()[2] = 0.0;
 //};

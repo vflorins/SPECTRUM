@@ -28,16 +28,16 @@ This method's main role is to unpack the data container and set up the class dat
 template <typename HConfig>
 void BackgroundDipole<HConfig>::SetupBackground(DataContainer& container)
 {
-   container.Reset();
-   container.Read(t0);
-   container.Read(r0);
-   container.Read(u0);
-   container.Read(B0);
-   container.Read(dmax0);
-   container.Read(r_ref);
-   container.Read(dmax_fraction);
-   // There is an issue with constexpr SimpleArray operations
-   M = B0*Cube(r_ref);
+//   container.Reset();
+//   container.Read(t0);
+//   container.Read(r0);
+//   container.Read(u0);
+//   container.Read(B0);
+//   container.Read(dmax0);
+//   container.Read(r_ref);
+//   container.Read(dmax_fraction);
+//   // There is an issue with constexpr SimpleArray operations
+//   M = B0*Cube(r_ref);
 };
 
 
