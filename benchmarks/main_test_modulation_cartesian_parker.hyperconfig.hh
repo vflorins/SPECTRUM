@@ -1,5 +1,5 @@
-// File main_test_pa_distro_isotrop.hyperconfig.hh.copy
-// Uniform GuidingScatt IsotropicConstant
+// File main_test_modulation_cartesian_parker.hyperconfig.hh
+// DataCartesian Parker KineticEnergyRadialDistancePowerLaw
 
 #include "common/compiletime_lists.hh"
 #include "common/vectors.hh"
@@ -29,11 +29,11 @@ struct BackgroundConfig1{
 //! Name: background
 // Description: The background type used for simulation
 // Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
-   static constexpr auto background = Config::Background::Uniform;
+   static constexpr auto background = Config::Background::DataCartesian;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
-   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
+   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
    static constexpr int num_numeric_grad_evals = 1;
@@ -43,22 +43,34 @@ struct BackgroundConfig1{
 //! Name: dmax0
 // Description: baseline simulation-wide dmax value
    static constexpr double dmax0 = 0.1;
+//! Name: server_num_ghost_cells
+// Description: number of ghost cells (server parameter)
+   static constexpr int server_num_ghost_cells = 2;
+//! Name: server_interpolation_order
+// Description: server_interpolation_order
+   static constexpr int server_interpolation_order = 1;
+//! Name: servers_are_workers
+// Description: Whether servers are workers. Servers only exist if the background is a data-serving background.
+   static constexpr bool allow_server_worker = false;
+//! Name: file_name_pattern
+// Description: File name pattern used for stored data.
+   static constexpr std::string_view file_name_pattern = "data";
 };
 
 struct TrajectoryConfig1{
 //! Name: trajectory
 // Description: The trajectory type used for simulation
 // Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
-   static constexpr auto trajectory = Config::Trajectory::GuidingScatt;
+   static constexpr auto trajectory = Config::Trajectory::Parker;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
-   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
+   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>;
 //! Name: RecordCoordinates
 // Description: The coordinates (and format spec) used to record the trajectory progress.
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -103,37 +115,72 @@ struct TrajectoryConfig1{
 //! Name: mirror_threshold
 // Description: How many time steps to allow before recording a mirror event
    static constexpr int mirror_threshold = 10;
-//! Name: split_scatt_fraction
-// Description: Whether to split the diffusive advance into two (one before and one after the advection).
-// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
-   static constexpr double split_scatt_fraction = 0.0;
-//! Name: const_dmumax
-// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
-// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
-   static constexpr auto const_dmumax = TrajectoryOptions::ConstDmumax::constant_dtheta_max;
 //! Name: stochastic_method
 // Description: Which stochastic method to use for scattering
 // Options: Euler | Milstein | RK2
    static constexpr auto stochastic_method = TrajectoryOptions::StochasticMethod::Euler;
-//! Name: cfl_pitchangle
-// Description: CFL condition for pitch angle scattering
-   static constexpr double cfl_pitchangle = 0.5;
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+   static constexpr auto use_B_drifts = TrajectoryOptions::UseBDrifts::none;
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+   static constexpr auto divk_method = TrajectoryOptions::DivkMethod::direct;
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+   static constexpr double cfl_diffusion = 0.5;
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+   static constexpr double cfl_acceleration = 0.5;
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+   static constexpr double dlnp_max = 0.01;
 };
 
 struct DiffusionConfig1{
 //! Name: diffusion
 // Description: The diffusion type used for simulation
 // Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
-   static constexpr auto diffusion = Config::Diffusion::IsotropicConstant;
+   static constexpr auto diffusion = Config::Diffusion::KineticEnergyRadialDistancePowerLaw;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment for the diffusion computation during the simulation.
    using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
-//! Name: D0
-// Description: diffusion coefficient (if constant)
-   static constexpr double D0 = 1.0;
+//! Name: kappa0
+// Description: Reference diffusion coefficient
+   static constexpr double kappa0 = 1.0;
+//! Name: T0
+// Description: Kinetic Energy normalization factor
+   static constexpr double T0 = 1.0;
+//! Name: r0_nf
+// Description: Radial distance normalization factor
+   static constexpr double r0_nf = 1.0;
+//! Name: pow_law_T
+// Description: Power law slope for kinetic energy
+   static constexpr double pow_law_T = 1.0;
+//! Name: pow_law_r
+// Description: Power law slope for radial distance
+   static constexpr double pow_law_r = 1.0;
+//! Name: kappa_ratio
+// Description: Ratio of perpendicular to parallel diffusion
+   static constexpr double kappa_ratio = 1.0;
+//! Name: stream_dep_idx
+// Description: Downstream dependance index
+   static constexpr int stream_dep_idx = 1;
+//! Name: u_upstream
+// Description: Upstream flow
+   static constexpr double u_upstream = 1.0;
+//! Name: w_sh
+// Description: Width of shock
+   static constexpr double w_sh = 1.0;
+//! Name: s_sh
+// Description: Shock strength
+   static constexpr double s_sh = 1.0;
+//! Name: dn_up_ratio
+// Description: Ratio of downstream to upstream value
+   static constexpr double dn_up_ratio = 1.0;
 };
 
 

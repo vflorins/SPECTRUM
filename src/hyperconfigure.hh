@@ -24,7 +24,6 @@ namespace Spectrum {
 \date 11/25/2025
 */
 template <
-      BuildMode build_mode_ = BuildMode::release,
       typename SimulationConfig_ = Default,
       typename BackgroundConfig_ = Default,
       typename TrajectoryConfig_ = Default,
@@ -32,7 +31,7 @@ template <
 >
 struct HyperConfigure {
 
-   using SimulationConfig = Cond<std::same_as<SimulationConfig_, Default>, SimulationConfig<>, SimulationConfig_>;
+   using SimulationConfig = Cond<std::same_as<SimulationConfig_, Default>, SimulationConfig, SimulationConfig_>;
    static constexpr auto specieid = SimulationConfig::specieid;
    static constexpr auto specie = Specie<specieid>();
 
@@ -44,7 +43,7 @@ struct HyperConfigure {
    static constexpr auto trajectory = TrajectoryConfig::trajectory;
    static constexpr auto diffusion = DiffusionConfig::diffusion;
 
-   static constexpr auto build_mode = build_mode_;
+   static constexpr auto build_mode = SimulationConfig::build_mode;
 
    static constexpr bool MPI_enabled() {
 #ifdef USE_MPI

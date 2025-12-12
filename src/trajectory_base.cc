@@ -776,6 +776,7 @@ void TrajectoryBase<HConfig>::Integrate(void)
 // Attempt to advance trajectory by one segment
       was_advanced = Advance();
 
+
       if constexpr (/* awk, fix later */ static_cast<int>(Config::advance_safety_level) > 1) {
 // Too many steps were taken - terminate
          if (records.Segments() > Config::max_trajectory_steps) {

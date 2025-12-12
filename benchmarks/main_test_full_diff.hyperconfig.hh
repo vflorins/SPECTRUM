@@ -1,5 +1,5 @@
-// File main_test_pa_distro_isotrop.hyperconfig.hh.copy
-// Uniform GuidingScatt IsotropicConstant
+// File main_test_full_diff.hyperconfig.hh
+// Uniform Parker FullConstant
 
 #include "common/compiletime_lists.hh"
 #include "common/vectors.hh"
@@ -49,16 +49,16 @@ struct TrajectoryConfig1{
 //! Name: trajectory
 // Description: The trajectory type used for simulation
 // Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
-   static constexpr auto trajectory = Config::Trajectory::GuidingScatt;
+   static constexpr auto trajectory = Config::Trajectory::Parker;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
-   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
+   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Mom_t, Vel_t>;
 //! Name: RecordCoordinates
 // Description: The coordinates (and format spec) used to record the trajectory progress.
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -103,37 +103,45 @@ struct TrajectoryConfig1{
 //! Name: mirror_threshold
 // Description: How many time steps to allow before recording a mirror event
    static constexpr int mirror_threshold = 10;
-//! Name: split_scatt_fraction
-// Description: Whether to split the diffusive advance into two (one before and one after the advection).
-// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
-   static constexpr double split_scatt_fraction = 0.0;
-//! Name: const_dmumax
-// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
-// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
-   static constexpr auto const_dmumax = TrajectoryOptions::ConstDmumax::constant_dtheta_max;
 //! Name: stochastic_method
 // Description: Which stochastic method to use for scattering
 // Options: Euler | Milstein | RK2
    static constexpr auto stochastic_method = TrajectoryOptions::StochasticMethod::Euler;
-//! Name: cfl_pitchangle
-// Description: CFL condition for pitch angle scattering
-   static constexpr double cfl_pitchangle = 0.5;
+//! Name: use_B_drifts
+// Description: Flag to use gradient and curvature drifts in drift velocity calculation
+   static constexpr auto use_B_drifts = TrajectoryOptions::UseBDrifts::none;
+//! Name: divk_method
+// Description: Which method of computation to use for divK
+// Options: direct: using direct central finite differences | gradients: using background-computed gradient quantities
+   static constexpr auto divk_method = TrajectoryOptions::DivkMethod::direct;
+//! Name: cfl_diffusion
+// Description: CFL condition for diffusion
+   static constexpr double cfl_diffusion = 0.5;
+//! Name: cfl_acceleration
+// Description: CFL condition for acceleration
+   static constexpr double cfl_acceleration = 0.5;
+//! Name: dlnp_max
+// Description: Maximum allowed fraction of momentum change per step
+   static constexpr double dlnp_max = 0.01;
 };
 
 struct DiffusionConfig1{
 //! Name: diffusion
 // Description: The diffusion type used for simulation
 // Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
-   static constexpr auto diffusion = Config::Diffusion::IsotropicConstant;
+   static constexpr auto diffusion = Config::Diffusion::FullConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment for the diffusion computation during the simulation.
    using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
-//! Name: D0
+//! Name: Dperp
 // Description: diffusion coefficient (if constant)
-   static constexpr double D0 = 1.0;
+   static constexpr double Dperp = 1.0;
+//! Name: Dpara
+// Description: diffusion coefficient (if constant)
+   static constexpr double Dpara = 1.0;
 };
 
 

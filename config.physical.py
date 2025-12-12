@@ -26,7 +26,7 @@ physical_defaults = {
 
 """
 
-TODO: data background parameter definitions::::::
+TODO: data background parameter definitions:
 
 Number of variables per zone 
     int n_variables ...... derived from DataFields
@@ -101,48 +101,26 @@ n_servers_per_node 1
 ////! Index of thermal pressure
 //// #define SERVER_VAR_INDEX_PTH 9
 
-.......... ??? these values are not self-consistent ......
- a matching Field type::::::
 
 
 
 
 
 
+Documentation (Work in Progress)
+
+The Background methods Evaluate, EvaluateDerivatives, and EvaluateDmax
+are valid for any Coordinate type that includes position and time (Pos_t, Time_t) and
+magnitude of momentum (AbsMom_t or at least Mom_t).
+The fields type (Fields) must always contain magnetic field (Mag_t).
 
 
-
-
-
-/*
- *
- * Documentation (Work in Progress)
- *
- * The Background methods Evaluate, EvaluateDerivatives, and EvaluateDmax
- * are valid for any Coordinate type that includes position and time (Pos_t, Time_t) and
- * magnitude of momentum (AbsMom_t or at least Mom_t).
- * The fields type (Fields) must always contain magnetic field (Mag_t).
- *
- */
-
-/*!
-\author Vladimir Florinski
-\author Juan G Alonso Guzman
-\author Lucius Schoenbaum
-\date 09/08/2025
-\param[in] coords coordinates, any coordinate system providing (time, position, p*) with p* the magnitude of momentum (access via AbsMom), and position in cartesian system.
-\param[out] fields All fields data requested by caller. Optional type RequestedFields specifies which fields to evaluate, if only a subset is needed.
-\note This is a common routine that the derived classes should not change.
-\note This public method is valid for any Coordinate type that includes
+param[in] coords coordinates, any coordinate system providing (time, position, p*) with p* the magnitude of momentum (access via AbsMom), and position in cartesian system.
+param[out] fields All fields data requested by caller. Optional type RequestedFields specifies which fields to evaluate, if only a subset is needed.
+This public method is valid for any Coordinate type that includes
 position and time (Pos_t, Time_t) and magnitude of momentum (AbsMom_t or at least Mom_t).
 The fields type must always contain magnetic field (Mag_t).
 Magnetic field magnitude and/or direction can also be tracked but magnetic field is sufficient.
-*/
-
-
-
-
-
 
 
 

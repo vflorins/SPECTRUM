@@ -1,5 +1,5 @@
-// File main_test_pa_distro_isotrop.hyperconfig.hh.copy
-// Uniform GuidingScatt IsotropicConstant
+// File main_test_parker_spiral.hyperconfig.hh
+// SolarWind Fieldline None
 
 #include "common/compiletime_lists.hh"
 #include "common/vectors.hh"
@@ -29,27 +29,44 @@ struct BackgroundConfig1{
 //! Name: background
 // Description: The background type used for simulation
 // Options: CylindricalObstacle | DataBATL | DataCartesian | Dipole | Discontinuity | MagnetizedCylinder | MagnetizedSphere | Shock | SmoothDiscontinuity | SmoothShock | SolarWind | SphericalObstacle | Uniform | VLISMBochum | Waves
-   static constexpr auto background = Config::Background::Uniform;
+   static constexpr auto background = Config::Background::SolarWind;
 //! Name: derivative_method
 // Description: The method used to evaluate derivatives of spatially located field quantities. Usually, the only information checked is whether or not this value is numeric.
 // Options: numeric | nonnumeric | analytic | datadefined
-   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::analytic;
+   static constexpr auto derivative_method = BackgroundOptions::DerivativeMethod::numeric;
 //! Name: num_numeric_grad_evals
 // Description: The number of derivative evaluations applied in the derivative-averaging method
    static constexpr int num_numeric_grad_evals = 1;
-//! Name: incr_dmax_ratio
-// Description: What fraction of _dmax to use to calculate the field increment
-   static constexpr double incr_dmax_ratio = 0.0001;
-//! Name: dmax0
-// Description: baseline simulation-wide dmax value
-   static constexpr double dmax0 = 0.1;
+//! Name: solarwind_current_sheet
+// Description: Heliospheric current sheet
+// Options: disabled | flat | wavy_static: wavy (Jokipii-Thomas 1981) and static | wavy_time_dependent: wavy and time-dependent
+   static constexpr auto solarwind_current_sheet = BackgroundOptions::CurrentSheet::disabled;
+//! Name: solarwind_sectored_region
+// Description: Magnetic topology region
+// Options: nowhere | HCS
+   static constexpr auto solarwind_sectored_region = BackgroundOptions::SectoredRegion::nowhere;
+//! Name: solarwind_polar_correction
+// Description: Correction to Parker Spiral, mainly for polar regions
+// Options: none | Smith_Bieber: Smith-Bieber 1991 | Zurbuchen_etal: Zurbuchen et al. 1997 | Schwadron_McComas: Schwadron-McComas 2003
+   static constexpr auto solarwind_polar_correction = BackgroundOptions::PolarCorrection::none;
+//! Name: solarwind_speed_latitude_profile
+// Description: Latitudinal profile for bulk speed
+// Options: constant | linear_step | smooth_step
+   static constexpr auto solarwind_speed_latitude_profile = BackgroundOptions::SpeedLatitudeProfile::constant;
+//! Name: with_termination_shock
+// Description: Whether the model has a spherical termination shock feature (requires extra setup, see source/documentation)
+   static constexpr bool with_termination_shock = false;
+//! Name: termshock_speed_exponent
+// Description: Integer exponent of decrease of solar wind speed beyond the termination shock
+// Options: zero | one | square | cube
+   static constexpr auto termshock_speed_exponent = BackgroundOptions::TermShockSpeedExponent::square;
 };
 
 struct TrajectoryConfig1{
 //! Name: trajectory
 // Description: The trajectory type used for simulation
 // Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
-   static constexpr auto trajectory = Config::Trajectory::GuidingScatt;
+   static constexpr auto trajectory = Config::Trajectory::Fieldline;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -58,7 +75,10 @@ struct TrajectoryConfig1{
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t, AbsMag_t, HatMag_t, DelMag_t, DelAbsMag_t, DotAbsMag_t>;
+   using Fields = Fields<FConfig<specieid_>>;
+//! Name: FieldlineField_t
+// Description: The tracked field for a Fieldline trajectory class.
+   using FieldlineField_t = Mag_t;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -90,50 +110,19 @@ struct TrajectoryConfig1{
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
    static constexpr int n_max_calls = -1;
-//! Name: pperp_method
-// Description: Switch controlling how to calculate mu. updating mu according to the scheme does not guarantee conservation of magnetic moment, but can be used with non-adiabatic terms.
-// Options: moment_cons: compute mu from magnetic moment conservation | scheme: update according to scheme
-   static constexpr auto pperp_method = TrajectoryOptions::PPerpMethod::scheme;
-//! Name: cfl_advection
-// Description: CFL condition for advection
-   static constexpr double cfl_advection = 0.5;
-//! Name: drift_safety
-// Description: Safety factor for drift-based time step (to modify "drift_vel" with a small fraction of the particle's velocity)
-   static constexpr double drift_safety = 0.5;
-//! Name: mirror_threshold
-// Description: How many time steps to allow before recording a mirror event
-   static constexpr int mirror_threshold = 10;
-//! Name: split_scatt_fraction
-// Description: Whether to split the diffusive advance into two (one before and one after the advection).
-// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
-   static constexpr double split_scatt_fraction = 0.0;
-//! Name: const_dmumax
-// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
-// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
-   static constexpr auto const_dmumax = TrajectoryOptions::ConstDmumax::constant_dtheta_max;
-//! Name: stochastic_method
-// Description: Which stochastic method to use for scattering
-// Options: Euler | Milstein | RK2
-   static constexpr auto stochastic_method = TrajectoryOptions::StochasticMethod::Euler;
-//! Name: cfl_pitchangle
-// Description: CFL condition for pitch angle scattering
-   static constexpr double cfl_pitchangle = 0.5;
 };
 
 struct DiffusionConfig1{
 //! Name: diffusion
 // Description: The diffusion type used for simulation
 // Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
-   static constexpr auto diffusion = Config::Diffusion::IsotropicConstant;
+   static constexpr auto diffusion = Config::Diffusion::None;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
-   using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;
+   using Coordinates = Fields<FConfig<>>;
 //! Name: Fields
 // Description: The fields computed in the local environment for the diffusion computation during the simulation.
-   using Fields = Fields<FConfig<>, Mag_t, AbsMag_t, DelMag_t, DelAbsMag_t, DotMag_t, DotAbsMag_t>;
-//! Name: D0
-// Description: diffusion coefficient (if constant)
-   static constexpr double D0 = 1.0;
+   using Fields = Fields<FConfig<>>;
 };
 
 

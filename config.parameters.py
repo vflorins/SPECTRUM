@@ -25,95 +25,13 @@ the main `config.py` configuration script.
 
 """
 
-import re
+from config_impl import (
+    ParameterInfo,
+    special_types,
+)
 
 
-spectrum_types = ["Background", "Trajectory", "Diffusion"]
-
-
-def get_special_types(spectrum_types):
-    with open('common/compiletime_lists.hh', 'r') as f:
-        ctl = f.read()
-    special_types = {}
-    for st in spectrum_types:
-        m = re.search(f"enum class {st} {{(.*?)}}", ctl, flags=re.DOTALL)
-        special_types[st] = [x[:-1] for x in m.group(1).split()]
-    return special_types
-
-
-def update_special_types_source(special_types, test_only):
-    for st in spectrum_types:
-        srcname = f'src/{st.lower()}.hh'
-        with open(srcname, 'r') as f:
-            content = f.read()
-        m = re.search(f"^(.*?)Fields<(.*?)>;(.*?)$", content, flags=re.DOTALL)
-        newlist = ""
-        for special_type in special_types[st]:
-            newlist += f"{st}{special_type}<HConfig>,\n"
-        content = m.group(1) + "Fields<\nFConfig<>,\n" + newlist[:-2] + "\n>;" + m.group(3)
-        if test_only:
-            with open(f"CONFIG.{st.lower()}.TEST.hh", 'w') as f:
-                f.write(content)
-        else:
-            with open(srcname, 'w') as f:
-                f.write(content)
-
-
-special_types = get_special_types(spectrum_types)
-
-
-class ParameterInfo:
-    """
-    A data structure setting up the essential
-    information needed to define a default
-    config class. Provides documentation
-    that can be placed where would be appropriate.
-
-    Arguments:
-
-        name (string):
-            parameter name
-        description (string):
-            parameter description
-        parameter_type (type or string):
-            The parameter type. If string, then the
-            type refers to an enum, class, or namespace.
-        possible_values (optional list of string or int or float):
-            A list of possible values, if discrete
-        secular: If True, the parameter not configurable,
-            but instead is hard-coded in the Config data structure.
-    """
-
-    def __init__(self, name, description, parameter_type, possible_values = None, secular = False):
-        self.name = name
-        self.description = description
-        self.possible_values = possible_values
-        self.parameter_type = parameter_type
-        # kludge:
-        self.argparse_parameter_type = str if isinstance(parameter_type, str) else parameter_type
-        self.secular = secular
-
-    def str(self, cpp_comment = True):
-        """
-        A plain text string summarizing the parameter.
-        Formatted as C++ comment if `cpp_comment`.
-        """
-        out = "//! " if cpp_comment else ""
-        nl = "\n// " if cpp_comment else "\n"
-        out += f"Name: {self.name}"
-        out += f"{nl}Description: {self.description}"
-        if self.possible_values:
-            out += f"{nl}Options: " + " | ".join(self.possible_values)
-        if cpp_comment and self.secular:
-            out += f"{nl}Secular (do not modify)"
-        elif not cpp_comment:
-            out += f"{nl}Secular: True"
-        return out
-
-
-
-
-parameters_general = {
+parameters_simulation = {
     'specieid': ParameterInfo(
         name = 'specieid',
         description = "The specie (particle species) used for simulation",
@@ -863,7 +781,7 @@ parameters_diffusion = {
 
 
 parameters = {
-    'General': parameters_general,
+    'Simulation': parameters_simulation,
     'Background': parameters_background,
     'Trajectory': parameters_trajectory,
     'Diffusion': parameters_diffusion,

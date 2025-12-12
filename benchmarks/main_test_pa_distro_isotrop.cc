@@ -18,8 +18,6 @@
 #include <iostream>
 #include <iomanip>
 
-
-
 using namespace Spectrum;
 
 int main(int argc, char** argv)
@@ -28,7 +26,7 @@ int main(int argc, char** argv)
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Set the types
+// Set simulation types, bring in hyperparameters
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    using Trajectory = Trajectory<HConfig>;
@@ -42,7 +40,6 @@ int main(int argc, char** argv)
    using Boundary2 = BoundaryTimeExpire<Trajectory>;
 
    using Distribution1 = DistributionMomentumUniform<Trajectory>;
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a simulation object
@@ -482,7 +479,7 @@ int main(int argc, char** argv)
    simulation->PrintDistro1D(3, 1, simulation_files_prefix + "timemark3_distro.dat", true);
    simulation->PrintDistro1D(4, 1, simulation_files_prefix + "final_distro.dat", true);
 
-   if(MPI_Config::is_master) {
+   if(HConfig::MPI::is_master) {
       std::cout << std::endl;
       std::cout << "PITCH ANGLE DISTRIBUTION ISOTROPIZATION" << std::endl;
       std::cout << "=========================================================" << std::endl;

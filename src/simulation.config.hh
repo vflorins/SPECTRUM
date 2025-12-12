@@ -21,28 +21,22 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 11/25/2025
 */
-template <
-      SpecieId specieid_ = SpecieId::proton_core,
-      bool supervisor_ = false,
-      bool print_last_trajectory_ = false,
-      int num_trajectories_ = 1,
-      int batch_size_ = 1,
-      int max_trajectories_per_worker_ = 1
->
 struct SimulationConfig {
 
-   static constexpr auto specieid = specieid_;
+   static constexpr auto specieid = SpecieId::proton_core;
 
-// Whether to print the last trajectory
-   static constexpr auto print_last_trajectory = print_last_trajectory_;
+   static constexpr auto build_mode = BuildMode::debug;
+
+   // Whether to print the last trajectory
+   static constexpr auto print_last_trajectory = false;
 
 // Whether there is a supervisor process. This does not require there to be server processes.
-   static constexpr auto supervisor = supervisor_;
+   static constexpr auto supervisor = false;
 
 // These can also be set from the command line (argv) at runtime.
-   static constexpr auto num_trajectories = num_trajectories_;
-   static constexpr auto batch_size = batch_size_;
-   static constexpr auto max_trajectories_per_worker = max_trajectories_per_worker_;
+   static constexpr auto num_trajectories = 1;
+   static constexpr auto batch_size = 1;
+   static constexpr auto max_trajectories_per_worker = 1;
 
 };
 

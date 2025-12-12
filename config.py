@@ -15,13 +15,18 @@ Therefore a custom-built solution is necessary, and this is one possibility.
 """
 
 import argparse
-import sys
-from math import modf as math_modf
 from importlib.machinery import SourceFileLoader
+from os.path import (
+    join as os_path_join,
+    exists as os_path_exists,
+)
+from config_impl import (
+    spectrum_path,
+)
 
 
-physical_defaults = SourceFileLoader("config.physical", "config.physical.py").load_module().physical_defaults
-PM = SourceFileLoader("config.parameters", "config.parameters.py").load_module()
+physical_defaults = SourceFileLoader("config.physical", os_path_join(spectrum_path, "config.physical.py")).load_module().physical_defaults
+PM = SourceFileLoader("config.parameters", os_path_join(spectrum_path, "config.parameters.py")).load_module()
 
 
 only_generate_test_files = False
@@ -32,7 +37,9 @@ def argkey(key, spectrum_type):
     This is to avoid name collisions among parameter lists for different spectrum types
     when they are dumped into the common args dict by argparse.
     """
-    return f"{key}_{spectrum_type}"
+    if key in ["background", "trajectory", "diffusion"]:
+        return key
+    return f"{spectrum_type}_{key}"
 
 def get(key, args, spectrum_type, special_type):
     """
@@ -58,7 +65,7 @@ def get(key, args, spectrum_type, special_type):
         if not ak in args:
             raise KeyError(f"[get] The option {ak} is undefined.")
         if args.__dict__[ak] is not None:
-            return args.__dict__[ak]
+            return preamble + args.__dict__[ak]
     if special_type in physical_defaults[spectrum_type]:
         if key in physical_defaults[spectrum_type][special_type]:
             if parameterinfo.parameter_type == float:
@@ -94,28 +101,37 @@ def check_defaults():
                     print(f"[check_defaults] Warning: key {key} found in the list of {spectrum_type}:{special_type} physical defaults, but not found in the list of {spectrum_type} parameters.")
 
 
-def ratio(fp):
-    """
-    Parse a Python immediate floating point expression
-    to produce an initializer expression for a std::ratio.
-    This makes setting default values in the lists (above) more convenient.
-    A cost is incurred due to there occasionally being an
-    unrecognizable std::ratio generated, due to base-ten roundoff error.
-    (Thanks, scientists, for using base ten.)
-    For example, 2000.003 might become 20000030000000004/100000000000000
-    instead of 2000003/1000.
-    :param fp: scalar
-    :return: string
-    """
-    denom = 1
-    numer = abs(fp)
-    sgn = 1 if fp >= 0 else -1
-    fp, ip = math_modf(numer)
-    while fp != 0:
-        denom *= 10
-        numer *= 10
-        fp, ip = math_modf(numer)
-    return f"std::ratio<{int(sgn*numer)},{int(denom)}>"
+def gen_main_block(spectrum_type, special_type):
+    content = ""
+    for key in physical_defaults[spectrum_type][special_type]:
+        try:
+            parameterinfo = PM.parameters[spectrum_type][key]
+        except:
+            raise ValueError(f"Failed to find parameter {key} in the full parameter list for type {spectrum_type}.")
+        content += parameterinfo.str() + "\n"
+        try:
+            value_definition = f"{key} = {get(key, args, spectrum_type, special_type)}"
+        except:
+            raise ValueError(f"Failed while trying to set config for parameter {key} of {spectrum_type}: {special_type}.")
+        if parameterinfo.parameter_type == int:
+            type_definition = "static constexpr int"
+        elif parameterinfo.parameter_type == bool:
+            type_definition = "static constexpr bool"
+        elif parameterinfo.parameter_type == float:
+            type_definition = "static constexpr double"
+        elif parameterinfo.parameter_type == str:
+            type_definition = "static constexpr std::string_view"
+        elif parameterinfo.parameter_type == type:
+            type_definition = "using"
+        elif parameterinfo.parameter_type == "GeoVector":
+            type_definition = "static constexpr GeoVector"
+        elif parameterinfo.parameter_type == "GeoMatrix":
+            type_definition = "static constexpr GeoMatrix"
+        else:
+            # todo deprecate in favor of string, like GeoVector
+            type_definition = "static constexpr auto"
+        content += f"   {type_definition} {value_definition};\n"
+    return content
 
 
 if __name__ == "__main__":
@@ -127,13 +143,29 @@ if __name__ == "__main__":
         action=argparse.BooleanOptionalAction,
         help="Whether to operate in default mode (generate source config files) or in user mode (generate a local config file).",
     )
-    parser.set_defaults(mkdefaults=True)
+    parser.add_argument(
+        "--out", "-o",
+        help="Name of output filename (will be appended with .hyperconfig.hh)",
+        required=False,
+    )
+    parser.add_argument(
+        "--reconfig", "-re",
+        action=argparse.BooleanOptionalAction,
+        help="Whether to run config.py in reconfigure mode."
+    )
+    parser.set_defaults(mkdefaults=False)
+    parser.set_defaults(reconfig=False)
     for spectrum_type in PM.parameters:
         parameters_ = PM.parameters[spectrum_type]
         for key in parameters_:
             if parameters_[key].parameter_type != type:
+                k = argkey(key, spectrum_type)
+                flaglist = [f"--{argkey(key, spectrum_type)}"]
+                # custom shortened flags for spectrum types
+                if k in ['background', 'trajectory', 'diffusion']:
+                    flaglist.append(f"-{k[0]}")
                 parser.add_argument(
-                    f"--{argkey(key, spectrum_type)}",
+                    *flaglist,
                     type=parameters_[key].argparse_parameter_type,
                     help=PM.parameters[spectrum_type][key].description,
                     required=False,
@@ -142,28 +174,12 @@ if __name__ == "__main__":
 
     check_defaults()
 
-    ################################################################
-    # argparse draft - wip
+    if args.mkdefaults:
 
-    # todo check loading of values of enum types via command line
+        PM.update_special_types_source(PM.special_types, spectrum_path, only_generate_test_files)
 
-    found_traj = '--trajectory' in sys.argv
-    found_background = '--background' in sys.argv
-    found_local_hconfig = '--local' in sys.argv
-
-    # if found_traj:
-    #     print("[config] found traj")
-    # else:
-    #     print("[config] not found traj")
-
-    ################################################################
-
-    local_config = ""
-
-    PM.update_special_types_source(PM.special_types, only_generate_test_files)
-
-    for spectrum_type in PM.spectrum_types:
-        content = f"""/*!
+        for spectrum_type in PM.spectrum_types:
+            content = f"""/*!
 \\file {spectrum_type.lower()}.config.hh
 \\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class
 \\author Lucius Schoenbaum
@@ -190,8 +206,8 @@ namespace Spectrum {{
 template<Config::{spectrum_type} {spectrum_type.lower()}_, SpecieId specieid_>
 struct {spectrum_type}Config;
 """
-        special_types_ = PM.special_types[spectrum_type]
-        for special_type in special_types_:
+            special_types_ = PM.special_types[spectrum_type]
+            for special_type in special_types_:
                 content += f"""
 /*!
 \\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class
@@ -202,67 +218,117 @@ struct {spectrum_type}Config;
 template<SpecieId specieid_>
 struct {spectrum_type}Config<Config::{spectrum_type}::{special_type}, specieid_> {{
 """
-                for key in physical_defaults[spectrum_type][special_type]:
-                    try:
-                        parameterinfo = PM.parameters[spectrum_type][key]
-                    except:
-                        raise ValueError(f"Failed to find parameter {key} in the full parameter list for type {spectrum_type}.")
-                    content += parameterinfo.str() + "\n"
-                    try:
-                        value_definition = f"{key} = {get(key, args, spectrum_type, special_type)}"
-                    except:
-                        raise ValueError(f"Failed while trying to set config for parameter {key} of {spectrum_type}: {special_type}.")
-                    if parameterinfo.parameter_type == int:
-                        type_definition = "static constexpr int"
-                    elif parameterinfo.parameter_type == bool:
-                        type_definition = "static constexpr bool"
-                    elif parameterinfo.parameter_type == float:
-                        type_definition = "static constexpr double"
-                    elif parameterinfo.parameter_type == str:
-                        type_definition = "static constexpr std::string_view"
-                    elif parameterinfo.parameter_type == type:
-                        type_definition = "using"
-                    elif parameterinfo.parameter_type == "GeoVector":
-                        type_definition = "static constexpr GeoVector"
-                    elif parameterinfo.parameter_type == "GeoMatrix":
-                        type_definition = "static constexpr GeoMatrix"
-                    else:
-                        # todo deprecate in favor of string, like GeoVector
-                        type_definition = "static constexpr auto"
-                    content += f"   {type_definition} {value_definition};\n"
+                content += gen_main_block(spectrum_type, special_type)
                 content += f"""}};
 
 """
-        content += f"""
+            content += f"""
 
 }}
 
 #endif
 
 """
-        if only_generate_test_files:
-            with open(f"CONFIG.{spectrum_type.lower()}.config.TEST.hh", 'w') as f:
+            if only_generate_test_files:
+                fname = f"CONFIG.TEST.{spectrum_type.lower()}.config.TEST.hh"
+            else:
+                fname = os_path_join(spectrum_path, "src", f"{spectrum_type.lower()}.config.hh")
+            with open(fname, 'w') as f:
                 f.write(content)
-        elif args.mkdefaults:
-            with open(f"src/{spectrum_type.lower()}.config.hh", 'w') as f:
+            print(f"[config.py] file {fname} was updated")
+    else:
+        print("[config.py] Starting...")
+        if not args.reconfig:
+            # gen (generate) mode
+            # sketch:
+            # python $SPECTRUM/config.py -o config --trajectory Guiding --background Dipole --diffusion None --diffusion_use_QLTscatt true
+            # todo - test definition of parameter values from command line (test all types incl. GeoVector)
+            stem = args.out + "." if args.out else ""
+            fname = f"{stem}hyperconfig.hh"
+            if only_generate_test_files:
+                fname = "TEST." + fname + ".TEST.hh"
+            else:
+                # a configuration file might have been edited,
+                # so the policy is never to allow files to be overwritten.
+                while os_path_exists(fname):
+                    print(f"[config.py] Existing file {fname} will not be overwritten. If you wish to generate, use a different name, or first remove/rename the file. If you wish to reconfigure, use flag -re.")
+                    fname += '.copy'
+            specie = "proton_core" # todo ___________________
+            B = args.background
+            T = args.trajectory
+            D = args.diffusion
+            content = f"""// File {fname}
+// {B} {T} {D}
+
+#include "common/compiletime_lists.hh"
+#include "common/vectors.hh"
+#include "common/fields.hh"
+#include "src/hyperconfigure.hh"
+
+using namespace Spectrum;
+
+constexpr auto specieid_ = SpecieId::{specie};
+constexpr auto specie = Specie<specieid_>();
+
+
+struct SimulationConfig1 {{
+   static constexpr auto specieid = specieid_;
+   static constexpr auto build_mode = BuildMode::debug;
+// Whether to print the last trajectory
+   static constexpr auto print_last_trajectory = true;
+// Whether there is a supervisor process. This does not require there to be server processes.
+   static constexpr auto supervisor = false;
+// These can also be set from the command line (argv) at runtime.
+   static constexpr auto num_trajectories = 1;
+   static constexpr auto batch_size = 1;
+   static constexpr auto max_trajectories_per_worker = 1;
+}};
+
+"""
+            if B:
+                content += f"""struct BackgroundConfig1{{\n"""
+                content += gen_main_block("Background", B)
+                content += "};\n\n"
+                B = "BackgroundConfig1"
+            else:
+                B = "Default"
+            if T:
+                content += f"""struct TrajectoryConfig1{{\n"""
+                content += gen_main_block("Trajectory", T)
+                content += "};\n\n"
+                T = "TrajectoryConfig1"
+            else:
+                T = "Default"
+            if D:
+                content += f"""struct DiffusionConfig1{{\n"""
+                content += gen_main_block("Diffusion", D)
+                content += "};\n\n"
+                D = "DiffusionConfig1"
+            else:
+                D = "Default"
+            content += f"""
+
+using HConfig = HyperConfigure<
+      SimulationConfig1,
+      {B},
+      {T},
+      {D}
+>;
+
+"""
+            with open(fname, 'w') as f:
                 f.write(content)
+            print(f"[config.py] Wrote to file {fname}")
         else:
-            print("[config.py] running in !mkdefaults mode")
-            # todo operate on --trajectory, --diffusion, --background
-            # todo push config to local_config
-            # todo writing into the source should be non-default behavior
+            print("[config.py] reconfig")
             raise NotImplementedError
+            # re (reconfigure) mode
+            # sketch:
+            # python $SPECTRUM/config.py --re main.cc --param1 1.234 --param2 2.345
+        print("[config.py] Done.")
 
 
-# gen (generate) mode
-# sketch:
-# python $SPECTRUM/config.py --gen config.hh --trajectory Guiding --background Dipole --diffusion None --diffusion_coefficient 1.0 --etc.
-# g++ compile it
-# ./a.out
 
-# re (reconfigure) mode
-# sketch:
-# python $SPECTRUM/config.py --re main.cc --param1 1.234 --param2 2.345
 
 
 

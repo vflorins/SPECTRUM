@@ -1,5 +1,5 @@
-// File main_test_pa_distro_isotrop.hyperconfig.hh.copy
-// Uniform GuidingScatt IsotropicConstant
+// File main_test_full_diff.hyperconfig.hh.copy
+// Uniform GuidingDiff PerpConstant
 
 #include "common/compiletime_lists.hh"
 #include "common/vectors.hh"
@@ -49,7 +49,7 @@ struct TrajectoryConfig1{
 //! Name: trajectory
 // Description: The trajectory type used for simulation
 // Options: Fieldline | Focused | Guiding | GuidingDiff | GuidingScatt | GuidingDiffScatt | Lorentz | Parker
-   static constexpr auto trajectory = Config::Trajectory::GuidingScatt;
+   static constexpr auto trajectory = Config::Trajectory::GuidingDiff;
 //! Name: Coordinates
 // Description: The coordinates of the trajectory during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::anisotropic>, Pos_t, Time_t, Mom_t, Vel_t>;
@@ -103,28 +103,13 @@ struct TrajectoryConfig1{
 //! Name: mirror_threshold
 // Description: How many time steps to allow before recording a mirror event
    static constexpr int mirror_threshold = 10;
-//! Name: split_scatt_fraction
-// Description: Whether to split the diffusive advance into two (one before and one after the advection).
-// Options: 0.0: do not split | >0.0: fraction of stochastic step to take before deterministic step
-   static constexpr double split_scatt_fraction = 0.0;
-//! Name: const_dmumax
-// Description: Desired accuracy in pitch angle cosine or in pitch angle mu
-// Options: constant_dtheta_max: dtheta_max = 2π/180 (deg to rad conversion factor) | constant_dmumax: dmumax = 0.02 (desired accuracy in pitch angle cosine)
-   static constexpr auto const_dmumax = TrajectoryOptions::ConstDmumax::constant_dtheta_max;
-//! Name: stochastic_method
-// Description: Which stochastic method to use for scattering
-// Options: Euler | Milstein | RK2
-   static constexpr auto stochastic_method = TrajectoryOptions::StochasticMethod::Euler;
-//! Name: cfl_pitchangle
-// Description: CFL condition for pitch angle scattering
-   static constexpr double cfl_pitchangle = 0.5;
 };
 
 struct DiffusionConfig1{
 //! Name: diffusion
 // Description: The diffusion type used for simulation
 // Options: None | IsotropicConstant | QLTConstant | WNLTConstant | WNLTRampVLISM | ParaConstant | PerpConstant | FullConstant | FlowMomentumPowerLaw | KineticEnergyRadialDistancePowerLaw | RigidityMagneticFieldPowerLaw | StraussEtAl2013 | GuoEtAl2014 | PotgieterEtAl2015 | EmpiricalSOQLTandUNLT
-   static constexpr auto diffusion = Config::Diffusion::IsotropicConstant;
+   static constexpr auto diffusion = Config::Diffusion::PerpConstant;
 //! Name: Coordinates
 // Description: The coordinates where the diffusion is computed during the simulation.
    using Coordinates = Fields<FConfig<specieid_, CoordinateSystem::cartesian, CoordinateSystem::pitchangle>, Pos_t, Time_t, Rad_t, AbsVel_t, Mom_t>;

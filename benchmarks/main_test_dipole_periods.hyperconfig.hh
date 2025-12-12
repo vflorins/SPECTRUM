@@ -1,3 +1,5 @@
+// File main_test_dipole_periods.hyperconfig.hh
+// Dipole Guiding None
 
 #include "common/compiletime_lists.hh"
 #include "common/vectors.hh"
@@ -17,35 +19,20 @@ constexpr double Bmag_ = 0.311 / unit_magnetic_fluid;
 constexpr GeoVector B0_ = {0.0, 0.0, Bmag_};
 
 
-/*!
-\brief (Hyper)parameters and config(uration) options for a SPECTRUM test particle trajectory distribution solver simulation
-\author Lucius Schoenbaum
-\date 11/25/2025
-*/
 struct SimulationConfig1 {
-
    static constexpr auto specieid = specieid_;
-
+   static constexpr auto build_mode = BuildMode::debug;
 // Whether to print the last trajectory
    static constexpr auto print_last_trajectory = true;
-
 // Whether there is a supervisor process. This does not require there to be server processes.
    static constexpr auto supervisor = false;
-
 // These can also be set from the command line (argv) at runtime.
    static constexpr auto num_trajectories = 1;
    static constexpr auto batch_size = 1;
    static constexpr auto max_trajectories_per_worker = 1;
-
 };
 
 
-/*!
-\brief (Hyper)parameters and config(uration) options for a SPECTRUM Background class
-\author Lucius Schoenbaum
-\date 09/29/2025
-Background: Dipole
-*/
 struct BackgroundConfig1{
 //! Name: background
 // Description: The background type used for simulation
@@ -81,12 +68,6 @@ struct BackgroundConfig1{
    static constexpr double r_ref = RE;
 };
 
-/*!
-\brief (Hyper)parameters and config(uration) options for a SPECTRUM Trajectory class
-\author Lucius Schoenbaum
-\date 09/29/2025
-Trajectory: Guiding
-*/
 struct TrajectoryConfig1 {
 //! Name: trajectory
 // Description: The trajectory type used for simulation
@@ -124,7 +105,8 @@ struct TrajectoryConfig1 {
    static constexpr auto advance_safety_level = TrajectoryOptions::SafetyLevel::low;
 //! Name: max_trajectory_steps
 // Description: Largest length for single trajectory
-   static constexpr int max_trajectory_steps = 100000;
+   static constexpr int max_trajectory_steps = 100;
+//   static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
    static constexpr int max_time_adaptations = 1;
@@ -149,7 +131,6 @@ struct TrajectoryConfig1 {
 
 
 using HConfig = HyperConfigure<
-      BuildMode::debug,
       SimulationConfig1,
       BackgroundConfig1,
       TrajectoryConfig1,
