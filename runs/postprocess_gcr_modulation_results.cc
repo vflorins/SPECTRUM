@@ -9,7 +9,7 @@ using namespace Spectrum;
 const double J0 = 1.0;
 const double mu = 1.8;
 const double T0 = SPC_CONST_CGSM_GIGA_ELECTRON_VOLT;
-const double specie = SPECIES_PROTON_BEAM;
+const Specie<default_specie> specie;
 
 // Unmodulated spectrum
 inline double unmod_spectrum(double T) {return J0 * pow(T / T0, -mu);};
@@ -47,10 +47,10 @@ int main(int argc, char** argv)
 
 // Output data
    output_spectrum_file << std::setprecision(8);
-   scal = Vel(Mom(T0 / unit_energy_particle, specie), specie) * unmod_spectrum(T0);
+   scal = Particle::Vel<specie>(Particle::Mom<specie>(T0 / Particle::unit_energy)) * unmod_spectrum(T0);
    for(i = 0; i < N; i++) {
-      p2 = Sqr(Mom(energy1[i] / unit_energy_particle, specie));
-      v = Vel(Mom(energy1[i] / unit_energy_particle, specie), specie);
+      p2 = Sqr(Particle::Mom<specie>(energy1[i] / Particle::unit_energy));
+      v = Particle::Vel<specie>(Particle::Mom<specie>(energy1[i] / Particle::unit_energy));
       output_spectrum_file << std::setw(20) << energy1[i] / energy0;
       output_spectrum_file << std::setw(20) << v * unmod_spectrum(energy1[i]) / scal;
       output_spectrum_file << std::setw(20) << p2 * distro1[i] / scal;

@@ -28,8 +28,7 @@ int main(int argc, char** argv)
 // Particle type
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   int specie = SPECIES_PROTON_BEAM;
-   simulation->SetSpecie(specie);
+   Specie<default_specie> specie;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background
@@ -45,15 +44,15 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   double umag = 4.0e7 / unit_velocity_fluid;
+   double umag = 4.0e7 / Particle::unit_velocity;
    GeoVector u0(umag, 0.0, 0.0);
    container.Insert(u0);
 
 // Magnetic field
-   double RS = 6.957e10 / unit_length_fluid;
+   double RS = 6.957e10 / Particle::unit_length;
    double r_ref = 3.0 * RS;
-   double BmagE = 5.0e-5 / unit_magnetic_fluid;
-   double one_au = GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
+   double BmagE = 5.0e-5 / Particle::unit_magnetic;
+   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
    double Bmag_ref = BmagE * Sqr(one_au / r_ref);
    GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
@@ -63,7 +62,7 @@ int main(int argc, char** argv)
    container.Insert(dmax);
 
 // Solar rotation vector
-   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) / unit_frequency_fluid;
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) * Particle::unit_time;
    GeoVector Omega(0.0, 0.0, w0);
    container.Insert(Omega);
 
@@ -107,11 +106,11 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Lower bound for momentum
-   double momentum1 = Mom(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum1 = Particle::Mom<specie>(10.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy);
    container.Insert(momentum1);
 
 // Upper bound for momentum
-   double momentum2 = Mom(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle, specie);
+   double momentum2 = Particle::Mom<specie>(5000.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy);
    container.Insert(momentum2);
 
 // Log bias
@@ -186,7 +185,7 @@ int main(int argc, char** argv)
    container.Insert(actions_time);
    
 // Max duration of the trajectory
-   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 * 1.0 / unit_time_fluid;
+   double maxtime = -60.0 * 60.0 * 24.0 * 365.0 * 1.0 / Particle::unit_time;
    container.Insert(maxtime);
 
    simulation->AddBoundary(BoundaryTimeExpire(), container);
@@ -202,7 +201,7 @@ int main(int argc, char** argv)
    container.Insert(lam0);
 
 // Rigidity normalization factor
-   double R0 = 3.33e6 / unit_rigidity_particle;
+   double R0 = 3.33e6 / Particle::unit_rigidity;
    container.Insert(R0);
 
 // Magnetic field normalization factor
@@ -234,11 +233,11 @@ int main(int argc, char** argv)
    container.Insert(n_bins1);
    
 // Smallest value
-   GeoVector minval1(EnrKin(momentum1, specie), 0.0, 0.0);
+   GeoVector minval1(Particle::EnrKin<specie>(momentum1), 0.0, 0.0);
    container.Insert(minval1);
 
 // Largest value
-   GeoVector maxval1(EnrKin(momentum2, specie), 0.0, 0.0);
+   GeoVector maxval1(Particle::EnrKin<specie>(momentum2), 0.0, 0.0);
    container.Insert(maxval1);
 
 // Linear or logarithmic bins
@@ -250,11 +249,11 @@ int main(int argc, char** argv)
    container.Insert(bin_outside1);
 
 // Physical units of the distro variable
-   double unit_distro1 = 1.0 / (Sqr(unit_length_fluid) * unit_time_fluid * M_4PI * unit_energy_particle);
+   double unit_distro1 = 1.0 / (Sqr(Particle::unit_length) * Particle::unit_time * M_4PI * Particle::unit_energy);
    container.Insert(unit_distro1);
 
 // Physical units of the bin variable
-   GeoVector unit_val1 = {unit_energy_particle, 1.0, 1.0};
+   GeoVector unit_val1 = {Particle::unit_energy, 1.0, 1.0};
    container.Insert(unit_val1);
 
 // Don't keep records
@@ -266,7 +265,7 @@ int main(int argc, char** argv)
    container.Insert(J0);
 
 // Characteristic energy
-   double T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / unit_energy_particle;
+   double T0 = 1.0 * SPC_CONST_CGSM_GIGA_ELECTRON_VOLT / Particle::unit_energy;
    container.Insert(T0);
 
 // Spectral power law
@@ -311,7 +310,7 @@ int main(int argc, char** argv)
    container.Insert(unit_distro2);
 
 // Physical units of the bin variable
-   GeoVector unit_val2 = {unit_time_fluid, 1.0, 1.0};
+   GeoVector unit_val2 = {Particle::unit_time, 1.0, 1.0};
    container.Insert(unit_val2);
 
 // Keep records
