@@ -118,6 +118,7 @@ public:
 
 //! Tell if the class is for momentum coordinate
    bool IsInitialMomentum(void) const;
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -167,6 +168,7 @@ protected:
 
 //! Copy constructor (protected, class not designed to be instantiated)
    InitialTable(const InitialTable& other);
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

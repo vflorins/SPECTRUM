@@ -628,7 +628,7 @@ protected:
 //! Point on cylinder axis (persisitent)
    GeoVector origin;
 
-//! Cylinder coordinate reference frame with z || fa_basis[2] (persitent)
+//! Cylinder coordinate reference frame with z || fa_basis[2] (persistent)
    GeoVector fa_basis[3];
 
 //! Radius of the cylinder (persistent)

@@ -57,6 +57,10 @@ struct HyperConfigure {
       return (background == Config::Background::DataCartesian || background == Config::Background::DataBATL);
    }
 
+   static constexpr bool guiding_trajectory() {
+      return (trajectory == Config::Trajectory::Guiding || trajectory == Config::Trajectory::GuidingDiff || trajectory == Config::Trajectory::GuidingScatt || trajectory == Config::Trajectory::GuidingDiffScatt);
+   }
+
    static constexpr bool need_server() {
       if constexpr (data_background()) return BackgroundConfig::allow_server_worker;
       else return false;
@@ -67,7 +71,7 @@ struct HyperConfigure {
       if constexpr (data_background()) {
 // If interp_order is -1, values are read directly from data (reader), not interpolated.
 // In this case, no gradient computing method except numeric is possible and the derivative_method is ignored.
-         out &= BackgroundConfig::server_interp_order == -1;
+         out &= BackgroundConfig::server_interpolation_order == -1;
       }
       return out;
    }

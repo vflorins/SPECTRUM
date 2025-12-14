@@ -75,7 +75,7 @@ struct TrajectoryConfig<Config::Trajectory::Fieldline, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -130,7 +130,7 @@ struct TrajectoryConfig<Config::Trajectory::Focused, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -201,7 +201,7 @@ struct TrajectoryConfig<Config::Trajectory::Guiding, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -269,7 +269,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingDiff, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -337,7 +337,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingScatt, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -420,7 +420,7 @@ struct TrajectoryConfig<Config::Trajectory::GuidingDiffScatt, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -480,7 +480,7 @@ struct TrajectoryConfig<Config::Trajectory::Lorentz, specieid_> {
    using RecordCoordinates = Fields<FConfig<>, Pos_t, Time_t>;
 //! Name: Fields
 // Description: The fields computed in the local environment of the trajectory during the simulation.
-   using Fields = Fields<FConfig<specieid_>, Mag_t, Ele_t>;
+   using Fields = Fields<FConfig<specieid_>, Mag_t, Ele_t, AbsMag_t>;
 //! Name: time_flow
 // Description: The time flow direction used for simulation
 // Options: forward | backward
@@ -507,7 +507,7 @@ struct TrajectoryConfig<Config::Trajectory::Lorentz, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n
@@ -578,7 +578,7 @@ struct TrajectoryConfig<Config::Trajectory::Parker, specieid_> {
    static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n

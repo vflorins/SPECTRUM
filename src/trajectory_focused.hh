@@ -53,7 +53,7 @@ public:
 
    using TrajectoryBase::local_coords;
 
-   static_assert(Coordinates::FConfig::Mom_Sys == CoordinateSystem::pitchangle, "Momentum coordinates must use `pitchangle` coordinate system.");
+   static_assert(Coordinates::Mom_sys == CoordinateSystem::pitchangle, "Momentum coordinates must use `pitchangle` coordinate system.");
 
 protected:
 

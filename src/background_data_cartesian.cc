@@ -772,15 +772,15 @@ status_t BackgroundDataCartesian<HConfig>::EvaluateBackground(Coordinates& coord
       else block_pri = cache_line[bidx];
    };
 
-   if constexpr (server_interp_order == -1) {
+   if constexpr (server_interpolation_order == -1) {
 // Get fields directly from reader program
       status = Evaluate_FromReader<Fields, RequestedFields>(fields);
    }
-   else if constexpr (server_interp_order == 0) {
+   else if constexpr (server_interpolation_order == 0) {
 // Get fields using 0th order interpolation
       status = Evaluate_Interp0<Fields, RequestedFields>(coords.Pos(), fields);
    }
-   else if constexpr (server_interp_order == 1) {
+   else if constexpr (server_interpolation_order == 1) {
 // Get fields using 1st order interpolation
       status = Evaluate_Interp1<Fields, RequestedFields>(coords.Pos(), fields);
    }
@@ -826,8 +826,8 @@ template <typename HConfig>
 template <typename Coordinates, typename Fields, typename RequestedFields>
 status_t BackgroundDataCartesian<HConfig>::EvaluateBackgroundDerivatives(Coordinates& coords, Fields& fields)
 {
-// Note: if server_interp_order == -1, this method is never called.
-   if constexpr (server_interp_order == 0) {
+// Note: if server_interpolation_order == -1, this method is never called.
+   if constexpr (server_interpolation_order == 0) {
 // All gradients are explicitly set to zero, and the background must not attempt to compute them using "NumericalDerivatives()"
       if constexpr (RequestedFields::DelFluv_found()) {
          fields.DelFluv() = gm_zeros;
@@ -842,7 +842,7 @@ status_t BackgroundDataCartesian<HConfig>::EvaluateBackgroundDerivatives(Coordin
          fields.DelEle() = gm_zeros;
       }
    }
-   else if constexpr (server_interp_order == 1) {
+   else if constexpr (server_interpolation_order == 1) {
 // Gradients can be obtained from the stencil construction
       Gradients_Interp1<Coordinates, Fields, RequestedFields>(coords, fields);
    }

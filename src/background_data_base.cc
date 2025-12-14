@@ -113,11 +113,11 @@ int BackgroundDataBase<HConfig>::RequestBlock(void)
 // This is called even if SERVER_INTERP_ORDER is -1 to import the block dimensions
       MPI_Recv(block_new.get(), 1, MPIBlockType, 0, MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
 
-      if constexpr (server_interp_order > -1) {
+      if constexpr (server_interpolation_order > -1) {
          MPI_Recv(block_new->GetVariablesAddress(), block_new->GetVariableCount() * block_new->GetZoneCount(), MPI_DOUBLE, 0,
                   MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
       }
-      if constexpr (server_interp_order > 0 && num_ghost_cells == 0) {
+      if constexpr (server_interpolation_order > 0 && num_ghost_cells == 0) {
          MPI_Recv(block_new->GetNeighborNodesAddress(), block_new->GetNeighborCount(), MPI_INT, 0,
                   MPI::tag::sendblock, MPI::node_comm, MPI_STATUS_IGNORE);
          MPI_Recv(block_new->GetNeighborLevelsAddress(), block_new->GetNeighborLevelCount(), MPI_INT, 0,

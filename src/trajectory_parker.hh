@@ -61,7 +61,7 @@ public:
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
 
-   using TrajectoryBase::Load;
+//   using TrajectoryBase::Load;
 //   using TrajectoryBase::Store;
    using TrajectoryBase::StoreLocal;
    using TrajectoryBase::RKSlopes;

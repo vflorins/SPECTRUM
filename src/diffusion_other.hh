@@ -93,6 +93,8 @@ class DiffusionIsotropicConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+
    using Config = HConfig::DiffusionConfig;
 
    using DiffusionBase = DiffusionBase<HConfig>;
@@ -106,12 +108,11 @@ public:
 //   using DiffusionBase::mu;
    using DiffusionBase::Stage;
 
-   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
 //! Scattering frequency (persistent)
-   double D0;
+   static constexpr double D0 = Config::D0;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -153,6 +154,7 @@ class DiffusionQLTConstant : public DiffusionBase<HConfig_> {
 public:
 
    using HConfig = HConfig_;
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
    using Config = HConfig::DiffusionConfig;
 
    using DiffusionBase = DiffusionBase<HConfig>;
@@ -165,27 +167,24 @@ public:
    using DiffusionBase::Kappa;
    using DiffusionBase::Omega;
    using DiffusionBase::st2;
-   using DiffusionBase::vmag;
    using DiffusionBase::Stage;
-
-   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
 
 protected:
 
 //! Alfven turbulence relative variance (persistent)
-   double A2A;
+   static constexpr double A2A = Config::A2A;
 
 //! Maximum turbulent lengthscale (persistent)
-   double l_max;
+   static constexpr double l_max = Config::l_max;
 
 //! Characteristic wavenumber (persistent)
-   double k_min;
+   static constexpr double k_min = M_2PI / l_max;
 
 //! Power spectral index (persistent)
-   double ps_index;
+   static constexpr double ps_index = Config::ps_index;
 
 //! Power spectral index minus one (persistent)
-   double ps_minus;
+   static constexpr double ps_minus = ps_index - 1.0;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -210,7 +209,6 @@ public:
 };
 
 
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // DiffusionWNLTConstant class declaration
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -230,6 +228,8 @@ class DiffusionWNLTConstant : public DiffusionQLTConstant<HConfig_> {
 public:
 
    using HConfig = HConfig_;
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+
    using Config = HConfig::DiffusionConfig;
 
    using DiffusionBase = DiffusionBase<HConfig>;
@@ -250,18 +250,19 @@ public:
    using DiffusionQLTConstant::k_min;
    using DiffusionQLTConstant::ps_minus;
 
-   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
-
 protected:
 
+//! Whether to use QLT scattering
+   static constexpr auto use_qlt_scatt = Config::use_qlt_scatt;
+
 //! Transverse turbulence relative variance (persistent)
-   double A2T;
+   static constexpr double A2T = Config::A2T;
 
 //! Longitudinal turbulence relative variance (persistent)
-   double A2L;
+   static constexpr double A2L = Config::A2L;
 
 //! Power spectral index plus one (persistent)
-   double ps_plus;
+   static constexpr double ps_plus = ps_index - 1.0;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -305,6 +306,8 @@ class DiffusionWNLTRampVLISM : public DiffusionWNLTConstant<HConfig_> {
 public:
 
    using HConfig = HConfig_;
+   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+
    using Config = HConfig::DiffusionConfig;
 
    using DiffusionBase = DiffusionBase<HConfig>;
@@ -318,43 +321,54 @@ public:
    using DiffusionBase::_fields;
    using DiffusionBase::Stage;
 
-   using DiffusionWNLTConstant::k_min;
+   using DiffusionWNLTConstant::ps_index;
    using DiffusionWNLTConstant::ps_minus;
-   using DiffusionWNLTConstant::A2A;
-   using DiffusionWNLTConstant::A2T;
-   using DiffusionWNLTConstant::A2L;
-   using DiffusionWNLTConstant::l_max;
-
-   static_assert(HConfig::trajectory != Config::Trajectory::Parker, "DiffusionIsotropicConstant diffusion type cannot be applied to the Parker Trajectory type.");
+   using DiffusionWNLTConstant::use_qlt_scatt;
+// parameters from WNLTConstant that become transient
+//   using DiffusionWNLTConstant::l_max;
+//   using DiffusionWNLTConstant::k_min;
+//   using DiffusionWNLTConstant::A2A;
+//   using DiffusionWNLTConstant::A2T;
+//   using DiffusionWNLTConstant::A2L;
 
 protected:
 
-//! Reference characteristic wavenumber (persistent) (k_min becomes transient)
-   double k_min_ref;
+   //! Maximum turbulent lengthscale (persistent)
+   static constexpr double l_max_ref = Config::l_max_ref;
 
-//! Alfven turbulence relative variance (persistent) (A2A becomes transient)
-   double A2A_ref;
+//! Reference characteristic wavenumber (persistent)
+   static constexpr double k_min_ref = M_2PI / l_max_ref;
 
-//! Transverse turbulence relative variance (persistent) (A2T becomes transient)
-   double A2T_ref;
+//! Alfven turbulence relative variance (persistent)
+   static constexpr double A2A_ref = Config::A2A_ref;
 
-//! Longitudinal turbulence relative variance (persistent) (A2L becomes transient)
-   double A2L_ref;
+//! Transverse turbulence relative variance (persistent)
+   static constexpr double A2T_ref = Config::A2T_ref;
+
+//! Longitudinal turbulence relative variance (persistent)
+   static constexpr double A2L_ref = Config::A2L_ref;
 
 //! Largest scale of turbulence at HP (persistent)
-   double l_max_HP;
+   static constexpr double l_max_HP = Config::l_max_HP;
 
 //! Difference between largest scales (persistent)
-   double dl_max;
+   static constexpr double dl_max = l_max_ref - l_max_HP;
 
 //! Extent of the HP in the nose direction (persistent)
-   double z_nose;
+   static constexpr double z_nose = Config::z_nose;
 
 //! Extent of the sheath in the nose direction (persistent)
-   double z_sheath;
+   static constexpr double z_sheath = Config::z_sheath;
 
 //! Difference between nose distance (persistent)
-   double dz;
+   static constexpr double dz = z_sheath - z_nose;
+
+//! parameters from WNLTConstant that become transient
+   double l_max = l_max_ref;
+   double k_min = k_min_ref;
+   double A2A = A2A_ref;
+   double A2T = A2T_ref;
+   double A2L = A2L_ref;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -411,7 +425,7 @@ public:
 protected:
 
 //! Diffusion coefficient (persistent)
-   double D0;
+   static constexpr double D0 = Config::D0;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -473,7 +487,7 @@ public:
 protected:
 
 //! Diffusion coefficient (persistent)
-   double D0;
+   static constexpr double D0 = Config::D0;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -535,10 +549,10 @@ public:
 protected:
 
 //! Perpendicular diffusion coefficient (persistent)
-   double Dperp;
+   static constexpr double Dperp = Config::Dperp;
 
 //! Parallel diffusion coefficient (persistent)
-   double Dpara;
+   static constexpr double Dpara = Config::Dpara;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -600,22 +614,22 @@ public:
 protected:
 
 //! Reference diffusion coefficient (persistent)
-   double kap0;
+   static constexpr double kap0 = Config::kappa0;
 
 //! Flow velocity normalization factor (persistent)
-   double U0;
+   static constexpr double U0 = Config::U0;
 
 //! Power law slope for flow velocity (persistent)
-   double pow_law_U;
+   static constexpr double pow_law_U = Config::pow_law_U;
    
-   //! Momentum normalization factor (persistent)
-   double p0;
+//! Momentum normalization factor (persistent)
+   static constexpr double p0 = Config::p0;
 
 //! Power law slope for momentum (persistent)
-   double pow_law_p;
+   static constexpr double pow_law_p = Config::pow_law_p;
 
 //! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
+   static constexpr double kap_rat = Config::kappa_ratio;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -655,7 +669,6 @@ Parameters: (DiffusionBase), double kap0, double T0, double r0, double pow_law_T
 template <typename HConfig_>
 class DiffusionKineticEnergyRadialDistancePowerLaw : public DiffusionBase<HConfig_> {
 
-
 //! Readable name of the DiffusionKineticEnergyRadialDistancePowerLaw class
    static constexpr std::string_view diff_name = "DiffusionKineticEnergyRadialDistancePowerLaw";
 
@@ -679,22 +692,22 @@ public:
 protected:
 
 //! Diffusion coefficient normalization factor (persistent)
-   double kap0;
+   static constexpr double kap0 = Config::kappa0;
 
 //! Kinetic Energy normalization factor (persistent)
-   double T0;
+   static constexpr double T0 = Config::T0;
 
 //! Radial distance normalization factor (persistent)
-   double r0;
+   static constexpr double r0 = Config::r0;
 
 //! Power law slope for kinetic energy (persistent)
-   double pow_law_T;
+   static constexpr double pow_law_T = Config::pow_law_T;
 
 //! Power law slope for radial distance (persistent)
-   double pow_law_r;
+   static constexpr double pow_law_r = Config::pow_law_r;
 
 //! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
+   static constexpr double kap_rat = Config::kappa_ratio;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -757,22 +770,22 @@ public:
 protected:
 
 //! Parallel mean free path (persistent)
-   double lam0;
+   static constexpr double lam0 = Config::lam0;
 
 //! Rigidity normalization factor (persistent)
-   double R0;
+   static constexpr double R0 = Config::R0;
 
 //! Magnetic field normalization factor (persistent)
-   double B0;
+   static constexpr double B0 = Config::B0;
 
 //! Power law slope for rigidity (persistent)
-   double pow_law_R;
+   static constexpr double pow_law_R = Config::pow_law_R;
 
 //! Power law slope for magnetic field (persistent)
-   double pow_law_B;
+   static constexpr double pow_law_B = Config::pow_law_B;
 
 //! Ratio of perpendicular to parallel diffusion (persistent)
-   double kap_rat;
+   static constexpr double kap_rat = Config::kappa_ratio;
 
 //! Set up the diffusion model based on "params"
    void SetupDiffusion(bool construct) override;
@@ -835,25 +848,25 @@ public:
 protected:
 
 //! Index for LISM indicator variable (persistent)
-   int LISM_idx;
+   static constexpr int LISM_idx = Config::LISM_idx;
 
 //! Parallel inner heliosphere mean free path (persistent)
-   double lam_in;
+   static constexpr double lam_in = Config::lam_inner;
 
 //! Parallel outer heliosphere mean free path (persistent)
-   double lam_out;
+   static constexpr double lam_out = Config::lam_outer;
 
 //! Rigidity normalization factor (persistent)
-   double R0;
+   static constexpr double R0 = Config::R0;
 
 //! Magnetic field normalization factor for inner heliosphere (persistent)
-   double B0;
+   static constexpr double B0 = Config::B0;
 
 //! Ratio of perpendicular to parallel diffusion inner heliosphere (persistent)
-   double kap_rat_in;
+   static constexpr double kap_rat_in = Config::kappa_ratio_inner;
 
 //! Ratio of perpendicular to parallel diffusion outer heliosphere (persistent)
-   double kap_rat_out;
+   static constexpr double kap_rat_out = Config::kappa_ratio_outer;
 
 //! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
    double LISM_ind;
@@ -919,25 +932,25 @@ public:
 protected:
 
 //! Index for LISM indicator variable (persistent)
-   int LISM_idx;
+   static constexpr int LISM_idx = Config::LISM_idx;
 
 //! Parallel inner heliosphere diffusion coefficient (persistent)
-   double kappa_in;
+   static constexpr double kappa_in = Config::kappa_inner;
 
 //! Parallel outer heliosphere diffusion coefficient (persistent)
-   double kappa_out;
+   static constexpr double kappa_out = Config::kappa_outer;
 
 //! Rigidity normalization factor (persistent)
-   double R0;
+   static constexpr double R0 = Config::R0;
 
 //! Magnetic field normalization factor for inner heliosphere (persistent)
-   double B0;
+   static constexpr double B0 = Config::B0;
 
 //! Ratio of perpendicular to parallel diffusion inner heliosphere (persistent)
-   double kap_rat_in;
+   static constexpr double kap_rat_in = Config::kappa_ratio_inner;
 
 //! Ratio of perpendicular to parallel diffusion outer heliosphere (persistent)
-   double kap_rat_out;
+   static constexpr double kap_rat_out = Config::kappa_ratio_outer;
 
 //! LISM indicator variable: 0 means inside HP, 1 means outside HP (transient)
    double LISM_ind;
@@ -998,31 +1011,31 @@ public:
 protected:
 
 //! Parallel mean free path (persistent)
-   double lam_para;
+   static constexpr double lam_para = Config::lam_para;
 
 //! Perpendicular mean free path (persistent)
-   double lam_perp;
+   static constexpr double lam_perp = Config::lam_perp;
 
 //! Rigidity normalization factor (persistent)
-   double R0;
+   static constexpr double R0 = Config::R0;
 
 //! Magnetic field normalization factor for inner heliosphere (persistent)
-   double B0;
+   static constexpr double B0 = Config::B0;
 
 //! Index for magnetic mixing indicator variable (persistent)
-   int Bmix_idx;
+   static constexpr int Bmix_idx = Config::Bmix_idx;
 
 //! Reduction factor for kappa in unipolar regions (persistent)
-   double kap_rat_red;
+   static constexpr double kap_rat_red = Config::kappa_ratio_red;
 
 //! Radial limit to apply unipolar reduction factor (persistent)
-   double radial_limit_perp_red;
+   static constexpr double radial_limit_perp_red = Config::radial_limit_perp_red;
 
 //! Index for solar cycle indicator variable (persistent)
-   int solar_cycle_idx;
+   static constexpr int solar_cycle_idx = Config::solar_cycle_idx;
    
 //! Solar cycle effect constant (persistent)
-   double solar_cycle_effect;
+   static constexpr double solar_cycle_effect = Config::solar_cycle_effect;
 
 //! Magnetic mixing indicator variable: 0 means unipolar field, 1 means sectored field (transient)
    double Bmix_ind;

@@ -52,6 +52,11 @@ private:
       return B0n + B0t * compression;
    }
 
+   static constexpr GeoVector compute_n_shock() {
+      auto ns = Config::n_shock;
+      return ns.Normalize();
+   }
+
 protected:
 
    static constexpr double dmax0 = Config::dmax0;
@@ -63,7 +68,7 @@ protected:
    static constexpr GeoVector u0 = Config::u0;
 
    //! Shock normal (persistent)
-   static constexpr GeoVector n_shock = Config::n_shock.Normalize();
+   static constexpr GeoVector n_shock = compute_n_shock();
 
    //! Shock velocity (persistent)
    static constexpr double v_shock = Config::v_shock;

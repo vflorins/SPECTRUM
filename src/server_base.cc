@@ -179,12 +179,12 @@ void ServerBase<HConfig>::HandleNeedBlockRequests(void)
 
 // Send the block to a worker. We use a blocking Send to ensure that the buffer can be reused.
       MPI_Send(block_served, 1, MPIBlockType, cpu, MPI::tag::sendblock, MPI::node_comm);
-      if constexpr (server_interp_order > -1) {
+      if constexpr (server_interpolation_order > -1) {
          LoadFieldsFromReader(block_served);
          MPI_Send(block_served->GetVariablesAddress(), block_served->GetVariableCount() * block_served->GetZoneCount(),
                   MPI_DOUBLE, cpu, MPI::tag::sendblock, MPI::node_comm);
       }
-      if constexpr (server_interp_order > 0 && num_ghost_cells == 0) {
+      if constexpr (server_interpolation_order > 0 && num_ghost_cells == 0) {
          LoadNeighborsFromReader(block_served);
          MPI_Send(block_served->GetNeighborNodesAddress(), block_served->GetNeighborCount(),
                   MPI_INT, cpu, MPI::tag::sendblock, MPI::node_comm);

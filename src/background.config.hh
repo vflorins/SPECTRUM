@@ -90,6 +90,12 @@ struct BackgroundConfig<Config::Background::DataBATL, specieid_> {
 //! Name: file_name_pattern
 // Description: File name pattern used for stored data.
    static constexpr std::string_view file_name_pattern = "data";
+//! Name: stencil_n_elements
+// Description: The number of elements in a stencil
+   static constexpr int stencil_n_elements = 8;
+//! Name: DataFields
+// Description: The format of the stored data.
+   using DataFields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t>;
 };
 
 
@@ -130,6 +136,12 @@ struct BackgroundConfig<Config::Background::DataCartesian, specieid_> {
 //! Name: file_name_pattern
 // Description: File name pattern used for stored data.
    static constexpr std::string_view file_name_pattern = "data";
+//! Name: stencil_n_elements
+// Description: The number of elements in a stencil
+   static constexpr int stencil_n_elements = 8;
+//! Name: DataFields
+// Description: The format of the stored data.
+   using DataFields = Fields<FConfig<specieid_>, Fluv_t, Mag_t, Ele_t>;
 };
 
 
@@ -288,6 +300,15 @@ struct BackgroundConfig<Config::Background::Shock, specieid_> {
 //! Name: tanh_width_factor
 // Description: Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
    static constexpr double tanh_width_factor = 4.0;
+//! Name: u0
+// Description: u0
+   static constexpr GeoVector u0 = {0.0,0.0,0.0};
+//! Name: n_shock
+// Description: shock normal
+   static constexpr GeoVector n_shock = {1.0,0.0,0.0};
+//! Name: v_shock
+// Description: shock velocity
+   static constexpr double v_shock = 0.0;
 };
 
 
@@ -358,6 +379,15 @@ struct BackgroundConfig<Config::Background::SmoothShock, specieid_> {
 //! Name: tanh_width_factor
 // Description: Scaling factor to better match discontinuity width when using smooth discontinuity (tanh)
    static constexpr double tanh_width_factor = 4.0;
+//! Name: u0
+// Description: u0
+   static constexpr GeoVector u0 = {0.0,0.0,0.0};
+//! Name: n_shock
+// Description: shock normal
+   static constexpr GeoVector n_shock = {1.0,0.0,0.0};
+//! Name: v_shock
+// Description: shock velocity
+   static constexpr double v_shock = 0.0;
 };
 
 

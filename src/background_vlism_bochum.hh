@@ -44,14 +44,14 @@ public:
 
    static constexpr double dmax0 = Config::dmax0;
 
-   using Config::mod_rpos;
-   using Config::mod_type;
+   static constexpr auto mod_rpos = Config::mod_rpos;
+   static constexpr auto mod_type = Config::mod_type;
 
 private:
 
-   static_assert(!(mod_rpos != 0 && mod_rpos != 1), "Invalid mod_rpos");
-   static_assert(!(mod_type == 1 && mod_rpos != 1), "Invalid combination of mod_rpos and mod_type");
-   static_assert(!((mod_type == 2 || mod_type == 3) && mod_rpos != 0), "Invalid combination of mod_rpos and mod_type");
+   static_assert(!(mod_rpos != ModRPos::scale_rel_zero && mod_rpos != ModRPos::scale_rel_inf), "Invalid mod_rpos");
+   static_assert(!(mod_type == ModType::zero && mod_rpos != ModRPos::scale_rel_inf), "Invalid combination of mod_rpos and mod_type");
+   static_assert(!((mod_type == ModType::constant || mod_type == ModType::scaled) && mod_rpos != ModRPos::scale_rel_zero), "Invalid combination of mod_rpos and mod_type");
 
    static constexpr double Getztr() {
       if constexpr (mod_type == 1)

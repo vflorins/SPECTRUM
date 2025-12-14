@@ -139,7 +139,9 @@ int main(int argc, char **argv) {
 // Duration of the trajectory
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
-   double maxtime = 10.0 * drift_period;
+//   double maxtime = 10.0 * drift_period;
+   // debug
+   double maxtime = drift_period/10000;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTime(), container);
@@ -230,7 +232,7 @@ int main(int argc, char **argv) {
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "fields_main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_dipole_drifts_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "DIPOLE FIELD DRIFT PERIODS" << std::endl;
    std::cout << "=========================================================" << std::endl;

@@ -136,7 +136,7 @@ SPECTRUM_DEVICE_FUNC inline T operator -(const T& left, arithm right)
 \return \f$a\mathbf{v}\f$
 */
 template <typename T, typename arithm, std::enable_if_t<T::is_simple_array && is_arithmetic_or_complex<arithm>::value, bool> = true>
-SPECTRUM_DEVICE_FUNC inline T operator *(arithm left, const T& right)
+SPECTRUM_DEVICE_FUNC inline constexpr T operator *(arithm left, const T& right)
 {
    T retval(left);
    retval *= right;

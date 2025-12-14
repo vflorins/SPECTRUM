@@ -716,10 +716,10 @@ void BoundaryCylinder<HConfig>::EvaluateBoundary(void)
 //    `-.       |       .-'
 //        ~- . _V_ . -~
 
-   GeoVector pos_rel = _coords.Pos() - origin;
-   pos_rel.ChangeToBasis(fa_basis);
-   _delta = sqrt(Sqr(pos_rel[0]) + Sqr(pos_rel[1])) - radius;
-   _normal = pos_rel;
+   _normal = _coords.Pos() - origin;
+   _normal.ChangeToBasis(fa_basis);
+// _normal is in the class's static coordinate system, so its 0,1,2 components are well-defined.
+   _delta = sqrt(Sqr(_normal[0]) + Sqr(_normal[1])) - radius;
    _normal[2] = 0.0;
    _normal = UnitVec(_normal);
    _normal.ChangeFromBasis(fa_basis);
@@ -844,7 +844,7 @@ void BoundaryRegion<HConfig>::EvaluateBoundary(void)
 //    ` ~ - . ____ . - ~ *
 //
 
-   // TODO: allow the indicator variable type to vary
+// TODO: allow the indicator variable type to vary?
    _delta = _fields.Iv0() - region_val;
 //   _delta = region[region_ind] - region_val;
 

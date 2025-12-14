@@ -25,7 +25,7 @@ namespace Spectrum {
 \author Vladimir Florinski
 */
 template <typename HConfig_>
-class TrajectoryGuidingDiffScatt : public TrajectoryGuiding<HConfig_>, TrajectoryGuidingDiff<HConfig_>, TrajectoryGuidingScatt<HConfig_> {
+class TrajectoryGuidingDiffScatt : public TrajectoryGuidingDiff<HConfig_>, TrajectoryGuidingScatt<HConfig_> {
 
 //! Readable name
    static constexpr std::string_view traj_name = "TrajectoryGuidingDiffScatt";
@@ -50,7 +50,6 @@ public:
    using typename TrajectoryBase::DiffusionCoordinates;
    using typename TrajectoryBase::DiffusionFields;
    using typename TrajectoryBase::DiffusionFieldsRemainder;
-   using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
    using TrajectoryBase::_status;
    using TrajectoryBase::specie;
@@ -65,7 +64,7 @@ public:
    using TrajectoryBase::slope_mom;
 ////   // methods:
 ////   using TrajectoryBase::ConvertMomentum;
-   using TrajectoryBase::Load;
+//   using TrajectoryBase::Load;
 
 ////   using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::StoreLocal;

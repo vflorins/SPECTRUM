@@ -36,6 +36,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -91,6 +92,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -126,6 +128,7 @@ public:
 
 //! Clone function
    CloneFunctionInitial(InitialMomentumBeam);
+
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -149,6 +152,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -212,6 +216,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -267,6 +272,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -328,6 +334,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;
@@ -381,6 +388,7 @@ public:
 
    using HConfig = HConfig_;
    using InitialBase = InitialBase<HConfig>;
+   using Coordinates = HConfig::TrajectoryConfig::Coordinates;
 
    using InitialBase::_status;
    using InitialBase::container;

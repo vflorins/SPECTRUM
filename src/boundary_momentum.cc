@@ -351,7 +351,7 @@ template <typename HConfig>
 void BoundaryMirror<HConfig>::EvaluateBoundary(void)
 {
 // Delta is the parallel momentum component
-   if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
+   if constexpr (HConfig::guiding_trajectory()) {
       _delta = _coords.MomPara();
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {

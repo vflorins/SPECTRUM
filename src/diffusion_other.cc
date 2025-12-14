@@ -114,7 +114,6 @@ void DiffusionIsotropicConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(D0);
 };
 
 /*!
@@ -192,11 +191,6 @@ void DiffusionQLTConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(A2A);
-   container.Read(l_max);
-   container.Read(ps_index);
-   k_min = M_2PI / l_max;
-   ps_minus = ps_index - 1.0;
 };
 
 /*!
@@ -262,9 +256,6 @@ void DiffusionWNLTConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionQLTConstant::SetupDiffusion(false);
-   container.Read(A2T);
-   container.Read(A2L);
-   ps_plus = ps_index + 1.0;
 };
 
 /*!
@@ -287,7 +278,7 @@ void DiffusionWNLTConstant<HConfig>::EvaluateDiffusion(Component comp)
 // Hypergeometric function may crash if the last argument is close to 1
    DiffusionQLTConstant::EvaluateDiffusion(comp);
 
-   if constexpr (HConfig::use_qlt_scatt) {
+   if constexpr (use_qlt_scatt) {
       return;
    }
    else {
@@ -344,15 +335,6 @@ void DiffusionWNLTRampVLISM<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionWNLTConstant::SetupDiffusion(false);
-   container.Read(l_max_HP);
-   container.Read(z_nose);
-   container.Read(z_sheath);
-   k_min_ref = k_min;
-   A2A_ref = A2A;
-   A2T_ref = A2T;
-   A2L_ref = A2L;
-   dl_max = l_max - l_max_HP;
-   dz = z_sheath - z_nose;
 };
 
 /*!
@@ -372,6 +354,7 @@ void DiffusionWNLTRampVLISM<HConfig>::EvaluateDiffusion(Component comp)
 
 // Constant k_min beyond z_sheath
    if (z0 > z_sheath) {
+      l_max = l_max_ref;
       k_min = k_min_ref;
       A2A = A2A_ref;
       A2T = A2T_ref;
@@ -379,13 +362,16 @@ void DiffusionWNLTRampVLISM<HConfig>::EvaluateDiffusion(Component comp)
    }
 // Linearly interpolate l_max between z_nose and z_sheath
    else {
-      k_min = M_2PI / (l_max_HP + dl_max * (z0 - z_nose) / dz);
+      l_max = l_max_HP + dl_max * (z0 - z_nose) / dz;
+      k_min = M_2PI / l_max;
       k_ratio = pow(k_min_ref / k_min, ps_minus);
       A2A = A2A_ref * k_ratio;
       A2T = A2T_ref * k_ratio;
       A2L = A2L_ref * k_ratio;
    };
 
+// todo - A2A et al change from hyperparameters to class fields in WNLTRamp,
+//  so not sure if this will work; if it doesn't, easy to fix.
 // Evaluate WLNT diffusion
    DiffusionWNLTConstant::EvaluateDiffusion(comp);
 };
@@ -433,7 +419,6 @@ void DiffusionParaConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(D0);
 };
 
 /*!
@@ -517,7 +502,6 @@ void DiffusionPerpConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(D0);
 };
 
 /*!
@@ -601,8 +585,6 @@ void DiffusionFullConstant<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(Dperp);
-   container.Read(Dpara);
 };
 
 /*!
@@ -688,12 +670,6 @@ void DiffusionFlowMomentumPowerLaw<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(kap0);
-   container.Read(U0);
-   container.Read(pow_law_U);
-   container.Read(p0);
-   container.Read(pow_law_p);
-   container.Read(kap_rat);
 };
 
 /*!
@@ -781,12 +757,6 @@ void DiffusionKineticEnergyRadialDistancePowerLaw<HConfig>::SetupDiffusion(bool 
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(kap0);
-   container.Read(T0);
-   container.Read(r0);
-   container.Read(pow_law_T);
-   container.Read(pow_law_r);
-   container.Read(kap_rat);
 };
 
 /*!
@@ -870,12 +840,6 @@ void DiffusionRigidityMagneticFieldPowerLaw<HConfig>::SetupDiffusion(bool constr
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(lam0);
-   container.Read(R0);
-   container.Read(B0);
-   container.Read(pow_law_R);
-   container.Read(pow_law_B);
-   container.Read(kap_rat);
 };
 
 /*!
@@ -960,13 +924,6 @@ void DiffusionStraussEtAl2013<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(LISM_idx);
-   container.Read(lam_in);
-   container.Read(lam_out);
-   container.Read(R0);
-   container.Read(B0);
-   container.Read(kap_rat_in);
-   container.Read(kap_rat_out);
 };
 
 /*!
@@ -1046,13 +1003,6 @@ void DiffusionPotgieterEtAl2015<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(LISM_idx);
-   container.Read(kappa_in);
-   container.Read(kappa_out);
-   container.Read(R0);
-   container.Read(B0);
-   container.Read(kap_rat_in);
-   container.Read(kap_rat_out);
 };
 
 /*!
@@ -1130,15 +1080,6 @@ void DiffusionEmpiricalSOQLTandUNLT<HConfig>::SetupDiffusion(bool construct)
 {
 // The parent version must be called explicitly if not constructing
    if (!construct) DiffusionBase::SetupDiffusion(false);
-   container.Read(lam_para);
-   container.Read(lam_perp);
-   container.Read(R0);
-   container.Read(B0);
-   container.Read(Bmix_idx);
-   container.Read(kap_rat_red);
-   container.Read(radial_limit_perp_red);
-   container.Read(solar_cycle_idx);
-   container.Read(solar_cycle_effect);
 };
 
 /*!

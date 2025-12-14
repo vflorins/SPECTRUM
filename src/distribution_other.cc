@@ -292,8 +292,7 @@ void DistributionMomentumUniform<HConfig>::EvaluateValue(void)
          _value[1] = 0.0;
          _value[2] = 0.0;
       }
-      // todo awk
-      else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
+      else if constexpr (HConfig::guiding_trajectory()) {
          _value[0] = momentum.Norm();
          _value[1] = momentum[2] / _value[0];
          _value[2] = 0.0;
@@ -590,8 +589,7 @@ void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::EvaluateValue(void)
    else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
       _value[0] = EnrKin<specie>(_coords1.Mom()[2]);
    }
-   // todo awk
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::guiding_trajectory()) {
       _value[0] = EnrKin<specie>(_coords1.Mom().Norm());
    }
    else {
@@ -616,8 +614,7 @@ void DistributionSpectrumKineticEnergyPowerLaw<HConfig>::SpectrumKineticEnergyPo
    else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
       mom2mag = _coords2.Mom()[2];
    }
-   // todo awk
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::GuidingDiff || HConfig::trajectory == Config::Trajectory::GuidingScatt || HConfig::trajectory == Config::Trajectory::GuidingDiffScatt) {
+   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz || HConfig::guiding_trajectory()) {
       mom2mag = _coords2.Mom().Norm();
    }
    else {

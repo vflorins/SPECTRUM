@@ -155,7 +155,7 @@ struct SimpleArray : SimpleArrayBase<data_type, n_vars>
    SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator *=(data_type a);
 
 //! Compute a result of component-wise multiplication of two simple arrays
-   SPECTRUM_DEVICE_FUNC SimpleArray& operator *=(const SimpleArray& other);
+   SPECTRUM_DEVICE_FUNC constexpr SimpleArray& operator *=(const SimpleArray& other);
 
 //! Divide each component by a number
    SPECTRUM_DEVICE_FUNC SimpleArray& operator /=(data_type a);
@@ -188,7 +188,7 @@ struct SimpleArray : SimpleArrayBase<data_type, n_vars>
    SPECTRUM_DEVICE_FUNC void Negate(void);
 
 //! Compute a scalar product with another simple array
-   SPECTRUM_DEVICE_FUNC data_type ScalarProd(const SimpleArray& other) const;
+   SPECTRUM_DEVICE_FUNC constexpr data_type ScalarProd(const SimpleArray& other) const;
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -315,7 +315,7 @@ SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArra
 \return This simple array scaled by the other simple array
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(const SimpleArray<data_type, n_vars>& other)
+SPECTRUM_DEVICE_FUNC inline constexpr SimpleArray<data_type, n_vars>& SimpleArray<data_type, n_vars>::operator *=(const SimpleArray<data_type, n_vars>& other)
 {
    for (auto i = 0; i < n_vars; i++) data[i] *= other.data[i];
    return *this;
@@ -455,7 +455,7 @@ SPECTRUM_DEVICE_FUNC inline void SimpleArray<data_type, n_vars>::Negate(void)
 \return \f$\mathbf{v}\cdot\mathbf{v_1}\f$
 */
 template <typename data_type, int n_vars>
-SPECTRUM_DEVICE_FUNC inline data_type SimpleArray<data_type, n_vars>::ScalarProd(const SimpleArray& other) const
+SPECTRUM_DEVICE_FUNC inline constexpr data_type SimpleArray<data_type, n_vars>::ScalarProd(const SimpleArray& other) const
 {
    data_type sum = data[0] * other.data[0];
    for (auto i = 1; i < n_vars; i++) sum += data[i] * other.data[i];

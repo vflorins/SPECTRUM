@@ -69,7 +69,7 @@ public:
 // constexpr values:
    using BackgroundDataBase::allow_server_worker;
    using BackgroundDataBase::num_ghost_cells;
-   using BackgroundDataBase::server_interp_order;
+   using BackgroundDataBase::server_interpolation_order;
    using BackgroundDataBase::dmax0;
 
 // debug methods:

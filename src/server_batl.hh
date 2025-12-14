@@ -129,7 +129,7 @@ public:
    using ServerInterface::MPIStencilType;
    using ServerInterface::MPIBlockType;
 
-   static constexpr int server_interp_order = Config::server_interp_order;
+   static constexpr int server_interpolation_order = Config::server_interpolation_order;
    static constexpr int num_ghost_cells = Config::num_ghost_cells;
    static constexpr bool request_stencil_from_batl = Config::request_stencil_from_batl;
 

@@ -424,7 +424,7 @@ This operation triggers an exception if the field is not present.
 */
    {datatype}& {name}(char w) {{
         if constexpr (FConfig::{field.normof}_radial)
-           return {field.normof}()[0];
+           return {field.normof}('w')[0];
         else
            return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
    }};

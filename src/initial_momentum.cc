@@ -8,6 +8,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 */
 
 #include "initial_momentum.hh"
+#include "common/fields.hh"
 
 namespace Spectrum {
 
@@ -116,16 +117,20 @@ void InitialMomentumBeam<HConfig>::SetupInitial(bool construct)
 // The parent version must be called explicitly if not constructing
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
-
-   if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {
-      _coords.Mom('w') = GeoVector(p0, 0.0, 0.0);
+   if constexpr (Coordinates::Mom_sys == CoordinateSystem::cartesian) {
+      // In this case the axis (preferred direction) is used, cf. EvaluateInitial()
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
-      _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
+   else if constexpr (Coordinates::Mom_sys == CoordinateSystem::pitchangle) {
+      // e.g., Focused trajectory
+      _coords.MomMu('w') = 0.0;
+      _coords.AbsMom('w') = p0;
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
-// Nothing to do.
+   else if constexpr (Coordinates::Mom_sys == CoordinateSystem::anisotropic) {
+      // e.g., Guiding trajectories
+      _coords.MomPerp('w') = 0.0;
+      _coords.MomPara('w') = p0;
    }
+   _coords.template MakeConsistent<Coordinates>();
 };
 
 /*!
@@ -136,11 +141,8 @@ void InitialMomentumBeam<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialMomentumBeam<HConfig>::EvaluateInitial(void)
 {
-   if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
+   if constexpr (Coordinates::Mom_sys == CoordinateSystem::cartesian){
       _coords.Mom() = p0 * axis;
-   }
-   else {
-// For non-Lorentz trajectories the value of "_coords.Mom()" is assigned in "SetupInitial()"
    }
 };
 
@@ -150,7 +152,8 @@ void InitialMomentumBeam<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialMomentumRing<HConfig>::InitialMomentumRing(void)
@@ -160,7 +163,8 @@ InitialMomentumRing<HConfig>::InitialMomentumRing(void)
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -176,7 +180,8 @@ InitialMomentumRing<HConfig>::InitialMomentumRing(const InitialMomentumRing& oth
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -194,26 +199,32 @@ void InitialMomentumRing<HConfig>::SetupInitial(bool construct)
    mu0 = cos(theta0);
    st0 = sin(theta0);
 
-   if constexpr (HConfig::trajectory == Config::Trajectory::Focused) {
-      _coords.Mom('w') = GeoVector(p0, mu0, 0.0);
+   if constexpr (Coordinates::Mom_sys == CoordinateSystem::cartesian) {
+      // In this case the axis (preferred direction) is used, cf. EvaluateInitial()
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
-      _coords.Mom('w') = GeoVector(p0 * st0, 0.0, p0 * mu0);
+   else if constexpr (Coordinates::Mom_sys == CoordinateSystem::pitchangle) {
+      // e.g., Focused trajectory
+      _coords.MomMu('w') = mu0;
+      _coords.AbsMom('w') = p0;
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
-// Nothing to do.
+   else if constexpr (Coordinates::Mom_sys == CoordinateSystem::anisotropic) {
+      // e.g., Guiding trajectories
+      _coords.MomPerp('w') = p0 * mu0;
+      _coords.MomPara('w') = p0 * st0;
    }
+   _coords.template MakeConsistent<Coordinates>();
 
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialMomentumRing<HConfig>::EvaluateInitial(void)
 {
-   if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
+   if constexpr (Coordinates::Mom_sys == CoordinateSystem::cartesian){
       double phi = M_2PI * rng->GetUniform();
       GeoVector e1, e2;
 
@@ -225,10 +236,6 @@ void InitialMomentumRing<HConfig>::EvaluateInitial(void)
       e2 = axis ^ e1;
       _coords.Mom('w') += p0 * st0 * (cos(phi) * e1 + sin(phi) * e2);
    }
-   else {
-// Nothing to do - the value of "_coords.Mom()" was assigned in "SetupInitial()"
-      ;
-   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -237,7 +244,8 @@ void InitialMomentumRing<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialMomentumShell<HConfig>::InitialMomentumShell(void)
@@ -247,7 +255,8 @@ InitialMomentumShell<HConfig>::InitialMomentumShell(void)
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -263,7 +272,8 @@ InitialMomentumShell<HConfig>::InitialMomentumShell(const InitialMomentumShell& 
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -275,38 +285,34 @@ void InitialMomentumShell<HConfig>::SetupInitial(bool construct)
    if (!construct) InitialBase::SetupInitial(false);
    container.Read(p0);
 
+   _coords.Mom('w') = gv_zeros;
    if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
-      _coords.Mom('w') = GeoVector(p0, 0.0, 0.0);
+      _coords.AbsMom('w') = p0;
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      // todo review
       _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
    }
-   else {
-// Nothing to do.
-   }
+   _coords.template MakeConsistent<Coordinates>();
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialMomentumShell<HConfig>::EvaluateInitial(void)
 {
-
-   if constexpr (HConfig::trajectory == Config::Trajectory::Guiding
-   || HConfig::trajectory == Config::Trajectory::Focused) {
-
-      double mu, st;
-
-      mu = -1.0 + 2.0 * rng->GetUniform();
-      st = sqrt(1.0 - Sqr(mu));
-
-      if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
-         _coords.Mom('w') = GeoVector(p0 * st, 0.0, p0 * mu);
+   if constexpr (HConfig::guiding_trajectory() || HConfig::trajectory == Config::Trajectory::Focused) {
+      double mu = -1.0 + 2.0 * rng->GetUniform();
+      if constexpr (HConfig::guiding_trajectory()) {
+         _coords.MomPara('w') = p0 * sqrt(1.0 - Sqr(mu));
+         _coords.MomPerp('w') = p0 * mu;
       }
       else {
-         _coords.Mom('w') = GeoVector(p0, mu, 0.0);
+         _coords.AbsMom('w') = p0;
+         _coords.MomMu('w') = mu;
       }
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz) {
@@ -316,10 +322,6 @@ void InitialMomentumShell<HConfig>::EvaluateInitial(void)
       phi = M_2PI * rng->GetUniform();
       _coords.Mom('w') = GeoVector(p0 * st * cos(phi), p0 * st * sin(phi), p0 * mu);
    }
-   else {
-// Parker, Fieldline
-// Nothing to do - the value of "_coords.Mom()" was assigned in "SetupInitial()"
-   }
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -328,7 +330,8 @@ void InitialMomentumShell<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialMomentumThickShell<HConfig>::InitialMomentumThickShell(void)
@@ -338,7 +341,8 @@ InitialMomentumThickShell<HConfig>::InitialMomentumThickShell(void)
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -354,7 +358,8 @@ InitialMomentumThickShell<HConfig>::InitialMomentumThickShell(const InitialMomen
 
 /*!
 \author Vladimir Florinski
-\date 10/01/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -372,11 +377,13 @@ void InitialMomentumThickShell<HConfig>::SetupInitial(bool construct)
       p1 = log10(p1);
       p2 = log10(p2);
    };
+   _coords.Mom() = gv_zeros;
 };
 
 /*!
 \author Vladimir Florinski
-\date 06/21/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialMomentumThickShell<HConfig>::EvaluateInitial(void)
@@ -387,21 +394,21 @@ void InitialMomentumThickShell<HConfig>::EvaluateInitial(void)
    else p = p1 + (p2 - p1) * rng->GetUniform();
 
    if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
-      _coords.Mom('w') = GeoVector(p, 0.0, 0.0);
+      _coords.AbsMom('w') = p;
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
+      // todo review
       _coords.Mom('w') = GeoVector(0.0, 0.0, p);
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding || HConfig::trajectory == Config::Trajectory::Focused) {
-      double mu, st;
-
-      mu = -1.0 + 2.0 * rng->GetUniform();
-      st = sqrt(1.0 - Sqr(mu));
-      if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
-         _coords.Mom('w') = GeoVector(p * st, 0.0, p * mu);
+   else if constexpr (HConfig::guiding_trajectory() || HConfig::trajectory == Config::Trajectory::Focused) {
+      double mu = -1.0 + 2.0 * rng->GetUniform();
+      if constexpr (HConfig::guiding_trajectory()) {
+         _coords.MomPara('w') = p * sqrt(1.0 - Sqr(mu));
+         _coords.MomPerp('w') = p * mu;
       }
       else {
-         _coords.Mom('w') = GeoVector(p, mu, 0.0);
+         _coords.AbsMom('w') = p;
+         _coords.MomMu('w') = mu;
       }
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Lorentz){
@@ -419,7 +426,8 @@ void InitialMomentumThickShell<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/27/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialMomentumTable<HConfig>::InitialMomentumTable(void)
@@ -429,7 +437,8 @@ InitialMomentumTable<HConfig>::InitialMomentumTable(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/27/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -445,7 +454,8 @@ InitialMomentumTable<HConfig>::InitialMomentumTable(const InitialMomentumTable& 
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/27/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialMomentumTable<HConfig>::EvaluateInitial(void)
@@ -474,7 +484,8 @@ void InitialMomentumTable<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialMomentumMaxwell<HConfig>::InitialMomentumMaxwell(void)
@@ -484,7 +495,8 @@ InitialMomentumMaxwell<HConfig>::InitialMomentumMaxwell(void)
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -500,7 +512,8 @@ InitialMomentumMaxwell<HConfig>::InitialMomentumMaxwell(const InitialMomentumMax
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -517,11 +530,14 @@ void InitialMomentumMaxwell<HConfig>::SetupInitial(bool construct)
 // The RNG calculation is based on a standard deviation, which is smaller than the thermal speeed by a factor of sqrt(2).
    dp_para /= M_SQRT2;
    dp_perp /= M_SQRT2;
+
+   _coords.Mom('w') = gv_zeros;
 };
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialMomentumMaxwell<HConfig>::EvaluateInitial(void)
@@ -542,17 +558,16 @@ void InitialMomentumMaxwell<HConfig>::EvaluateInitial(void)
       e2 = axis ^ e1;
       _coords.Mom('w') = p_para * axis + p_perp * (cos(phi) * e1 + sin(phi) * e2);
    }
-   else if constexpr (HConfig::trajectory == Config::Trajectory::Guiding) {
-      _coords.Mom('w') = GeoVector(p_perp, 0.0, p_para);
+   else if constexpr (HConfig::guiding_trajectory()) {
+      _coords.MomPara('w') = p_para;
+      _coords.MomPerp('w') = p_perp;
    }
    else {
+      // Focused, Parker
       double p = sqrt(Sqr(p_para) + Sqr(p_perp));
+      _coords.AbsMom('w') = p;
       if constexpr (HConfig::trajectory == Config::Trajectory::Focused){
-         double mu = p_para / p;
-         _coords.Mom('w') = GeoVector(p, mu, 0.0);
-      }
-      else if constexpr (HConfig::trajectory == Config::Trajectory::Parker) {
-         _coords.Mom('w') = GeoVector(p, 0.0, 0.0);
+         _coords.MomMu('w') = p_para / p;
       }
    }
 };

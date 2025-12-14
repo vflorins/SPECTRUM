@@ -53,11 +53,11 @@ void ServerBATL<HConfig>::ServerFinish(void)
 template <typename HConfig>
 int ServerBATL<HConfig>::ServerFunctions(void)
 {
-   if constexpr (server_interp_order == -1) {
+   if constexpr (server_interpolation_order == -1) {
 // Handle "needvars" requests
       ServerBase::HandleNeedVarsRequests();
    }
-   else if constexpr (server_interp_order == 1 && (num_ghost_cells == 0 || request_stencil_from_batl)) {
+   else if constexpr (server_interpolation_order == 1 && (num_ghost_cells == 0 || request_stencil_from_batl)) {
 // Handle "needstencil" requests
       ServerBase::HandleNeedStencilRequests();
    }

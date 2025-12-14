@@ -95,7 +95,7 @@ void ServerCartesian<HConfig>::ServerFinish(void)
 template <typename HConfig>
 int ServerCartesian<HConfig>::ServerFunctions(void)
 {
-   if constexpr (server_interp_order == -1) {
+   if constexpr (server_interpolation_order == -1) {
 // Handle "needvars" requests
       ServerBase::HandleNeedVarsRequests();
    }

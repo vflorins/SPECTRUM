@@ -42,7 +42,7 @@ public:
    using HConfig = HConfig_;
    using Config = HConfig::BackgroundConfig;
    using BlockCache = BlockCache<HConfig>;
-   using MPI = MPI<HConfig, HConfig::MPI_enabled>;
+   using MPI = MPI<HConfig, HConfig::MPI_enabled()>;
    using Block = Block<HConfig>;
    using BlockPtr = std::shared_ptr<Block>;
 
@@ -59,11 +59,11 @@ public:
 
    static constexpr int num_ghost_cells = Config::num_ghost_cells;
 
-   static constexpr int server_interp_order = Config::server_interp_order;
+   static constexpr int server_interpolation_order = Config::server_interpolation_order;
 
    static constexpr double dmax0 = Config::dmax0;
 
-   static_assert(server_interp_order <= 1, "Interpolation orders > 1 are not supported.");
+   static_assert(server_interpolation_order <= 1, "Interpolation orders > 1 are not supported.");
    static_assert(!(!HConfig::MPI_enabled() && !allow_server_worker), "Servers and worker duties cannot be divided unless the simulation is parallel.");
 
 protected:

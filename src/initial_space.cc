@@ -66,7 +66,7 @@ void InitialSpaceFixed<HConfig>::SetupInitial(bool construct)
 template <typename HConfig>
 void InitialSpaceFixed<HConfig>::EvaluateInitial(void)
 {
-// Nothing to do - the value of "_coords.Pos()" was assigned in "Setupinitial()"
+// the value of "_coords.Pos()" was assigned in "Setupinitial()"
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -113,7 +113,8 @@ InitialSpaceLine<HConfig>::InitialSpaceLine(const InitialSpaceLine& other)
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -139,7 +140,8 @@ void InitialSpaceLine<HConfig>::SetupInitial(bool construct)
 
 /*!
 \author Vladimir Florinski
-\date 04/04/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceLine<HConfig>::EvaluateInitial(void)
@@ -192,7 +194,8 @@ InitialSpaceCircle<HConfig>::InitialSpaceCircle(const InitialSpaceCircle& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/11/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -214,7 +217,8 @@ void InitialSpaceCircle<HConfig>::SetupInitial(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/11/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceCircle<HConfig>::EvaluateInitial(void)
@@ -241,7 +245,8 @@ InitialSpaceBox<HConfig>::InitialSpaceBox(void)
 
 /*!
 \author Vladimir Florinski
-\date 09/16/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -257,7 +262,8 @@ InitialSpaceBox<HConfig>::InitialSpaceBox(const InitialSpaceBox& other)
 
 /*!
 \author Vladimir Florinski
-\date 09/16/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceBox<HConfig>::EvaluateInitial(void)
@@ -271,7 +277,8 @@ void InitialSpaceBox<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceSphere<HConfig>::InitialSpaceSphere(void)
@@ -281,7 +288,8 @@ InitialSpaceSphere<HConfig>::InitialSpaceSphere(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceSphere<HConfig>::InitialSpaceSphere(const std::string_view& name_in, status_t status_in)
@@ -291,7 +299,8 @@ InitialSpaceSphere<HConfig>::InitialSpaceSphere(const std::string_view& name_in,
 
 /*!
 \author Vladimir Florinski
-\date 09/30/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -307,7 +316,8 @@ InitialSpaceSphere<HConfig>::InitialSpaceSphere(const InitialSpaceSphere& other)
 
 /*!
 \author Vladimir Florinski
-\date 09/30/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -323,7 +333,8 @@ void InitialSpaceSphere<HConfig>::SetupInitial(bool construct)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceSphere<HConfig>::EvaluateInitial(void)
@@ -344,7 +355,8 @@ void InitialSpaceSphere<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceSphereSector<HConfig>::InitialSpaceSphereSector(void)
@@ -354,7 +366,8 @@ InitialSpaceSphereSector<HConfig>::InitialSpaceSphereSector(void)
 
 /*!
 \author Vladimir Florinski
-\date 09/30/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -371,7 +384,8 @@ InitialSpaceSphereSector<HConfig>::InitialSpaceSphereSector(const InitialSpaceSp
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/28/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -402,7 +416,8 @@ void InitialSpaceSphereSector<HConfig>::SetupInitial(bool construct)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/28/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceSphereSector<HConfig>::EvaluateInitial(void)
@@ -423,7 +438,8 @@ void InitialSpaceSphereSector<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Vladimir Florinski
-\date 06/14/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceRankineHalfBody<HConfig>::InitialSpaceRankineHalfBody(void)
@@ -433,7 +449,8 @@ InitialSpaceRankineHalfBody<HConfig>::InitialSpaceRankineHalfBody(void)
 
 /*!
 \author Vladimir Florinski
-\date 09/30/2021
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -450,7 +467,8 @@ InitialSpaceRankineHalfBody<HConfig>::InitialSpaceRankineHalfBody(const InitialS
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/28/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -473,7 +491,8 @@ void InitialSpaceRankineHalfBody<HConfig>::SetupInitial(bool construct)
 /*!
 \author Juan G Alonso Guzman
 \author Vladimir Florinski
-\date 06/28/2022
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceRankineHalfBody<HConfig>::EvaluateInitial(void)
@@ -496,7 +515,8 @@ void InitialSpaceRankineHalfBody<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/09/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceTable<HConfig>::InitialSpaceTable(void)
@@ -506,7 +526,8 @@ InitialSpaceTable<HConfig>::InitialSpaceTable(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 04/09/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -522,7 +543,8 @@ InitialSpaceTable<HConfig>::InitialSpaceTable(const InitialSpaceTable& other)
 
 /*!
 \author Juan G Alonso Guzman
-\date 12/27/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceTable<HConfig>::EvaluateInitial(void)
@@ -551,7 +573,8 @@ void InitialSpaceTable<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(void)
@@ -561,7 +584,8 @@ InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const std::string_view& name_in, status_t status_in)
@@ -571,7 +595,8 @@ InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const std::string_view& name
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -587,7 +612,8 @@ InitialSpaceCylinder<HConfig>::InitialSpaceCylinder(const InitialSpaceCylinder& 
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -606,7 +632,8 @@ void InitialSpaceCylinder<HConfig>::SetupInitial(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceCylinder<HConfig>::EvaluateInitial(void)
@@ -625,7 +652,8 @@ void InitialSpaceCylinder<HConfig>::EvaluateInitial(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 InitialSpaceCylinderSector<HConfig>::InitialSpaceCylinderSector(void)
@@ -635,7 +663,8 @@ InitialSpaceCylinderSector<HConfig>::InitialSpaceCylinderSector(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param[in] other Object to initialize from
 
 A copy constructor should first first call the Params' version to copy the data container and then check whether the other object has been set up. If yes, it should simply call the virtual method "SetupInitial()" with the argument of "true".
@@ -651,7 +680,8 @@ InitialSpaceCylinderSector<HConfig>::InitialSpaceCylinderSector(const InitialSpa
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -672,7 +702,8 @@ void InitialSpaceCylinderSector<HConfig>::SetupInitial(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/16/2023
+\author Lucius Schoenbaum
+\date 12/14/2025
 */
 template <typename HConfig>
 void InitialSpaceCylinderSector<HConfig>::EvaluateInitial(void)

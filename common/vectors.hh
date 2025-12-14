@@ -214,9 +214,11 @@ SPECTRUM_DEVICE_FUNC inline constexpr double GeoVector::Norm(void) const
 SPECTRUM_DEVICE_FUNC inline constexpr GeoVector& GeoVector::Normalize(void)
 {
    double norm = Norm();
-   x /= norm;
-   y /= norm;
-   z /= norm;
+   if (norm > 0) {
+      data[0] /= norm;
+      data[1] /= norm;
+      data[2] /= norm;
+   }
    return *this;
 };
 
@@ -336,7 +338,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector operator -(const GeoVector& vect)
 \param[in] sarr_r Right operand \f$\mathbf{v}_2\f$
 \return \f$\mathbf{v}_1\cdot\mathbf{v}_2\f$
 */
-SPECTRUM_DEVICE_FUNC inline double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
+SPECTRUM_DEVICE_FUNC inline constexpr double operator *(const GeoVector& vect_l, const GeoVector& vect_r)
 {
    return vect_l.ScalarProd(vect_r);
 };

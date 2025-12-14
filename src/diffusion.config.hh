@@ -94,15 +94,9 @@ struct DiffusionConfig<Config::Diffusion::QLTConstant, specieid_> {
 //! Name: l_max
 // Description: Maximum turbulent lengthscale
    static constexpr double l_max = 1.0;
-//! Name: k_min
-// Description: Characteristic wavenumber
-   static constexpr double k_min = 1.0;
 //! Name: ps_index
 // Description: Power spectral index
    static constexpr double ps_index = 1.0;
-//! Name: ps_minus
-// Description: Power spectral index minus one
-   static constexpr double ps_minus = 1.0;
 };
 
 
@@ -133,24 +127,15 @@ struct DiffusionConfig<Config::Diffusion::WNLTConstant, specieid_> {
 //! Name: l_max
 // Description: Maximum turbulent lengthscale
    static constexpr double l_max = 1.0;
-//! Name: k_min
-// Description: Characteristic wavenumber
-   static constexpr double k_min = 1.0;
 //! Name: ps_index
 // Description: Power spectral index
    static constexpr double ps_index = 1.0;
-//! Name: ps_minus
-// Description: Power spectral index minus one
-   static constexpr double ps_minus = 1.0;
 //! Name: A2T
 // Description: Transverse turbulence relative variance
    static constexpr double A2T = 1.0;
 //! Name: A2L
 // Description: Longitudinal turbulence relative variance
    static constexpr double A2L = 1.0;
-//! Name: ps_plus
-// Description: Power spectral index plus one
-   static constexpr double ps_plus = 1.0;
 };
 
 
@@ -175,36 +160,15 @@ struct DiffusionConfig<Config::Diffusion::WNLTRampVLISM, specieid_> {
 //! Name: use_qlt_scatt
 // Description: Whether to use QLT pitch angle scattering with WLNT perpendicular diffusion
    static constexpr bool use_qlt_scatt = false;
-//! Name: A2A
-// Description: Alfven turbulence relative variance
-   static constexpr double A2A = 1.0;
-//! Name: l_max
-// Description: Maximum turbulent lengthscale
-   static constexpr double l_max = 1.0;
-//! Name: k_min
-// Description: Characteristic wavenumber
-   static constexpr double k_min = 1.0;
-//! Name: ps_index
-// Description: Power spectral index
-   static constexpr double ps_index = 1.0;
-//! Name: ps_minus
-// Description: Power spectral index minus one
-   static constexpr double ps_minus = 1.0;
-//! Name: A2T
-// Description: Transverse turbulence relative variance
-   static constexpr double A2T = 1.0;
-//! Name: A2L
-// Description: Longitudinal turbulence relative variance
-   static constexpr double A2L = 1.0;
-//! Name: ps_plus
-// Description: Power spectral index plus one
-   static constexpr double ps_plus = 1.0;
-//! Name: k_min_ref
-// Description: Reference characteristic wavenumber
-   static constexpr double k_min_ref = 1.0;
 //! Name: A2A_ref
 // Description: Reference Alfven turbulence relative variance
    static constexpr double A2A_ref = 1.0;
+//! Name: l_max_ref
+// Description: Reference maximum turbulent lengthscale
+   static constexpr double l_max_ref = 1.0;
+//! Name: ps_index
+// Description: Power spectral index
+   static constexpr double ps_index = 1.0;
 //! Name: A2T_ref
 // Description: Reference transverse turbulence relative variance
    static constexpr double A2T_ref = 1.0;
@@ -367,9 +331,9 @@ struct DiffusionConfig<Config::Diffusion::KineticEnergyRadialDistancePowerLaw, s
 //! Name: T0
 // Description: Kinetic Energy normalization factor
    static constexpr double T0 = 1.0;
-//! Name: r0_nf
+//! Name: r0
 // Description: Radial distance normalization factor
-   static constexpr double r0_nf = 1.0;
+   static constexpr double r0 = 1.0;
 //! Name: pow_law_T
 // Description: Power law slope for kinetic energy
    static constexpr double pow_law_T = 1.0;
@@ -379,21 +343,6 @@ struct DiffusionConfig<Config::Diffusion::KineticEnergyRadialDistancePowerLaw, s
 //! Name: kappa_ratio
 // Description: Ratio of perpendicular to parallel diffusion
    static constexpr double kappa_ratio = 1.0;
-//! Name: stream_dep_idx
-// Description: Downstream dependance index
-   static constexpr int stream_dep_idx = 1;
-//! Name: u_upstream
-// Description: Upstream flow
-   static constexpr double u_upstream = 1.0;
-//! Name: w_sh
-// Description: Width of shock
-   static constexpr double w_sh = 1.0;
-//! Name: s_sh
-// Description: Shock strength
-   static constexpr double s_sh = 1.0;
-//! Name: dn_up_ratio
-// Description: Ratio of downstream to upstream value
-   static constexpr double dn_up_ratio = 1.0;
 };
 
 
@@ -418,12 +367,12 @@ struct DiffusionConfig<Config::Diffusion::RigidityMagneticFieldPowerLaw, speciei
 //! Name: lam0
 // Description: Parallel mean free path
    static constexpr double lam0 = 1.0;
-//! Name: R0_nf
+//! Name: R0
 // Description: Rigidity normalization factor
-   static constexpr double R0_nf = 1.0;
-//! Name: B0_nf
+   static constexpr double R0 = 1.0;
+//! Name: B0
 // Description: Magnetic field normalization factor
-   static constexpr double B0_nf = 1.0;
+   static constexpr double B0 = 1.0;
 //! Name: pow_law_R
 // Description: Power law slope for rigidity
    static constexpr double pow_law_R = 1.0;
@@ -463,12 +412,12 @@ struct DiffusionConfig<Config::Diffusion::StraussEtAl2013, specieid_> {
 //! Name: lam_outer
 // Description: Parallel outer heliosphere mean free path
    static constexpr double lam_outer = 1.0;
-//! Name: R0_nf
+//! Name: R0
 // Description: Rigidity normalization factor
-   static constexpr double R0_nf = 1.0;
-//! Name: B0_nf
+   static constexpr double R0 = 1.0;
+//! Name: B0
 // Description: Magnetic field normalization factor
-   static constexpr double B0_nf = 1.0;
+   static constexpr double B0 = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -505,12 +454,12 @@ struct DiffusionConfig<Config::Diffusion::GuoEtAl2014, specieid_> {
 //! Name: lam_outer
 // Description: Parallel outer heliosphere mean free path
    static constexpr double lam_outer = 1.0;
-//! Name: R0_nf
+//! Name: R0
 // Description: Rigidity normalization factor
-   static constexpr double R0_nf = 1.0;
-//! Name: B0_nf
+   static constexpr double R0 = 1.0;
+//! Name: B0
 // Description: Magnetic field normalization factor
-   static constexpr double B0_nf = 1.0;
+   static constexpr double B0 = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -547,12 +496,12 @@ struct DiffusionConfig<Config::Diffusion::PotgieterEtAl2015, specieid_> {
 //! Name: kappa_outer
 // Description: Parallel outer heliosphere diffusion coefficient
    static constexpr double kappa_outer = 1.0;
-//! Name: R0_nf
+//! Name: R0
 // Description: Rigidity normalization factor
-   static constexpr double R0_nf = 1.0;
-//! Name: B0_nf
+   static constexpr double R0 = 1.0;
+//! Name: B0
 // Description: Magnetic field normalization factor
-   static constexpr double B0_nf = 1.0;
+   static constexpr double B0 = 1.0;
 //! Name: kappa_ratio_inner
 // Description: Ratio of perpendicular to parallel diffusion inner heliosphere
    static constexpr double kappa_ratio_inner = 1.0;
@@ -586,12 +535,12 @@ struct DiffusionConfig<Config::Diffusion::EmpiricalSOQLTandUNLT, specieid_> {
 //! Name: lam_perp
 // Description: Perpendicular mean free path mean free path
    static constexpr double lam_perp = 1.0;
-//! Name: R0_nf
+//! Name: R0
 // Description: Rigidity normalization factor
-   static constexpr double R0_nf = 1.0;
-//! Name: B0_nf
+   static constexpr double R0 = 1.0;
+//! Name: B0
 // Description: Magnetic field normalization factor
-   static constexpr double B0_nf = 1.0;
+   static constexpr double B0 = 1.0;
 //! Name: Bmix_idx
 // Description: Index for magnetic mixing indicator variable
    static constexpr int Bmix_idx = 1;

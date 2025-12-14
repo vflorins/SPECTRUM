@@ -22,6 +22,8 @@ from os.path import (
 )
 from config_impl import (
     spectrum_path,
+    spectrum_types,
+    update_special_types_source,
 )
 
 
@@ -176,9 +178,9 @@ if __name__ == "__main__":
 
     if args.mkdefaults:
 
-        PM.update_special_types_source(PM.special_types, spectrum_path, only_generate_test_files)
+        update_special_types_source(PM.special_types, only_generate_test_files)
 
-        for spectrum_type in PM.spectrum_types:
+        for spectrum_type in spectrum_types:
             content = f"""/*!
 \\file {spectrum_type.lower()}.config.hh
 \\brief (Hyper)parameters and config(uration) options for a SPECTRUM {spectrum_type} class

@@ -98,6 +98,16 @@ parameters_background = {
         description = "File name pattern used for stored data.",
         parameter_type = str,
     ),
+    'stencil_n_elements': ParameterInfo(
+        name = 'stencil_n_elements',
+        description = "The number of elements in a stencil",
+        parameter_type = int,
+    ),
+    'DataFields': ParameterInfo(
+        name = 'DataFields',
+        description = "The format of the stored data.",
+        parameter_type = type,
+    ),
     #
     ########################################
     'dmax0': ParameterInfo(
@@ -178,6 +188,27 @@ parameters_background = {
         description = "discontinuity width",
         parameter_type = "GeoVector",
     ),
+    'n_shock': ParameterInfo(
+        name = 'n_shock',
+        description = "shock normal",
+        parameter_type = "GeoVector",
+    ),
+    'v_shock': ParameterInfo(
+        name = 'v_shock',
+        description = "shock velocity",
+        parameter_type = float,
+    ),
+    # todo these aren't parameters, my mistake...
+    # 'u0n': ParameterInfo(
+    #     name = 'u0n',
+    #     description = "normal component in the shock frame",
+    #     parameter_type = "GeoVector",
+    # ),
+    # 'u0t': ParameterInfo(
+    #     name = 'u0t',
+    #     description = "tangent component in the shock frame",
+    #     parameter_type = "GeoVector",
+    # ),
     'width_shock': ParameterInfo(
         name = 'width_shock',
         description = "shock width",
@@ -532,6 +563,11 @@ parameters_diffusion = {
         description = "Maximum turbulent lengthscale",
         parameter_type=float,
     ),
+    'l_max_ref': ParameterInfo(
+        name = 'l_max_ref',
+        description = "Reference maximum turbulent lengthscale",
+        parameter_type=float,
+    ),
     'k_min': ParameterInfo(
         name = 'k_min',
         description = "Characteristic wavenumber",
@@ -545,11 +581,6 @@ parameters_diffusion = {
     'ps_index': ParameterInfo(
         name = 'ps_index',
         description = "Power spectral index",
-        parameter_type=float,
-    ),
-    'ps_minus': ParameterInfo(
-        name = 'ps_minus',
-        description = "Power spectral index minus one",
         parameter_type=float,
     ),
     'A2T': ParameterInfo(
@@ -570,11 +601,6 @@ parameters_diffusion = {
     'A2L_ref': ParameterInfo(
         name = 'A2L_ref',
         description = "Reference longitudinal turbulence relative variance",
-        parameter_type=float,
-    ),
-    'ps_plus': ParameterInfo(
-        name = 'ps_plus',
-        description = "Power spectral index plus one",
         parameter_type=float,
     ),
     'l_max_HP': ParameterInfo(
@@ -632,8 +658,8 @@ parameters_diffusion = {
         description = "Kinetic Energy normalization factor",
         parameter_type=float,
     ),
-    'r0_nf': ParameterInfo(
-        name = 'r0_nf',
+    'r0': ParameterInfo(
+        name = 'r0',
         description = "Radial distance normalization factor",
         parameter_type=float,
     ),
@@ -641,11 +667,6 @@ parameters_diffusion = {
         name = 'stream_dep_idx',
         description = "Downstream dependance index",
         parameter_type=int,
-    ),
-    'u_upstream': ParameterInfo(
-        name = 'u_upstream',
-        description = "Upstream flow",
-        parameter_type=float,
     ),
     'w_sh': ParameterInfo(
         name = 'w_sh',
@@ -667,13 +688,13 @@ parameters_diffusion = {
         description = "Parallel mean free path",
         parameter_type=float,
     ),
-    'R0_nf': ParameterInfo(
-        name = 'R0_nf',
+    'R0': ParameterInfo(
+        name = 'R0',
         description = "Rigidity normalization factor",
         parameter_type=float,
     ),
-    'B0_nf': ParameterInfo(
-        name = 'B0_nf',
+    'B0': ParameterInfo(
+        name = 'B0',
         description = "Magnetic field normalization factor",
         parameter_type=float,
     ),

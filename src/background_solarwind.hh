@@ -75,13 +75,13 @@ public:
    static constexpr bool requires_setup = true;
    static constexpr bool stochastic = false;
 
-   using BackgroundConfig::derivative_method;
-   using BackgroundConfig::solarwind_speed_latitude_profile;
-   using BackgroundConfig::solarwind_current_sheet;
-   using BackgroundConfig::solarwind_sectored_region;
-   using BackgroundConfig::solarwind_polar_correction;
-   using BackgroundConfig::with_termination_shock;
-   using BackgroundConfig::termshock_speed_exponent;
+   static constexpr auto derivative_method = BackgroundConfig::derivative_method;
+   static constexpr auto solarwind_speed_latitude_profile = BackgroundConfig::solarwind_speed_latitude_profile;
+   static constexpr auto solarwind_current_sheet = BackgroundConfig::solarwind_current_sheet;
+   static constexpr auto solarwind_sectored_region = BackgroundConfig::solarwind_sectored_region;
+   static constexpr auto solarwind_polar_correction = BackgroundConfig::solarwind_polar_correction;
+   static constexpr auto with_termination_shock = BackgroundConfig::with_termination_shock;
+   static constexpr auto termshock_speed_exponent = BackgroundConfig::termshock_speed_exponent;
 
 protected:
 

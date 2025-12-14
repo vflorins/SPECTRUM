@@ -278,7 +278,7 @@ SPECTRUM_DEVICE_FUNC inline double RelFactor2(double mom, double mag_mom, double
 \return Relativistic momentum
 */
 template <Specie specie>
-SPECTRUM_DEVICE_FUNC inline double Mom(double enr)
+SPECTRUM_DEVICE_FUNC inline constexpr double Mom(double enr)
 {
    return sqrt(enr * (enr + 2.0 * specie.mass * c2_code)) / c_code;
 };
@@ -293,7 +293,7 @@ SPECTRUM_DEVICE_FUNC inline double Mom(double enr)
 \return Total relativistic energy
 */
 template <Specie specie>
-SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom)
+SPECTRUM_DEVICE_FUNC inline constexpr double EnrTot(double mom)
 {
    return c_code * sqrt(Sqr(mom) + Sqr(specie.mass * c_code));
 };
@@ -308,7 +308,7 @@ SPECTRUM_DEVICE_FUNC inline double EnrTot(double mom)
 \return Relativistic kinetic energy
 */
 template <Specie specie>
-SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom)
+SPECTRUM_DEVICE_FUNC inline constexpr double EnrKin(double mom)
 {
    return EnrTot<specie>(mom) - specie.mass * c2_code;
 };
@@ -323,7 +323,7 @@ SPECTRUM_DEVICE_FUNC inline double EnrKin(double mom)
 \return Velocity
 */
 template <Specie specie>
-SPECTRUM_DEVICE_FUNC inline double Vel(double mom)
+SPECTRUM_DEVICE_FUNC inline constexpr double Vel(double mom)
 {
    return mom * c2_code / EnrTot<specie>(mom);
 };
@@ -338,7 +338,7 @@ SPECTRUM_DEVICE_FUNC inline double Vel(double mom)
 \return Velocity
 */
 template <Specie specie> // todo CoordinateSystem Vel_Sys, CoordinateSystem Mom_Sys>
-SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector Vel(const GeoVector& mom)
 {
 //   if constexpr (Vel_Sys == CoordinateSystem::)
    double mmag = mom.Norm();
@@ -356,7 +356,7 @@ SPECTRUM_DEVICE_FUNC inline GeoVector Vel(const GeoVector& mom)
 \return Relativistic momentum
 */
 template <Specie specie>
-SPECTRUM_DEVICE_FUNC inline GeoVector Mom(const GeoVector& vel)
+SPECTRUM_DEVICE_FUNC inline constexpr GeoVector Mom(const GeoVector& vel)
 {
    return (RelFactor(vel.Norm()) * specie.mass) * vel;
 };

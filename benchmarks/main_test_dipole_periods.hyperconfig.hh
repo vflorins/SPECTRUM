@@ -102,14 +102,15 @@ struct TrajectoryConfig1 {
 //! Name: advance_safety_level
 // Description: Trajectory advance routine safety level
 // Options: low: no checks | medium: check dt only | high: check dt, number of segments, and time adaptations per step
-   static constexpr auto advance_safety_level = TrajectoryOptions::SafetyLevel::low;
+   static constexpr auto advance_safety_level = TrajectoryOptions::SafetyLevel::medium;
 //! Name: max_trajectory_steps
 // Description: Largest length for single trajectory
-   static constexpr int max_trajectory_steps = 100;
-//   static constexpr int max_trajectory_steps = 100000;
+// debug
+//   static constexpr int max_trajectory_steps = 100;
+   static constexpr int max_trajectory_steps = 100000;
 //! Name: max_time_adaptations
 // Description: Largest number of time step adaptations for a single time step
-   static constexpr int max_time_adaptations = 1;
+   static constexpr int max_time_adaptations = 100;
 //! Name: n_max_calls
 // Description: Upper limit on the number of steps in debug mode
 // Options: -1: unlimited | n ≥ 0: limited, upper bound n

@@ -46,6 +46,17 @@ public:
 
    using FConfig = FConfig_;
 
+   static constexpr auto specie = Specie<FConfig::specieid>();
+   static constexpr auto Pos_sys = FConfig::Pos_sys;
+   static constexpr auto Mom_sys = FConfig::Mom_sys;
+   static constexpr auto Vel_sys = FConfig::Vel_sys;
+   static constexpr auto Pos_radial = FConfig::Pos_radial;
+   static constexpr auto Mom_radial = FConfig::Mom_radial;
+   static constexpr auto Vel_radial = FConfig::Vel_radial;
+   static constexpr auto Mag_radial = FConfig::Mag_radial;
+   static constexpr auto Flum_radial = FConfig::Flum_radial;
+   static constexpr auto Fluv_radial = FConfig::Fluv_radial;
+
 public:
 
 /*!
@@ -270,7 +281,7 @@ This operation triggers an exception if the field is not present.
 */
    double& Rad(char w) {
         if constexpr (FConfig::Pos_radial)
-           return Pos()[0];
+           return Pos('w')[0];
         else
            return reinterpret_cast<double&>(*(data + Rad_offset));
    };
@@ -625,7 +636,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsFluv(char w) {
         if constexpr (FConfig::Fluv_radial)
-           return Fluv()[0];
+           return Fluv('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsFluv_offset));
    };
@@ -699,7 +710,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsFlum(char w) {
         if constexpr (FConfig::Flum_radial)
-           return Flum()[0];
+           return Flum('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsFlum_offset));
    };
@@ -960,7 +971,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsMom(char w) {
         if constexpr (FConfig::Mom_radial)
-           return Mom()[0];
+           return Mom('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsMom_offset));
    };
@@ -1107,7 +1118,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsVel(char w) {
         if constexpr (FConfig::Vel_radial)
-           return Vel()[0];
+           return Vel('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsVel_offset));
    };
@@ -1240,7 +1251,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsEle(char w) {
         if constexpr (FConfig::Ele_radial)
-           return Ele()[0];
+           return Ele('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsEle_offset));
    };
@@ -1314,7 +1325,7 @@ This operation triggers an exception if the field is not present.
 */
    double& AbsMag(char w) {
         if constexpr (FConfig::Mag_radial)
-           return Mag()[0];
+           return Mag('w')[0];
         else
            return reinterpret_cast<double&>(*(data + AbsMag_offset));
    };
@@ -2313,7 +2324,7 @@ To obtain fields in the type TypeX from given fields y in the type TypeY:
             }
             else if constexpr (ParentFields::Vel_found()) {
                // todo check!!
-               Mom_tmp = Mom<FConfig::specie>(fields.Vel());
+               Mom_tmp = Mom<specie>(fields.Vel());
             }
             else {
                // Conversion fails.
@@ -2324,7 +2335,7 @@ To obtain fields in the type TypeX from given fields y in the type TypeY:
             }
             if constexpr (Vel_found()) {
                // todo check!!
-               X.Vel('w') = Vel<FConfig::specie>(Mom_tmp);
+               X.Vel('w') = Vel<specie>(Mom_tmp);
             }
          }
          if constexpr (Rad_found()) {
@@ -2401,7 +2412,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    double& VelPerp(char w)
    {
       if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
-         return Vel()[0];
+         return Vel('w')[0];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2410,7 +2421,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    double& VelPara(char w)
    {
       if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
-         return Vel()[1];
+         return Vel('w')[1];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2419,7 +2430,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    double& VelAzim(char w)
    {
       if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
-         return Vel()[2];
+         return Vel('w')[2];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2486,7 +2497,7 @@ and azimuthal angle (unused in a reduced model).
    double& MomPerp(char w)
    {
       if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
-         return Mom()[0];
+         return Mom('w')[0];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2495,7 +2506,7 @@ and azimuthal angle (unused in a reduced model).
    double& MomPara(char w)
    {
       if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
-         return Mom()[1];
+         return Mom('w')[1];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2504,7 +2515,7 @@ and azimuthal angle (unused in a reduced model).
    double& MomAzim(char w)
    {
       if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
-         return Mom()[2];
+         return Mom('w')[2];
       }
       else {
          return reinterpret_cast<double&>(*(data + Type_not_found));
@@ -2538,9 +2549,6 @@ This operation is designed for cases arising in plasma physics.
          else if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
             Mom('w')[1] = -Mom()[1];
          }
-         else {
-            // Do nothing.
-         }
       }
       // todo if Vel_found, reflect Vel
    }
@@ -2550,38 +2558,55 @@ This operation is designed for cases arising in plasma physics.
 \author Lucius Schoenbaum
 \date 10/12/2025
 Make all fields consistent, including fields stored for quick lookup.
-todo this should be reviewed periodically.
+NOTE: The convention is that momentum values are converted into velocity values.
+The operation going the other way does *not* happen - do not write velocity fields and then call this!
 */
    template <typename RequestedFields>
    status_t MakeConsistent() {
-      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
-         auto AbsMag = Mag().Norm();
-         if constexpr (RequestedFields::AbsMag_found())
-            this->AbsMag('w') = AbsMag;
-         if constexpr (RequestedFields::HatMag_found())
-            HatMag('w') = Mag() / AbsMag;
+      double Abs_;
+      if constexpr (RequestedFields::Mom_found() && RequestedFields::Vel_found()) {
+         // If  Mom and Vel, convert Mom to Vel and write.
+         Vel('w') = Vel<specie>(Mom());
+      }
+      if constexpr (RequestedFields::AbsMom_found() || RequestedFields::HatMom_found()) {
+         // If AbsMom or HatMom are stored, update them.
+         if constexpr (FConfig::Mom_Radial)
+            Abs_ = Mom()[0];
+         else
+            Abs_ = Mom().Norm();
+         if constexpr (RequestedFields::AbsMom_found())
+            AbsMom('w') = Abs_;
+         if constexpr (RequestedFields::HatMom_found())
+            // todo decide about division by zero
+            HatMom('w') = Mom() / Abs_;
+      }
+      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
+         // If AbsVel or HatVel are stored, update them.
+         if constexpr (FConfig::Vel_Radial)
+            Abs_ = Vel()[0];
+         else
+            Abs_ = Vel().Norm();
+         if constexpr (RequestedFields::AbsVel_found())
+            AbsVel('w') = Abs_;
+         if constexpr (RequestedFields::HatVel_found())
+            // todo decide about division by zero
+            HatVel('w') = Vel() / Abs_;
       }
       if constexpr (RequestedFields::Rad_found()) {
+         // If Rad is stored, update it. (Rad is AbsPos, there is no HatPos.)
          if constexpr (FConfig::Pos_Radial)
             Rad('w') = Pos()[0];
          else
             Rad('w') = Pos().Norm();
       }
-      if constexpr (RequestedFields::AbsMom_found()) {
-         if constexpr (FConfig::Mom_Radial)
-            AbsMom('w') = Mom()[0];
-         else
-            AbsMom('w') = Mom().Norm();
-      }
-      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
-         if constexpr (RequestedFields::AbsVel_found()) {
-            if constexpr (FConfig::Vel_Radial)
-               AbsVel('w') = Vel()[0];
-            else
-               AbsVel('w') = Vel().Norm();
-         }
-         if constexpr (RequestedFields::HatVel_found())
-            HatVel('w') = Vel() / AbsVel();
+      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
+         // If AbsMag or HatMag are stored, update them.
+         Abs_ = Mag().Norm();
+         if constexpr (RequestedFields::AbsMag_found())
+            AbsMag('w') = Abs_;
+         if constexpr (RequestedFields::HatMag_found())
+            // todo decide about division by zero
+            HatMag('w') = Mag() / Abs_;
       }
       status_t status = 0;
       if (AbsMag() < sp_tiny) RAISE_BITS(status, STATE_INVALID);

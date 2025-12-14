@@ -57,7 +57,6 @@ public:
    using typename TrajectoryBase::DiffusionCoordinates;
    using typename TrajectoryBase::DiffusionFields;
    using typename TrajectoryBase::DiffusionFieldsRemainder;
-   using CommonFields_Diffusion = TrajectoryBase::template CommonFields<DiffusionCoordinates, DiffusionFields, DiffusionFieldsRemainder>;
 
 //   using TrajectoryBase::_status;
 //   using TrajectoryBase::_t;
@@ -80,7 +79,7 @@ public:
    using TrajectoryBase::slope_pos;
    using TrajectoryBase::slope_mom;
 //   // methods:
-   using TrajectoryBase::Load;
+//   using TrajectoryBase::Load;
 //   using TrajectoryBase::Store;
    using TrajectoryBase::TimeBoundaryProximityCheck;
    using TrajectoryBase::StoreLocal;

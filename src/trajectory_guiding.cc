@@ -10,6 +10,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "trajectory_guiding.hh"
 #include "common/print_warn.hh"
 
+// debug
+#include <iostream>
+using std::cout; using std::endl;
+
 namespace Spectrum {
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -90,7 +94,9 @@ template <typename HConfig>
 void TrajectoryGuiding<HConfig>::DriftCoeff(void)
 {
    ModifiedFields();
+
    drift_vel = (_coords.VelPara() * Bvec_star + c_code * (Evec_star ^ _fields.HatMag())) / (Bvec_star * _fields.HatMag());
+   cout << "VelPara, VelPerp " << _coords.VelPara() << ", " << _coords.VelPerp()<< endl;
 };
 
 /*!
