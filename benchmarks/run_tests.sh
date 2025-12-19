@@ -91,7 +91,7 @@ function report_if_failed {
 			echo "did not complete... check log files"
 		else
 			echo "completed... check output plot"
-			echo "Run time = ${duration} s."
+			echo "Run-time = ${duration} s."
 		fi
 		echo "========================================"
 		echo ""
@@ -221,7 +221,7 @@ then
 		run_test output_data main_test_init_cond_records $log_file $n_cpus $short_sim $short_batch_size
 		plot_test plot_test_init_cond_records.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -241,7 +241,7 @@ then
 		run_test output_data main_test_pa_distro_isotrop $log_file $n_cpus $long_sim $long_batch_size
 		plot_test plot_test_pa_distro_isotrop.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -261,7 +261,7 @@ then
 		run_test output_data main_test_pa_scatt $log_file $n_cpus $short_sim $short_batch_size
 		plot_test plot_test_pa_scatt.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -281,7 +281,7 @@ then
 		run_test output_data main_test_perp_diff $log_file $n_cpus $long_sim $long_batch_size
 		plot_test plot_test_perp_diff.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -301,7 +301,7 @@ then
 		run_test output_data main_test_full_diff $log_file $n_cpus $long_sim $long_batch_size
 		plot_test plot_test_full_diff.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -328,7 +328,7 @@ then
 		run_test output_data main_postprocess_diff_shock_acc $log_file 1
 		plot_test plot_test_diff_shock_acc.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -364,7 +364,7 @@ then
 		run_test output_data main_test_solarwind_parker_spiral $log_file 1
 		plot_test plot_test_parker_spiral.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
@@ -399,7 +399,7 @@ then
 		run_test output_data main_postprocess_modulation_cartesian_parker $log_file 1
 		plot_test plot_test_modulation_cartesian_parker.py output_data/ output_plots/ $log_file
 	else
-		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo "${test_title} benchmark cannot run with less than ${n_cpus_req} CPUs."
 		echo ""
 	fi
 fi
