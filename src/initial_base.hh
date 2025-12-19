@@ -128,7 +128,7 @@ protected:
    std::vector <tableClass> initquant;
 
 //! Table entry counter
-   int table_counter;
+   long unsigned int table_counter;
 
 //! Set up the initial condition generator based on "params"
    void SetupInitial(bool construct) override;

@@ -111,8 +111,11 @@ double BackgroundSolarWind::TimeLag(const double r)
 void BackgroundSolarWind::EvaluateBackground(void)
 {
    double r, s, costheta, sintheta, sinphi, cosphi;
-   double r_mns, phase0, phase, sinphase, cosphase;
-   double tilt_amp, t_lag, ur, Br, Bt, Bp, arg;
+   double r_mns, ur, Br, Bp;
+
+#if SOLARWIND_POLAR_CORRECTION == 2 || SOLARWIND_CURRENT_SHEET >= 2
+   double phase0, phase, sinphase, cosphase
+#endif
 
 // Convert position into solar rotation frame
    posprime = _pos - r0;
@@ -121,11 +124,13 @@ void BackgroundSolarWind::EvaluateBackground(void)
    r_mns = r - r_ref;
 
 // Compute time lag due to solar wind propagation.
-   t_lag = (_t - t0) - TimeLag(r);
+#if SOLARWIND_CURRENT_SHEET >= 2
+   double t_lag = (_t - t0) - TimeLag(r);
+#endif
 
 // Find the magnitude of the magnetic field at the radial source surface accounting for the time lag. The value for B could be negative (for negative cycles).
 #if SOLARWIND_CURRENT_SHEET == 3
-   arg = 2.0 * W0_sw * t_lag;
+   double arg = 2.0 * W0_sw * t_lag;
    Br0 = B0[0] + B0[1] * cos(arg);
 #else
    Br0 = B0[0];
@@ -139,12 +144,14 @@ void BackgroundSolarWind::EvaluateBackground(void)
 // indicator variables: region[0] = heliosphere(+1)/LISM(-1); region[1] = sectored(+1)/unipolar field(-1); region[2] = time-lagged solar cycle phase
    _spdata.region[0] = (r < hp_rad_sw ? 1.0 : -1.0);
    _spdata.region[1] = -1.0;
+#if SOLARWIND_CURRENT_SHEET == 3
    _spdata.region[2] = arg;
+#endif
   
 // Assign magnetic mixing region
 #if SOLARWIND_CURRENT_SHEET >= 2
 // Constant tilt
-   tilt_amp = tilt_ang_sw;
+   double tilt_amp = tilt_ang_sw;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Variable tilt
    tilt_amp += dtilt_ang_sw * cos(CubicStretch(arg - M_2PI * floor(arg / M_2PI)));
@@ -191,10 +198,10 @@ void BackgroundSolarWind::EvaluateBackground(void)
       Bp -= Br * delta_omega_sw * r * w0 / ur;
 #elif SOLARWIND_POLAR_CORRECTION == 2
       phase = r_mns * w0 / ur;
-      phase0 = r_mns * w0 / ur0;
+      double phase0 = r_mns * w0 / ur0;
       sinphase = sin(phase0);
       cosphase = cos(phase0);
-      Bt = Br * phase * dwt_sw * (sinphi * cosphase + cosphi * sinphase);
+      double Bt = Br * phase * dwt_sw * (sinphi * cosphase + cosphi * sinphase);
       Bp += Br * phase * (dwp_sw * sintheta + dwt_sw * costheta * (cosphi * cosphase - sinphi * sinphase));
 #elif SOLARWIND_POLAR_CORRECTION == 3
 // TODO
@@ -229,9 +236,9 @@ void BackgroundSolarWind::EvaluateBackground(void)
       if (acos(costheta) > M_PI_2) _spdata.Bvec *= -1.0;
 #elif SOLARWIND_CURRENT_SHEET >= 2
 // Wavy current sheet
-      phase0 = w0 * t_lag;
-      sinphase = sin(phase0);
-      cosphase = cos(phase0);
+      phase = w0 * t_lag;
+      sinphase = sin(phase);
+      cosphase = cos(phase);
       if (acos(costheta) > M_PI_2 + atan(tan(tilt_amp) * (sinphi * cosphase + cosphi * sinphase))) _spdata.Bvec *= -1.0;
 #if SOLARWIND_CURRENT_SHEET == 3
 // Solar cycle polarity changes

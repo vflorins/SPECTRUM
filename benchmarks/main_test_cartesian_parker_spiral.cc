@@ -1,4 +1,4 @@
-#include "src/background_solarwind.hh"
+#include "src/background_server_cartesian.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
 #include "src/boundary_momentum.hh"
@@ -13,8 +13,26 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
-
+   int active_local_workers, workers_stopped;
    DataContainer container;
+
+   std::shared_ptr<MPI_Config> mpi_config = std::make_shared<MPI_Config>(argc, argv);
+
+   MPI_Barrier(mpi_config->glob_comm);
+
+//--------------------------------------------------------------------------------
+// Server
+//--------------------------------------------------------------------------------
+
+   std::shared_ptr<ServerBaseBack> server_back = nullptr;
+
+   std::string fname_pattern = "../cartesian_backgrounds/parker_110_110_11";
+
+   if(mpi_config->is_boss) {
+      server_back = std::make_unique<ServerBackType>(fname_pattern);
+      active_local_workers = mpi_config->workers_in_node;
+      server_back->ServerStart();
+   };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
@@ -49,35 +67,17 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   double umag = 4.0e7 / Particle::unit_velocity;
-   GeoVector u0(umag, 0.0, 0.0);
-   container.Insert(u0);
+   container.Insert(gv_zeros);
 
 // Magnetic field
-   double RS = 6.957e10 / Particle::unit_length;
-   double r_ref = 3.0 * RS;
-   double BmagE = 5.0e-5 / Particle::unit_magnetic;
-   double Bmag_ref = BmagE * Sqr((SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length) / r_ref);
-   GeoVector B0(Bmag_ref, 0.0, 0.0);
-   container.Insert(B0);
+   container.Insert(gv_zeros);
 
 // Effective "mesh" resolution
-   double dmax_fraction = 0.1;
-   double dmax = dmax_fraction * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double dmax = one_au;
    container.Insert(dmax);
 
-// Solar rotation vector
-   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) * Particle::unit_time;
-   GeoVector Omega(0.0, 0.0, w0);
-   container.Insert(Omega);
-
-// Reference equatorial distance
-   container.Insert(r_ref);
-
-// dmax fraction for distances closer to the dipole
-   container.Insert(dmax_fraction);
-
-   trajectory->AddBackground(BackgroundSolarWind(), container);
+   trajectory->AddBackground(BackgroundServerCartesian(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -97,6 +97,8 @@ int main(int argc, char** argv)
 
    container.Clear();
 
+   double RS = 6.957e10 / Particle::unit_length;
+   double r_ref = 3.0 * RS;
    GeoVector start_pos(r_ref,0.0,0.0);
    container.Insert(start_pos);
 
@@ -109,8 +111,8 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double MeV_kinetic_energy = 100.0;
-   container.Insert(Particle::Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy));
+   double keV_kinetic_energy = 1.0;
+   container.Insert(Particle::Mom<specie>(keV_kinetic_energy * SPC_CONST_CGSM_KILO_ELECTRON_VOLT / Particle::unit_energy));
 
    trajectory->AddInitial(InitialMomentumShell(), container);
 
@@ -152,7 +154,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double r_out = 10.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double r_out = 10.0 * one_au;
    container.Insert(r_out);
 
    trajectory->AddBoundary(BoundarySphereAbsorb(), container);
@@ -161,22 +163,32 @@ int main(int argc, char** argv)
 // Run the simulation
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   trajectory->SetStart();
-   trajectory->Integrate();
-   trajectory->InterpretStatus();
+   if (mpi_config->is_boss) {
+      while(active_local_workers) {
+         workers_stopped = server_back->ServerFunctions();
+         active_local_workers -= workers_stopped;
+      };
+      server_back->ServerFinish();
+   }
+   else if (mpi_config->is_worker) {
+      trajectory->SetStart();
+      trajectory->Integrate();
+      trajectory->InterpretStatus();
 
-   std::string trajectory_file = "main_test_parker_spiral_" + trajectory->GetName() + ".lines";
-   std::cout << std::endl;
-   std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
-   std::cout << "++++++++++++++++++++" << std::endl;
-   std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
-   std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
-   std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * Particle::unit_time << " s" << std::endl;
-   std::cout << "++++++++++++++++++++" << std::endl;
-   std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
-   std::cout << std::endl;
+      std::string trajectory_file = "main_test_cartesian_parker_spiral_" + trajectory->GetName() + ".lines";
+      std::cout << std::endl;
+      std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
+      std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
+      std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
+      std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * Particle::unit_time << " s" << std::endl;
+      std::cout << "++++++++++++++++++++" << std::endl;
+      std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
+      std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file, true);
+      trajectory->PrintCSV(trajectory_file, true);
+      trajectory->StopBackground();
+   };
    
    return 0;
 };

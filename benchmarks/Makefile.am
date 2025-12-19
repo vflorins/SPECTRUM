@@ -15,7 +15,9 @@ endif
 
 bin_PROGRAMS = main_test_dipole_visual \
                main_test_turb_waves \
-               main_test_parker_spiral \
+               main_generate_cartesian_parker_spiral \
+               main_test_cartesian_parker_spiral \
+               main_test_solarwind_parker_spiral \
                main_test_init_cond_records \
                main_test_dipole_periods \
                main_test_pa_distro_isotrop \
@@ -108,7 +110,104 @@ main_test_turb_waves_SOURCES = main_test_turb_waves.cc \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh
 
-main_test_parker_spiral_SOURCES = main_test_parker_spiral.cc \
+main_generate_cartesian_parker_spiral_SOURCES = main_generate_cartesian_parker_spiral.cc \
+   $(SPBL_SOURCE_DIR)/background_solarwind.cc \
+   $(SPBL_SOURCE_DIR)/background_solarwind.hh \
+   $(SPBL_SOURCE_DIR)/background_base.cc \
+   $(SPBL_SOURCE_DIR)/background_base.hh \
+   $(SPBL_SOURCE_DIR)/background_base_visual.cc \
+   $(SPBL_COMMON_DIR)/matrix.cc \
+   $(SPBL_COMMON_DIR)/matrix.hh \
+   $(SPBL_COMMON_DIR)/coordinates.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/specie.hh \
+   $(SPBL_COMMON_DIR)/physical_constants.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
+   $(SPBL_COMMON_DIR)/gpu_config.hh
+
+main_test_cartesian_parker_spiral_SOURCES = main_test_cartesian_parker_spiral.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_fieldline.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_fieldline.hh \
+   $(SPBL_SOURCE_DIR)/trajectory_base.cc \
+   $(SPBL_SOURCE_DIR)/trajectory_base.hh \
+   $(SPBL_SOURCE_DIR)/distribution_base.cc \
+   $(SPBL_SOURCE_DIR)/distribution_base.hh \
+   $(SPBL_SOURCE_DIR)/background_server_cartesian.cc \
+   $(SPBL_SOURCE_DIR)/background_server_cartesian.hh \
+   $(SPBL_SOURCE_DIR)/background_server.cc \
+   $(SPBL_SOURCE_DIR)/background_server.hh \
+   $(SPBL_SOURCE_DIR)/background_base.cc \
+   $(SPBL_SOURCE_DIR)/background_base.hh \
+   $(SPBL_SOURCE_DIR)/boundary_momentum.cc \
+   $(SPBL_SOURCE_DIR)/boundary_momentum.hh \
+   $(SPBL_SOURCE_DIR)/boundary_space.cc \
+   $(SPBL_SOURCE_DIR)/boundary_space.hh \
+   $(SPBL_SOURCE_DIR)/boundary_time.cc \
+   $(SPBL_SOURCE_DIR)/boundary_time.hh \
+   $(SPBL_SOURCE_DIR)/boundary_base.cc \
+   $(SPBL_SOURCE_DIR)/boundary_base.hh \
+   $(SPBL_SOURCE_DIR)/initial_time.cc \
+   $(SPBL_SOURCE_DIR)/initial_time.hh \
+   $(SPBL_SOURCE_DIR)/initial_space.cc \
+   $(SPBL_SOURCE_DIR)/initial_space.hh \
+   $(SPBL_SOURCE_DIR)/initial_momentum.cc \
+   $(SPBL_SOURCE_DIR)/initial_momentum.hh \
+   $(SPBL_SOURCE_DIR)/initial_base.cc \
+   $(SPBL_SOURCE_DIR)/initial_base.hh \
+   $(SPBL_SOURCE_DIR)/diffusion_base.cc \
+   $(SPBL_SOURCE_DIR)/diffusion_base.hh \
+   $(SPBL_SOURCE_DIR)/source_base.cc \
+   $(SPBL_SOURCE_DIR)/source_base.hh \
+   $(SPBL_SOURCE_DIR)/traj_config.hh \
+   $(SPBL_SOURCE_DIR)/server_config.hh \
+   $(SPBL_SOURCE_DIR)/server_cartesian.cc \
+   $(SPBL_SOURCE_DIR)/server_cartesian.hh \
+   $(SPBL_SOURCE_DIR)/server_base.cc \
+   $(SPBL_SOURCE_DIR)/server_base.hh \
+   $(SPBL_SOURCE_DIR)/cache_lru.cc \
+   $(SPBL_SOURCE_DIR)/cache_lru.hh \
+   $(SPBL_SOURCE_DIR)/block_cartesian.cc \
+   $(SPBL_SOURCE_DIR)/block_cartesian.hh \
+   $(SPBL_SOURCE_DIR)/block_base.cc \
+   $(SPBL_SOURCE_DIR)/block_base.hh \
+   $(SPBL_SOURCE_DIR)/reader_cartesian.cc \
+   $(SPBL_SOURCE_DIR)/reader_cartesian.hh \
+   $(SPBL_COMMON_DIR)/mpi_config.cc \
+   $(SPBL_COMMON_DIR)/mpi_config.hh \
+   $(SPBL_COMMON_DIR)/data_container.hh \
+   $(SPBL_COMMON_DIR)/data_container.cc \
+   $(SPBL_COMMON_DIR)/matrix.cc \
+   $(SPBL_COMMON_DIR)/matrix.hh \
+   $(SPBL_COMMON_DIR)/coordinates.hh \
+   $(SPBL_COMMON_DIR)/vectors.cc \
+   $(SPBL_COMMON_DIR)/vectors.hh \
+   $(SPBL_COMMON_DIR)/multi_index.hh \
+   $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
+   $(SPBL_COMMON_DIR)/params.cc \
+   $(SPBL_COMMON_DIR)/params.hh \
+   $(SPBL_COMMON_DIR)/physics.cc \
+   $(SPBL_COMMON_DIR)/physics.hh \
+   $(SPBL_COMMON_DIR)/print_warn.hh \
+   $(SPBL_COMMON_DIR)/specie.hh \
+   $(SPBL_COMMON_DIR)/physical_constants.hh \
+   $(SPBL_COMMON_DIR)/random.hh \
+   $(SPBL_COMMON_DIR)/rk_config.hh \
+   $(SPBL_COMMON_DIR)/definitions.hh \
+   $(SPBL_COMMON_DIR)/gpu_config.hh
+
+main_test_solarwind_parker_spiral_SOURCES = main_test_solarwind_parker_spiral.cc \
    $(SPBL_SOURCE_DIR)/trajectory_fieldline.cc \
    $(SPBL_SOURCE_DIR)/trajectory_fieldline.hh \
    $(SPBL_SOURCE_DIR)/trajectory_base.cc \

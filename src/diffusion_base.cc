@@ -225,12 +225,14 @@ double DiffusionBase::GetDirectionalDerivative(int xyz)
 */
 double DiffusionBase::GetMuDerivative(void)
 {
-   double mu_saved, dmu, derivative;
+   double dmu, derivative;
    GeoVector Kappa_saved;
 
 // Save diffusion and field values at "current" position
    Kappa_saved = Kappa;
-   mu_saved = mu;
+#if (TRAJ_TYPE != TRAJ_PARKER) && (TRAJ_TYPE != TRAJ_PARKER_SOURCE)
+   double mu_saved = mu;
+#endif
 
 // Mu derivative (momentum is in (p,mu,phi) coordinates)
    dmu = sp_small * (mu + sp_small < 1.0 ? 1.0 : -1.0);

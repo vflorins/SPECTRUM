@@ -350,7 +350,7 @@ void DistributionTemplated<distroClass>::EvaluateWeight(int action_in)
 {
 // This template method should only work for <double> because of 0.0
 // TODO Implement exception throwing for bad action index
-   if ((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= (int) ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = 0.0;
       return;
@@ -363,7 +363,7 @@ template <>
 void DistributionTemplated<GeoVector>::EvaluateWeight(int action_in)
 {
 // TODO Implement exception throwing for bad action index
-   if ((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= (int) ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = gv_zeros;
       return;
@@ -376,7 +376,7 @@ template <>
 void DistributionTemplated<GeoMatrix>::EvaluateWeight(int action_in)
 {
 // TODO Implement exception throwing for bad action index
-   if ((action_in < 0) || (action_in >= ActionTable.size())) {
+   if ((action_in < 0) || (action_in >= (int) ActionTable.size())) {
       PrintError(__FILE__, __LINE__, "Invalid action index", true);
       _weight = gm_zeros;
       return;
@@ -650,17 +650,15 @@ void DistributionTemplated<distroClass>::PrintWeight(std::ofstream& distfile, in
 template <>
 void DistributionTemplated<GeoVector>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
 {
-   int i;
-   for (i = 0; i < 3; i++) distfile << std::setw(20) << weights_record[record][i] * (phys_units ? unit_distro[i] : 1.0);
+   for (int i = 0; i < 3; i++) distfile << std::setw(20) << weights_record[record][i] * (phys_units ? unit_distro[i] : 1.0);
 };
 
 // Method specialization for GeoMatrix
 template <>
 void DistributionTemplated<GeoMatrix>::PrintWeight(std::ofstream& distfile, int record, bool phys_units) const
 {
-   int i, j;
-   for (i = 0; i < 3; i++) {
-      for (j = 0; j < 3; j++) distfile << std::setw(20) << weights_record[record][i][j] * (phys_units ? unit_distro[i][j] : 1.0);
+   for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) distfile << std::setw(20) << weights_record[record][i][j] * (phys_units ? unit_distro[i][j] : 1.0);
    };
 };
 
@@ -674,12 +672,11 @@ void DistributionTemplated<GeoMatrix>::PrintWeight(std::ofstream& distfile, int 
 template <class distroClass>
 void DistributionTemplated<distroClass>::PrintRecords(const std::string& dist_name, bool phys_units) const
 {
-   int i, j;
    std::ofstream distfile(dist_name.c_str());
    
    distfile << "# Total number of records: " << values_record.size() << std::endl << std::endl;
-   for (i = 0; i < values_record.size(); i++) {
-      for (j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j] * (phys_units ? unit_val[j] : 1.0);
+   for (long unsigned int i = 0; i < values_record.size(); i++) {
+      for (int j = 0; j < 3; j++) distfile << std::setw(20) << values_record[i][j] * (phys_units ? unit_val[j] : 1.0);
       PrintWeight(distfile, i, phys_units);
       distfile << std::endl;
    };

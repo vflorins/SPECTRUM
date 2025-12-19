@@ -10,19 +10,23 @@ int main(void)
 {
    BackgroundSolarWind background;
    SpatialData spdata;
-   int Nb = 25;
+   int Nb = 110;
+   int z_scale = 10;
+   int Nz = Nb / 10;
    std::string Nbs = std::to_string(Nb);
-   std::string fname_pattern = "parker_" + Nbs + "_" + Nbs + "_" + Nbs;
+   std::string Nzs = std::to_string(Nz);
+   std::string fname_pattern = "parker_" + Nbs + "_" + Nbs + "_" + Nzs;
 
 // Block configuration
    MultiIndex block_size (4, 4, 4); // Number of zones per block in each dimension
-   MultiIndex Nblocks (Nb, Nb, Nb); // Number of blocks in each dimension
+   MultiIndex Nblocks (Nb, Nb, Nz); // Number of blocks in each dimension
 
 // Domain limits
    double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
-   double corner = 100.0 * one_au;
-   GeoVector dom_min (-corner, -corner, -corner); // Minimum domain values
-   GeoVector dom_max ( corner,  corner,  corner); // Maximum domain values
+   double corner_xy = 11.0 * one_au;
+   double corner_z = corner_xy / (double) z_scale;
+   GeoVector dom_min (-corner_xy, -corner_xy, -corner_z); // Minimum domain values
+   GeoVector dom_max ( corner_xy,  corner_xy,  corner_z); // Maximum domain values
 
 // Variables to output
    int Nvar = 6;

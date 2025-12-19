@@ -13,7 +13,7 @@ short_batch_size=10
 n_cpus_per_socket=$(grep 'core id' /proc/cpuinfo | sort -u | wc -l)
 n_sockets=$(grep 'physical id' /proc/cpuinfo | sort -u | wc -l)
 n_cpus_max=$(($n_cpus_per_socket * $n_sockets))
-n_cpus=${1:-$n_cpus_max}
+n_cpus=${2:-$n_cpus_max}
 if [[ $n_cpus -gt $n_cpus_max ]]
 then
 	n_cpus=$n_cpus_max
@@ -23,22 +23,26 @@ fi
 if [ "$#" -eq 0 ] || [ "${1}" = "-h" ]
 then
    echo "Script to run SPECTRUM benchmark tests."
-   echo "Usage: ./run_tests.sh [N]"
+   echo "Usage: ./run_tests.sh [t] [n]"
    echo ""
-   echo "   Value of N indicates which test(s) to run:"
-   echo "------------------------------------------------"
-   echo "      1: DIPOLE FIELD VISUALIZATION"
-   echo "      2: TURBULENCE VIA SUPERPOSITION OF WAVES"
-   echo "      3: PARKER SPIRAL SOLAR WIND"
-   echo "      4: INITIAL CONDITION RECORDS TEST"
-   echo "      5: DIPOLE FIELD DRIFT PERIODS"
-   echo "      6: PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
-   echo "      7: PITCH ANGLE SCATTERING"
-   echo "      8: PERPENDICULAR DIFFUSION"
-   echo "      9: FULL (PERP+PARA) DIFFUSION"
-   echo "     10: DIFFUSIVE SHOCK ACCELERATION"
-   echo "     11: MODULATION WITH CARTESIAN PARKER FIELD"
+   echo "   Value of t indicates which test(s) to run:"
+   echo "--------------------------------------------------------------"
+   echo "      1: DIPOLE FIELD VISUALIZATION (1 CPU)"
+   echo "      2: TURBULENCE VIA SUPERPOSITION OF WAVES (1 CPU)"
+   echo "      3: DIPOLE FIELD DRIFT PERIODS (1 CPU)"
+   echo "      4: INITIAL CONDITION RECORDS TEST (2+ CPU)"
+   echo "      5: PITCH ANGLE DISTRIBUTION ISOTROPIZATION (2+ CPUs)"
+   echo "      6: PITCH ANGLE SCATTERING (2+ CPUs)"
+   echo "      7: PERPENDICULAR DIFFUSION (2+ CPUs)"
+   echo "      8: FULL (PERP+PARA) DIFFUSION (2+ CPUs)"
+   echo "      9: DIFFUSIVE SHOCK ACCELERATION (2+ CPUs)"
+   echo "     10: PARKER SPIRAL MAGNETIC FIELD (3 CPUs)"
+   echo "     11: PARKER MODULATION WITH CARTESIAN BACKGROUND (3+ CPUs)"
    echo "    all: ALL BENCHMARK TESTS"
+   echo "--------------------------------------------------------------"
+   echo ""
+   echo "   Value of n indicates how many processors to use for parallel tests."
+   echo ""
 fi
 
 # If input `all` is provided, run all tests
@@ -64,6 +68,7 @@ function print_header {
 # $3: name of log file
 # $4: flag to output to stdout as well
 # $5: name of test
+# $6: duration of code execution in seconds
 function report_if_failed {
 	echo "" >> "${3}"
 	echo $2 >> "${3}"
@@ -86,6 +91,7 @@ function report_if_failed {
 			echo "did not complete... check log files"
 		else
 			echo "completed... check output plot"
+			echo "Run time = ${duration} s."
 		fi
 		echo "========================================"
 		echo ""
@@ -127,13 +133,15 @@ function make_test {
 function run_test {
 	mkdir -p $1
 	cd $1
+	start_time=$SECONDS
 	if [ $4 -eq 1 ]
 	then
 		../$2 1>> "../${results_file}" 2>> "../logs/${3}"
 	else
 		mpirun -np $4 ../$2 $5 $6 1>> "../${results_file}" 2>> "../logs/${3}"
 	fi
-	report_if_failed $? "EXECUTION" "../logs/${3}" true $2
+	duration=$((SECONDS - start_time))
+	report_if_failed $? "EXECUTION" "../logs/${3}" true $2 $duration
 	cd - 1>> "../logs/${3}"
 }
 
@@ -185,34 +193,8 @@ then
 	plot_test plot_test_turb_waves.py output_data/ output_plots/ $log_file
 fi
 
-# PARKER SPIRAL SOLAR WIND
-if [ "${1}" = "3" ] || $run_all_tests
-then
-	test_title="PARKER SPIRAL SOLAR WIND"
-	log_file="log_test_parker_spiral.txt"
-	echo "Currently running ${test_title} benchmark on 1 CPU"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file SERIAL FIELDLINE FORWARD 29 SELF
-	make_test main_test_parker_spiral $log_file
-	run_test output_data main_test_parker_spiral $log_file 1
-	plot_test plot_test_parker_spiral.py output_data/ output_plots/ $log_file
-fi
-
-# INITIAL CONDITION RECORDS TEST
-if [ "${1}" = "4" ] || $run_all_tests
-then
-	test_title="INITIAL CONDITION RECORDS"
-	log_file="log_test_init_cond_records.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL FOCUSED FORWARD 29 SELF
-	make_test main_test_init_cond_records $log_file
-	run_test output_data main_test_init_cond_records $log_file $n_cpus $short_sim $short_batch_size
-	plot_test plot_test_init_cond_records.py output_data/ output_plots/ $log_file
-fi
-
 # DIPOLE FIELD DRIFT PERIODS
-if [ "${1}" = "5" ] || $run_all_tests
+if [ "${1}" = "3" ] || $run_all_tests
 then
 	test_title="DIPOLE FIELD DRIFT PERIODS"
 	log_file="log_test_dipole_periods.txt"
@@ -224,101 +206,200 @@ then
 	plot_test plot_test_dipole_periods.py output_data/ output_plots/ $log_file
 fi
 
+# INITIAL CONDITION RECORDS
+if [ "${1}" = "4" ] || $run_all_tests
+then
+	test_title="INITIAL CONDITION RECORDS"
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_init_cond_records.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL FOCUSED FORWARD 29 SELF
+		make_test main_test_init_cond_records $log_file
+		run_test output_data main_test_init_cond_records $log_file $n_cpus $short_sim $short_batch_size
+		plot_test plot_test_init_cond_records.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
+fi
+
 # PITCH ANGLE DISTRIBUTION ISOTROPIZATION
-if [ "${1}" = "6" ] || $run_all_tests
+if [ "${1}" = "5" ] || $run_all_tests
 then
 	test_title="PITCH ANGLE DISTRIBUTION ISOTROPIZATION"
-	log_file="log_test_pa_distro_isotrop.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL GUIDING_SCATT FORWARD 29 SELF
-	make_test main_test_pa_distro_isotrop $log_file
-	run_test output_data main_test_pa_distro_isotrop $log_file $n_cpus $long_sim $long_batch_size
-	plot_test plot_test_pa_distro_isotrop.py output_data/ output_plots/ $log_file
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_pa_distro_isotrop.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL GUIDING_SCATT FORWARD 29 SELF
+		make_test main_test_pa_distro_isotrop $log_file
+		run_test output_data main_test_pa_distro_isotrop $log_file $n_cpus $long_sim $long_batch_size
+		plot_test plot_test_pa_distro_isotrop.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi
 
 # PITCH ANGLE SCATTERING
-if [ "${1}" = "7" ] || $run_all_tests
+if [ "${1}" = "6" ] || $run_all_tests
 then
 	test_title="PITCH ANGLE SCATTERING"
-	log_file="log_test_pa_scatt.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL GUIDING_SCATT FORWARD 29 SELF
-	make_test main_test_pa_scatt $log_file
-	run_test output_data main_test_pa_scatt $log_file $n_cpus $short_sim $short_batch_size
-	plot_test plot_test_pa_scatt.py output_data/ output_plots/ $log_file
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_pa_scatt.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL GUIDING_SCATT FORWARD 29 SELF
+		make_test main_test_pa_scatt $log_file
+		run_test output_data main_test_pa_scatt $log_file $n_cpus $short_sim $short_batch_size
+		plot_test plot_test_pa_scatt.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi
 
 # PERPENDICULAR DIFFUSION
-if [ "${1}" = "8" ] || $run_all_tests
+if [ "${1}" = "7" ] || $run_all_tests
 then
 	test_title="PERPENDICULAR DIFFUSION"
-	log_file="log_test_perp_diff.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL GUIDING_DIFF FORWARD 29 SELF
-	make_test main_test_perp_diff $log_file
-	run_test output_data main_test_perp_diff $log_file $n_cpus $long_sim $long_batch_size
-	plot_test plot_test_perp_diff.py output_data/ output_plots/ $log_file
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_perp_diff.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL GUIDING_DIFF FORWARD 29 SELF
+		make_test main_test_perp_diff $log_file
+		run_test output_data main_test_perp_diff $log_file $n_cpus $long_sim $long_batch_size
+		plot_test plot_test_perp_diff.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi
 
 # FULL (PERP+PARA) DIFFUSION
-if [ "${1}" = "9" ] || $run_all_tests
+if [ "${1}" = "8" ] || $run_all_tests
 then
 	test_title="FULL DIFFUSION"
-	log_file="log_test_full_diff.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL PARKER FORWARD 29 SELF
-	make_test main_test_full_diff $log_file
-	run_test output_data main_test_full_diff $log_file $n_cpus $long_sim $long_batch_size
-	plot_test plot_test_full_diff.py output_data/ output_plots/ $log_file
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_full_diff.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL PARKER FORWARD 29 SELF
+		make_test main_test_full_diff $log_file
+		run_test output_data main_test_full_diff $log_file $n_cpus $long_sim $long_batch_size
+		plot_test plot_test_full_diff.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi
 
 # DIFFUSIVE SHOCK ACCELERATION
-if [ "${1}" = "10" ] || $run_all_tests
+if [ "${1}" = "9" ] || $run_all_tests
 then
 	test_title="DIFFUSIVE SHOCK ACCELERATION"
-	log_file="log_test_diff_shock_acc.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	configure_test $log_file PARALLEL PARKER_SOURCE BACKWARD 0 SELF
-	make_test main_test_diff_shock_acc $log_file
-	run_test output_data main_test_diff_shock_acc $log_file $n_cpus $long_sim $long_batch_size
-	
-	test_title="DIFFUSIVE SHOCK ACCELERATION POST-PROCESS"
-	log_file="log_postprocess_diff_shock_acc.txt"
-	echo "Currently running ${test_title} benchmark on 1 CPU"
-	print_header "${test_title}" "logs/${log_file}"
-	make_test main_postprocess_diff_shock_acc $log_file
-	run_test output_data main_postprocess_diff_shock_acc $log_file 1
-	plot_test plot_test_diff_shock_acc.py output_data/ output_plots/ $log_file
+	n_cpus_req=2
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		log_file="log_test_diff_shock_acc.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL PARKER_SOURCE BACKWARD 0 SELF
+		make_test main_test_diff_shock_acc $log_file
+		run_test output_data main_test_diff_shock_acc $log_file $n_cpus $long_sim $long_batch_size
+		
+		test_title="DIFFUSIVE SHOCK ACCELERATION POST-PROCESS"
+		log_file="log_postprocess_diff_shock_acc.txt"
+		echo "Currently running ${test_title} benchmark on 1 CPU"
+		print_header "${test_title}" "logs/${log_file}"
+		make_test main_postprocess_diff_shock_acc $log_file
+		run_test output_data main_postprocess_diff_shock_acc $log_file 1
+		plot_test plot_test_diff_shock_acc.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi
 
-# MODULATION WITH CARTESIAN PARKER FIELD
+# PARKER SPIRAL MAGNETIC FIELD
+if [ "${1}" = "10" ] || $run_all_tests
+then
+	test_title="PARKER SPIRAL MAGNETIC FIELD"
+	n_cpus_req=3
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		test_title="CARTESIAN PARKER SPIRAL GENERATION"
+		log_file="log_generate_cartesian_parker_spiral.txt"
+		echo "Currently running ${test_title} benchmark on 1 CPU"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL FIELDLINE FORWARD 25 CARTESIAN 1 0
+		make_test main_generate_cartesian_parker_spiral $log_file
+		run_test cartesian_backgrounds main_generate_cartesian_parker_spiral $log_file 1
+		
+		test_title="CARTESIAN PARKER SPIRAL"
+		log_file="log_test_cartesian_parker_spiral.txt"
+		echo "Currently running ${test_title} benchmark on 3 CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		make_test main_test_cartesian_parker_spiral $log_file
+		run_test output_data main_test_cartesian_parker_spiral $log_file 3 1 1
+
+	   test_title="SOLARWIND PARKER SPIRAL"
+		log_file="log_test_solarwind_parker_spiral.txt"
+		echo "Currently running ${test_title} benchmark on 1 CPU"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file SERIAL FIELDLINE FORWARD 25 SELF
+		make_test main_test_solarwind_parker_spiral $log_file
+		run_test output_data main_test_solarwind_parker_spiral $log_file 1
+		plot_test plot_test_parker_spiral.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
+fi
+
+# PARKER MODULATION WITH CARTESIAN BACKGROUND
 if [ "${1}" = "11" ] || $run_all_tests
 then
-	test_title="CARTESIAN PARKER FIELD BACKGROUND GENERATION"
-	log_file="log_generate_cartesian_solarwind_background.txt"
-	echo "Currently running ${test_title} benchmark on 1 CPU"
-	configure_test $log_file PARALLEL PARKER BACKWARD 25 CARTESIAN 1 0
-	print_header "${test_title}" "logs/${log_file}"
-	make_test main_generate_cartesian_solarwind_background $log_file
-	run_test cartesian_backgrounds main_generate_cartesian_solarwind_background $log_file 1
-	
-	test_title="MODULATION CARTESIAN PARKER FIELD"
-	log_file="log_test_modulation_cartesian_parker.txt"
-	echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
-	print_header "${test_title}" "logs/${log_file}"
-	make_test main_test_modulation_cartesian_parker $log_file
-	run_test output_data main_test_modulation_cartesian_parker $log_file $n_cpus $long_sim $long_batch_size
-	
-	test_title="MODULATION CARTESIAN PARKER FIELD POST-PROCESS"
-	log_file="log_postprocess_modulation_cartesian_parker.txt"
-	echo "Currently running ${test_title} benchmark on 1 CPU"
-	print_header "${test_title}" "logs/${log_file}"
-	make_test main_postprocess_modulation_cartesian_parker $log_file
-	run_test output_data main_postprocess_modulation_cartesian_parker $log_file 1
-	plot_test plot_test_modulation_cartesian_parker.py output_data/ output_plots/ $log_file
+	test_title="PARKER MODULATION WITH CARTESIAN BACKGROUND"
+	n_cpus_req=3
+	if [ "${n_cpus}" -ge "${n_cpus_req}" ]
+	then
+		test_title="CARTESIAN SOLAR WIND BACKGROUND GENERATION"
+		log_file="log_generate_cartesian_solarwind_background.txt"
+		echo "Currently running ${test_title} benchmark on 1 CPU"
+		print_header "${test_title}" "logs/${log_file}"
+		configure_test $log_file PARALLEL PARKER BACKWARD 0 CARTESIAN 1 0
+		make_test main_generate_cartesian_solarwind_background $log_file
+		run_test cartesian_backgrounds main_generate_cartesian_solarwind_background $log_file 1
+		
+		test_title="MODULATION CARTESIAN SOLAR WIND"
+		log_file="log_test_modulation_cartesian_parker.txt"
+		echo "Currently running ${test_title} benchmark on ${n_cpus} CPUs"
+		print_header "${test_title}" "logs/${log_file}"
+		make_test main_test_modulation_cartesian_parker $log_file
+		run_test output_data main_test_modulation_cartesian_parker $log_file $n_cpus $long_sim $long_batch_size
+		
+		test_title="MODULATION CARTESIAN SOLAR WIND POST-PROCESS"
+		log_file="log_postprocess_modulation_cartesian_parker.txt"
+		echo "Currently running ${test_title} benchmark on 1 CPU"
+		print_header "${test_title}" "logs/${log_file}"
+		make_test main_postprocess_modulation_cartesian_parker $log_file
+		run_test output_data main_postprocess_modulation_cartesian_parker $log_file 1
+		plot_test plot_test_modulation_cartesian_parker.py output_data/ output_plots/ $log_file
+	else
+		echo "${test_title} test cannot run with less than ${n_cpus_req} CPUs."
+		echo ""
+	fi
 fi

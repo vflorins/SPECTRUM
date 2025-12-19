@@ -63,11 +63,9 @@ inline Workload_Manager_Handler::Workload_Manager_Handler(void)
 */
 inline void Workload_Manager_Handler::DetectManager(void)
 {
-   char* jobid_str = NULL;
-
 // Try SLURM
 #ifdef USE_SLURM
-   jobid_str = getenv("SLURM_JOB_ID");
+   char* jobid_str = getenv("SLURM_JOB_ID");
    if (jobid_str) {
       workload_manager = SLURM_WM;
       jobid = atoi(jobid_str);

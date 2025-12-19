@@ -50,7 +50,8 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Effective "mesh" resolution
-   double dmax = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double dmax = one_au;
    container.Insert(dmax);
 
    std::string fname_pattern = "../cartesian_backgrounds/parker_25_25_25";
@@ -74,7 +75,7 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-   GeoVector init_pos(1.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length, 0.0, 0.0);
+   GeoVector init_pos(1.0 * one_au, 0.0, 0.0);
    container.Insert(init_pos);
 
    simulation->AddInitial(InitialSpaceFixed(), container);
@@ -118,7 +119,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double inner_boundary = 0.05 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double inner_boundary = 0.05 * one_au;
    container.Insert(inner_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -142,7 +143,7 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Radius
-   double outer_boundary = 80.0 * SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double outer_boundary = 80.0 * one_au;
    container.Insert(outer_boundary);
 
    simulation->AddBoundary(BoundarySphereAbsorb(), container);
@@ -183,19 +184,19 @@ int main(int argc, char** argv)
    container.Insert(T0);
 
 // Magnetic field normalization factor
-   double r0 = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double r0 = one_au;
    container.Insert(r0);
 
-// Power law slope for rigidity
+// Power law slope for kinetic energy
    double pow_law_T = 1.0;
    container.Insert(pow_law_T);
 
-// Power law slope for magnetic field
+// Power law slope for radial distance
    double pow_law_r = 2.0;
    container.Insert(pow_law_r);
 
 // Ratio of kappa_perp to kappa_para
-   double kap_rat = 1.00;
+   double kap_rat = 1.0;
    container.Insert(kap_rat);
 
 // Stream dependance index

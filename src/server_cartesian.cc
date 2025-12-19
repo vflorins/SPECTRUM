@@ -456,7 +456,7 @@ void ServerCartesianFront::GetVariablesFromReader(SpatialData& spdata)
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
-   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
+   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / Fluid::c_code;
 #endif
 #endif
 
@@ -527,7 +527,7 @@ void ServerCartesianFront::GetVariablesInterp0(const GeoVector& pos, SpatialData
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
-   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
+   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / Fluid::c_code;
 #endif
 #endif
 
@@ -654,7 +654,7 @@ void ServerCartesianFront::GetVariablesInterp1(const GeoVector& pos, SpatialData
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))   
-   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / c_code;
+   spdata.Evec = -(spdata.Uvec ^ spdata.Bvec) / Fluid::c_code;
 #endif
 #endif
 
@@ -826,7 +826,7 @@ void ServerCartesianFront::GetGradientsInterp1(SpatialData& spdata)
 // Electric field, if B and U provided
 #ifndef SERVER_VAR_INDEX_ELE
 #if defined(SERVER_VAR_INDEX_FLO) || (defined(SERVER_VAR_INDEX_MOM) && defined(SERVER_VAR_INDEX_RHO))
-   spdata.gradEvec = -((spdata.gradUvec ^ spdata.Bvec) + (spdata.Uvec ^ spdata.gradBvec)) / c_code;
+   spdata.gradEvec = -((spdata.gradUvec ^ spdata.Bvec) + (spdata.Uvec ^ spdata.gradBvec)) / Fluid::c_code;
 #endif
 #endif
 

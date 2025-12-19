@@ -1049,7 +1049,7 @@ void DiffusionEmpiricalSOQLTandUNLT::SetupDiffusion(bool construct)
 void DiffusionEmpiricalSOQLTandUNLT::EvaluateDiffusion(void)
 {
    if (comp_eval == 2) return;
-   double lam, rig_dep;
+   double lam = 0.0, rig_dep = 0.0;
    double rig = Particle::Rigidity<specie>(_mom[0]);
 
    if (comp_eval == 1) {

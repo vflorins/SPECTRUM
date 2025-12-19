@@ -169,7 +169,7 @@ void SimulationWorker::SendDataToMaster(void)
    void * distro_addr, * w_records_addr;
 
 // Send distribution data to master and reset distribution
-   for (int distro = 0; distro < local_distros.size(); distro++) {
+   for (long unsigned int distro = 0; distro < local_distros.size(); distro++) {
       MPI_Send(local_distros[distro]->GetCountsAddress(), local_distros[distro]->NBins().Prod(), MPI_INT, 0, tag_distrdata, MPI_Config::work_comm);
       distro_addr = local_distros[distro]->GetDistroAddress(distro_size);
       MPI_Send(distro_addr, distro_size * local_distros[distro]->NBins().Prod(), MPI_BYTE, 0, tag_distrdata, MPI_Config::work_comm);
@@ -201,7 +201,7 @@ void SimulationWorker::SendDataToMaster(void)
 void SimulationWorker::WorkerStart(void)
 {
 // Reset quantities
-   for (int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
+   for (long unsigned int distro = 0; distro < local_distros.size(); distro++) local_distros[distro]->ResetDistribution();
    jobsdone = 0;
 #if TRAJ_TIME_FLOW == TRAJ_TIME_FLOW_FORWARD
    shortest_sim_time = 1.0E300;
@@ -557,9 +557,9 @@ Only master has this function so only master can decrement batch counter
 */
 void SimulationMaster::DecrementTrajectoryCount(void)
 {
-   int percentage_work_new, distro;
+   int percentage_work_new;
    long int n_trajectories_processing, n_trajectories_remaining, n_trajectories_completed;
-   long int wm_alloc_time, sim_time_left, avg_integ_time, sim_time_integ;
+   long int wm_alloc_time, sim_time_left, sim_time_integ;
    std::chrono::seconds sim_time_elapsed;
    std::chrono::system_clock::time_point sim_current_time;
 
@@ -589,7 +589,7 @@ void SimulationMaster::DecrementTrajectoryCount(void)
       percentage_work_done = percentage_work_new;
 
 // Save the partial distributions
-      for (distro = 0; distro < local_distros.size(); distro++) {
+      for (long unsigned int distro = 0; distro < local_distros.size(); distro++) {
          local_distros[distro]->Dump(distro_file_name + std::to_string(distro) + ".out");
       };
 
@@ -655,7 +655,7 @@ void SimulationMaster::RecvDataFromWorker(int cpu)
    void * distro_addr, * w_records_addr;
 
 // Receive partial distros and add it to cumulative distros
-   for (int distro = 0; distro < local_distros.size(); distro++) {
+   for (long unsigned int distro = 0; distro < local_distros.size(); distro++) {
       MPI_Recv(partial_distros[distro]->GetCountsAddress(), partial_distros[distro]->NBins().Prod(),
                MPI_INT, cpu, tag_distrdata, MPI_Config::work_comm, MPI_STATUS_IGNORE);
       distro_addr = partial_distros[distro]->GetDistroAddress(distro_size);
@@ -711,7 +711,7 @@ void SimulationMaster::MasterStart(void)
    sim_start_time = std::chrono::system_clock::now();
 
 // Reset quantities
-   for (int distro = 0; distro < local_distros.size(); distro++) {
+   for (long unsigned int distro = 0; distro < local_distros.size(); distro++) {
       local_distros[distro]->ResetDistribution();
       partial_distros[distro]->ResetDistribution();
 
@@ -773,7 +773,6 @@ void SimulationMaster::MasterDuties(void)
 */
 void SimulationMaster::MasterFinish(void)
 {
-   int distro, cpu;
    std::chrono::seconds sim_time_elapsed;
    std::chrono::system_clock::time_point sim_current_time;
    PrintMessage(__FILE__, __LINE__, "Simulation completed", MPI_Config::is_master);
@@ -789,7 +788,7 @@ void SimulationMaster::MasterFinish(void)
    };
 
 // Save the final distributions
-   for (distro = 0; distro < local_distros.size(); distro++) {
+   for (long unsigned int distro = 0; distro < local_distros.size(); distro++) {
       local_distros[distro]->Dump(distro_file_name + std::to_string(distro) + ".out");
    };
 
@@ -798,7 +797,7 @@ void SimulationMaster::MasterFinish(void)
    std::cerr << "Longest simulated trajectory time = " << longest_sim_time * Particle::unit_time << " s" << std::endl;
    if (is_parallel) {
       std::cerr << "Time per trajectory integration:" << std::endl;
-      for (cpu = 1; cpu < MPI_Config::work_comm_size; cpu++) {
+      for (int cpu = 1; cpu < MPI_Config::work_comm_size; cpu++) {
          std::cerr << "\tcpu " << cpu << " = " << time_spent_processing[cpu] / trajectories_assigned[cpu] << " ms" << std::endl;
       };
    } 

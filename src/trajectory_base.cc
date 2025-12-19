@@ -1147,7 +1147,7 @@ void TrajectoryBase::InterpretStatus(void) const
 */
 void TrajectoryBase::PrintInfo(void) const
 {
-   int obj;
+   long unsigned int obj;
    std::cerr << std::endl;
    std::cerr << "Printing trajectory object information\n";
    std::cerr << "--------------------------------------------------------------------------------\n";

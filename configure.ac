@@ -8,7 +8,7 @@
 # ./configure --enable-debug --with-execution=SERIAL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=SELF
 
 # Use for parallel production run
-# ./configure --with-mpi=openmpi --enable-silo --with-execution=PARALLEL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=SELF --with-server_interp_order=1 --with-server_num_gcs=1 --with-cuda=13.0
+# ./configure --with-mpi=openmpi --enable-silo --enable-gsl --with-execution=PARALLEL --with-trajectory=FIELDLINE --with-time_flow=FORWARD --with-rkmethod=0 --with-server=SELF --with-server_interp_order=1 --with-server_num_gcs=1 --with-cuda=13.0
 
 # Init commands
 AC_PREREQ([2.69])
@@ -269,6 +269,36 @@ AS_IF([test "$with_server" != "SELF" -a "$with_execution" == "SERIAL"], [
 [
    AC_MSG_NOTICE([Using "$with_server" as the background server])
 ])
+
+# Set up server interpolation order
+AC_ARG_WITH([server_interp_order], [AS_HELP_STRING([--with-server_interp_order=SERVER_INTERP_ORDER], [use SERVER_INTERP_ORDER=-1|0|1])], [], [])
+AS_IF([test "x$with_server_interp_order" == "x" -a $with_server != "SELF"], [
+   AC_MSG_ERROR([A value of SERVER_INTERP_ORDER is required for all server types other than SELF])
+],
+[
+   AS_IF([test "x$with_server_interp_order" == "x" -o "$with_server_interp_order" == "-1" -o "$with_server_interp_order" == "0" -o "$with_server_interp_order" == "1"], [
+      AC_DEFINE_UNQUOTED([SERVER_INTERP_ORDER], [$with_server_interp_order], [Choice of background server interpolation order])
+   ],
+   [
+      AC_MSG_ERROR([Invalid SERVER_INTERP_ORDER value])
+   ])
+])
+AC_MSG_NOTICE([Using "$with_server_interp_order" as the background server interpolation order])
+
+# Set up server number of ghost cells per side of blocks
+AC_ARG_WITH([server_num_gcs], [AS_HELP_STRING([--with-server_num_gcs=SERVER_NUM_GHOST_CELLS], [use SERVER_NUM_GHOST_CELLS=0|1])], [], [])
+AS_IF([test "x$with_server_num_gcs" == "x" -a $with_server != "SELF"], [
+   AC_MSG_ERROR([A value of SERVER_NUM_GHOST_CELLS is required for all server types other than SELF])
+],
+[
+   AS_IF([test "x$with_server_num_gcs" == "x" -o "$with_server_num_gcs" == "0" -o "$with_server_num_gcs" == "1"], [
+      AC_DEFINE_UNQUOTED([SERVER_NUM_GHOST_CELLS], [$with_server_num_gcs], [Choice of background server number of ghost cells per side of block])
+   ],
+   [
+      AC_MSG_ERROR([Invalid SERVER_NUM_GHOST_CELLS value])
+   ])
+])
+AC_MSG_NOTICE([Using "$with_server_num_gcs" as the background server number of ghost cells per side of block])
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 

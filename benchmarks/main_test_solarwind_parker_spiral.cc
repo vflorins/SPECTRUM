@@ -1,5 +1,7 @@
-#include "src/background_waves.hh"
+#include "src/background_solarwind.hh"
 #include "src/boundary_time.hh"
+#include "src/boundary_space.hh"
+#include "src/boundary_momentum.hh"
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
@@ -11,7 +13,6 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
-
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -47,66 +48,36 @@ int main(int argc, char** argv)
    container.Insert(gv_zeros);
 
 // Velocity
-   container.Insert(gv_zeros);
+   double umag = 4.0e7 / Particle::unit_velocity;
+   GeoVector u0(umag, 0.0, 0.0);
+   container.Insert(u0);
 
 // Magnetic field
-   double Bmag = 5.0E-6 / Particle::unit_magnetic;
-   GeoVector B0(0.0, 0.0, Bmag);
+   double RS = 6.957e10 / Particle::unit_length;
+   double r_ref = 3.0 * RS;
+   double BmagE = 5.0e-5 / Particle::unit_magnetic;
+   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
+   double Bmag_ref = BmagE * Sqr(one_au / r_ref);
+   GeoVector B0(Bmag_ref, 0.0, 0.0);
    container.Insert(B0);
 
 // Effective "mesh" resolution
-   double enr = 100.0 * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / Particle::unit_energy;
-   double R_L = Particle::LarmorRadius<specie>(Particle::Mom<specie>(enr), Bmag);
-   double dmax = 0.1 * R_L;
+   double dmax = one_au;
    container.Insert(dmax);
 
-   TurbProp turb_prop;
+// Solar rotation vector
+   double w0 = M_2PI / (25.0 * 24.0 * 3600.0) * Particle::unit_time;
+   GeoVector Omega(0.0, 0.0, w0);
+   container.Insert(Omega);
 
-   //! Reference wavenumber corresponding to w_min sampled at the speed of the T/L component (6.65 AU)
-   double k0 = 6.3E-14 * Particle::unit_length;
+// Reference equatorial distance
+   container.Insert(r_ref);
 
-//! Fluctuation variance netween k0 and infinity
-   double var_k0_inf = 0.2 * Sqr(Bmag);
+// dmax fraction for distances closer to the dipole
+   double dmax_fraction = 0.01;
+   container.Insert(dmax_fraction);
 
-// Longest wave
-   double one_au = SPC_CONST_CGSM_ASTRONOMICAL_UNIT / Particle::unit_length;
-   double lambda_max = 10.0 * one_au;
-
-// Shortest wave
-   double lambda_min = 0.002 * one_au;
-
-   turb_prop.kmax = M_2PI / lambda_min;
-   turb_prop.kmin = M_2PI / lambda_max;
-   turb_prop.slope = 5.0 / 3.0;
-
-// Variance between 2*pi/Lmax and infinity
-   double variance = var_k0_inf * pow(k0 / turb_prop.kmin, turb_prop.slope - 1.0);
-
-// A modes
-   int nA_modes = 0;
-   turb_prop.n_waves = nA_modes;
-   turb_prop.variance = 1.0 * variance;
-   container.Insert(turb_prop);
-
-// T modes
-   int nT_modes = 50;
-   turb_prop.n_waves = nT_modes;
-   turb_prop.variance = 1.0 * variance;
-   container.Insert(turb_prop);
-
-// L modes
-   int nL_modes = 0;
-   turb_prop.n_waves = nL_modes;
-   turb_prop.variance = 1.0 * variance;
-   container.Insert(turb_prop);
-
-// I modes
-   int nI_modes = 0;
-   turb_prop.n_waves = nI_modes;
-   turb_prop.variance = 1.0 * variance;
-   container.Insert(turb_prop);
-
-   trajectory->AddBackground(BackgroundWaves(), container);
+   trajectory->AddBackground(BackgroundSolarWind(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -126,12 +97,10 @@ int main(int argc, char** argv)
 
    container.Clear();
 
-// Size of the initial cube
-   double cube_size = 100.0 * one_au;
-   container.Insert(-cube_size / 2.0 * gv_ones);
-   container.Insert( cube_size / 2.0 * gv_ones);
+   GeoVector start_pos(r_ref,0.0,0.0);
+   container.Insert(start_pos);
 
-   trajectory->AddInitial(InitialSpaceBox(), container);
+   trajectory->AddInitial(InitialSpaceFixed(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -140,15 +109,13 @@ int main(int argc, char** argv)
    container.Clear();
 
 // Initial momentum
-   double momentum = Particle::Mom<specie>(enr);
-   GeoVector init_mom(0.0, 0.0, momentum);
+   double keV_kinetic_energy = 1.0;
+   container.Insert(Particle::Mom<specie>(keV_kinetic_energy * SPC_CONST_CGSM_KILO_ELECTRON_VOLT / Particle::unit_energy));
 
-   container.Insert(init_mom);
-
-   trajectory->AddInitial(InitialMomentumFixed(), container);
+   trajectory->AddInitial(InitialMomentumShell(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Time boundary condition (end)
+// Space boundary condition 1 (source surface)
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
    container.Clear();
@@ -160,12 +127,35 @@ int main(int argc, char** argv)
 // Action
    std::vector<int> actions; // empty vector because there are no distributions
    container.Insert(actions);
-   
-// Duration of the trajectory
-   double maxtime = 1000.0 / Particle::unit_time;
-   container.Insert(maxtime);
 
-   trajectory->AddBoundary(BoundaryTimeExpire(), container);
+// Origin
+   container.Insert(gv_zeros);
+
+// Radius
+   container.Insert(RS);
+
+   trajectory->AddBoundary(BoundarySphereAbsorb(), container);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Space boundary condition 2 (termination shock)
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   container.Clear();
+
+// Max crossings
+   container.Insert(max_crossings);
+
+// Action
+   container.Insert(actions);
+
+// Origin
+   container.Insert(gv_zeros);
+
+// Radius
+   double r_out = 10.0 * one_au;
+   container.Insert(r_out);
+
+   trajectory->AddBoundary(BoundarySphereAbsorb(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation
@@ -174,22 +164,19 @@ int main(int argc, char** argv)
    trajectory->SetStart();
    trajectory->Integrate();
    trajectory->InterpretStatus();
-   
-   std::string trajectory_file = "main_test_turb_waves_" + trajectory->GetName() + ".lines";
+
+   std::string trajectory_file = "main_test_solarwind_parker_spiral_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
-   std::cout << "TURBULENCE VIA SUPERPOSITION OF WAVES" << std::endl;
+   std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory type: " << trajectory->GetName() << std::endl;
-   std::cout << "Number of modes:" << std::endl;
-   std::cout << "\t Alfven/Slab  = " << nA_modes << std::endl;
-   std::cout << "\t Transverse   = " << nT_modes << std::endl;
-   std::cout << "\t Longitudinal = " << nL_modes << std::endl;
-   std::cout << "\t Isotropic    = " << nI_modes << std::endl;
+   std::cout << "Maximum radial distance  = " << r_out << " AU" << std::endl;
+   std::cout << "Time elapsed (simulated) = " << trajectory->ElapsedTime() * Particle::unit_time << " s" << std::endl;
    std::cout << "++++++++++++++++++++" << std::endl;
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file,false);
+   trajectory->PrintCSV(trajectory_file, true);
    
    return 0;
 };

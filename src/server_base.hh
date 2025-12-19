@@ -35,7 +35,7 @@ namespace Spectrum {
 #define SERVER_VAR_INDEX_MAG 3
 
 //! Index of the electric field variable
-#define SERVER_VAR_INDEX_ELE 6
+// #define SERVER_VAR_INDEX_ELE 6
 
 //! Index and number of the regions variable
 // #define SERVER_VAR_INDEX_REG 7
