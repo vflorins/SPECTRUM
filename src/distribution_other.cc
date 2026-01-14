@@ -423,7 +423,7 @@ void DistributionAnisotropyLISM::EvaluateValue(void)
    this->_value[1] = mom_rel[2];
 
 // Find relative momentum in LISM. Reuse "mom_rel" in EvaluateWeight().
-   mom_rel = this->_mom2 - Particler::RelFactor1<specie>(this->_mom2.Norm()) * specie.mass * U_LISM;
+   mom_rel = this->_mom2 - Particle::RelFactor1<specie>(this->_mom2.Norm()) * specie.mass * U_LISM;
 };
 
 /*!
@@ -435,7 +435,7 @@ void DistributionAnisotropyLISM::ComptonGettingFactor(void)
    double vel;
    GeoVector mom_hat;
 
-   vel = Vel(this->_mom.Norm(), this->specie);
+   vel = Particle::Vel<specie>(this->_mom.Norm(), this->specie);
    mom_hat = UnitVec(this->_mom);
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
