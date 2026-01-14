@@ -1,5 +1,5 @@
 /*!
-\file server_server.cc
+\file server_cartesian.cc
 \brief Implements a class of a data server for a uniform Cartesian grid
 \author Juan G Alonso Guzman
 
