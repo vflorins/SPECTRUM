@@ -435,7 +435,7 @@ void DistributionAnisotropyLISM::ComptonGettingFactor(void)
    double vel;
    GeoVector mom_hat;
 
-   vel = Particle::Vel<specie>(this->_mom.Norm(), this->specie);
+   vel = Particle::Vel<specie>(this->_mom.Norm());
    mom_hat = UnitVec(this->_mom);
 
 // The Comptom-Getting factor is an approximation of the momentum power law anisotropy for "U_LISM" << "c_code"
@@ -476,7 +476,7 @@ void DistributionAnisotropyLISM::SecondLegendreAnisotropy(void)
 void DistributionAnisotropyLISM::bCrossGradientAnisotropy(void)
 {
 // FIXME: This is according to Zhang et al. 2020, but (perhaps) differs from Zhang et al. 2014. We should investigate this further.
-   this->_weight = grad_perp_dens * (this->_pos2 + LarmorRadius(mom_rel.Norm(), this->_spdata2.Bmag, this->specie) * (UnitVec(mom_rel) ^ this->_spdata2.bhat));
+   this->_weight = grad_perp_dens * (this->_pos2 + Particle::LarmorRadius<specie>(mom_rel.Norm(), this->_spdata2.Bmag) * (UnitVec(mom_rel) ^ this->_spdata2.bhat));
 };
 
 #endif
