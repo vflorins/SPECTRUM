@@ -109,6 +109,7 @@ void BlockBase::SetGhostCells(int num_ghost_cells_in)
 {
    num_ghost_cells = num_ghost_cells_in;
 
+// These are the ratios of ghost to physical cells (divided by two) per dimension
    ghost_to_phys_ratio[0] = (double)num_ghost_cells / (double)block_size.i;
    ghost_to_phys_ratio[1] = (double)num_ghost_cells / (double)block_size.j;
    ghost_to_phys_ratio[2] = (double)num_ghost_cells / (double)block_size.k;
