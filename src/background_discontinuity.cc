@@ -87,7 +87,7 @@ void BackgroundDiscontinuity::EvaluateBackground(void)
       _spdata.region = 2.0;
    };
    
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = Particle::InducedEfield(_spdata.Uvec, _spdata.Bvec);
    LOWER_BITS(_status, STATE_INVALID);
 };
 
