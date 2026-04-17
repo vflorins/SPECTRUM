@@ -128,7 +128,7 @@ void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
 
    if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = Particle::InducedEfield(_spdata.Uvec, _spdata.Bvec);
    _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
 
    LOWER_BITS(_status, STATE_INVALID);
@@ -151,7 +151,7 @@ void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
       _spdata.gradBmag = _spdata.gradBvec * _spdata.bhat;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
-      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
+      _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / Particle::c_code;
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
       _spdata.dUvecdt = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
@@ -160,7 +160,7 @@ void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
       _spdata.dBvecdt = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (B1 - B0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
-      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / c_code;
+      _spdata.dEvecdt = -((_spdata.dUvecdt ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.dBvecdt)) / Particle::c_code;
    };
 #else
    NumericalDerivatives();
