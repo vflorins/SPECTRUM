@@ -50,7 +50,7 @@ BackgroundShock::BackgroundShock(const std::string& name_in, unsigned int specie
 /*!
 \author Vladimir Florinski
 \author Juan G Alonso Guzman
-\date 05/19/2025
+\date 04/18/2026
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -79,11 +79,15 @@ void BackgroundShock::SetupBackground(bool construct)
 
    u1 = u0n / compression + v_shock * n_shock + u0t;
    B1 = B0n + B0t * compression;
+
+// Pre-compute induced electric fields
+   E0 = Particle::InducedEfield(u0, B0);
+   E1 = Particle::InducedEfield(u1, B1);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/14/2025
+\date 04/18/2026
 */
 void BackgroundShock::EvaluateBackground(void)
 {
@@ -91,6 +95,7 @@ void BackgroundShock::EvaluateBackground(void)
    if ((_pos - r0) * n_shock - v_shock * _t > 0) {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
       _spdata.region = 1.0;
    }
 
@@ -98,10 +103,10 @@ void BackgroundShock::EvaluateBackground(void)
    else {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E1;
       _spdata.region = 2.0;
    };
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = Particle::InducedEfield(_spdata.Uvec, _spdata.Bvec);
    LOWER_BITS(_status, STATE_INVALID);
 };
 
