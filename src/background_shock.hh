@@ -45,6 +45,12 @@ protected:
 //! Downstream magnetic field (persistent), "B0" is upstream magnetic field
    GeoVector B1;
 
+//! Upstream electric field (persistent)
+   GeoVector E0;
+
+//! Downstream electric field (persistent)
+   GeoVector E1;
+
 //! Set up the field evaluator based on "params"
    void SetupBackground(bool construct) override;
 

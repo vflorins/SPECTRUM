@@ -570,7 +570,7 @@ void ServerBATLBack::HandleNeedStencilRequests(void)
       cpu = index_needstencil[cpu_idx];
 
 // Obtain the stencil requested.
-      pos_batl = buf_needstencil[cpu].pos / unit_length_server * unit_length_fluid;
+      pos_batl = buf_needstencil[cpu].pos / Fluid::unit_length * Particle::unit_length;
       spectrum_get_interpolation_stencil(pos_batl.Data(), &stencil.n_elements, stencil.blocks, &stencil.zones[0][0], stencil.weights);
 
 // Send the stencil to a worker. We use a blocking Send to ensure that the buffer can be reused.

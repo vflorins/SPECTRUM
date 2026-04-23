@@ -48,7 +48,7 @@ BackgroundDiscontinuity::BackgroundDiscontinuity(const std::string& name_in, uns
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/14/2025
+\date 04/18/2026
 \param [in] construct Whether called from a copy constructor or separately
 
 This method's main role is to unpack the data container and set up the class data members and status bits marked as "persistent". The function should assume that the data container is available because the calling function will always ensure this.
@@ -66,11 +66,15 @@ void BackgroundDiscontinuity::SetupBackground(bool construct)
 
 // Normalize n_discont
    n_discont.Normalize();
+
+// Pre-compute induced electric fields
+   E0 = Particle::InducedEfield(u0, B0);
+   E1 = Particle::InducedEfield(u1, B1);
 };
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/14/2025
+\date 04/18/2026
 */
 void BackgroundDiscontinuity::EvaluateBackground(void)
 {
@@ -78,16 +82,17 @@ void BackgroundDiscontinuity::EvaluateBackground(void)
    if ((_pos - r0) * n_discont - v_discont * _t > 0) {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E0;
       _spdata.region = 1.0;
    }
 // Downstream
    else {
       if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u1;
       if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B1;
+      if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = E1;
       _spdata.region = 2.0;
    };
    
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
    LOWER_BITS(_status, STATE_INVALID);
 };
 

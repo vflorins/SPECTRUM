@@ -134,7 +134,7 @@ void BackgroundSmoothShock::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/14/2025
+\date 04/18/2026
 */
 void BackgroundSmoothShock::EvaluateBackground(void)
 {
@@ -145,7 +145,7 @@ void BackgroundSmoothShock::EvaluateBackground(void)
    a2 = 1.0 - a1;
 
 // TODO: Change the way Bvec transitions to depend directly on Uvec to keep some product constant
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U) || BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = Particle::InducedEfield(_spdata.Uvec, _spdata.Bvec);
    _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
@@ -155,12 +155,12 @@ void BackgroundSmoothShock::EvaluateBackground(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 04/18/2026
 */
 void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHSHOCK_DERIVATIVE_METHOD == 0
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU) || BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradUvec.Dyadic(n_shock, u0 - u1);
       _spdata.gradUvec *= ShockTransitionDerivative(ds_shock) / width_shock;
    };
@@ -172,7 +172,7 @@ void BackgroundSmoothShock::EvaluateBackgroundDerivatives(void)
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / Particle::c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt) || BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
       _spdata.dUvecdt = (ShockTransitionDerivative(ds_shock) * v_shock / width_shock) * (u1 - u0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {

@@ -116,7 +116,7 @@ void BackgroundSmoothDiscontinuity::SetupBackground(bool construct)
 
 /*!
 \author Juan G Alonso Guzman
-\date 05/14/2025
+\date 04/18/2026
 */
 void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
 {
@@ -126,7 +126,7 @@ void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
    a1 = DiscontinuityTransition(ds_discont);
    a2 = 1.0 - a1;
 
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_U)) _spdata.Uvec = u0 * a1 + u1 * a2;
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_U) || BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Uvec = u0 * a1 + u1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_B)) _spdata.Bvec = B0 * a1 + B1 * a2;
    if (BITS_RAISED(_spdata._mask, BACKGROUND_E)) _spdata.Evec = -(_spdata.Uvec ^ _spdata.Bvec) / c_code;
    _spdata.region = 1.0 * a1 + 2.0 * a2; // same as 2.0 - a1
@@ -136,12 +136,12 @@ void BackgroundSmoothDiscontinuity::EvaluateBackground(void)
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/20/2023
+\date 04/18/2026
 */
 void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
 {
 #if SMOOTHDISCONT_DERIVATIVE_METHOD == 0
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_gradU) || BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradUvec.Dyadic(n_discont, u0 - u1);
       _spdata.gradUvec *= DiscontinuityTransitionDerivative(ds_discont) / width_discont;
    };
@@ -153,7 +153,7 @@ void BackgroundSmoothDiscontinuity::EvaluateBackgroundDerivatives(void)
    if (BITS_RAISED(_spdata._mask, BACKGROUND_gradE)) {
       _spdata.gradEvec = -((_spdata.gradUvec ^ _spdata.Bvec) + (_spdata.Uvec ^ _spdata.gradBvec)) / c_code;
    };
-   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt)) {
+   if (BITS_RAISED(_spdata._mask, BACKGROUND_dUdt) || BITS_RAISED(_spdata._mask, BACKGROUND_dEdt)) {
       _spdata.dUvecdt = (DiscontinuityTransitionDerivative(ds_discont) * v_discont / width_discont) * (u1 - u0);
    };
    if (BITS_RAISED(_spdata._mask, BACKGROUND_dBdt)) {
