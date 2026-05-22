@@ -140,8 +140,10 @@ int main(int argc, char **argv) {
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
 //   double maxtime = 10.0 * drift_period;
+   // test
+   double maxtime = drift_period/10;
    // debug
-   double maxtime = drift_period/10000;
+//   double maxtime = drift_period/10000;
    container.Insert(maxtime);
 
    trajectory->AddBoundary(BoundaryTime(), container);
@@ -165,7 +167,7 @@ int main(int argc, char **argv) {
 // Radius
    container.Insert(RE);
 
-   trajectory->AddBoundary(Boundary1(), container);
+//   trajectory->AddBoundary(Boundary1(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 2 (drift)

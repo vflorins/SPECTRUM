@@ -159,12 +159,14 @@ try {
    while ((bactive_s == -1) && (bnd < bcond_s.size())) {
       bcond_s[bnd]->ComputeBoundary(_coords, _fields);
       bnd_status = bcond_s[bnd]->GetStatus();
+//      PrintMessage(__FILE__, __LINE__, "radius: " + std::to_string(_coords.Rad()), true);
 
 // Terminal boundary crossed, so the trajectory cannot continue
       if (BITS_RAISED(bnd_status, BOUNDARY_CROSSED) && BITS_RAISED(bnd_status, BOUNDARY_TERMINAL)) {
          RAISE_BITS(_status, TRAJ_SPATIAL_CROSSED);
          RAISE_BITS(_status, TRAJ_FINISH);
          bactive_s = bnd;
+         PrintMessage(__FILE__, __LINE__, "Advance: The trajectory crosses boundary " + std::to_string(bnd), true);
       }
       else bnd++;
    };

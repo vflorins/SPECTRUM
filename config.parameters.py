@@ -3,7 +3,7 @@
 """
 This file contains a specification of all (hyper)parameters
 for the SPECTRUM test particle trajectory solver.
-It provides type information, possible ranges in some cases,
+It provides type information, possible ranges,
 a docstring, and a globally-defined fallthrough default value.
 
 ***Notes for Developers***
@@ -198,7 +198,7 @@ parameters_background = {
         description = "shock velocity",
         parameter_type = float,
     ),
-    # todo these aren't parameters, my mistake...
+    # todo these aren't parameters, to be removed
     # 'u0n': ParameterInfo(
     #     name = 'u0n',
     #     description = "normal component in the shock frame",

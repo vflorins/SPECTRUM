@@ -137,6 +137,9 @@ def gen_main_block(spectrum_type, special_type):
 
 
 if __name__ == "__main__":
+
+    # Configuration routine entry point:
+
     parser = argparse.ArgumentParser(
         description="Configuration file generator for SPECTRUM particle trajectory trace solver.",
     )
