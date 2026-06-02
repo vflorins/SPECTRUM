@@ -15,6 +15,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "trajectory.config.hh"
 #include "diffusion.config.hh"
 
+// Used by many of the class initialization routines
+#include "common/data_container.hh"
+
 
 namespace Spectrum {
 

@@ -1,4 +1,4 @@
-// File main_test_parker_spiral.hyperconfig.hh
+// File main_test_parker_spiral.config.hh
 // SolarWind Fieldline None
 
 #include "common/compiletime_lists.hh"

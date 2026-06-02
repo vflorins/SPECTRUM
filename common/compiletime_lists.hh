@@ -289,10 +289,6 @@ enum class Passivity {
 
 
 
-
-
-
-
 //! Indicates that the argument should be std::ratio
 #define Ratio typename
 
@@ -326,11 +322,6 @@ struct Cond_impl<false, IfTrue, IfFalse> {
 //! Conditional type
 template <bool cond, typename IfTrue, typename IfFalse>
 using Cond = typename Impl::Cond_impl<cond, IfTrue, IfFalse>::Cond;
-
-
-
-
-
 
 
 

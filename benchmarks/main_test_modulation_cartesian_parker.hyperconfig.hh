@@ -1,4 +1,4 @@
-// File main_test_modulation_cartesian_parker.hyperconfig.hh
+// File main_test_modulation_cartesian_parker.config.hh
 // DataCartesian Parker KineticEnergyRadialDistancePowerLaw
 
 #include "common/compiletime_lists.hh"

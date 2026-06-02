@@ -1,41 +1,38 @@
-# File config.parameters.py Created by Lucius Schoenbaum October 20, 2025
-
 """
-This file contains a specification of all (hyper)parameters
-for the SPECTRUM test particle trajectory solver.
-It provides type information, possible ranges,
-a docstring, and a globally-defined fallthrough default value.
+File config_parameters.py Created by Lucius Schoenbaum 10/20/2025
 
-***Notes for Developers***
-
-New parameters can be added to this file. In order to do so,
-be sure to make note of the interoperability requirement between
-the lists here, and the template arguments defined in config.hh files
-(background.config.hh, trajectory.config.hh, diffusion.config.hh)
-in the C++ source. This should become clear after a moment.
-Once these files are all in agreement, the main
-`config.py` script can be run to generate new default values,
-incorporating physical defaults defined in `config.physical.py`.
-These "physical" defaults are case-specific, and do not
-need to be defined until a specific case demands/suggests doing so.
-
-In order to "install" any updates to definitions in this file, or to
-physical defaults (in `config.physical.py`), you only need to run
-the main `config.py` configuration script.
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 
 """
 
-from config_impl import (
+
+from ._impl.parameterinfo import (
     ParameterInfo,
-    special_types,
 )
 
 
-parameters_simulation = {
+parameters_simulation = lambda special_types: {
     'specieid': ParameterInfo(
         name = 'specieid',
         description = "The specie (particle species) used for simulation",
-        possible_values=["proton_core", "electron_core"], # todo
+        possible_values=[
+            "electron_core",
+            "electron_halo",
+            "electron_beam",
+            "proton_core",
+            "proton_halo",
+            "proton_beam",
+            "proton_pickup",
+            "alpha_core",
+            "alpha_halo",
+            "heliumII_core",
+            "heliumII_pickup",
+            "hydrogenII_core",
+            "hydrogenI_core",
+            "hydrogenI_halo",
+            "hydrogenI_beam",
+            "heliumI_core",
+        ],
         parameter_type = "SpecieId",
     ),
     'build_mode': ParameterInfo(
@@ -62,7 +59,7 @@ parameters_simulation = {
 }
 
 
-parameters_background = {
+parameters_background = lambda special_types: {
     'background': ParameterInfo(
         name = 'background',
         description = "The background type used for simulation",
@@ -346,7 +343,7 @@ parameters_background = {
 }
 
 
-parameters_trajectory = {
+parameters_trajectory = lambda special_types: {
     'trajectory': ParameterInfo(
         name = 'trajectory',
         description = "The trajectory type used for simulation",
@@ -511,7 +508,7 @@ parameters_trajectory = {
     ),
 }
 
-parameters_diffusion = {
+parameters_diffusion = lambda special_types: {
     'diffusion': ParameterInfo(
         name = 'diffusion',
         description = "The diffusion type used for simulation",
@@ -801,10 +798,10 @@ parameters_diffusion = {
 }
 
 
-parameters = {
-    'Simulation': parameters_simulation,
-    'Background': parameters_background,
-    'Trajectory': parameters_trajectory,
-    'Diffusion': parameters_diffusion,
+parameters = lambda special_types: {
+    'Simulation': parameters_simulation(special_types),
+    'Background': parameters_background(special_types),
+    'Trajectory': parameters_trajectory(special_types),
+    'Diffusion': parameters_diffusion(special_types),
 }
 

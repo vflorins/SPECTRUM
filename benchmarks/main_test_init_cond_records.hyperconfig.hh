@@ -1,4 +1,4 @@
-// File main_test_init_cond_records.hyperconfig.hh
+// File main_test_init_cond_records.config.hh
 // Uniform Focused None
 
 #include "common/compiletime_lists.hh"

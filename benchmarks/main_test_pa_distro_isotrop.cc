@@ -1,6 +1,6 @@
 
 
-#include "main_test_pa_distro_isotrop.hyperconfig.hh"
+#include "main_test_pa_distro_isotrop.config.hh"
 
 #include "src/trajectory.hh"
 

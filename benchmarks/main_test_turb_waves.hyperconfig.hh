@@ -1,4 +1,4 @@
-// File main_test_turb_waves.hyperconfig.hh
+// File main_test_turb_waves.config.hh
 // Waves Fieldline None
 
 #include "common/compiletime_lists.hh"

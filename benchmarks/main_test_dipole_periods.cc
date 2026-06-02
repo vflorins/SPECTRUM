@@ -1,6 +1,6 @@
 
 
-#include "main_test_dipole_periods.hyperconfig.hh"
+#include "main_test_dipole_periods.config.hh"
 
 #include "src/trajectory.hh"
 #include "src/boundary_time.hh"

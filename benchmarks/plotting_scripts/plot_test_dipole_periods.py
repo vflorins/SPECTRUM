@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 import sys
 
 # Grab command line arguments
-data_path = sys.argv[1]
-plot_path = sys.argv[2]
-data_file = "main_test_dipole_drifts_TrajectoryGuiding.lines"
+# data_path = sys.argv[1]
+# plot_path = sys.argv[2]
+data_path = ""
+plot_path = ""
+data_file = "../../../cmake-build-debug/main_test_dipole_drifts_TrajectoryGuiding.lines"
 plot_file = "plot_test_dipole_drifts_TrajectoryGuiding.png"
 
 # Import data
@@ -31,7 +33,8 @@ fig = plt.figure(figsize=(15, 10), layout='tight')
 ax = fig.add_subplot(111, projection='3d')
 
 ax.set_title("DIPOLE FIELD DRIFT PERIODS", fontsize=32)
-ax.plot(data[:N//10,0], data[:N//10,1], data[:N//10,2], label=plot_label)
+Nplot = N//10 if N > 100 else N
+ax.plot(data[:Nplot,0], data[:Nplot,1], data[:Nplot,2], label=plot_label)
 ax.set_xlabel('$x$ ($R_E$)', fontsize=20, labelpad=15)
 ax.set_ylabel('$y$ ($R_E$)', fontsize=20, labelpad=15)
 ax.set_zlabel('$z$ ($R_E$)', fontsize=20, labelpad=15)

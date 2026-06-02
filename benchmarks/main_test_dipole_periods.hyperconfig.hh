@@ -1,4 +1,4 @@
-// File main_test_dipole_periods.hyperconfig.hh
+// File main_test_dipole_periods.config.hh
 // Dipole Guiding None
 
 #include "common/compiletime_lists.hh"
@@ -11,12 +11,12 @@ using namespace Spectrum;
 constexpr auto specieid_ = SpecieId::proton_core;
 constexpr auto specie = Specie<specieid_>();
 
-// reference distance
-constexpr double RE = 6.37e8 / unit_length_fluid;
-constexpr double dmax_fraction_ = 0.1;
-constexpr double dmax0_ = dmax_fraction_ * RE;
-constexpr double Bmag_ = 0.311 / unit_magnetic_fluid;
-constexpr GeoVector B0_ = {0.0, 0.0, Bmag_};
+//// reference distance
+//constexpr double RE = 6.37e8 / unit_length_fluid;
+//constexpr double dmax_fraction_ = 0.1;
+//constexpr double dmax0_ = dmax_fraction_ * RE;
+//constexpr double Bmag_ = 0.311 / unit_magnetic_fluid;
+//constexpr GeoVector B0_ = {0.0, 0.0, Bmag_};
 
 
 struct SimulationConfig1 {

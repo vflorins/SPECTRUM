@@ -1,12 +1,21 @@
 #include <iostream>
 #include <iomanip>
-#include <src/background_vlism_bochum.hh>
+#include "src/background_vlism_bochum.hh"
+
+#include "src/hyperconfigure.hh"
+#include "common/vectors.hh"
+#include "common/fields.hh"
+
 
 using namespace Spectrum;
 
+
 int main(void)
 {
-   BackgroundVLISMBochum background;
+
+   using HConfig = HyperConfigure<Default, BackgroundConfig<Config::Background::VLISMBochum, SpecieId::proton_core>>;
+
+   BackgroundVLISMBochum<HConfig> background;
 
    DataContainer container;
    container.Clear();
@@ -42,7 +51,7 @@ int main(void)
    double z_nose = 110.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(z_nose);
 
-   .SetupObject(container);
+   background.SetupBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 

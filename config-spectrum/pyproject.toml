@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "config-spectrum"
+version = "0.2.0"
+description = "Configuration for the SPECTRUM software suite, enabling C++-native, compile-time full codebase parameterization."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "tomli>=2.0.2; python_version < '3.11'",
+]
+
+authors = [
+    {name = "Vladimir Florinski", email = "vaf0001@uah.edu"},
+    {name = "Juan Alonso Guzmán", email = "jgg008@uah.edu"},
+    {name = "Lucius Schoenbaum", email = "lts0016@uah.edu"},
+]
+
+[project.license]
+text = "MIT"
+
+keywords = ["science","engineering","mathematics"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+
+# work in progress.
+#[project.urls]
+#Homepage = "https://github.com/LuciusSchoenbaum/config-spectrum"
+#Documentation = "https://github.com/LuciusSchoenbaum/config-spectrum/blob/main/README.md"
+#Repository = "https://github.com/LuciusSchoenbaum/config-spectrum.git"
+#Issues = "https://github.com/LuciusSchoenbaum/config-spectrum/issues"
+
+[project.scripts]
+config-spectrum = "config_spectrum.main:main"
+
+[tool.hatch.build]
+exclude = [
+    "**/.DS_Store",
+    "**/__pycache__",
+]
+
+[tool.hatch.build.targets.wheel]
+exclude = [
+    # syntax hints:
+    # "tests/*.log",
+    # "tests/snapshots/*.json",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    # nothing at this time.
+    # "**/.DS_Store",
+]
+
+# work in progress.
+# For `pytest` automated testing that won't
+# be needed for the foreseeable time.
+[tool.pytest.ini_options]
+testpaths = ["_test/_N"]
+
+

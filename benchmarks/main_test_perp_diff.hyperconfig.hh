@@ -1,4 +1,4 @@
-// File main_test_full_diff.hyperconfig.hh.copy
+// File main_test_full_diff.config.hh.copy
 // Uniform GuidingDiff PerpConstant
 
 #include "common/compiletime_lists.hh"

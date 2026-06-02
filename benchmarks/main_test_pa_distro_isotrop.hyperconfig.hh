@@ -1,4 +1,4 @@
-// File main_test_pa_distro_isotrop.hyperconfig.hh.copy
+// File main_test_pa_distro_isotrop.config.hh
 // Uniform GuidingScatt IsotropicConstant
 
 #include "common/compiletime_lists.hh"

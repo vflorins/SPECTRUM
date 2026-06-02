@@ -1,4 +1,4 @@
-// File main_test_pa_scatt.hyperconfig.hh
+// File main_test_pa_scatt.config.hh
 // Uniform GuidingScatt IsotropicConstant
 
 #include "common/compiletime_lists.hh"

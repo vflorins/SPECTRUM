@@ -1,4 +1,4 @@
-// File main_test_dipole_visualization.hyperconfig.hh
+// File main_test_dipole_visualization.config.hh
 // Dipole Fieldline None
 
 #include "common/compiletime_lists.hh"

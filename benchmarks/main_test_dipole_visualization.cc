@@ -1,6 +1,15 @@
 
-#include "common/fields.hh"
-#include "src/background_dipole.hh"
+
+#include "main_test_dipole_visualization.config.hh"
+
+#include "src/trajectory.hh"
+#include "src/boundary_time.hh"
+#include "src/boundary_space.hh"
+#include "src/boundary_momentum.hh"
+#include "src/initial_time.hh"
+#include "src/initial_space.hh"
+#include "src/initial_momentum.hh"
+
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -9,11 +18,24 @@ using namespace Spectrum;
 
 int main(int argc, char** argv)
 {
+   DataContainer container;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+// Set simulation types, bring in hyperparameters
+//----------------------------------------------------------------------------------------------------------------------------------------------------
+
+   using Trajectory = Trajectory<HConfig>;
+
+   // todo check
+   using InitialTime = InitialTimeFixed<HConfig>;
+   using InitialSpace = InitialSpaceFixed<HConfig>;
+   using InitialMomentum = InitialMomentumRing<HConfig>;
+
+
    using Fields = Fields<Mag_t>;
    using Background = BackgroundDipole<HConfig>;
 
    Background background;
-   DataContainer container;
    Fields fields;
    double t = 0.0;
    int i,j,k;
