@@ -67,16 +67,16 @@ Ref: Tao, X., Chan, A. A., and Brizard, A. J., Hamiltonian theory of adiabatic m
 template <typename HConfig>
 void TrajectoryGuiding<HConfig>::ModifiedFields(void)
 try {
-auto MP = _coords.MomPerp();
-auto AM = _fields.AbsMag();
+   auto AM = _fields.AbsMag();
 
 // Modified fields
-   auto rL = LarmorRadius<specie>(MP, AM);
-   auto rR = LarmorRadius<specie>(_coords.MomPara(), _fields.AbsMag());
+   auto rL = LarmorRadius<specie>(_coords.MomPerp(), AM);
+   auto rR = LarmorRadius<specie>(_coords.MomPara(), AM);
    Evec_star = _fields.Ele();
    Evec_star = Evec_star - rR * _fields.AbsMag() * _fields.DotHatMag() / c_code;
    Evec_star = Evec_star - rL * _coords.VelPerp() * _fields.DelAbsMag() / (2.0 * c_code);
    Bvec_star = _fields.Mag();
+//   cout << "curl bhat " << _fields.CurlHatMag() << " rR " << rR << endl;
    Bvec_star = Bvec_star + rR * _fields.AbsMag() * _fields.CurlHatMag();
 }
 
@@ -96,7 +96,10 @@ void TrajectoryGuiding<HConfig>::DriftCoeff(void)
    ModifiedFields();
 
    drift_vel = (_coords.VelPara() * Bvec_star + c_code * (Evec_star ^ _fields.HatMag())) / (Bvec_star * _fields.HatMag());
-   cout << "VelPara, VelPerp " << _coords.VelPara() << ", " << _coords.VelPerp()<< endl;
+//   cout << " c_code " << c_code << endl;
+//   cout << "vel[2] " << _coords.VelPara() << " Bvec_star " << Bvec_star << " Evec_star " << Evec_star << " bhat " << _fields.HatMag() << endl;
+//   cout << "VelPara, VelPerp " << _coords.VelPara() << ", " << _coords.VelPerp()<< endl;
+//   cout << "drift_vel " << drift_vel << endl;
 };
 
 /*!
@@ -111,6 +114,9 @@ void TrajectoryGuiding<HConfig>::PhysicalStep(void)
    constexpr double drift_safety = Config::drift_safety;
    dt_physical = cfl_adv * _dmax/(drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
 //   dt_physical = cfl_adv * _dmax / (drift_vel.Norm() + drift_safety * _coords.Vel().Norm());
+//   cout << "\tSTEP dmax " << _dmax << " advection " << cfl_adv << " drift_safety " << drift_safety << endl;
+//   cout << "\tSTEP drift_vel " << drift_vel.Norm() << " vel " << _coords.Vel().Norm() << endl;
+//   cout << "\tSTEP dt_physical " << dt_physical << endl;
 };
 
 /*!
@@ -124,17 +130,31 @@ template <typename HConfig>
 void TrajectoryGuiding<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& slope_mom_istage)
 {
    DriftCoeff();
+
    slope_pos_istage = drift_vel;
 
+#if 0
+   // using (p_perp, 0, p_para)
    if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[0] = 0.0;
    }
    else if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
       slope_mom_istage[0] = 0.5 * _coords.MomPerp() / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
    }
-
    slope_mom_istage[1] = 0.0;
    slope_mom_istage[2] = specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
+#else
+   // using (perp, para, azim) (Fields)
+   if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
+      slope_mom_istage[0] = 0.0;
+   }
+   else if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::scheme) {
+      slope_mom_istage[0] = 0.5 * _coords.MomPerp() / _fields.AbsMag() * (_fields.DotAbsMag() + drift_vel * _fields.DelAbsMag());
+   }
+   slope_mom_istage[1] = specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
+   slope_mom_istage[2] = 0.0;
+#endif
+//   cout << "[Slopes] slopes mom istage " << slope_mom_istage << endl;
 };
 
 /*!

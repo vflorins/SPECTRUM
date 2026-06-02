@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "config-spectrum"
-version = "0.2.0"
+version = "0.2.2"
 description = "Configuration for the SPECTRUM software suite, enabling C++-native, compile-time full codebase parameterization."
 readme = "README.md"
 requires-python = ">=3.9"

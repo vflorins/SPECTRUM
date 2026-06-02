@@ -35,7 +35,7 @@ def main():
     parser.add_argument(
         "-V", "--version",
         action="version",
-        version = "config-spectrum 0.2.0",
+        version = "config-spectrum 0.2.2",
     )
     parser.add_argument(
         "--mkdefaults", "-mk",

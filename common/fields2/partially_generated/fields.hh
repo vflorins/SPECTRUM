@@ -2463,7 +2463,7 @@ and azimuthal angle (unused in a reduced model).
    [[nodiscard]] double MomPara() const
    {
       if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
-         return Mom()[2];
+         return Mom()[1];
       }
       if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
          return Mom()[0]*Mom()[1];
@@ -2476,7 +2476,7 @@ and azimuthal angle (unused in a reduced model).
    [[nodiscard]] double MomAzim() const
    {
       if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
-         return Mom()[1];
+         return Mom()[2];
       }
       if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
          return Mom()[2];

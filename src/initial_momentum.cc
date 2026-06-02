@@ -209,8 +209,8 @@ void InitialMomentumRing<HConfig>::SetupInitial(bool construct)
    }
    else if constexpr (Coordinates::Mom_sys == CoordinateSystem::anisotropic) {
       // e.g., Guiding trajectories
-      _coords.MomPerp('w') = p0 * mu0;
-      _coords.MomPara('w') = p0 * st0;
+      _coords.MomPerp('w') = p0 * st0;
+      _coords.MomPara('w') = p0 * mu0;
    }
    _coords.template MakeConsistent<Coordinates>();
 

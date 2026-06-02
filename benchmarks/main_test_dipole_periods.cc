@@ -21,25 +21,10 @@ int main(int argc, char **argv) {
    DataContainer container;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
-// Set simulation types, bring in hyperparameters
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   using Trajectory = Trajectory<HConfig>;
-
-   using InitialTime = InitialTimeFixed<HConfig>;
-   using InitialSpace = InitialSpaceFixed<HConfig>;
-   using InitialMomentum = InitialMomentumRing<HConfig>;
-
-   using BoundaryTime = BoundaryTimeExpire<HConfig>;
-   using Boundary1 = BoundarySphereAbsorb<HConfig>;
-   using Boundary2 = BoundaryPlanePass<HConfig>;
-   using Boundary3 = BoundaryMirror<HConfig>;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<Trajectory> trajectory = std::make_unique<Trajectory>();
+   std::unique_ptr<Trajectory<HConfig>> trajectory = std::make_unique<Trajectory<HConfig>>();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -47,41 +32,6 @@ int main(int argc, char **argv) {
 
    std::shared_ptr<RNG> rng = std::make_shared<RNG>(time(NULL));
    trajectory->ConnectRNG(rng);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Background
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-//   container.Clear();
-//
-//// Initial time
-//   double t0 = 0.0;
-//   container.Insert(t0);
-//
-//// Origin
-//   container.Insert(gv_zeros);
-//
-//// Velocity
-//   container.Insert(gv_zeros);
-//
-//// Magnetic field
-//   double Bmag = 0.311 / unit_magnetic_fluid;
-//   GeoVector B0(0.0, 0.0, Bmag);
-//   container.Insert(B0);
-//
-//// Effective "mesh" resolution
-////   double RE = 6.37e8 / unit_length_fluid;
-////   double dmax_fraction = 0.1;
-//   double dmax = dmax_fraction * RE;
-//   container.Insert(dmax);
-//
-//// Reference equatorial distance
-//   container.Insert(RE);
-//
-//// dmax fraction for distances closer to the dipole
-//   container.Insert(dmax_fraction);
-//
-//   trajectory->SetupBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -93,7 +43,7 @@ int main(int argc, char **argv) {
    double init_t = 0.0;
    container.Insert(init_t);
 
-   trajectory->AddInitial(InitialTime(), container);
+   trajectory->AddInitial(InitialTimeFixed<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -105,7 +55,7 @@ int main(int argc, char **argv) {
    GeoVector start_pos(L * RE, 0.0, 0.0);
    container.Insert(start_pos);
 
-   trajectory->AddInitial(InitialSpace(), container);
+   trajectory->AddInitial(InitialSpaceFixed<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -120,7 +70,7 @@ int main(int argc, char **argv) {
    double theta_eq = DegToRad(30.0);
    container.Insert(theta_eq);
 
-   trajectory->AddInitial(InitialMomentum(), container);
+   trajectory->AddInitial(InitialMomentumRing<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time boundary condition (end)
@@ -139,14 +89,14 @@ int main(int argc, char **argv) {
 // Duration of the trajectory
    double drift_period = 3600.0 * 1.05 / MeV_kinetic_energy / L / (1.0 + 0.43 * sin(theta_eq)) / unit_time_fluid;
    double bounce_period = 2.41 * L * (1.0 - 0.43 * sin(theta_eq)) / sqrt(MeV_kinetic_energy) / unit_time_fluid;
-//   double maxtime = 10.0 * drift_period;
+   double maxtime = 10.0 * drift_period;
    // test
-   double maxtime = drift_period/10;
+//   double maxtime = drift_period/1000;
    // debug
-//   double maxtime = drift_period/10000;
+//   double maxtime = drift_period/40000;
    container.Insert(maxtime);
 
-   trajectory->AddBoundary(BoundaryTime(), container);
+   trajectory->AddBoundary(BoundaryTimeExpire<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 1 (Earth)
@@ -167,7 +117,7 @@ int main(int argc, char **argv) {
 // Radius
    container.Insert(RE);
 
-//   trajectory->AddBoundary(Boundary1(), container);
+   trajectory->AddBoundary(BoundarySphereAbsorb<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 2 (drift)
@@ -189,7 +139,7 @@ int main(int argc, char **argv) {
    GeoVector normal_drift(1.0, 0.0, 0.0);
    container.Insert(normal_drift);
 
-   trajectory->AddBoundary(Boundary2(), container);
+   trajectory->AddBoundary(BoundaryPlanePass<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 3 (bounce)
@@ -210,7 +160,7 @@ int main(int argc, char **argv) {
    GeoVector normal_bounce(0.0, 0.0, 1.0);
    container.Insert(normal_bounce);
 
-   trajectory->AddBoundary(Boundary2(), container);
+   trajectory->AddBoundary(BoundaryPlanePass<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum boundary condition (bounce)
@@ -224,7 +174,7 @@ int main(int argc, char **argv) {
 // Action
    container.Insert(actions);
 
-   trajectory->AddBoundary(Boundary3(), container);
+   trajectory->AddBoundary(BoundaryMirror<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation

@@ -10,10 +10,29 @@ Config-SPECTRUM is a configuration assistant for [SPECTRUM](https://github.com/v
 
 ## Quick Start 🥚
 
-The script is accessed via a command line entry point ``config-spectrum``. 
-Compile-time constants (parameters) may be set at the command line. 
-The tool will also resolve a set of contingent defaults. 
+### Installation
 
+After obtaining SPECTRUM and adding the variable `SPECTRUM` to the user environment, 
+defining the source code location, 
+install ``config-spectrum``:
+```bash
+pip install config-spectrum
+```
+This defines a command line entry point ``config-spectrum``. 
+The only dependency of ``config-spectrum`` is Tomli, 
+so the effect on system Python should be negligible, but to be safe, 
+you may do this in a Python virtual environment if you prefer 
+(this step is outside the scope of this guide). 
+To remove ``config-spectrum`` from your system:
+```bash
+pip uninstall config-spectrum
+```
+in the environment where it was installed.
+
+### Usage
+
+Compile-time constants (parameters) may be set at the command line. 
+The tool will also resolve a set of contingent defaults.
 For example:
 ```bash
 config-spectrum . -b Dipole -t Lorentz -d None
@@ -35,11 +54,12 @@ For more information, use the help flag ``config-spectrum -h`` or ``config-spect
 ## Guide for Developers 💾
 
 Except for the frontend in ``main.py``, the implementation is in the 
-submodule ``_impl``, and should not need to be frequently modified.
+submodule ``_impl``, and should not need to be frequently modified, 
+in the event that the SPECTRUM source has been updated.
 
 The files ``config_parameters.py`` and ``config_physical.py`` in ``config-spectrum``, 
 and the file ``common/compiletime_lists.hh`` are 
-the "source of truth" for all of SPECTRUM. 
+the "source of truth" for SPECTRUM configuration. 
 
 * ``compiletime_lists.hh``. This file and included header files determine 
 fundamental structure is exposed at compile-time. In particular, it determines what Backgrounds, 
@@ -50,19 +70,22 @@ a new Background implemented in ``background_silly.hh`` / ``background_silly.cc`
 can be registered in ``compiletime_lists.hh`` by adding ``Silly`` to the 
 list of backgrounds.
 
-* ``config_parameters.py``. Contains a specification of all (hyper)parameters
+* ``config_parameters.py``. Contains a specification of all parameters
 for the SPECTRUM test particle trajectory solver. 
 It provides type information, possible ranges,
-a docstring, and a globally-defined fallthrough default value. 
-**Modifications of this file should be made in tandem with review and 
-possible modifications of ``compiletime_lists.hh``.**
+a docstring, and a globally-defined fallthrough default value.
 
-* ``config_physical.py``. Contains 
+* ``config_physical.py``. Contains the default values for individual 
+cases, so that these can be tuned individually. 
+See below for information about setting/modifying these. 
 
 This leads to the following general heuristic for developers:
 * **Modifications of ``compiletime_lists.hh`` should be made in tandem with review and
   possible modifications of ``config_parameters.py``, and vice versa.**
 * **Modifications of ``config_physical.py`` can be freely made.**
+
+This distinction explains why ``config_physical.py`` is isolated 
+in its own file. 
 
 Whenever changes to either of the ``.py`` files are made, 
 the ``.config.hh`` files that appear in ``/src/`` need to be updated. 
@@ -77,18 +100,34 @@ config-spectrum . --mkdefaults --test
 
 ## Setting default values in ``config_physical.py``
 
-The dict of dicts in ``conig_physical.py`` defines a "reasonable" default
-for the particular trajectory/background/diffusion type. 
-This file is the unique location in the code where
-these default values are defined.
+### The ``physical_defaults`` dict
 
-There is no inheritance mechanism, so
+The dict of dicts in ``config_physical.py``, called ``physical_defaults``, 
+defines a "reasonable" default for each particular trajectory/background/diffusion 
+type. Its purpose is to allow default values to depend 
+on the choice of Background, Trajectory, and Diffusion.
+This was the approach used in previous versions of SPECTRUM.
+
+This file is the unique location in the code where
+these default values are defined. There is no inheritance mechanism, so
 each class repeats parameters defined in base classes.
 In some cases, this is indicated by commented-out dividers. 
-
 The dicts are used on an "as-needed" basis, so the definitions here 
 are not brittle. ``config-spectrum`` will automatically check that 
-every case has a default value. 
+every case has a default value, but if it doesn't find an object-specific 
+value, it will use the global fall-back in ``config_parameters.py``. 
+
+The dict of dicts ``physical_defaults`` has the following structure:
+```
+physical_defaults = {
+    'Background': ..., # dict of backgrounds
+    'Trajectory': ..., # dict of trajectories
+    'Diffusion': ..., # dict of diffusions
+}
+```
+This defines a simple but efficient "tree" of default values.
+
+### Formatting
 
 The formatting of values of key-value pairs 
 is performed by the ``value`` method in ``_impl/configdata.py``. 
@@ -99,27 +138,8 @@ a file name), then this value is set as a string. Default values of strings can
 be set using an ordinary double-quote "..." string.
 If the type is type (a C++ type), then the type is set here
 inside of a double-quote string. Brace-initializer expressions can be 
-used for default values. 
-
-The dict of dicts ``physical_defaults`` has the following structure:
-```
-physical_defaults = {
-    'Background': ..., # dict of backgrounds
-    'Trajectory': ..., # dict of trajectories
-    'Diffusion': ..., # dict of diffusions
-}
-```
-
-## Notes
-
-* It is not possible to do what `config-spectrum` does using compile-time language features of C++20,
-the version used by SPECTRUM. Therefore a custom-built solution is needed,
-and this is one possibility (among many) which takes advantage of the well-developed
-Python ecosystem. Experience with `config-spectrum`
-
-
-
+used for default values.
 
 ### Last Updated
 
-Lucius Schoenbaum May 31, 2026
+Lucius Schoenbaum June 2, 2026

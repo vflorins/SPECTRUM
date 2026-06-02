@@ -11,12 +11,18 @@ using namespace Spectrum;
 constexpr auto specieid_ = SpecieId::proton_core;
 constexpr auto specie = Specie<specieid_>();
 
-//// reference distance
-//constexpr double RE = 6.37e8 / unit_length_fluid;
-//constexpr double dmax_fraction_ = 0.1;
-//constexpr double dmax0_ = dmax_fraction_ * RE;
-//constexpr double Bmag_ = 0.311 / unit_magnetic_fluid;
-//constexpr GeoVector B0_ = {0.0, 0.0, Bmag_};
+// origin
+constexpr GeoVector r0_ = gv_zeros;
+// velocity
+constexpr GeoVector v0_ = gv_zeros;
+// reference equatorial distance
+constexpr double RE = 6.37e8 / unit_length_fluid;
+// effective "mesh" resolution
+constexpr double dmax_fraction_ = 0.1;
+constexpr double dmax0_ = dmax_fraction_ * RE;
+// Magnetic field
+constexpr double Bmag_ = 0.311 / unit_magnetic_fluid;
+constexpr GeoVector B0_ = {0.0, 0.0, Bmag_};
 
 
 struct SimulationConfig1 {
@@ -56,10 +62,10 @@ struct BackgroundConfig1{
    static constexpr double dmax_fraction = dmax_fraction_;
 //! Name: r0
 // Description: value (todo: description)
-   static constexpr GeoVector r0 = {0.0, 0.0, 0.0};
+   static constexpr GeoVector r0 = r0_;
 //! Name: u0
 // Description: u0
-   static constexpr GeoVector u0 = {0.0, 0.0, 0.0};
+   static constexpr GeoVector u0 = v0_;
 //! Name: B0
 // Description: B0
    static constexpr GeoVector B0 = B0_;
