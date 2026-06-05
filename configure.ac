@@ -12,7 +12,7 @@
 
 # Init commands
 AC_PREREQ([2.69])
-AC_INIT([spectrum_batl], [1.0])
+AC_INIT([spectrum], [2.0])
 AM_INIT_AUTOMAKE([-Wall foreign subdir-objects no-exeext])
 
 AC_CONFIG_SRCDIR([src/trajectory_base.cc])
@@ -35,7 +35,7 @@ AC_CHECK_TOOL([LD], [ld])
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--enable-debug], [enable debugging [default=no]])], [], [])
 AS_IF([test "x$enable_debug" == "xyes"], [
    CXXFLAGS="$CXXFLAGS -g -O0"
-   FFLAGS="$FCFLAGS -g -O0"
+   FCFLAGS="$FCFLAGS -g -O0"
    AC_DEFINE([GEO_DEBUG], [1], [Enable debugging])
    AC_MSG_NOTICE([Debugging is enabled])
 ],
@@ -147,6 +147,8 @@ AS_IF([test "x$enable_silo" == "x"], [
    AC_MSG_NOTICE([Building without SILO])
 ],
 [
+
+# Adds the found library to LIBS
    AC_SEARCH_LIBS([DBPutQuadmesh], [silo siloh5], [
       AC_DEFINE([USE_SILO], [1], [Using SILO])
       AC_MSG_NOTICE([SILO is enabled])
@@ -157,6 +159,38 @@ AS_IF([test "x$enable_silo" == "x"], [
    ])
 ])
 AM_CONDITIONAL([ENABLE_SILO], [test "x$HAVE_SILO" = x1])
+
+# Check for BATL
+HAVE_BATL=0
+BATL_TOPDIR=""
+AC_ARG_WITH([batl], [AS_HELP_STRING([--with-batl=<path-to-batl>], [Specify top BATL directory])], [], [])
+AS_IF([test "x$with_batl" == "x"], [
+   AC_MSG_NOTICE([Building without BATL])
+],
+[
+   BATL_TOPDIR="$with_batl"
+   BATL_LIBDIR="$BATL_TOPDIR/lib"
+   AS_IF([test -d "$BATL_LIBDIR"] && [test -d "$BATL_TOPDIR/share/include"], [
+
+# This is only for the linker to find the library for testing
+      LDFLAGS="$LDFLAGS -L$BATL_LIBDIR"
+
+# Adds the found library to LIBS
+      AC_SEARCH_LIBS([wrapamr_read_header], [WRAPAMR wrapamr], [
+         AC_DEFINE([USE_BATL], [1], [Using BATL])
+         AC_MSG_NOTICE([BATL is enabled])
+         HAVE_BATL=1
+         AC_SUBST([BATL_TOPDIR])
+      ],
+      [
+         AC_MSG_WARN([BATL not found])
+      ]) 
+   ],
+   [
+      AC_MSG_WARN([BATL lib or include directory does not exist])
+   ])
+])
+AM_CONDITIONAL([ENABLE_BATL], [test "x$HAVE_BATL" = x1])
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
 # Everything below and up to the dashed line should go into configuration files

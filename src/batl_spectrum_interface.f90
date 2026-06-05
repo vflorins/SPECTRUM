@@ -4,6 +4,8 @@
 
 ! This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 
+#define C_FLOAT_TYPE c_double
+
 subroutine spectrum_init_mpi(comm) bind(C)
 
    use BATL_mpi, ONLY: init_mpi
@@ -26,9 +28,9 @@ subroutine spectrum_get_node(pos, node) bind(C)
 
    implicit none
 
-   real(c_double), intent(in) :: pos(nDim)
+   real(C_FLOAT_TYPE), intent(in) :: pos(nDim)
    integer(c_int), intent(out) :: node
-   real :: CoordTree_D(nDim)
+   real(C_FLOAT_TYPE) :: CoordTree_D(nDim)
 
 ! Normalize the distance to the domain size and call the tree search routine. The result is available on all CPUs.
    CoordTree_D = (pos - CoordMin_D) / (DomainSize_D)
@@ -135,7 +137,7 @@ subroutine spectrum_get_block_corners(node, face_min, face_max) bind(C)
    implicit none
 
    integer(c_int), value, intent(in) :: node
-   real(c_double), intent(out) :: face_min(nDim), face_max(nDim)
+   real(C_FLOAT_TYPE), intent(out) :: face_min(nDim), face_max(nDim)
    integer :: iBlock
    
    iBlock = iTree_IA(Block_, node)
@@ -160,7 +162,7 @@ subroutine spectrum_get_block_data(node, variables) bind(C)
    implicit none
 
    integer(c_int), value, intent(in) :: node
-   real(c_double), intent(out) :: variables(nVar, MinI : MaxI, MinJ : MaxJ, MinK : MaxK)
+   real(C_FLOAT_TYPE), intent(out) :: variables(nVar, MinI : MaxI, MinJ : MaxJ, MinK : MaxK)
    integer :: iBlock, i, j, k, var
 
 ! This performs a copy of the portion of the data array.
@@ -188,14 +190,14 @@ subroutine spectrum_get_interpolation_stencil(pos, n_zones, stencil_nodes, stenc
 
    implicit none
 
-   real(c_double), intent(in) :: pos(nDim)
+   real(C_FLOAT_TYPE), intent(in) :: pos(nDim)
    integer(c_int), intent(out) :: n_zones, stencil_nodes(2**nDim), stencil_zones(nDim * 2**nDim)
-   real(c_double), intent(out) :: stencil_weights(2**nDim)
+   real(C_FLOAT_TYPE), intent(out) :: stencil_weights(2**nDim)
 
    integer :: nCell, iDim, iCell, idx
    integer :: iCell_II(0 : nDim, 2**nDim)
-   real :: Xyz_D(MaxDim)
-   real :: Weight_I(2**nDim)
+   real(C_FLOAT_TYPE) :: Xyz_D(MaxDim)
+   real(C_FLOAT_TYPE) :: Weight_I(2**nDim)
 
    Xyz_D(1 : nDim) = pos(1 : nDim)
    ! call interpolate_grid_amr(Xyz_D, nCell, iCell_II, Weight_I)
@@ -247,4 +249,66 @@ subroutine spectrum_read_header(NameFile_I, l, lVerbose) bind(C)
   call readamr_init(NameFile(1:i-1), IsVerbose=lVerbose==1_c_int)
 
 end subroutine spectrum_read_header
+
+!=====================================================================================================================================================
+
+subroutine batl_init_tree_file(NameFile_I, l) bind(C)
+
+   use BATL_size, only: nDim
+   use BATL_tree, only: init_tree, set_tree_root, write_tree_file, clean_tree
+   use BATL_mpi, only: iComm
+   use ModReadParam, only: read_file, read_echo_set, read_init, read_line, read_command, read_var, lStringLine
+   use ModUtilities, only: char_array_to_string
+   use iso_c_binding, only: c_char, c_int
+
+   implicit none
+
+   character(c_char), intent(in) :: NameFile_I(*)
+   integer(c_int), value, intent(in) :: l
+
+   integer :: i, MaxBlock = 1
+   integer :: nRoot_D(nDim) = 1
+   logical :: IsExist
+   character(len = lStringLine) :: NameCommand, StringLine
+   character(len = l) :: NameFile
+
+!-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+! Convert filename to native format and check if file exists
+   call char_array_to_string(NameFile_I, NameFile)
+   inquire(file = NameFile, exist = IsExist)
+   if (.not. IsExist) return
+
+! Warning: "read_file" requires MPI, so it must be initialized
+   call read_file(NameFile, iComm)
+   call read_echo_set(.false.)
+   call read_init()
+
+! Loop over parameter list
+   do
+      if (.not. read_line(StringLine)) exit
+      if (.not. read_command(NameCommand)) cycle
+
+! Only need the number of root blocks
+      if (NameCommand == '#ROOTBLOCK') then
+         do i = 1, nDim
+            call read_var('nRootBlock', nRoot_D(i))
+         end do
+      end if
+   end do
+
+! Total number of root blocks
+   do i = 1, nDim
+      MaxBlock = MaxBlock * nRoot_D(i)
+   enddo
+
+! Initialize a simple non-refined tree and save it to a file
+   call init_tree(MaxBlock)
+   call set_tree_root(nRoot_D)
+
+   i = index(NameFile, ".", back = .true.)
+   call write_tree_file(NameFile(1: i - 1)//'.tree')
+   call clean_tree
+
+end subroutine spectrum_init_tree_file
 

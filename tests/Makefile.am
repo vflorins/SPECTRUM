@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_FCFLAGS = -J$(BATL_HOME)/share/include
+AM_FCFLAGS =
 AM_CXXFLAGS =
 AM_LDFLAGS =
 
@@ -18,6 +18,14 @@ endif
 
 if ENABLE_GSL
 AM_LDFLAGS += $(GSL_LIBS) $(GSL_CBLAS_LIB)
+endif
+
+if ENABLE_SILO
+endif
+
+if ENABLE_BATL
+AM_FCFLAGS += -cpp -J$(BATL_TOPDIR)/share/include
+AM_LDFLAGS += -lgfortran
 endif
 
 bin_PROGRAMS = main_test_mpi_config \
