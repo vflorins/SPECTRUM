@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <cstdint>
 
-#include "geodesic/polygonal_addressing.hh"
+#include <geodesic/polygonal_addressing.hh>
 
 namespace Spectrum {
 
@@ -254,9 +254,6 @@ public:
 
 //! Move constructor
    GeodesicSector(GeodesicSector&& other) noexcept;
-
-//! Move constructor
-   SPECTRUM_DEVICE_FUNC GeodesicSector(GeodesicSector&& other);
 
 //! Constructor with arguments
    GeodesicSector(int width, int wghost);

@@ -11,7 +11,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <eigen3/Eigen/Dense>
 
-#include "geodesic/grid_block.hh"
+#include <geodesic/grid_block.hh>
 
 namespace Spectrum {
 
@@ -70,6 +70,12 @@ protected:
 
 //! Conversion factors from U to W
    double* UW_conv = nullptr;
+
+//! Conversion factors from W to U for t-faces
+   double* UW_conv_t = nullptr;
+
+//! Conversion factors from W to U for r-faces
+   double* UW_conv_r = nullptr;
 
 //! The total number of stencils
    static constexpr int n_stencils = 1 + 2 * verts_per_face;

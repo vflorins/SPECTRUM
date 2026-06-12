@@ -9,9 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include "common/definitions.hh"
-#include "common/print_warn.hh"
-#include "geodesic/geodesic_sector.hh"
+#include <common/definitions.hh>
+#include <common/print_warn.hh>
+#include <geodesic/geodesic_sector.hh>
 
 namespace Spectrum {
 
@@ -37,7 +37,6 @@ GeodesicSector<verts_per_face>::GeodesicSector(void)
 \author Vladimir Florinski
 \date 01/08/2025
 \param[in] other Object to initialize from
-\note The copy constructor for "PolygonalAddressing" calls its "Setup()" method
 */
 template <int verts_per_face>
 GeodesicSector<verts_per_face>::GeodesicSector(const GeodesicSector& other)

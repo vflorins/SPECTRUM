@@ -6,7 +6,7 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "geodesic/domain_partition.hh"
+#include <geodesic/domain_partition.hh>
 
 #ifdef USE_SILO
 #include <pmpio.h>
@@ -582,9 +582,6 @@ void DomainPartition<blocktype>::PrintExchSites(void) const
          std::cerr << std::setw(5) << site->GetPartCount() << " parts ";
          std::cerr << std::setw(5) << site->GetCommSize() << " processes\n";
       };
-
-// Unpack the buffers - test with a different loop location
-      for (auto block = 0; block < blocks_local.size(); block++) blocks_local[block].UnPackBuffers(ntype);
    };
 };
 

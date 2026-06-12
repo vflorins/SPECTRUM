@@ -9,16 +9,16 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_GRID_BLOCK_HH
 #define SPECTRUM_GRID_BLOCK_HH
 
-#include "config.h"
+#include <config.h>
 
 #ifdef USE_SILO
 #include <silo.h>
 #endif
 
-#include "common/vectors.hh"
-#include "geometry/distance_map.hh"
-#include "geodesic/geodesic_sector.hh"
-#include "geodesic/spherical_slab.hh"
+#include <common/vectors.hh>
+#include <geometry/distance_map.hh>
+#include <geodesic/geodesic_sector.hh>
+#include <geodesic/spherical_slab.hh>
 
 namespace Spectrum {
 
@@ -135,12 +135,6 @@ protected:
 
 //! List of duplicate vertices at cut lines
    int** dup_vert[verts_per_face] = {nullptr};
-
-//! Radial distance of the lower boundary of the entire domain
-   double Rmin;
-
-//! Radial distance of the upper boundary of the entire domain
-   double Rmax;
 
 //! Shell width in index coordinates
    double dxi;

@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include "geodesic/stenciled_block.hh"
+#include <geodesic/stenciled_block.hh>
 
 namespace Spectrum {
 
@@ -175,6 +175,8 @@ void StenciledBlock<verts_per_face>::SetDimensions(int width, int wghost, int he
    r_mp = new double[n_shells_withghost];
    r_ct = new double[n_shells_withghost];
    UW_conv = new double[n_shells_withghost];
+   WU_conv_t = new double[n_shells_withghost + 1];
+   WU_conv_r = new double[n_shells_withghost];
 
 // Length and area arrays
    face_area = new double[n_faces_withghost];
@@ -223,6 +225,8 @@ void StenciledBlock<verts_per_face>::FreeStorage(void)
    delete[] r_mp;
    delete[] r_ct;
    delete[] UW_conv;
+   delete[] WU_conv_t;
+   delete[] WU_conv_r;
 
 // Free up length and area arrays
    delete[] face_area;
@@ -257,26 +261,38 @@ void StenciledBlock<verts_per_face>::AssociateMesh(double ximin, double ximax, c
 
 // Create a helper exponential map
    DataContainer container;
-   container.Insert(this->Rmin);
-   container.Insert(this->Rmax);
+   container.Insert(dist_map.GetPhysical(0.0));
+   container.Insert(dist_map.GetPhysical(1.0));
    DistanceExponential exp_map;
    exp_map.SetupObject(container);
 
-   double delta_breve, rprime, vol, vol_breve;
+   double rprime, delta_breve, vol, vol_breve, Lam;
 
    delta_breve = 2.0 * (exp_map.GetPhysical(xi_in[3]) - exp_map.GetPhysical(xi_in[2])) / (exp_map.GetPhysical(xi_in[3]) + exp_map.GetPhysical(xi_in[2]));
    rho = (1.0 + 0.5 * delta_breve) / (1.0 - 0.5 * delta_breve);
    lambda = (1.0 + Sqr(delta_breve) / 4.0) / (1.0 + Sqr(delta_breve) / 12.0);
+   Lam = log(dist_map.GetPhysical(1.0) / dist_map.GetPhysical(0.0));
 
-// Compute shell widths, midpoints, and centroids
+// Compute shell widths, midpoints, centroids, etc. The convention is that a midpoint is equidistant from the interfaces in any type of coordinates (physical, reference, exponential). Unlike interfaces, midpoints don't map to each other!
    for (auto shell = 0; shell < n_shells_withghost; shell++) {
       dr[shell] = r_in[shell + 1] - r_in[shell];
       r_mp[shell] = (r_in[shell + 1] + r_in[shell]) / 2.0;
       r_ct[shell] = r_mp[shell] * (1.0 + Sqr(dr[shell] / r_mp[shell]) / 4.0) / (1.0 + Sqr(dr[shell] / r_mp[shell]) / 12.0);
+
+// Center of shell in EC
       rprime = (exp_map.GetPhysical(xi_in[shell + 1]) + exp_map.GetPhysical(xi_in[shell])) / 2.0;
       vol = Sqr(r_mp[shell]) * dr[shell] * (1.0 + Sqr(dr[shell] / r_mp[shell]) / 12.0);
       vol_breve = delta_breve * (1.0 + Sqr(delta_breve) / 12.0);
-      UW_conv[shell] = vol / Cube(rprime) * log(this->Rmax / this->Rmin) / vol_breve;
+
+// Volume and r-face conversion between U and W
+      UW_conv[shell] = vol / Cube(rprime) * Lam / vol_breve;
+      WU_conv_r[shell] = rprime * delta_breve / dr[shell] / Lam;
+   };
+
+// t-face conversion between U and W
+   for (auto ishell = 0; ishell <= n_shells_withghost; ishell++) {
+      rprime = exp_map.GetPhysical(xi_in[ishell]);
+      WU_conv_t[ishell] = Cube(rprime) / Sqr(r_in[ishell]) / exp_map.GetDerivative(xi_in[ishell]); 
    };
 
    BuildAllStencils();
@@ -400,12 +416,6 @@ void StenciledBlock<verts_per_face>::BuildAllStencils(void)
 #endif
 
    int ic, nface, face;
-
-#ifdef GEO_DEBUG
-#if GEO_DEBUG_LEVEL >= 3
-   std::cerr << "Building stencils for a StenciledBlock\n";
-#endif
-#endif
 
    zones_per_stencil[0] = verts_per_face + 2;
    for (auto stencil = 1; stencil < n_stencils; stencil++) zones_per_stencil[stencil] = 4;

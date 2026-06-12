@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_TRAVERSABLE_TESSELATION_HH
 #define SPECTRUM_TRAVERSABLE_TESSELATION_HH
 
-#include "geodesic/requestable_tesselation.hh"
+#include <geodesic/requestable_tesselation.hh>
 
 namespace Spectrum {
 

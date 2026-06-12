@@ -9,7 +9,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <cstring>
 #include <utility>
 
-#include "geodesic/buffered_block.hh"
+#include <geodesic/buffered_block.hh>
 
 namespace Spectrum {
 
@@ -280,15 +280,6 @@ void BufferedBlock<verts_per_face, _datatype>::FreeStorage(void)
       delete[] buf_shell_start[GEONBR_RFACE][0];
       delete[] buf_shell_start[GEONBR_RFACE];
    };
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Starting shells have fixed values
-   buf_shell_tab[0] = 0;
-   buf_shell_tab[1] = ghost_height;
-   buf_shell_tab[2] = n_shells_withghost - 2 * ghost_height;
-   buf_shell_tab[3] = n_shells_withghost - ghost_height;
-   buf_shell_tab[4] = 2 * ghost_height;
 };
 
 /*!
@@ -603,7 +594,6 @@ void BufferedBlock<verts_per_face, _datatype>::UnPackBuffers(NeighborType ntype,
                zone_cons[shell][face] = buffer[bufidx++];
             };
          };
-         actual_part++;
       };
    };
 };
@@ -627,7 +617,7 @@ int BufferedBlock<verts_per_face, _datatype>::WriteSiloData(DBfile* silofile, bo
 #endif
 #endif
 
-   int err, k, k1, k2, face, face_silo, idx1, idx2, n_zones, n_intzones;
+   int err, face, face_silo, idx1, idx2, n_zones, n_intzones;
 
    n_zones = this->n_faces_silo * n_shells;
    if (!border_type[0]) n_zones += this->n_faces_silo;
@@ -640,17 +630,17 @@ int BufferedBlock<verts_per_face, _datatype>::WriteSiloData(DBfile* silofile, bo
 // The first index tracks the interior zones, while the second enumerates the ghost zones.
    idx1 = 0;
    idx2 = n_intzones;
-   k1 = (border_type[0] ? ghost_height : ghost_height - 1);
-   k2 = (border_type[1] ? n_shells_withghost - ghost_height - 1 : n_shells_withghost - ghost_height);
+   int shell1 = (border_type[0] ? ghost_height : ghost_height - 1);
+   int shell2 = (border_type[1] ? n_shells_withghost - ghost_height - 1 : n_shells_withghost - ghost_height);
 
 // Copy the variable into the 1D "linear_data" array for SILO consumption.
-   for (k = k1; k <= k2; k++) {
+   for (auto shell = shell1; shell <= shell2; shell++) {
       for (face_silo = 0; face_silo < this->n_faces_silo; face_silo++) {      
          face = this->silo_to_face[face_silo];
 
 // Add to the appropriate place in the array
-         if (IsInteriorShellOfSlab(k) && IsInteriorFaceOfSector(face)) linear_data[idx1++] = zone_cons[k][face];
-         else linear_data[idx2++] = zone_cons[k][face];
+         if (IsInteriorShellOfSlab(shell) && IsInteriorFaceOfSector(face)) linear_data[idx1++] = zone_cons[shell][face];
+         else linear_data[idx2++] = zone_cons[shell][face];
       };
    };
 

@@ -12,6 +12,18 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 /*!
+\brief Number of edges at a vertex in an infinite tesselation
+\author Vladimir Florinski
+\date 07/02/2024
+\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
+*/
+template <int verts_per_face>
+static constexpr int EdgesAtVert(void)
+{
+   return 2 * verts_per_face / (verts_per_face - 2);
+};
+
+/*!
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
 
@@ -94,17 +106,6 @@ public:
    static constexpr int GetVertVert(int ie, int ij) {return vert_vert[ie][ij];};
 #endif
 
-};
-
-/*!
-\author Vladimir Florinski
-\date 01/08/20256
-\param[in] other Object to move into this
-*/
-template <int verts_per_face>
-SPECTRUM_DEVICE_FUNC inline PolygonalAddressing<verts_per_face>::PolygonalAddressing(PolygonalAddressing<verts_per_face>&& other)
-                                                               : PolygonalAddressing<verts_per_face>()
-{
 };
 
 /*!
