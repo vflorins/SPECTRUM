@@ -54,13 +54,17 @@ public:
    using BackgroundDiscontinuity::B0;
    using BackgroundDiscontinuity::B1;
 
-public:
-
 //! Width of discontinuity transition region (persistent)
    static constexpr double width_discont = Config::width_discont;
 
 //! Fraction of the discontinuity width to assign to dmax near discontinuity (persistent)
    static constexpr double dmax_fraction = Config::dmax_fraction;
+
+public:
+
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double*);
 
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
@@ -69,10 +73,6 @@ public:
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
    static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
-
-//! Compute the maximum distance per time step
-   template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double*);
 
 };
 

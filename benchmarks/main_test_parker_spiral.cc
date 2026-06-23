@@ -1,18 +1,20 @@
 
-#include "common/fields.hh"
-#include "src/background_solarwind.hh"
+#include "main_test_parker_spiral.config.hh"
+
+#include "src/trajectory.hh"
+#include "src/background.hh"
+#include "src/boundary_time.hh"
 #include "src/boundary_time.hh"
 #include "src/boundary_space.hh"
 #include "src/boundary_momentum.hh"
 #include "src/initial_time.hh"
 #include "src/initial_space.hh"
 #include "src/initial_momentum.hh"
-// todo when all trajectories are updated
-//#include "src/trajectory.hh"
-#include "src/trajectory_fieldline.hh"
-#include <gsl/gsl_const.h>
+
 #include <iostream>
 #include <iomanip>
+
+#include <gsl/gsl_const.h>
 
 using namespace Spectrum;
 
@@ -25,20 +27,19 @@ int main(int argc, char** argv)
 // Set the types
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   using Fields = Fields<Mag_t>;
-   using Trajectory = TrajectoryFieldline<Fields, Mag_t>;
-   using Background = BackgroundSolarWind<HConfig>;
+//   using Trajectory = TrajectoryFieldline<HConfig>;
+//   using Background = BackgroundSolarWind<HConfig>;
 
-   using InitialTime = InitialTimeFixed<Trajectory>;
-   using InitialSpace = InitialSpaceFixed<Trajectory>;
-   using InitialMomentum = InitialMomentumShell<Trajectory>;
-   using Boundary = BoundarySphereAbsorb<Trajectory>;
+//   using InitialTime = InitialTimeFixed<HConfig>;
+//   using InitialSpace = InitialSpaceFixed<HConfig>;
+//   using InitialMomentum = InitialMomentumShell<HConfig>;
+//   using Boundary = BoundarySphereAbsorb<HConfig>;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Create a trajectory
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
-   std::unique_ptr<Trajectory> trajectory = std::make_unique<Trajectory>();
+   std::unique_ptr<Trajectory<HConfig>> trajectory = std::make_unique<Trajectory<HConfig>>();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Connect RNG
@@ -46,13 +47,6 @@ int main(int argc, char** argv)
 
    std::shared_ptr<RNG> rng = std::make_shared<RNG>(time(NULL));
    trajectory->ConnectRNG(rng);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-// Particle type
-//----------------------------------------------------------------------------------------------------------------------------------------------------
-
-   int specie = SPECIES_PROTON_BEAM;
-   trajectory->SetSpecie(specie);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Background
@@ -97,7 +91,7 @@ int main(int argc, char** argv)
 // dmax fraction for distances closer to the dipole
    container.Insert(dmax_fraction);
 
-   trajectory->AddBackground(Background(), container);
+   trajectory->SetupBackground(container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Time initial condition
@@ -109,7 +103,7 @@ int main(int argc, char** argv)
    double init_t = 0.0;
    container.Insert(init_t);
 
-   trajectory->AddInitial(InitialTime(), container);
+   trajectory->AddInitial(InitialTimeFixed<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Spatial initial condition
@@ -121,10 +115,11 @@ int main(int argc, char** argv)
    double theta = DegToRad(90.0);
    double phi = DegToRad(0.0);
    GeoVector start_pos(R,theta,phi);
-   start_pos.RTP_XYZ();
+   // todo pos coords spherical?
+//   start_pos.RTP_XYZ();
    container.Insert(start_pos);
 
-   trajectory->AddInitial(InitialSpace(), container);
+   trajectory->AddInitial(InitialSpaceFixed<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Momentum initial condition
@@ -136,7 +131,7 @@ int main(int argc, char** argv)
    double MeV_kinetic_energy = 100.0;
    container.Insert(Mom<specie>(MeV_kinetic_energy * SPC_CONST_CGSM_MEGA_ELECTRON_VOLT / unit_energy_particle));
 
-   trajectory->AddInitial(InitialMomentum(), container);
+   trajectory->AddInitial(InitialMomentumShell<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 1 (source surface)
@@ -158,7 +153,7 @@ int main(int argc, char** argv)
 // Radius
    container.Insert(RS);
 
-   trajectory->AddBoundary(Boundary(), container);
+   trajectory->AddBoundary(BoundarySphereAbsorb<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Space boundary condition 2 (termination shock)
@@ -179,7 +174,7 @@ int main(int argc, char** argv)
    double r_out = 10.0 * GSL_CONST_CGSM_ASTRONOMICAL_UNIT / unit_length_fluid;
    container.Insert(r_out);
 
-   trajectory->AddBoundary(Boundary(), container);
+   trajectory->AddBoundary(BoundarySphereAbsorb<HConfig>(), container);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 // Run the simulation
@@ -189,7 +184,7 @@ int main(int argc, char** argv)
    trajectory->Integrate();
    trajectory->InterpretStatus();
 
-   std::string trajectory_file = "fields_main_test_parker_spiral_" + trajectory->GetName() + ".lines";
+   std::string trajectory_file = "main_test_parker_spiral_" + trajectory->GetName() + ".lines";
    std::cout << std::endl;
    std::cout << "PARKER SPIRAL SOLAR WIND" << std::endl;
    std::cout << "=========================================================" << std::endl;
@@ -200,7 +195,7 @@ int main(int argc, char** argv)
    std::cout << "Trajectory outputed to " << trajectory_file << std::endl;
    std::cout << std::endl;
 
-   trajectory->PrintCSV(trajectory_file,false);
+   trajectory->records.PrintCSV(trajectory_file,false);
    
    return 0;
 };

@@ -108,7 +108,7 @@ an event which must propagate through the entire timestep.
 NumericalDerivatives
 */
 template <typename Background>
-class NumericalDerivatives<Background, true>: public NumericalDerivativesBase<typename Background::HConfig_::BackgroundConfig> {
+class NumericalDerivatives<Background, true>: public NumericalDerivativesBase<typename Background::HConfig::BackgroundConfig> {
 public:
 
    using HConfig = Background::HConfig;

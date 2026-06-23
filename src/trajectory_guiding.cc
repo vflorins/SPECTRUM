@@ -96,7 +96,6 @@ void TrajectoryGuiding<HConfig>::DriftCoeff(void)
    ModifiedFields();
 
    drift_vel = (_coords.VelPara() * Bvec_star + c_code * (Evec_star ^ _fields.HatMag())) / (Bvec_star * _fields.HatMag());
-//   cout << " c_code " << c_code << endl;
 //   cout << "vel[2] " << _coords.VelPara() << " Bvec_star " << Bvec_star << " Evec_star " << Evec_star << " bhat " << _fields.HatMag() << endl;
 //   cout << "VelPara, VelPerp " << _coords.VelPara() << ", " << _coords.VelPerp()<< endl;
 //   cout << "drift_vel " << drift_vel << endl;
@@ -133,7 +132,7 @@ void TrajectoryGuiding<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
 
    slope_pos_istage = drift_vel;
 
-#if 0
+#if 1
    // using (p_perp, 0, p_para)
    if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[0] = 0.0;
@@ -144,7 +143,7 @@ void TrajectoryGuiding<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector& 
    slope_mom_istage[1] = 0.0;
    slope_mom_istage[2] = specie.q * (Evec_star * Bvec_star) / (Bvec_star * _fields.HatMag());
 #else
-   // using (perp, para, azim) (Fields)
+   // using (perp, para, 0)
    if constexpr (Config::pperp_method == TrajectoryOptions::PPerpMethod::mag_moment_conservation) {
       slope_mom_istage[0] = 0.0;
    }

@@ -29,6 +29,7 @@ struct SimulationConfig1 {
    static constexpr auto specieid = specieid_;
    static constexpr auto build_mode = BuildMode::debug;
 // Whether to print the last trajectory
+
    static constexpr auto print_last_trajectory = true;
 // Whether there is a supervisor process. This does not require there to be server processes.
    static constexpr auto supervisor = false;

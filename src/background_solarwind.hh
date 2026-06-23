@@ -184,6 +184,8 @@ protected:
 
    GeoVector r0;
 
+   GeoVector u0;
+
    GeoVector B0;
 
    //! Velocity magnitude for slow wind (persistent)
@@ -205,6 +207,8 @@ protected:
    double w0;
 
    TerminationShock<with_termination_shock> TS;
+
+public:
 
 //! Set up the field evaluator based on "params"
    void SetupBackground(DataContainer& container);
@@ -232,17 +236,17 @@ protected:
 
 public:
 
-//! Default constructor
-   BackgroundSolarWind(void);
-
-//! Constructor with arguments (to speed up construction of derived classes)
-   BackgroundSolarWind(const std::string_view& name_in, status_t status_in);
-
-//! Copy constructor
-   BackgroundSolarWind(const BackgroundSolarWind& other);
-
-//! Destructor
-   ~BackgroundSolarWind() = default;
+////! Default constructor
+//   BackgroundSolarWind(void);
+//
+////! Constructor with arguments (to speed up construction of derived classes)
+//   BackgroundSolarWind(const std::string_view& name_in, status_t status_in);
+//
+////! Copy constructor
+//   BackgroundSolarWind(const BackgroundSolarWind& other);
+//
+////! Destructor
+//   ~BackgroundSolarWind() = default;
 
 };
 

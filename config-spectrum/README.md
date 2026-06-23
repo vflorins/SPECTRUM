@@ -103,19 +103,32 @@ config-spectrum . --mkdefaults --test
 ### The ``physical_defaults`` dict
 
 The dict of dicts in ``config_physical.py``, called ``physical_defaults``, 
-defines a "reasonable" default for each particular trajectory/background/diffusion 
-type. Its purpose is to allow default values to depend 
+performs two functions: 
+
+* It defines what parameters are used by each trajectory/background/diffusion type. 
+For example, if ``r_ref`` does not appear in the dict for the ``Waves`` background, 
+then there will be no ``r_ref`` parameter in the ``Waves`` background ``Configure`` class.
+* It defines a class-specific "reasonable" default value for each particular trajectory/background/diffusion 
+type. Its purpose is to allow default values to depend
 on the choice of Background, Trajectory, and Diffusion.
-This was the approach used in previous versions of SPECTRUM.
+
+This is a direct evolution of the approach used in previous versions of 
+SPECTRUM, where these values were defined in the ``.hh`` file. 
+The value may be adjusted:
+
+* after the ``config.hh`` file is generated, by manual editing of that file.  
+The ``config.hh`` file is "owned" and managed by the user, so it may be 
+changed at any time. 
+* during the generation of ``config.hh`` at the command line, by passing 
+an optional argument (run ``config-spectrum -h`` to see options). 
+* by modifying ``config_physical.py`` (this edit makes the value 
+serve as the new default), and re-running ``config-spectrum``. 
 
 This file is the unique location in the code where
-these default values are defined. There is no inheritance mechanism, so
+these default values are defined. All default values are class-specific. 
+There is no inheritance mechanism in the lists of defaults, so
 each class repeats parameters defined in base classes.
-In some cases, this is indicated by commented-out dividers. 
-The dicts are used on an "as-needed" basis, so the definitions here 
-are not brittle. ``config-spectrum`` will automatically check that 
-every case has a default value, but if it doesn't find an object-specific 
-value, it will use the global fall-back in ``config_parameters.py``. 
+In some cases, this is indicated by commented-out dividers.
 
 The dict of dicts ``physical_defaults`` has the following structure:
 ```
@@ -142,4 +155,4 @@ used for default values.
 
 ### Last Updated
 
-Lucius Schoenbaum June 2, 2026
+Lucius Schoenbaum June 3, 2026

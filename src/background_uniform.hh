@@ -50,6 +50,7 @@ public:
 
 public:
 
+//! Compute the maximum distance per time step
    template <typename Coordinates>
    static status_t EvaluateDmax(Coordinates& coords, double*);
 

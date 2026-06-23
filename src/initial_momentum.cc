@@ -290,8 +290,7 @@ void InitialMomentumShell<HConfig>::SetupInitial(bool construct)
       _coords.AbsMom('w') = p0;
    }
    else if constexpr (HConfig::trajectory == Config::Trajectory::Fieldline) {
-      // todo review
-      _coords.Mom('w') = GeoVector(0.0, 0.0, p0);
+      _coords.Mom('w') = GeoVector(0, 0, p0);
    }
    _coords.template MakeConsistent<Coordinates>();
 };

@@ -176,6 +176,7 @@ physical_defaults = {
             'record_trajectory_segment_presize': 10000,
             'advance_safety_level': 'low',
             'max_trajectory_steps': 100000,
+            'cfl_advection': 0.5,
             'max_time_adaptations': 100,
             'n_max_calls': -1,
             ####

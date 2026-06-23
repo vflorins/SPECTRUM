@@ -28,15 +28,20 @@ This method's main role is to unpack the data container and set up the class dat
 template <typename HConfig>
 void BackgroundSolarWind<HConfig>::SetupBackground(DataContainer& container)
 {
-// todo this is provisional
-   container.Read(dmax0);
+// This is a backwards-compatible read-in of the container.
+   container.Reset();
    container.Read(t0);
    container.Read(r0);
+   container.Read(u0);
    container.Read(B0);
-   container.Read(ur0);
+   container.Read(dmax0);
+// end of BackgroundBase container read.
    container.Read(Omega);
    container.Read(r_ref);
    container.Read(dmax_fraction);
+
+// Only the first components of velocity is used.
+   ur0 = fabs(u0[0]);
 
 // Build the new coordinate system. The z axis is along "Omega" unless w0 = 0.0, in which case the system is non-rotating and the global z axis is used.
    w0 = Omega.Norm(); 

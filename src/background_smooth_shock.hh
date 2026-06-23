@@ -59,9 +59,9 @@ public:
 //! Fraction of the shock width to assign to dmax near shock (persistent)
    static constexpr double dmax_fraction = Config::dmax_fraction;
 
-protected:
+public:
 
-   //! Compute the maximum distance per time step
+//! Compute the maximum distance per time step
    template <typename Coordinates>
    static status_t EvaluateDmax(Coordinates&, double*);
 

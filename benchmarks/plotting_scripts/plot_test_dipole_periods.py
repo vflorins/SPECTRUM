@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 import sys
 
 # Grab command line arguments
-# data_path = sys.argv[1]
-# plot_path = sys.argv[2]
-data_path = ""
-plot_path = ""
-data_file = "../../../cmake-build-debug/main_test_dipole_drifts_TrajectoryGuiding.lines"
+data_path = sys.argv[1]
+plot_path = sys.argv[2]
+data_file = "main_test_dipole_drifts_TrajectoryGuiding.lines"
 plot_file = "plot_test_dipole_drifts_TrajectoryGuiding.png"
 
 # Import data

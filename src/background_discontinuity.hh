@@ -61,6 +61,10 @@ protected:
 
 public:
 
+//! Compute the maximum distance per time step
+   template <typename Coordinates>
+   static status_t EvaluateDmax(Coordinates&, double*);
+
 //! Compute the internal u, B, and E fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
    static status_t EvaluateBackground(Coordinates&, Fields&);
@@ -68,11 +72,6 @@ public:
 //! Compute the internal derivatives of the fields
    template <typename Coordinates, typename Fields, typename RequestedFields>
    static status_t EvaluateBackgroundDerivatives(Coordinates&, Fields&);
-
-//! Compute the maximum distance per time step
-   template <typename Coordinates>
-   static status_t EvaluateDmax(Coordinates&, double*);
-
 
 };
 

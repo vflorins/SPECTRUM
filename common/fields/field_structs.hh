@@ -20,13 +20,14 @@ namespace Spectrum {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0>
+template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0, int derived_ = 0>
 struct ScalarField {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
+   static const int derived = derived_;
 
 //! data field
    double value;
@@ -65,13 +66,14 @@ struct ScalarField {
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0>
+template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0, int derived_ = 0>
 struct VectorField : public GeoVector {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
+   static const int derived = derived_;
 
    VectorField() = default;
 
@@ -97,48 +99,48 @@ struct VectorField : public GeoVector {
 };
 
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator+(const ScalarField<nameid2, R2, S2>& lhs, const VectorField<nameid, R, S>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator+(const ScalarField<nameid2, R2, S2, D2>& lhs, const VectorField<nameid, R, S, D>& rhs) {
    return lhs.value + static_cast<const GeoVector&>(rhs);
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator+(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator+(const VectorField<nameid, R, S, D>& lhs, const ScalarField<nameid2, R2, S2, D2>& rhs) {
    return rhs.value + static_cast<const GeoVector&>(lhs);
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator-(const ScalarField<nameid2, R2, S2>& lhs, const VectorField<nameid, R, S>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator-(const ScalarField<nameid2, R2, S2, D2>& lhs, const VectorField<nameid, R, S, D>& rhs) {
    return lhs.value - static_cast<const GeoVector&>(rhs);
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator-(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator-(const VectorField<nameid, R, S, D>& lhs, const ScalarField<nameid2, R2, S2, D2>& rhs) {
    return static_cast<const GeoVector&>(lhs) - rhs.value;
 }
 
-template <Field::Id nameid, int R, int S>
-inline GeoVector operator-(const GeoVector& lhs, const VectorField<nameid, R, S>& rhs) {
+template <Field::Id nameid, int R, int S, int D>
+inline GeoVector operator-(const GeoVector& lhs, const VectorField<nameid, R, S, D>& rhs) {
    return lhs - static_cast<const GeoVector&>(rhs);
 }
 
-template <Field::Id nameid, int R, int S>
-inline GeoVector operator-(const VectorField<nameid, R, S>& lhs, const GeoVector& rhs) {
+template <Field::Id nameid, int R, int S, int D>
+inline GeoVector operator-(const VectorField<nameid, R, S, D>& lhs, const GeoVector& rhs) {
    return static_cast<const GeoVector&>(lhs) - rhs;
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator*(const ScalarField<nameid2, R2, S2>& lhs, const VectorField<nameid, R, S>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator*(const ScalarField<nameid2, R2, S2, D2>& lhs, const VectorField<nameid, R, S, D>& rhs) {
    return lhs.value*static_cast<const GeoVector&>(rhs);
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator*(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator*(const VectorField<nameid, R, S, D>& lhs, const ScalarField<nameid2, R2, S2, D2>& rhs) {
    return rhs.value*static_cast<const GeoVector&>(lhs);
 }
 
-template <Field::Id nameid, int R, int S, Field::Id nameid2, int R2, int S2>
-inline GeoVector operator/(const VectorField<nameid, R, S>& lhs, const ScalarField<nameid2, R2, S2>& rhs) {
+template <Field::Id nameid, int R, int S, int D, Field::Id nameid2, int R2, int S2, int D2>
+inline GeoVector operator/(const VectorField<nameid, R, S, D>& lhs, const ScalarField<nameid2, R2, S2, D2>& rhs) {
    return (1.0/rhs.value)*static_cast<const GeoVector&>(lhs);
 }
 
@@ -148,13 +150,14 @@ inline GeoVector operator/(const VectorField<nameid, R, S>& lhs, const ScalarFie
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0>
+template <Field::Id nameid, int reconstructible_ = 0, int solvable_ = 0, int derived_ = 0>
 struct MatrixField : public GeoMatrix {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
+   static const int derived = derived_;
 
    MatrixField() = default;
 

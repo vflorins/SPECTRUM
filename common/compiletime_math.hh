@@ -12,17 +12,23 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_COMPILETIME_MATH_HH
 
 #include <limits>
+#include <cmath>
 
 namespace Spectrum {
 
 constexpr double csqrt(double x) {
-   if (x < 0) return std::numeric_limits<double>::quiet_NaN();
-   if (x == 0) return 0;
-   double a = x;
-   for (int i = 0; i < 50; ++i) {
-      a = 0.5*(a + x/a);
+   if (std::is_constant_evaluated()) {
+      if (x < 0) return std::numeric_limits<double>::quiet_NaN();
+      if (x == 0) return 0;
+      double a = x;
+      for (int i = 0; i < 50; ++i) {
+         a = 0.5*(a + x/a);
+      }
+      return a;
+   } else {
+      return std::sqrt(x);
    }
-   return a;
+
 }
 
 

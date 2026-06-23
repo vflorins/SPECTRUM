@@ -141,6 +141,7 @@ public:
 //! Set up the field evaluator based on "params"
    void SetupBackground(DataContainer& container_in);
 
+//! Compute the maximum distance per time step
    template <typename Coordinates>
    static status_t EvaluateDmax(Coordinates& coords, double*);
 

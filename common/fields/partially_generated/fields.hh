@@ -1,5 +1,5 @@
 /*!
-\file mhdtuple.hh
+\file fields.hh
 \author Vladimir Florinski
 \author Lucius Schoenbaum
 \author Juan G Alonso Guzman
@@ -21,76 +21,155 @@ Elsewhere, this file can be edited normally.
 #include <iostream>
 #include <any>
 #include <stdexcept>
-#include "../generated/species_types.hh"
+#include "../generated/field_types.hh"
+#include "../fconfig.hh"
+
+#include "common/compiletime_lists.hh"
+#include "common/status.hh"
+#include "common/physics.hh"
+
 
 namespace Spectrum {
 
 /*!
 \brief Multi-purpose class storing physical data defined at a spatial location.
-Used in the data interface with the (pseudo-)particle tracer, and to house
-data distributed on the grid.
+Can be used for data interface in the (pseudo-)particle tracer,
+or to house per-cell data on a grid.
 \author Lucius Schoenbaum
 \author Vladimir Florinski
-\note Recursion in protected methods takes place only once, at compile time.
+\author Juan G Alonzo Guzman
+\date 08/26/2025
 */
-template <typename T, typename ... Ts>
-struct Fields: public Fields<Ts...> {
+template <typename FConfig_, typename ... Ts>
+struct Fields {
+public:
+
+   using FConfig = FConfig_;
+
+   static constexpr auto specie = Specie<FConfig::specieid>();
+   static constexpr auto Pos_sys = FConfig::Pos_sys;
+   static constexpr auto Mom_sys = FConfig::Mom_sys;
+   static constexpr auto Vel_sys = FConfig::Vel_sys;
+   static constexpr auto Pos_radial = FConfig::Pos_radial;
+   static constexpr auto Mom_radial = FConfig::Mom_radial;
+   static constexpr auto Vel_radial = FConfig::Vel_radial;
+   static constexpr auto Mag_radial = FConfig::Mag_radial;
+   static constexpr auto Flum_radial = FConfig::Flum_radial;
+   static constexpr auto Fluv_radial = FConfig::Fluv_radial;
+
+public:
+
+/*!
+\brief Check anonymously for presence of a type in the tuple
+\author Lucius Schoenbaum
+\date 08/26/2025
+ */
+   template <typename X>
+   static constexpr bool found() {
+      return (std::same_as<X, Ts> || ... || false);
+   }
+
+//private:
+public: // test
+
+   static constexpr const std::size_t Type_not_found = 1e16;
+
+/*!
+\brief The size measured in number of independent scalars (the most natural unit for applications).
+\author Lucius Schoenbaum
+\date 08/26/2025
+ */
+   static constexpr std::size_t compute_size() {
+      return (sizeof(Ts) + ... + 0)/sizeof(double);
+   }
+
+   template <typename X>
+   static constexpr std::size_t compute_index() {
+      constexpr bool locate[] = {std::same_as<X, Ts>...};
+      for (std::size_t i = 0; i < sizeof...(Ts); ++i) {
+         if (locate[i]) return i;
+      }
+      return Type_not_found;
+   }
+
+   template<std::size_t... Is>
+   static constexpr std::size_t compute_offset_impl(std::index_sequence<Is...>) {
+      return (sizeof(std::tuple_element_t<Is, std::tuple<Ts...>>) + ... + 0)/sizeof(double);
+   }
+
+   template<typename X>
+   static constexpr std::size_t compute_offset() {
+      constexpr auto i = compute_index<X>();
+      if constexpr (i == 0 || i == Type_not_found) return i;
+      else return compute_offset_impl(std::make_index_sequence<i>{});
+   }
+
+   static constexpr const std::size_t size_ = compute_size();
+
+   // BEGIN(fields/generate, base)
+
+   static constexpr const std::size_t Pos_offset = compute_offset<Pos_t>();
+   static constexpr const std::size_t Rad_offset = compute_offset<Rad_t>();
+   static constexpr const std::size_t Time_offset = compute_offset<Time_t>();
+   static constexpr const std::size_t Den_offset = compute_offset<Den_t>();
+   static constexpr const std::size_t Prs_offset = compute_offset<Prs_t>();
+   static constexpr const std::size_t Enr_offset = compute_offset<Enr_t>();
+   static constexpr const std::size_t Fluv_offset = compute_offset<Fluv_t>();
+   static constexpr const std::size_t Flum_offset = compute_offset<Flum_t>();
+   static constexpr const std::size_t FlxDen_offset = compute_offset<FlxDen_t>();
+   static constexpr const std::size_t FlxEnr_offset = compute_offset<FlxEnr_t>();
+   static constexpr const std::size_t FlxFlum_offset = compute_offset<FlxFlum_t>();
+   static constexpr const std::size_t AbsFluv_offset = compute_offset<AbsFluv_t>();
+   static constexpr const std::size_t HatFluv_offset = compute_offset<HatFluv_t>();
+   static constexpr const std::size_t AbsFlum_offset = compute_offset<AbsFlum_t>();
+   static constexpr const std::size_t HatFlum_offset = compute_offset<HatFlum_t>();
+   static constexpr const std::size_t Mag_offset = compute_offset<Mag_t>();
+   static constexpr const std::size_t FlxMag_offset = compute_offset<FlxMag_t>();
+   static constexpr const std::size_t Glm_offset = compute_offset<Glm_t>();
+   static constexpr const std::size_t FlxGlm_offset = compute_offset<FlxGlm_t>();
+   static constexpr const std::size_t Mom_offset = compute_offset<Mom_t>();
+   static constexpr const std::size_t AbsMom_offset = compute_offset<AbsMom_t>();
+   static constexpr const std::size_t HatMom_offset = compute_offset<HatMom_t>();
+   static constexpr const std::size_t MomMu_offset = compute_offset<MomMu_t>();
+   static constexpr const std::size_t Vel_offset = compute_offset<Vel_t>();
+   static constexpr const std::size_t AbsVel_offset = compute_offset<AbsVel_t>();
+   static constexpr const std::size_t HatVel_offset = compute_offset<HatVel_t>();
+   static constexpr const std::size_t Ele_offset = compute_offset<Ele_t>();
+   static constexpr const std::size_t AbsEle_offset = compute_offset<AbsEle_t>();
+   static constexpr const std::size_t HatEle_offset = compute_offset<HatEle_t>();
+   static constexpr const std::size_t AbsMag_offset = compute_offset<AbsMag_t>();
+   static constexpr const std::size_t HatMag_offset = compute_offset<HatMag_t>();
+   static constexpr const std::size_t DelFluv_offset = compute_offset<DelFluv_t>();
+   static constexpr const std::size_t DelEle_offset = compute_offset<DelEle_t>();
+   static constexpr const std::size_t DelMag_offset = compute_offset<DelMag_t>();
+   static constexpr const std::size_t DelAbsMag_offset = compute_offset<DelAbsMag_t>();
+   static constexpr const std::size_t DotFluv_offset = compute_offset<DotFluv_t>();
+   static constexpr const std::size_t DotEle_offset = compute_offset<DotEle_t>();
+   static constexpr const std::size_t DotMag_offset = compute_offset<DotMag_t>();
+   static constexpr const std::size_t DotAbsMag_offset = compute_offset<DotAbsMag_t>();
+   static constexpr const std::size_t Iv0_offset = compute_offset<Iv0_t>();
+   static constexpr const std::size_t Iv1_offset = compute_offset<Iv1_t>();
+   static constexpr const std::size_t Iv2_offset = compute_offset<Iv2_t>();
+   static constexpr const std::size_t Iv3_offset = compute_offset<Iv3_t>();
+   static constexpr const std::size_t Iv4_offset = compute_offset<Iv4_t>();
+   static constexpr const std::size_t Iv5_offset = compute_offset<Iv5_t>();
+   static constexpr const std::size_t IvLISM_offset = compute_offset<IvLISM_t>();
+   static constexpr const std::size_t IvBmix_offset = compute_offset<IvBmix_t>();
+   static constexpr const std::size_t IvSolarCycle_offset = compute_offset<IvSolarCycle_t>();
+
+   // END(fields/generate, base)
 
 protected:
 
-   T data;
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] index index into tuple
-\param[in] f lvalue reference function, i.e., lambda defined at time of call
-\param[in] others variadic lvalue reference of other tuples having the same tuple type
-\note Public access via visit()
-*/
-   template <typename Function>
-   void visit_unpacked(std::size_t index, Function&& f, auto&&... others) {
-      if (index == 0) {
-         f(data, others.data...);
-      } else {
-         Fields<Ts...>::visit_unpacked(index - 1, std::forward<Function>(f), static_cast<Fields<Ts...>>(others)...);
-      }
-   }
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] f lvalue reference function, i.e., lambda defined at time of call
-\param[in] others variadic lvalue reference of other tuples having the same tuple type
-\note Public access via foreach()
-*/
-   template <typename Function>
-   void foreach_unpacked(Function&& f, auto&&... others) {
-      f(data, others.data...);
-      Fields<Ts...>::foreach_unpacked(std::forward<Function>(f), static_cast<Fields<Ts...>>(others)...);
-   }
-
-
-/*!
-\brief Assignment if types match, otherwise take no action (private helper used by store method).
-\author Lucius Schoenbaum
-\date 06/25/2025
-\param[in] x1, x2 possibly mismatched value/variable instances
-*/
-   template <typename T1, typename T2>
-   void assign(T1& x1, const T2& x2) {
-      if constexpr (std::is_same<T1, T2>::value) {
-         x1 = x2;
-      }
-   }
+   double data[size_];
 
 public:
 
    Fields(void) = default;
 
-   explicit Fields(T in, Ts... rest):
-      Fields<Ts...>(rest...),
-       data(in)
+   template <std::enable_if<(sizeof...(Ts) > 0)>>
+   explicit Fields(Ts... in):
+       data(in...)
    {};
 
 
@@ -102,171 +181,54 @@ public:
 \return Reference to the object
 */
    Fields& operator=(const Fields& other) {
-      Fields<Ts...>::operator=(other);
-      data = other.data;
+      std::memcpy(data, other.data, size_*sizeof(double));
       return *this;
    };
   
 /*!
 \author Lucius Schoenbaum
 \date 05/28/2025
-\return size of tuple
+\return size of data structure, measured in number of independent numerical values.
 */
    static size_t size() {
-      return sizeof...(Ts)+1;
+      return size_;
    }
-  
+
 /*!
 \author Lucius Schoenbaum
-\date 05/28/2025
-\return constant reference to top element of tuple
+\date 08/26/2025
+\return size of data structure, measured in tuple elements.
 */
-   const T& top() const {
+   static size_t structured_size() {
+      return sizeof...(Ts);
+   }
+
+/*!
+\author Lucius Schoenbaum
+\date 08/26/2025
+\return the data structure as a random-access memory block (array).
+As an array of double, the size is given by the static member size().
+*/
+   double* Array() {
       return data;
-   }
-
-/*!
-\author Lucius Schoenbaum
-\date 05/28/2025
-\return reference to top element of tuple
-*/
-   T& top() {
-      return data;
-   }
-
-/*!
-\author Lucius Schoenbaum
-\date 05/28/2025
-\param[in] index index into tuple
-\return Reference to member of tuple evaluated at runtime
-\note Type of return value must be known (and any_cast to) by caller. 
-If this is not the case, use get<index>(fields).
-*/
-   std::any operator[](std::size_t index) const {
-      if (index == 0)
-         return data;
-      else
-         return Fields<Ts...>::operator[](index-1);
-   }
-
-
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] index index into tuple
-\param[in] f lvalue reference function, i.e., lambda defined at time of call
-\param[in] others variadic lvalue reference of other tuples having the same tuple type
-*/
-   template <typename Function, typename Others>
-   void visit(std::size_t index, Function&& f, Others&& others) {
-      std::apply(
-            [&](auto&&... others) {
-               visit_unpacked(index, std::forward<Function>(f), std::forward<decltype(others)>(others)...);
-            },
-            std::forward<Others>(others)
-      );
-   }
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] f lvalue reference function, i.e., lambda defined at time of call
-\param[in] others variadic lvalue reference of other tuples having the same tuple type
-*/
-   template <typename Function, typename Others>
-   void foreach(Function&& f, Others&& others) {
-      std::apply(
-            [&](auto&&... others) {
-               foreach_unpacked(std::forward<Function>(f), std::forward<decltype(others)>(others)...);
-            },
-            std::forward<Others>(others)
-      );
-   }
-
-/*!
-\author Lucius Schoenbaum
-\date 05/28/2025
-\param[in] f Function to evaluate on each tuple member
-\return Reference to the object
-*/
-   template <typename Function>
-   void foreach(Function&& f) {
-      f(data);
-      Fields<Ts...>::foreach(f);
-   }
-
-/*!
-\brief Store a quantity by type
-\author Lucius Schoenbaum
-\date 06/25/2025
-\param[in] x Quantity to store
-Note: This method is functionally invalid if the tuple
-contains multiple members with the same data type.
-This should not occur in fluid or MHD applications.
- */
-   template <typename T_store>
-   void store(T_store x) {
-      assign(data, x);
-      Fields<Ts...>::store(x);
    }
 
 /*!
 \brief Get a quantity by type
 \author Lucius Schoenbaum
-\date 08/10/2025
+\date 11/10/2025
 Note: This method is functionally invalid if the tuple
 contains multiple members with the same data type.
 This should not occur in fluid or MHD applications.
  */
- // TODO: not functional yet
-   template <typename T_get>
-   T_get get() {
-      if constexpr (std::is_same<T, T_get>::value)
-         return data;
-      else
-         return Fields<Ts...>::get();
-   }
-
-/*!
-\brief Check anonymously for presence of a type in the tuple
-\author Lucius Schoenbaum
-\date 08/16/2025
- */
-   template <typename T_found>
-   static bool constexpr found() {
-      if constexpr (std::is_same<T, T_found>::value)
-         return true;
-      else
-         return Fields<Ts...>::template found<T_found>();
+   template <typename T>
+   decltype(auto) get() const {
+      constexpr auto idx = compute_index<T>();
+      return *reinterpret_cast<const T*>(data + idx);
    }
 
 
    // BEGIN(fields/generate, class)
-
-/*!
-\brief Get Pos (Position in space) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Pos_t& Pos(void) {
-      if constexpr (std::is_same<T, Pos_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Pos();
-   };
-
-/*!
-\brief Get Pos (Position in space) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Pos_t& Pos(void) const {
-      if constexpr (std::is_same<T, Pos_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Pos();
-   };
 
 
 /*!
@@ -275,35 +237,69 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Pos_found(void) {
-      if constexpr (std::is_same<T, Pos_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Pos_found();
+      return (Pos_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Pos (Position in space) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Pos(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Pos_offset));
+   };
+
+/*!
+\brief Get Pos (Position in space) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector Pos(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Pos_offset);
    };
    
 
+
 /*!
-\brief Get Time (Time) from the data type, as lvalue.
+\brief Whether Rad (Radial spatial coordinate) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Time_t& Time(void) {
-      if constexpr (std::is_same<T, Time_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Time();
+   static constexpr bool Rad_found(void) {
+      return (Rad_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Rad (Radial spatial coordinate) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Rad(char w) {
+        if constexpr (FConfig::Pos_radial)
+           return Pos('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + Rad_offset));
    };
 
 /*!
-\brief Get Time (Time) from the data type, as const rvalue.
+\brief Get Rad (Radial spatial coordinate) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Time_t& Time(void) const {
-      if constexpr (std::is_same<T, Time_t>::value)
-         return data;
+   [[nodiscard]] double Rad(void) const {
+      if constexpr (Rad_found())
+         return *reinterpret_cast<const double*>(data + Rad_offset);
       else
-         return Fields<Ts...>::Time();
+         if constexpr (FConfig::Pos_radial)
+            return Pos()[0];
+         else
+            return Pos().Norm();
    };
 
 
@@ -313,36 +309,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Time_found(void) {
-      if constexpr (std::is_same<T, Time_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Time_found();
+      return (Time_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Time (Time) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Time(char w) {
+      return reinterpret_cast<double&>(*(data + Time_offset));
+   };
+
+/*!
+\brief Get Time (Time) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Time(void) const {
+      return *reinterpret_cast<const double*>(data + Time_offset);
    };
    
-
-/*!
-\brief Get Den (Density field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Den_t& Den(void) {
-      if constexpr (std::is_same<T, Den_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Den();
-   };
-
-/*!
-\brief Get Den (Density field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Den_t& Den(void) const {
-      if constexpr (std::is_same<T, Den_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Den();
-   };
 
 
 /*!
@@ -351,36 +341,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Den_found(void) {
-      if constexpr (std::is_same<T, Den_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Den_found();
+      return (Den_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Den (Density field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Den(char w) {
+      return reinterpret_cast<double&>(*(data + Den_offset));
+   };
+
+/*!
+\brief Get Den (Density field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Den(void) const {
+      return *reinterpret_cast<const double*>(data + Den_offset);
    };
    
-
-/*!
-\brief Get Prs (Pressure field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Prs_t& Prs(void) {
-      if constexpr (std::is_same<T, Prs_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Prs();
-   };
-
-/*!
-\brief Get Prs (Pressure field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Prs_t& Prs(void) const {
-      if constexpr (std::is_same<T, Prs_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Prs();
-   };
 
 
 /*!
@@ -389,36 +373,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Prs_found(void) {
-      if constexpr (std::is_same<T, Prs_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Prs_found();
+      return (Prs_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Prs (Pressure field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Prs(char w) {
+      return reinterpret_cast<double&>(*(data + Prs_offset));
+   };
+
+/*!
+\brief Get Prs (Pressure field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Prs(void) const {
+      return *reinterpret_cast<const double*>(data + Prs_offset);
    };
    
-
-/*!
-\brief Get Enr (Energy field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Enr_t& Enr(void) {
-      if constexpr (std::is_same<T, Enr_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Enr();
-   };
-
-/*!
-\brief Get Enr (Energy field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Enr_t& Enr(void) const {
-      if constexpr (std::is_same<T, Enr_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Enr();
-   };
 
 
 /*!
@@ -427,112 +405,121 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Enr_found(void) {
-      if constexpr (std::is_same<T, Enr_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Enr_found();
+      return (Enr_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Enr (Energy field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Enr(char w) {
+      return reinterpret_cast<double&>(*(data + Enr_offset));
+   };
+
+/*!
+\brief Get Enr (Energy field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Enr(void) const {
+      return *reinterpret_cast<const double*>(data + Enr_offset);
    };
    
 
-/*!
-\brief Get Vel (Velocity field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Vel_t& Vel(void) {
-      if constexpr (std::is_same<T, Vel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Vel();
-   };
 
 /*!
-\brief Get Vel (Velocity field) from the data type, as const rvalue.
+\brief Whether Fluv (Fluid Flow Velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Vel_t& Vel(void) const {
-      if constexpr (std::is_same<T, Vel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Vel();
+   static constexpr bool Fluv_found(void) {
+      return (Fluv_offset != Type_not_found);
    };
 
 
 /*!
-\brief Whether Vel (Velocity field) is in the data type.
+\brief Get Fluv (Fluid Flow Velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Fluv(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Fluv_offset));
+   };
+
+/*!
+\brief Get Fluv (Fluid Flow Velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool Vel_found(void) {
-      if constexpr (std::is_same<T, Vel_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Vel_found();
+   [[nodiscard]] GeoVector Fluv(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Fluv_offset);
    };
    
 
+
 /*!
-\brief Get Mom (Momentum field) from the data type, as lvalue.
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Fluv
+*/
+   inline double DivFluv(void)
+   {
+      return DelFluv().Trace();
+   };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Fluv
+*/
+   inline GeoVector CurlFluv(void)
+   {
+      GeoMatrix G = DelFluv();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
+
+
+/*!
+\brief Whether Flum (Fluid Flow Momentum field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Mom_t& Mom(void) {
-      if constexpr (std::is_same<T, Mom_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Mom();
+   static constexpr bool Flum_found(void) {
+      return (Flum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Flum (Fluid Flow Momentum field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Flum(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Flum_offset));
    };
 
 /*!
-\brief Get Mom (Momentum field) from the data type, as const rvalue.
+\brief Get Flum (Fluid Flow Momentum field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Mom_t& Mom(void) const {
-      if constexpr (std::is_same<T, Mom_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Mom();
-   };
-
-
-/*!
-\brief Whether Mom (Momentum field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool Mom_found(void) {
-      if constexpr (std::is_same<T, Mom_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Mom_found();
+   [[nodiscard]] GeoVector Flum(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Flum_offset);
    };
    
-
-/*!
-\brief Get FlxDen (Fluid density flux function) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   FlxDen_t& FlxDen(void) {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxDen();
-   };
-
-/*!
-\brief Get FlxDen (Fluid density flux function) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const FlxDen_t& FlxDen(void) const {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxDen();
-   };
 
 
 /*!
@@ -541,74 +528,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool FlxDen_found(void) {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::FlxDen_found();
+      return (FlxDen_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxDen (Fluid density flux function) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& FlxDen(char w) {
+      return reinterpret_cast<double&>(*(data + FlxDen_offset));
+   };
+
+/*!
+\brief Get FlxDen (Fluid density flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double FlxDen(void) const {
+      return *reinterpret_cast<const double*>(data + FlxDen_offset);
    };
    
-
-/*!
-\brief Get FlxMom (Fluid momentum flux function) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   FlxMom_t& FlxMom(void) {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxMom();
-   };
-
-/*!
-\brief Get FlxMom (Fluid momentum flux function) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const FlxMom_t& FlxMom(void) const {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxMom();
-   };
-
-
-/*!
-\brief Whether FlxMom (Fluid momentum flux function) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool FlxMom_found(void) {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::FlxMom_found();
-   };
-   
-
-/*!
-\brief Get FlxEnr (Fluid energy flux function) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   FlxEnr_t& FlxEnr(void) {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxEnr();
-   };
-
-/*!
-\brief Get FlxEnr (Fluid energy flux function) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const FlxEnr_t& FlxEnr(void) const {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxEnr();
-   };
 
 
 /*!
@@ -617,35 +560,209 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool FlxEnr_found(void) {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::FlxEnr_found();
+      return (FlxEnr_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxEnr (Fluid energy flux function) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& FlxEnr(char w) {
+      return reinterpret_cast<double&>(*(data + FlxEnr_offset));
+   };
+
+/*!
+\brief Get FlxEnr (Fluid energy flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double FlxEnr(void) const {
+      return *reinterpret_cast<const double*>(data + FlxEnr_offset);
    };
    
 
+
 /*!
-\brief Get Mag (Magnetic field) from the data type, as lvalue.
+\brief Whether FlxFlum (Fluid flow momentum flux function) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Mag_t& Mag(void) {
-      if constexpr (std::is_same<T, Mag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Mag();
+   static constexpr bool FlxFlum_found(void) {
+      return (FlxFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxFlum (Fluid flow momentum flux function) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& FlxFlum(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + FlxFlum_offset));
    };
 
 /*!
-\brief Get Mag (Magnetic field) from the data type, as const rvalue.
+\brief Get FlxFlum (Fluid flow momentum flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Mag_t& Mag(void) const {
-      if constexpr (std::is_same<T, Mag_t>::value)
-         return data;
+   [[nodiscard]] GeoVector FlxFlum(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + FlxFlum_offset);
+   };
+   
+
+
+/*!
+\brief Whether AbsFluv (Fluid Flow Velocity field magnitude) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsFluv_found(void) {
+      return (AbsFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& AbsFluv(char w) {
+        if constexpr (FConfig::Fluv_radial)
+           return Fluv('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsFluv_offset));
+   };
+
+/*!
+\brief Get AbsFluv (Fluid Flow Velocity field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double AbsFluv(void) const {
+      if constexpr (AbsFluv_found())
+         return *reinterpret_cast<const double*>(data + AbsFluv_offset);
       else
-         return Fields<Ts...>::Mag();
+         if constexpr (FConfig::Fluv_radial)
+            return Fluv()[0];
+         else
+            return Fluv().Norm();
+   };
+
+
+/*!
+\brief Whether HatFluv (Direction of fluid flow velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatFluv_found(void) {
+      return (HatFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatFluv (Direction of fluid flow velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatFluv(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatFluv_offset));
+   };
+
+/*!
+\brief Get HatFluv (Direction of fluid flow velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatFluv(void) const {
+      if constexpr (HatFluv_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatFluv_offset);
+      else
+         return UnitVec(Fluv());
+   };
+
+
+/*!
+\brief Whether AbsFlum (Fluid Flow Momentum field magnitude) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsFlum_found(void) {
+      return (AbsFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& AbsFlum(char w) {
+        if constexpr (FConfig::Flum_radial)
+           return Flum('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsFlum_offset));
+   };
+
+/*!
+\brief Get AbsFlum (Fluid Flow Momentum field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double AbsFlum(void) const {
+      if constexpr (AbsFlum_found())
+         return *reinterpret_cast<const double*>(data + AbsFlum_offset);
+      else
+         if constexpr (FConfig::Flum_radial)
+            return Flum()[0];
+         else
+            return Flum().Norm();
+   };
+
+
+/*!
+\brief Whether HatFlum (Direction of fluid flow momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatFlum_found(void) {
+      return (HatFlum_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatFlum (Direction of fluid flow momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatFlum(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatFlum_offset));
+   };
+
+/*!
+\brief Get HatFlum (Direction of fluid flow momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatFlum(void) const {
+      if constexpr (HatFlum_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatFlum_offset);
+      else
+         return UnitVec(Flum());
    };
 
 
@@ -655,36 +772,57 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Mag_found(void) {
-      if constexpr (std::is_same<T, Mag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Mag_found();
+      return (Mag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Mag (Magnetic field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Mag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Mag_offset));
+   };
+
+/*!
+\brief Get Mag (Magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector Mag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Mag_offset);
    };
    
 
-/*!
-\brief Get FlxMag (Magnetic field flux function) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   FlxMag_t& FlxMag(void) {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxMag();
-   };
 
 /*!
-\brief Get FlxMag (Magnetic field flux function) from the data type, as const rvalue.
+\author Juan G Alonso Guzman
 \author Lucius Schoenbaum
-\date 3/25/2025
+\date 10/12/2025
+\return Divergence of Mag
 */
-   const FlxMag_t& FlxMag(void) const {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxMag();
+   inline double DivMag(void)
+   {
+      return DelMag().Trace();
    };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Mag
+*/
+   inline GeoVector CurlMag(void)
+   {
+      GeoMatrix G = DelMag();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
 
 
 /*!
@@ -693,36 +831,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool FlxMag_found(void) {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::FlxMag_found();
+      return (FlxMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxMag (Magnetic field flux function) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& FlxMag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + FlxMag_offset));
+   };
+
+/*!
+\brief Get FlxMag (Magnetic field flux function) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector FlxMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + FlxMag_offset);
    };
    
-
-/*!
-\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Glm_t& Glm(void) {
-      if constexpr (std::is_same<T, Glm_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Glm();
-   };
-
-/*!
-\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Glm_t& Glm(void) const {
-      if constexpr (std::is_same<T, Glm_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Glm();
-   };
 
 
 /*!
@@ -731,36 +863,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Glm_found(void) {
-      if constexpr (std::is_same<T, Glm_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Glm_found();
+      return (Glm_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Glm(char w) {
+      return reinterpret_cast<double&>(*(data + Glm_offset));
+   };
+
+/*!
+\brief Get Glm (Lagrange multiplier field of GLM MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Glm(void) const {
+      return *reinterpret_cast<const double*>(data + Glm_offset);
    };
    
-
-/*!
-\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   FlxGlm_t& FlxGlm(void) {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxGlm();
-   };
-
-/*!
-\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const FlxGlm_t& FlxGlm(void) const {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::FlxGlm();
-   };
 
 
 /*!
@@ -769,35 +895,282 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool FlxGlm_found(void) {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::FlxGlm_found();
+      return (FlxGlm_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& FlxGlm(char w) {
+      return reinterpret_cast<double&>(*(data + FlxGlm_offset));
+   };
+
+/*!
+\brief Get FlxGlm (Lagrange mutlipler flux function of GLM MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double FlxGlm(void) const {
+      return *reinterpret_cast<const double*>(data + FlxGlm_offset);
    };
    
 
+
 /*!
-\brief Get Ele (Electric field) from the data type, as lvalue.
+\brief Whether Mom (Particle Momentum) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   Ele_t& Ele(void) {
-      if constexpr (std::is_same<T, Ele_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Ele();
+   static constexpr bool Mom_found(void) {
+      return (Mom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Mom (Particle Momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Mom(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Mom_offset));
    };
 
 /*!
-\brief Get Ele (Electric field) from the data type, as const rvalue.
+\brief Get Mom (Particle Momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const Ele_t& Ele(void) const {
-      if constexpr (std::is_same<T, Ele_t>::value)
-         return data;
+   [[nodiscard]] GeoVector Mom(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Mom_offset);
+   };
+   
+
+
+/*!
+\brief Whether AbsMom (Magnitude of momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsMom_found(void) {
+      return (AbsMom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsMom (Magnitude of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& AbsMom(char w) {
+        if constexpr (FConfig::Mom_radial)
+           return Mom('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsMom_offset));
+   };
+
+/*!
+\brief Get AbsMom (Magnitude of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double AbsMom(void) const {
+      if constexpr (AbsMom_found())
+         return *reinterpret_cast<const double*>(data + AbsMom_offset);
       else
-         return Fields<Ts...>::Ele();
+         if constexpr (FConfig::Mom_radial)
+            return Mom()[0];
+         else
+            return Mom().Norm();
+   };
+
+
+/*!
+\brief Whether HatMom (Direction of momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatMom_found(void) {
+      return (HatMom_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatMom (Direction of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatMom(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatMom_offset));
+   };
+
+/*!
+\brief Get HatMom (Direction of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatMom(void) const {
+      if constexpr (HatMom_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatMom_offset);
+      else
+         return UnitVec(Mom());
+   };
+
+
+/*!
+\brief Whether MomMu (Pitch angle cosine of momentum) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool MomMu_found(void) {
+      return (MomMu_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get MomMu (Pitch angle cosine of momentum) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& MomMu(char w) {
+        if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+           return Mom()[1];
+        else
+           return reinterpret_cast<double&>(*(data + MomMu_offset));
+   };
+
+/*!
+\brief Get MomMu (Pitch angle cosine of momentum) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double MomMu(void) const {
+      if constexpr (MomMu_found())
+         return *reinterpret_cast<const double*>(data + MomMu_offset);
+      else
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+            return Mom()[1];
+         else
+            return (Mom()*Mag())/(AbsMom()*AbsMag());
+   };
+                
+
+
+/*!
+\brief Whether Vel (Particle Velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool Vel_found(void) {
+      return (Vel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Vel (Particle Velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Vel(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Vel_offset));
+   };
+
+/*!
+\brief Get Vel (Particle Velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector Vel(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Vel_offset);
+   };
+   
+
+
+/*!
+\brief Whether AbsVel (Magnitude of velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AbsVel_found(void) {
+      return (AbsVel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsVel (Magnitude of velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& AbsVel(char w) {
+        if constexpr (FConfig::Vel_radial)
+           return Vel('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsVel_offset));
+   };
+
+/*!
+\brief Get AbsVel (Magnitude of velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double AbsVel(void) const {
+      if constexpr (AbsVel_found())
+         return *reinterpret_cast<const double*>(data + AbsVel_offset);
+      else
+         if constexpr (FConfig::Vel_radial)
+            return Vel()[0];
+         else
+            return Vel().Norm();
+   };
+
+
+/*!
+\brief Whether HatVel (Direction of velocity) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatVel_found(void) {
+      return (HatVel_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatVel (Direction of velocity) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatVel(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatVel_offset));
+   };
+
+/*!
+\brief Get HatVel (Direction of velocity) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatVel(void) const {
+      if constexpr (HatVel_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatVel_offset);
+      else
+         return UnitVec(Vel());
    };
 
 
@@ -807,35 +1180,130 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Ele_found(void) {
-      if constexpr (std::is_same<T, Ele_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Ele_found();
+      return (Ele_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Ele (Electric field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& Ele(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + Ele_offset));
+   };
+
+/*!
+\brief Get Ele (Electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector Ele(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + Ele_offset);
    };
    
 
+
 /*!
-\brief Get AbsMag (Magnetic field magnitude) from the data type, as lvalue.
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Ele
+*/
+   inline double DivEle(void)
+   {
+      return DelEle().Trace();
+   };
+    
+
+
+/*!
+\author Juan G Alonso Guzman
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return Divergence of Ele
+*/
+   inline GeoVector CurlEle(void)
+   {
+      GeoMatrix G = DelEle();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   };
+
+
+
+/*!
+\brief Whether AbsEle (Electric field magnitude) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   AbsMag_t& AbsMag(void) {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::AbsMag();
+   static constexpr bool AbsEle_found(void) {
+      return (AbsEle_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AbsEle (Electric field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& AbsEle(char w) {
+        if constexpr (FConfig::Ele_radial)
+           return Ele('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsEle_offset));
    };
 
 /*!
-\brief Get AbsMag (Magnetic field magnitude) from the data type, as const rvalue.
+\brief Get AbsEle (Electric field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const AbsMag_t& AbsMag(void) const {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-         return data;
+   [[nodiscard]] double AbsEle(void) const {
+      if constexpr (AbsEle_found())
+         return *reinterpret_cast<const double*>(data + AbsEle_offset);
       else
-         return Fields<Ts...>::AbsMag();
+         if constexpr (FConfig::Ele_radial)
+            return Ele()[0];
+         else
+            return Ele().Norm();
+   };
+
+
+/*!
+\brief Whether HatEle (Electric field direction) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HatEle_found(void) {
+      return (HatEle_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatEle (Electric field direction) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatEle(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatEle_offset));
+   };
+
+/*!
+\brief Get HatEle (Electric field direction) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatEle(void) const {
+      if constexpr (HatEle_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatEle_offset);
+      else
+         return UnitVec(Ele());
    };
 
 
@@ -845,35 +1313,37 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool AbsMag_found(void) {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::AbsMag_found();
+      return (AbsMag_offset != Type_not_found);
    };
-   
+
 
 /*!
-\brief Get HatMag (Magnetic field direction) from the data type, as lvalue.
+\brief Get AbsMag (Magnetic field magnitude) from the data type, as lvalue.
 \author Lucius Schoenbaum
 \date 3/25/2025
+This operation triggers an exception if the field is not present.
 */
-   HatMag_t& HatMag(void) {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HatMag();
+   double& AbsMag(char w) {
+        if constexpr (FConfig::Mag_radial)
+           return Mag('w')[0];
+        else
+           return reinterpret_cast<double&>(*(data + AbsMag_offset));
    };
 
 /*!
-\brief Get HatMag (Magnetic field direction) from the data type, as const rvalue.
+\brief Get AbsMag (Magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const HatMag_t& HatMag(void) const {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-         return data;
+   [[nodiscard]] double AbsMag(void) const {
+      if constexpr (AbsMag_found())
+         return *reinterpret_cast<const double*>(data + AbsMag_offset);
       else
-         return Fields<Ts...>::HatMag();
+         if constexpr (FConfig::Mag_radial)
+            return Mag()[0];
+         else
+            return Mag().Norm();
    };
 
 
@@ -883,74 +1353,64 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool HatMag_found(void) {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-         return true;
+      return (HatMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HatMag (Magnetic field direction) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& HatMag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + HatMag_offset));
+   };
+
+/*!
+\brief Get HatMag (Magnetic field direction) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector HatMag(void) const {
+      if constexpr (HatMag_found())
+         return *reinterpret_cast<const GeoVector*>(data + HatMag_offset);
       else
-         return Fields<Ts...>::HatMag_found();
+         return UnitVec(Mag());
+   };
+
+
+/*!
+\brief Whether DelFluv (Gradient of fluid flow velocity field) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool DelFluv_found(void) {
+      return (DelFluv_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoMatrix& DelFluv(char w) {
+      return reinterpret_cast<GeoMatrix&>(*(data + DelFluv_offset));
+   };
+
+/*!
+\brief Get DelFluv (Gradient of fluid flow velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoMatrix DelFluv(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelFluv_offset);
    };
    
-
-/*!
-\brief Get DelVel (Gradient of velocity field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DelVel_t& DelVel(void) {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelVel();
-   };
-
-/*!
-\brief Get DelVel (Gradient of velocity field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DelVel_t& DelVel(void) const {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelVel();
-   };
-
-
-/*!
-\brief Whether DelVel (Gradient of velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DelVel_found(void) {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DelVel_found();
-   };
-   
-
-/*!
-\brief Get DelEle (Gradient of electric field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DelEle_t& DelEle(void) {
-      if constexpr (std::is_same<T, DelEle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelEle();
-   };
-
-/*!
-\brief Get DelEle (Gradient of electric field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DelEle_t& DelEle(void) const {
-      if constexpr (std::is_same<T, DelEle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelEle();
-   };
 
 
 /*!
@@ -959,36 +1419,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DelEle_found(void) {
-      if constexpr (std::is_same<T, DelEle_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DelEle_found();
+      return (DelEle_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DelEle (Gradient of electric field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoMatrix& DelEle(char w) {
+      return reinterpret_cast<GeoMatrix&>(*(data + DelEle_offset));
+   };
+
+/*!
+\brief Get DelEle (Gradient of electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoMatrix DelEle(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelEle_offset);
    };
    
-
-/*!
-\brief Get DelMag (Gradient of magnetic field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DelMag_t& DelMag(void) {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelMag();
-   };
-
-/*!
-\brief Get DelMag (Gradient of magnetic field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DelMag_t& DelMag(void) const {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelMag();
-   };
 
 
 /*!
@@ -997,36 +1451,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DelMag_found(void) {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DelMag_found();
+      return (DelMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DelMag (Gradient of magnetic field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoMatrix& DelMag(char w) {
+      return reinterpret_cast<GeoMatrix&>(*(data + DelMag_offset));
+   };
+
+/*!
+\brief Get DelMag (Gradient of magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoMatrix DelMag(void) const {
+      return *reinterpret_cast<const GeoMatrix*>(data + DelMag_offset);
    };
    
-
-/*!
-\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DelAbsMag_t& DelAbsMag(void) {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelAbsMag();
-   };
-
-/*!
-\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DelAbsMag_t& DelAbsMag(void) const {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelAbsMag();
-   };
 
 
 /*!
@@ -1035,112 +1483,62 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DelAbsMag_found(void) {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DelAbsMag_found();
+      return (DelAbsMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& DelAbsMag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + DelAbsMag_offset));
+   };
+
+/*!
+\brief Get DelAbsMag (Gradient of magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector DelAbsMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DelAbsMag_offset);
    };
    
 
-/*!
-\brief Get DelHatMag (Gradient of magnetic field direction ) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DelHatMag_t& DelHatMag(void) {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelHatMag();
-   };
 
 /*!
-\brief Get DelHatMag (Gradient of magnetic field direction ) from the data type, as const rvalue.
+\brief Whether DotFluv (Time derivative of fluid flow velocity field) is in the data type.
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   const DelHatMag_t& DelHatMag(void) const {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DelHatMag();
+   static constexpr bool DotFluv_found(void) {
+      return (DotFluv_offset != Type_not_found);
    };
 
 
 /*!
-\brief Whether DelHatMag (Gradient of magnetic field direction ) is in the data type.
+\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& DotFluv(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + DotFluv_offset));
+   };
+
+/*!
+\brief Get DotFluv (Time derivative of fluid flow velocity field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
 \author Lucius Schoenbaum
 \date 3/25/2025
 */
-   static constexpr bool DelHatMag_found(void) {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DelHatMag_found();
+   [[nodiscard]] GeoVector DotFluv(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotFluv_offset);
    };
    
-
-/*!
-\brief Get DotVel (Time derivative of velocity field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DotVel_t& DotVel(void) {
-      if constexpr (std::is_same<T, DotVel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotVel();
-   };
-
-/*!
-\brief Get DotVel (Time derivative of velocity field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DotVel_t& DotVel(void) const {
-      if constexpr (std::is_same<T, DotVel_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotVel();
-   };
-
-
-/*!
-\brief Whether DotVel (Time derivative of velocity field) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DotVel_found(void) {
-      if constexpr (std::is_same<T, DotVel_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DotVel_found();
-   };
-   
-
-/*!
-\brief Get DotEle (Time derivative of electric field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DotEle_t& DotEle(void) {
-      if constexpr (std::is_same<T, DotEle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotEle();
-   };
-
-/*!
-\brief Get DotEle (Time derivative of electric field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DotEle_t& DotEle(void) const {
-      if constexpr (std::is_same<T, DotEle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotEle();
-   };
 
 
 /*!
@@ -1149,36 +1547,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DotEle_found(void) {
-      if constexpr (std::is_same<T, DotEle_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DotEle_found();
+      return (DotEle_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DotEle (Time derivative of electric field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& DotEle(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + DotEle_offset));
+   };
+
+/*!
+\brief Get DotEle (Time derivative of electric field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector DotEle(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotEle_offset);
    };
    
-
-/*!
-\brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DotMag_t& DotMag(void) {
-      if constexpr (std::is_same<T, DotMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotMag();
-   };
-
-/*!
-\brief Get DotMag (Time derivative of magnetic field) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DotMag_t& DotMag(void) const {
-      if constexpr (std::is_same<T, DotMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotMag();
-   };
 
 
 /*!
@@ -1187,36 +1579,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DotMag_found(void) {
-      if constexpr (std::is_same<T, DotMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DotMag_found();
+      return (DotMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DotMag (Time derivative of magnetic field) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   GeoVector& DotMag(char w) {
+      return reinterpret_cast<GeoVector&>(*(data + DotMag_offset));
+   };
+
+/*!
+\brief Get DotMag (Time derivative of magnetic field) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] GeoVector DotMag(void) const {
+      return *reinterpret_cast<const GeoVector*>(data + DotMag_offset);
    };
    
-
-/*!
-\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DotAbsMag_t& DotAbsMag(void) {
-      if constexpr (std::is_same<T, DotAbsMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotAbsMag();
-   };
-
-/*!
-\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DotAbsMag_t& DotAbsMag(void) const {
-      if constexpr (std::is_same<T, DotAbsMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotAbsMag();
-   };
 
 
 /*!
@@ -1225,74 +1611,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool DotAbsMag_found(void) {
-      if constexpr (std::is_same<T, DotAbsMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DotAbsMag_found();
+      return (DotAbsMag_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& DotAbsMag(char w) {
+      return reinterpret_cast<double&>(*(data + DotAbsMag_offset));
+   };
+
+/*!
+\brief Get DotAbsMag (Time derivative of magnetic field magnitude) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double DotAbsMag(void) const {
+      return *reinterpret_cast<const double*>(data + DotAbsMag_offset);
    };
    
-
-/*!
-\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   DotHatMag_t& DotHatMag(void) {
-      if constexpr (std::is_same<T, DotHatMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotHatMag();
-   };
-
-/*!
-\brief Get DotHatMag (Time derivative of magnetic field direction) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const DotHatMag_t& DotHatMag(void) const {
-      if constexpr (std::is_same<T, DotHatMag_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::DotHatMag();
-   };
-
-
-/*!
-\brief Whether DotHatMag (Time derivative of magnetic field direction) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool DotHatMag_found(void) {
-      if constexpr (std::is_same<T, DotHatMag_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::DotHatMag_found();
-   };
-   
-
-/*!
-\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv0_t& Iv0(void) {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv0();
-   };
-
-/*!
-\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv0_t& Iv0(void) const {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv0();
-   };
 
 
 /*!
@@ -1301,36 +1643,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv0_found(void) {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv0_found();
+      return (Iv0_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv0(char w) {
+      return reinterpret_cast<double&>(*(data + Iv0_offset));
+   };
+
+/*!
+\brief Get Iv0 (Zeroth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv0(void) const {
+      return *reinterpret_cast<const double*>(data + Iv0_offset);
    };
    
-
-/*!
-\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv1_t& Iv1(void) {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv1();
-   };
-
-/*!
-\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv1_t& Iv1(void) const {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv1();
-   };
 
 
 /*!
@@ -1339,36 +1675,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv1_found(void) {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv1_found();
+      return (Iv1_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv1(char w) {
+      return reinterpret_cast<double&>(*(data + Iv1_offset));
+   };
+
+/*!
+\brief Get Iv1 (First (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv1(void) const {
+      return *reinterpret_cast<const double*>(data + Iv1_offset);
    };
    
-
-/*!
-\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv2_t& Iv2(void) {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv2();
-   };
-
-/*!
-\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv2_t& Iv2(void) const {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv2();
-   };
 
 
 /*!
@@ -1377,36 +1707,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv2_found(void) {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv2_found();
+      return (Iv2_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv2(char w) {
+      return reinterpret_cast<double&>(*(data + Iv2_offset));
+   };
+
+/*!
+\brief Get Iv2 (Second (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv2(void) const {
+      return *reinterpret_cast<const double*>(data + Iv2_offset);
    };
    
-
-/*!
-\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv3_t& Iv3(void) {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv3();
-   };
-
-/*!
-\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv3_t& Iv3(void) const {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv3();
-   };
 
 
 /*!
@@ -1415,36 +1739,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv3_found(void) {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv3_found();
+      return (Iv3_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv3(char w) {
+      return reinterpret_cast<double&>(*(data + Iv3_offset));
+   };
+
+/*!
+\brief Get Iv3 (Third (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv3(void) const {
+      return *reinterpret_cast<const double*>(data + Iv3_offset);
    };
    
-
-/*!
-\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv4_t& Iv4(void) {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv4();
-   };
-
-/*!
-\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv4_t& Iv4(void) const {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv4();
-   };
 
 
 /*!
@@ -1453,36 +1771,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv4_found(void) {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv4_found();
+      return (Iv4_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv4(char w) {
+      return reinterpret_cast<double&>(*(data + Iv4_offset));
+   };
+
+/*!
+\brief Get Iv4 (Fourth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv4(void) const {
+      return *reinterpret_cast<const double*>(data + Iv4_offset);
    };
    
-
-/*!
-\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   Iv5_t& Iv5(void) {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv5();
-   };
-
-/*!
-\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const Iv5_t& Iv5(void) const {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::Iv5();
-   };
 
 
 /*!
@@ -1491,36 +1803,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool Iv5_found(void) {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::Iv5_found();
+      return (Iv5_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& Iv5(char w) {
+      return reinterpret_cast<double&>(*(data + Iv5_offset));
+   };
+
+/*!
+\brief Get Iv5 (Fifth (general purpose) Indicator variable) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double Iv5(void) const {
+      return *reinterpret_cast<const double*>(data + Iv5_offset);
    };
    
-
-/*!
-\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   IvLISM_t& IvLISM(void) {
-      if constexpr (std::is_same<T, IvLISM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvLISM();
-   };
-
-/*!
-\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const IvLISM_t& IvLISM(void) const {
-      if constexpr (std::is_same<T, IvLISM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvLISM();
-   };
 
 
 /*!
@@ -1529,36 +1835,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool IvLISM_found(void) {
-      if constexpr (std::is_same<T, IvLISM_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::IvLISM_found();
+      return (IvLISM_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& IvLISM(char w) {
+      return reinterpret_cast<double&>(*(data + IvLISM_offset));
+   };
+
+/*!
+\brief Get IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double IvLISM(void) const {
+      return *reinterpret_cast<const double*>(data + IvLISM_offset);
    };
    
-
-/*!
-\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   IvBmix_t& IvBmix(void) {
-      if constexpr (std::is_same<T, IvBmix_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvBmix();
-   };
-
-/*!
-\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const IvBmix_t& IvBmix(void) const {
-      if constexpr (std::is_same<T, IvBmix_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvBmix();
-   };
 
 
 /*!
@@ -1567,36 +1867,30 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool IvBmix_found(void) {
-      if constexpr (std::is_same<T, IvBmix_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::IvBmix_found();
+      return (IvBmix_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& IvBmix(char w) {
+      return reinterpret_cast<double&>(*(data + IvBmix_offset));
+   };
+
+/*!
+\brief Get IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double IvBmix(void) const {
+      return *reinterpret_cast<const double*>(data + IvBmix_offset);
    };
    
-
-/*!
-\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   IvSolarCycle_t& IvSolarCycle(void) {
-      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvSolarCycle();
-   };
-
-/*!
-\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const IvSolarCycle_t& IvSolarCycle(void) const {
-      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::IvSolarCycle();
-   };
 
 
 /*!
@@ -1605,935 +1899,739 @@ This should not occur in fluid or MHD applications.
 \date 3/25/2025
 */
    static constexpr bool IvSolarCycle_found(void) {
-      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::IvSolarCycle_found();
+      return (IvSolarCycle_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   double& IvSolarCycle(char w) {
+      return reinterpret_cast<double&>(*(data + IvSolarCycle_offset));
+   };
+
+/*!
+\brief Get IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] double IvSolarCycle(void) const {
+      return *reinterpret_cast<const double*>(data + IvSolarCycle_offset);
    };
    
 
 /*!
-\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveGasDyn_t& PrimitiveGasDyn(void) {
-      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveGasDyn();
-   };
-
-/*!
-\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveGasDyn_t& PrimitiveGasDyn(void) const {
-      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveGasDyn();
-   };
-
-
-/*!
-\brief Whether PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveGasDyn_found(void) {
-      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::PrimitiveGasDyn_found();
-   };
-   
-
-/*!
-\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedGasDyn_t& ConservedGasDyn(void) {
-      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedGasDyn();
-   };
-
-/*!
-\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedGasDyn_t& ConservedGasDyn(void) const {
-      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedGasDyn();
-   };
-
-
-/*!
-\brief Whether ConservedGasDyn (Fields of the conserved form for general gas dynamics) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedGasDyn_found(void) {
-      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ConservedGasDyn_found();
-   };
-   
-
-/*!
-\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveMHD_t& PrimitiveMHD(void) {
-      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveMHD();
-   };
-
-/*!
-\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveMHD_t& PrimitiveMHD(void) const {
-      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveMHD();
-   };
-
-
-/*!
-\brief Whether PrimitiveMHD (Fields of the conserved form for general MHD) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveMHD_found(void) {
-      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::PrimitiveMHD_found();
-   };
-   
-
-/*!
-\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedMHD_t& ConservedMHD(void) {
-      if constexpr (std::is_same<T, ConservedMHD_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedMHD();
-   };
-
-/*!
-\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedMHD_t& ConservedMHD(void) const {
-      if constexpr (std::is_same<T, ConservedMHD_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedMHD();
-   };
-
-
-/*!
-\brief Whether ConservedMHD (Fields of the conserved form for general MHD) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedMHD_found(void) {
-      if constexpr (std::is_same<T, ConservedMHD_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ConservedMHD_found();
-   };
-   
-
-/*!
-\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) {
-      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveMHDGLM();
-   };
-
-/*!
-\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) const {
-      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::PrimitiveMHDGLM();
-   };
-
-
-/*!
-\brief Whether PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool PrimitiveMHDGLM_found(void) {
-      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::PrimitiveMHDGLM_found();
-   };
-   
-
-/*!
-\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ConservedMHDGLM_t& ConservedMHDGLM(void) {
-      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedMHDGLM();
-   };
-
-/*!
-\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ConservedMHDGLM_t& ConservedMHDGLM(void) const {
-      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ConservedMHDGLM();
-   };
-
-
-/*!
-\brief Whether ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ConservedMHDGLM_found(void) {
-      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ConservedMHDGLM_found();
-   };
-   
-
-/*!
-\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronCore_t& ElectronCore(void) {
-      if constexpr (std::is_same<T, ElectronCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronCore();
-   };
-
-/*!
-\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronCore_t& ElectronCore(void) const {
-      if constexpr (std::is_same<T, ElectronCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronCore();
-   };
-
-
-/*!
-\brief Whether ElectronCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronCore_found(void) {
-      if constexpr (std::is_same<T, ElectronCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ElectronCore_found();
-   };
-   
-
-/*!
-\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronHalo_t& ElectronHalo(void) {
-      if constexpr (std::is_same<T, ElectronHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronHalo();
-   };
-
-/*!
-\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronHalo_t& ElectronHalo(void) const {
-      if constexpr (std::is_same<T, ElectronHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronHalo();
-   };
-
-
-/*!
-\brief Whether ElectronHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronHalo_found(void) {
-      if constexpr (std::is_same<T, ElectronHalo_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ElectronHalo_found();
-   };
-   
-
-/*!
-\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ElectronBeam_t& ElectronBeam(void) {
-      if constexpr (std::is_same<T, ElectronBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronBeam();
-   };
-
-/*!
-\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ElectronBeam_t& ElectronBeam(void) const {
-      if constexpr (std::is_same<T, ElectronBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ElectronBeam();
-   };
-
-
-/*!
-\brief Whether ElectronBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ElectronBeam_found(void) {
-      if constexpr (std::is_same<T, ElectronBeam_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ElectronBeam_found();
-   };
-   
-
-/*!
-\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonCore_t& ProtonCore(void) {
-      if constexpr (std::is_same<T, ProtonCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonCore();
-   };
-
-/*!
-\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonCore_t& ProtonCore(void) const {
-      if constexpr (std::is_same<T, ProtonCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonCore();
-   };
-
-
-/*!
-\brief Whether ProtonCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonCore_found(void) {
-      if constexpr (std::is_same<T, ProtonCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ProtonCore_found();
-   };
-   
-
-/*!
-\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonHalo_t& ProtonHalo(void) {
-      if constexpr (std::is_same<T, ProtonHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonHalo();
-   };
-
-/*!
-\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonHalo_t& ProtonHalo(void) const {
-      if constexpr (std::is_same<T, ProtonHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonHalo();
-   };
-
-
-/*!
-\brief Whether ProtonHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonHalo_found(void) {
-      if constexpr (std::is_same<T, ProtonHalo_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ProtonHalo_found();
-   };
-   
+\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\author Lucius Schoenbaum
+\date 9/18/2025
+This operation is more expensive in general than a straightforward
+copy, so it should only be used when the advantage of
+working with more than one type, unit system, or coordinate system
+makes it worth the tradeoff.
+The Get() operation converts field types as lists of values, while preserving values. 
+For a conversion operation, use Convert().
+*/
+   template <typename ParentFields>
+   static inline Fields Get(ParentFields& fields) {
+      Fields out;
+      if constexpr (Fields::Pos_found()) {
+         if constexpr (ParentFields::Pos_found())
+            out.Pos() = fields.Pos();
+         else
+            out.Pos() = Pos_t();
+      }
+      if constexpr (Fields::Rad_found()) {
+         if constexpr (ParentFields::Rad_found())
+            out.Rad() = fields.Rad();
+         else
+            if constexpr (ParentFields::Pos_found()) {
+               if constexpr (ParentFields::FConfig::Pos_radial)
+                  out.Rad() = fields.Pos[0];
+               else
+                  out.Rad() = fields.Pos.Norm();
+            }
+            else
+                out.Rad() = Rad_t();
+      }
+      if constexpr (Fields::Time_found()) {
+         if constexpr (ParentFields::Time_found())
+            out.Time() = fields.Time();
+         else
+            out.Time() = Time_t();
+      }
+      if constexpr (Fields::Den_found()) {
+         if constexpr (ParentFields::Den_found())
+            out.Den() = fields.Den();
+         else
+            out.Den() = Den_t();
+      }
+      if constexpr (Fields::Prs_found()) {
+         if constexpr (ParentFields::Prs_found())
+            out.Prs() = fields.Prs();
+         else
+            out.Prs() = Prs_t();
+      }
+      if constexpr (Fields::Enr_found()) {
+         if constexpr (ParentFields::Enr_found())
+            out.Enr() = fields.Enr();
+         else
+            out.Enr() = Enr_t();
+      }
+      if constexpr (Fields::Fluv_found()) {
+         if constexpr (ParentFields::Fluv_found())
+            out.Fluv() = fields.Fluv();
+         else
+            out.Fluv() = Fluv_t();
+      }
+      if constexpr (Fields::Flum_found()) {
+         if constexpr (ParentFields::Flum_found())
+            out.Flum() = fields.Flum();
+         else
+            out.Flum() = Flum_t();
+      }
+      if constexpr (Fields::FlxDen_found()) {
+         if constexpr (ParentFields::FlxDen_found())
+            out.FlxDen() = fields.FlxDen();
+         else
+            out.FlxDen() = FlxDen_t();
+      }
+      if constexpr (Fields::FlxEnr_found()) {
+         if constexpr (ParentFields::FlxEnr_found())
+            out.FlxEnr() = fields.FlxEnr();
+         else
+            out.FlxEnr() = FlxEnr_t();
+      }
+      if constexpr (Fields::FlxFlum_found()) {
+         if constexpr (ParentFields::FlxFlum_found())
+            out.FlxFlum() = fields.FlxFlum();
+         else
+            out.FlxFlum() = FlxFlum_t();
+      }
+      if constexpr (Fields::AbsFluv_found()) {
+         if constexpr (ParentFields::AbsFluv_found())
+            out.AbsFluv() = fields.AbsFluv();
+         else
+            if constexpr (ParentFields::Fluv_found()) {
+               if constexpr (ParentFields::FConfig::Fluv_radial)
+                  out.AbsFluv() = fields.Fluv[0];
+               else
+                  out.AbsFluv() = fields.Fluv.Norm();
+            }
+            else
+                out.AbsFluv() = AbsFluv_t();
+      }
+      if constexpr (Fields::HatFluv_found()) {
+         if constexpr (ParentFields::HatFluv_found())
+            out.HatFluv() = fields.HatFluv();
+         else
+            out.HatFluv() = HatFluv_t();
+      }
+      if constexpr (Fields::AbsFlum_found()) {
+         if constexpr (ParentFields::AbsFlum_found())
+            out.AbsFlum() = fields.AbsFlum();
+         else
+            if constexpr (ParentFields::Flum_found()) {
+               if constexpr (ParentFields::FConfig::Flum_radial)
+                  out.AbsFlum() = fields.Flum[0];
+               else
+                  out.AbsFlum() = fields.Flum.Norm();
+            }
+            else
+                out.AbsFlum() = AbsFlum_t();
+      }
+      if constexpr (Fields::HatFlum_found()) {
+         if constexpr (ParentFields::HatFlum_found())
+            out.HatFlum() = fields.HatFlum();
+         else
+            out.HatFlum() = HatFlum_t();
+      }
+      if constexpr (Fields::Mag_found()) {
+         if constexpr (ParentFields::Mag_found())
+            out.Mag() = fields.Mag();
+         else
+            out.Mag() = Mag_t();
+      }
+      if constexpr (Fields::FlxMag_found()) {
+         if constexpr (ParentFields::FlxMag_found())
+            out.FlxMag() = fields.FlxMag();
+         else
+            out.FlxMag() = FlxMag_t();
+      }
+      if constexpr (Fields::Glm_found()) {
+         if constexpr (ParentFields::Glm_found())
+            out.Glm() = fields.Glm();
+         else
+            out.Glm() = Glm_t();
+      }
+      if constexpr (Fields::FlxGlm_found()) {
+         if constexpr (ParentFields::FlxGlm_found())
+            out.FlxGlm() = fields.FlxGlm();
+         else
+            out.FlxGlm() = FlxGlm_t();
+      }
+      if constexpr (Fields::Mom_found()) {
+         if constexpr (ParentFields::Mom_found())
+            out.Mom() = fields.Mom();
+         else
+            out.Mom() = Mom_t();
+      }
+      if constexpr (Fields::AbsMom_found()) {
+         if constexpr (ParentFields::AbsMom_found())
+            out.AbsMom() = fields.AbsMom();
+         else
+            if constexpr (ParentFields::Mom_found()) {
+               if constexpr (ParentFields::FConfig::Mom_radial)
+                  out.AbsMom() = fields.Mom[0];
+               else
+                  out.AbsMom() = fields.Mom.Norm();
+            }
+            else
+                out.AbsMom() = AbsMom_t();
+      }
+      if constexpr (Fields::HatMom_found()) {
+         if constexpr (ParentFields::HatMom_found())
+            out.HatMom() = fields.HatMom();
+         else
+            out.HatMom() = HatMom_t();
+      }
+      if constexpr (Fields::MomMu_found()) {
+         if constexpr (ParentFields::MomMu_found())
+            out.MomMu() = fields.MomMu();
+         else
+            out.MomMu() = MomMu_t();
+      }
+      if constexpr (Fields::Vel_found()) {
+         if constexpr (ParentFields::Vel_found())
+            out.Vel() = fields.Vel();
+         else
+            out.Vel() = Vel_t();
+      }
+      if constexpr (Fields::AbsVel_found()) {
+         if constexpr (ParentFields::AbsVel_found())
+            out.AbsVel() = fields.AbsVel();
+         else
+            if constexpr (ParentFields::Vel_found()) {
+               if constexpr (ParentFields::FConfig::Vel_radial)
+                  out.AbsVel() = fields.Vel[0];
+               else
+                  out.AbsVel() = fields.Vel.Norm();
+            }
+            else
+                out.AbsVel() = AbsVel_t();
+      }
+      if constexpr (Fields::HatVel_found()) {
+         if constexpr (ParentFields::HatVel_found())
+            out.HatVel() = fields.HatVel();
+         else
+            out.HatVel() = HatVel_t();
+      }
+      if constexpr (Fields::Ele_found()) {
+         if constexpr (ParentFields::Ele_found())
+            out.Ele() = fields.Ele();
+         else
+            out.Ele() = Ele_t();
+      }
+      if constexpr (Fields::AbsEle_found()) {
+         if constexpr (ParentFields::AbsEle_found())
+            out.AbsEle() = fields.AbsEle();
+         else
+            if constexpr (ParentFields::Ele_found()) {
+               if constexpr (ParentFields::FConfig::Ele_radial)
+                  out.AbsEle() = fields.Ele[0];
+               else
+                  out.AbsEle() = fields.Ele.Norm();
+            }
+            else
+                out.AbsEle() = AbsEle_t();
+      }
+      if constexpr (Fields::HatEle_found()) {
+         if constexpr (ParentFields::HatEle_found())
+            out.HatEle() = fields.HatEle();
+         else
+            out.HatEle() = HatEle_t();
+      }
+      if constexpr (Fields::AbsMag_found()) {
+         if constexpr (ParentFields::AbsMag_found())
+            out.AbsMag() = fields.AbsMag();
+         else
+            if constexpr (ParentFields::Mag_found()) {
+               if constexpr (ParentFields::FConfig::Mag_radial)
+                  out.AbsMag() = fields.Mag[0];
+               else
+                  out.AbsMag() = fields.Mag.Norm();
+            }
+            else
+                out.AbsMag() = AbsMag_t();
+      }
+      if constexpr (Fields::HatMag_found()) {
+         if constexpr (ParentFields::HatMag_found())
+            out.HatMag() = fields.HatMag();
+         else
+            out.HatMag() = HatMag_t();
+      }
+      if constexpr (Fields::DelFluv_found()) {
+         if constexpr (ParentFields::DelFluv_found())
+            out.DelFluv() = fields.DelFluv();
+         else
+            out.DelFluv() = DelFluv_t();
+      }
+      if constexpr (Fields::DelEle_found()) {
+         if constexpr (ParentFields::DelEle_found())
+            out.DelEle() = fields.DelEle();
+         else
+            out.DelEle() = DelEle_t();
+      }
+      if constexpr (Fields::DelMag_found()) {
+         if constexpr (ParentFields::DelMag_found())
+            out.DelMag() = fields.DelMag();
+         else
+            out.DelMag() = DelMag_t();
+      }
+      if constexpr (Fields::DelAbsMag_found()) {
+         if constexpr (ParentFields::DelAbsMag_found())
+            out.DelAbsMag() = fields.DelAbsMag();
+         else
+            out.DelAbsMag() = DelAbsMag_t();
+      }
+      if constexpr (Fields::DotFluv_found()) {
+         if constexpr (ParentFields::DotFluv_found())
+            out.DotFluv() = fields.DotFluv();
+         else
+            out.DotFluv() = DotFluv_t();
+      }
+      if constexpr (Fields::DotEle_found()) {
+         if constexpr (ParentFields::DotEle_found())
+            out.DotEle() = fields.DotEle();
+         else
+            out.DotEle() = DotEle_t();
+      }
+      if constexpr (Fields::DotMag_found()) {
+         if constexpr (ParentFields::DotMag_found())
+            out.DotMag() = fields.DotMag();
+         else
+            out.DotMag() = DotMag_t();
+      }
+      if constexpr (Fields::DotAbsMag_found()) {
+         if constexpr (ParentFields::DotAbsMag_found())
+            out.DotAbsMag() = fields.DotAbsMag();
+         else
+            out.DotAbsMag() = DotAbsMag_t();
+      }
+      if constexpr (Fields::Iv0_found()) {
+         if constexpr (ParentFields::Iv0_found())
+            out.Iv0() = fields.Iv0();
+         else
+            out.Iv0() = Iv0_t();
+      }
+      if constexpr (Fields::Iv1_found()) {
+         if constexpr (ParentFields::Iv1_found())
+            out.Iv1() = fields.Iv1();
+         else
+            out.Iv1() = Iv1_t();
+      }
+      if constexpr (Fields::Iv2_found()) {
+         if constexpr (ParentFields::Iv2_found())
+            out.Iv2() = fields.Iv2();
+         else
+            out.Iv2() = Iv2_t();
+      }
+      if constexpr (Fields::Iv3_found()) {
+         if constexpr (ParentFields::Iv3_found())
+            out.Iv3() = fields.Iv3();
+         else
+            out.Iv3() = Iv3_t();
+      }
+      if constexpr (Fields::Iv4_found()) {
+         if constexpr (ParentFields::Iv4_found())
+            out.Iv4() = fields.Iv4();
+         else
+            out.Iv4() = Iv4_t();
+      }
+      if constexpr (Fields::Iv5_found()) {
+         if constexpr (ParentFields::Iv5_found())
+            out.Iv5() = fields.Iv5();
+         else
+            out.Iv5() = Iv5_t();
+      }
+      if constexpr (Fields::IvLISM_found()) {
+         if constexpr (ParentFields::IvLISM_found())
+            out.IvLISM() = fields.IvLISM();
+         else
+            out.IvLISM() = IvLISM_t();
+      }
+      if constexpr (Fields::IvBmix_found()) {
+         if constexpr (ParentFields::IvBmix_found())
+            out.IvBmix() = fields.IvBmix();
+         else
+            out.IvBmix() = IvBmix_t();
+      }
+      if constexpr (Fields::IvSolarCycle_found()) {
+         if constexpr (ParentFields::IvSolarCycle_found())
+            out.IvSolarCycle() = fields.IvSolarCycle();
+         else
+            out.IvSolarCycle() = IvSolarCycle_t();
+      }
+      return out;
+   }
 
-/*!
-\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonBeam_t& ProtonBeam(void) {
-      if constexpr (std::is_same<T, ProtonBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonBeam();
-   };
-
-/*!
-\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonBeam_t& ProtonBeam(void) const {
-      if constexpr (std::is_same<T, ProtonBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonBeam();
-   };
-
-
-/*!
-\brief Whether ProtonBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonBeam_found(void) {
-      if constexpr (std::is_same<T, ProtonBeam_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ProtonBeam_found();
-   };
-   
-
-/*!
-\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   ProtonPickup_t& ProtonPickup(void) {
-      if constexpr (std::is_same<T, ProtonPickup_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonPickup();
-   };
-
-/*!
-\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const ProtonPickup_t& ProtonPickup(void) const {
-      if constexpr (std::is_same<T, ProtonPickup_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::ProtonPickup();
-   };
-
-
-/*!
-\brief Whether ProtonPickup (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool ProtonPickup_found(void) {
-      if constexpr (std::is_same<T, ProtonPickup_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::ProtonPickup_found();
-   };
-   
-
-/*!
-\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   AlphaCore_t& AlphaCore(void) {
-      if constexpr (std::is_same<T, AlphaCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::AlphaCore();
-   };
-
-/*!
-\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const AlphaCore_t& AlphaCore(void) const {
-      if constexpr (std::is_same<T, AlphaCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::AlphaCore();
-   };
-
-
-/*!
-\brief Whether AlphaCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool AlphaCore_found(void) {
-      if constexpr (std::is_same<T, AlphaCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::AlphaCore_found();
-   };
-   
-
-/*!
-\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   AlphaHalo_t& AlphaHalo(void) {
-      if constexpr (std::is_same<T, AlphaHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::AlphaHalo();
-   };
-
-/*!
-\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const AlphaHalo_t& AlphaHalo(void) const {
-      if constexpr (std::is_same<T, AlphaHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::AlphaHalo();
-   };
-
-
-/*!
-\brief Whether AlphaHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool AlphaHalo_found(void) {
-      if constexpr (std::is_same<T, AlphaHalo_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::AlphaHalo_found();
-   };
-   
-
-/*!
-\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumSingleCore_t& HeliumSingleCore(void) {
-      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumSingleCore();
-   };
-
-/*!
-\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumSingleCore_t& HeliumSingleCore(void) const {
-      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumSingleCore();
-   };
-
-
-/*!
-\brief Whether HeliumSingleCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumSingleCore_found(void) {
-      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HeliumSingleCore_found();
-   };
-   
-
-/*!
-\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumSinglePickup_t& HeliumSinglePickup(void) {
-      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumSinglePickup();
-   };
-
-/*!
-\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumSinglePickup_t& HeliumSinglePickup(void) const {
-      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumSinglePickup();
-   };
-
-
-/*!
-\brief Whether HeliumSinglePickup (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumSinglePickup_found(void) {
-      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HeliumSinglePickup_found();
-   };
-   
-
-/*!
-\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) {
-      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenPlasmaCore();
-   };
-
-/*!
-\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) const {
-      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenPlasmaCore();
-   };
-
-
-/*!
-\brief Whether HydrogenPlasmaCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenPlasmaCore_found(void) {
-      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HydrogenPlasmaCore_found();
-   };
-   
-
-/*!
-\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenCore_t& HydrogenCore(void) {
-      if constexpr (std::is_same<T, HydrogenCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenCore();
-   };
-
-/*!
-\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenCore_t& HydrogenCore(void) const {
-      if constexpr (std::is_same<T, HydrogenCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenCore();
-   };
-
-
-/*!
-\brief Whether HydrogenCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenCore_found(void) {
-      if constexpr (std::is_same<T, HydrogenCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HydrogenCore_found();
-   };
-   
-
-/*!
-\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenHalo_t& HydrogenHalo(void) {
-      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenHalo();
-   };
-
-/*!
-\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenHalo_t& HydrogenHalo(void) const {
-      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenHalo();
-   };
-
-
-/*!
-\brief Whether HydrogenHalo (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenHalo_found(void) {
-      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HydrogenHalo_found();
-   };
-   
-
-/*!
-\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HydrogenBeam_t& HydrogenBeam(void) {
-      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenBeam();
-   };
-
-/*!
-\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HydrogenBeam_t& HydrogenBeam(void) const {
-      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HydrogenBeam();
-   };
-
-
-/*!
-\brief Whether HydrogenBeam (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HydrogenBeam_found(void) {
-      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HydrogenBeam_found();
-   };
-   
-
-/*!
-\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as lvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   HeliumCore_t& HeliumCore(void) {
-      if constexpr (std::is_same<T, HeliumCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumCore();
-   };
-
-/*!
-\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as const rvalue.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   const HeliumCore_t& HeliumCore(void) const {
-      if constexpr (std::is_same<T, HeliumCore_t>::value)
-         return data;
-      else
-         return Fields<Ts...>::HeliumCore();
-   };
-
-
-/*!
-\brief Whether HeliumCore (Fields of the primitive form for species) is in the data type.
-\author Lucius Schoenbaum
-\date 3/25/2025
-*/
-   static constexpr bool HeliumCore_found(void) {
-      if constexpr (std::is_same<T, HeliumCore_t>::value)
-         return true;
-      else
-         return Fields<Ts...>::HeliumCore_found();
-   };
-   
 
    // END(fields/generate, class)
 
-   /*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of U
+
+
+
+/*!
+\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\author Lucius Schoenbaum
+\date 9/28/2025
+This operation is fast whenever the operation is trivial, for general logic.
+To obtain fields in the type TypeX from given fields y in the type TypeY:
+```auto x = TypeX::Convert(y);```
 */
-   inline double DivVel(void)
+   template <typename ParentFields>
+   [[nodiscard]] static inline Fields Convert(ParentFields& fields) {
+      Fields X;
+      if constexpr (std::same_as<Fields, ParentFields>) {
+         X = fields;
+      }
+      else {
+         // todo: the method is implemented as-needed.
+         if constexpr (Time_found()) {
+            X.Time('w') = fields.Time();
+         }
+         if constexpr (Pos_found()) {
+            if constexpr (ParentFields::Pos_found()) {
+               if constexpr (ParentFields::FConfig::Pos_sys == FConfig::Pos_sys)
+                  X.Pos('w') = fields.Pos();
+               else
+                  // todo - Pos_sys != Pos_sys
+                  X.Pos('w') = {1e30,1e30,1e30};
+            }
+         }
+         if constexpr (Mom_found() || Vel_found()) {
+            // For the sake of simplicity we compute Mom.
+            constexpr GeoVector Mom_tmp = {1e30,1e30,1e30};
+            if constexpr (ParentFields::Mom_found()) {
+               if constexpr (ParentFields::FConfig::Mom_sys == FConfig::Mom_sys)
+                  Mom_tmp = fields.Mom();
+               else {
+                  // todo - Mom_sys != Mom_sys ----> MomConvert subroutine ___________
+               }
+            }
+            else if constexpr (ParentFields::Vel_found()) {
+               // todo check!!
+               Mom_tmp = Mom<specie>(fields.Vel());
+            }
+            else {
+               // Conversion fails.
+            }
+            // write value
+            if constexpr (Mom_found()) {
+               X.Mom('w') = Mom_tmp;
+            }
+            if constexpr (Vel_found()) {
+               // todo check!!
+               X.Vel('w') = Vel<specie>(Mom_tmp);
+            }
+         }
+         if constexpr (Rad_found()) {
+            // todo review if Pos not in fields
+            X.Rad('w') = fields.Rad();
+         }
+         if constexpr (AbsVel_found()) {
+            // todo review if Vel/Mom not in fields
+            X.AbsVel('w') = fields.AbsVel();
+         }
+         if constexpr (AbsMom_found()) {
+            // todo review if Vel/Mom not in fields
+            X.AbsMom('w') = fields.AbsMom();
+         }
+      }
+      return X;
+   }
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return VelPerp, VelAzim, VelPara in anisotropic or pitch-angle coordinates.
+Namely, they are magnitude in Mag direction, magnitude in Mag-perpendicular direction,
+and azimuthal angle (unused in a reduced model).
+\note The velocity coordinates must generally be anisotropic or pitch-angle for this to work.
+The assumption that the fields type holds Mag() is unsatisfied in practice.
+*/
+   [[nodiscard]] double VelPerp(void) const
    {
-      return DelVel().Trace();
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[0];
+      }
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*sqrt(1 - Sqr(Vel()[2]));
+      }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   [[nodiscard]] double VelPara(void) const
+   {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel()[2];
+      }
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[0]*Vel()[2];
+      }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   [[nodiscard]] double VelAzim(void) const
+   {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel()[1];
+      }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
+      return 0.0;
    };
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return VelPerp, VelAzim, VelPara as lvalue
+*/
+   double& VelPerp(char w)
+   {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel('w')[0];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   }
+   double& VelPara(char w)
+   {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+         return Vel('w')[2];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   }
+   double& VelAzim(char w)
+   {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+         return Vel('w')[1];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   };
+
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return MomPerp, MomAzim, MomPara in anisotropic or pitch-angle coordinates.
+Namely, they are magnitude in Mag direction, magnitude in Mag-perpendicular direction,
+and azimuthal angle (unused in a reduced model).
+*/
+   [[nodiscard]] double MomPerp() const
+   {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[0];
+      }
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
+      }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   [[nodiscard]] double MomPara() const
+   {
+      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[2];
+      }
+      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[0]*Mom()[2];
+      }
+      else if (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   }
+   [[nodiscard]] double MomAzim() const
+   {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom()[1];
+      }
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom()[1];
+      }
+      else if constexpr (Mag_found()) {
+         // todo
+      }
+      return 0.0;
+   };
+
+
+
+/*!
+\author Lucius Schoenbaum
+\date 10/12/2025
+\return MomPerp, MomPara, MomAzim as lvalue
+*/
+   double& MomPerp(char w)
+   {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom('w')[0];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   }
+   double& MomPara(char w)
+   {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         return Mom('w')[2];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   }
+   double& MomAzim(char w)
+   {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         return Mom('w')[1];
+      }
+      else {
+         return reinterpret_cast<double&>(*(data + Type_not_found));
+      }
+   };
+
 
 /*!
 \author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of B
+\author Lucius Schoenbaum
+\date 11/25/2025
+Momentum transformation on reflection at a boundary.
+This operation is designed for cases arising in plasma physics.
 */
-   inline double DivMag(void)
-   {
-      return DelMag().Trace();
-   };
+// Base (px, py, pz)
+//    Mom('w') *= -1.0;
+// Guiding (p_perp, p_para)
+//    MomPara('w') = -MomPara();
+// Focused (p, mu, 0)
+//    Mom('w')[1] = -_coords.Mom()[1];
+// Parker (p, mu, 0)
+//    ;
+   void ReflectMomentum() {
+      if constexpr (Mom_found()) {
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::cartesian) {
+            Mom('w')[0] *= -1;
+         }
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+            MomPara('w') = -MomPara();
+         }
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+            Mom('w')[1] = -Mom()[1];
+         }
+      }
+      // todo if Vel_found, reflect Vel
+   }
+
 
 /*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of E
+\author Lucius Schoenbaum
+\date 10/12/2025
+Make all fields consistent, including fields stored for quick lookup.
+NOTE: The convention is that momentum values are converted into velocity values.
+The operation going the other way does *not* happen - do not write velocity fields and then call this!
 */
-   inline double divE(void)
-   {
-      return DelEle().Trace();
-   };
+   template <typename RequestedFields>
+   status_t MakeConsistent() {
+      double Abs_;
+      if constexpr (RequestedFields::Mom_found() && RequestedFields::Vel_found()) {
+         // If  Mom and Vel, convert Mom to Vel and write.
+         Vel('w') = Vel<specie>(Mom());
+      }
+      if constexpr (RequestedFields::AbsMom_found() || RequestedFields::HatMom_found()) {
+         // If AbsMom or HatMom are stored, update them.
+         if constexpr (FConfig::Mom_Radial)
+            Abs_ = Mom()[0];
+         else
+            Abs_ = Mom().Norm();
+         if constexpr (RequestedFields::AbsMom_found())
+            AbsMom('w') = Abs_;
+         if constexpr (RequestedFields::HatMom_found())
+            // todo decide about division by zero
+            HatMom('w') = Mom() / Abs_;
+      }
+      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
+         // If AbsVel or HatVel are stored, update them.
+         if constexpr (FConfig::Vel_Radial)
+            Abs_ = Vel()[0];
+         else
+            Abs_ = Vel().Norm();
+         if constexpr (RequestedFields::AbsVel_found())
+            AbsVel('w') = Abs_;
+         if constexpr (RequestedFields::HatVel_found())
+            // todo decide about division by zero
+            HatVel('w') = Vel() / Abs_;
+      }
+      if constexpr (RequestedFields::Rad_found()) {
+         // If Rad is stored, update it. (Rad is AbsPos, there is no HatPos.)
+         if constexpr (FConfig::Pos_Radial)
+            Rad('w') = Pos()[0];
+         else
+            Rad('w') = Pos().Norm();
+      }
+      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
+         // If AbsMag or HatMag are stored, update them.
+         Abs_ = Mag().Norm();
+         if constexpr (RequestedFields::AbsMag_found())
+            AbsMag('w') = Abs_;
+         if constexpr (RequestedFields::HatMag_found())
+            // todo decide about division by zero
+            HatMag('w') = Mag() / Abs_;
+      }
+      status_t status = 0;
+      if (AbsMag() < sp_tiny) RAISE_BITS(status, STATE_INVALID);
+      return status;
+   }
+
 
 /*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of U
+\author Lucius Schoenbaum
+\date 10/21/2025
+\return bool: whether there is a derived field in the fields list.
 */
-   inline GeoVector curlU(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelVel();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of B
-*/
-   inline GeoVector CurlMag(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelMag();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of E
-*/
-   inline GeoVector CurlEle(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelEle();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
+   static constexpr bool Derived_found() {
+      return (Ts::derived || ... || false);
+   }
 
 
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Divergence of bhat
+\return Divergence of direction of magnetic field
 \note The formula comes from applying vector identity (7) in the NRL Plasma formulary
 */
-   double DivHatMag()
+   [[nodiscard]] double DivHatMag()
    {
       return (DivMag() - (DelAbsMag() * HatMag())) / AbsMag();
    };
@@ -2541,1931 +2639,50 @@ This should not occur in fluid or MHD applications.
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Curl of bhat
+\return Curl of direction of magnetic field
 \note The formula comes from applying vector identity (8) in the NRL Plasma formulary
 */
-   GeoVector CurlHatMag()
+   [[nodiscard]] GeoVector CurlHatMag()
    {
-      auto bhat = HatMag();
-      // todo fix when using auto or MmagT to set type
-      double Bmag = AbsMag();
-      auto gradBmag = DelAbsMag();
-      return (CurlMag() - (gradBmag ^ bhat)) / Bmag;
+      return (CurlMag() - (DelAbsMag() ^ HatMag())) / AbsMag();
    };
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Gradient of bhat
+\return Gradient of direction of magnetic field
 \note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
 */
-   GeoMatrix DelHatMag()
+   [[nodiscard]] GeoMatrix DelHatMag()
    {
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      auto gradB = DelMag();
-      auto gradBmag = DelAbsMag();
-      // todo Dyadic can be made static
-      GeoMatrix tmp;
-      tmp.Dyadic(gradBmag, bhat);
-      return (gradB - tmp) / Bmag;
+      return (DelMag() - Dyadic(DelAbsMag(), HatMag())) / AbsMag();
    };
 
 /*!
 \author Juan G Alonso Guzman
 \date 07/02/2024
-\return Time derivative of bhat
+\return Time derivative of direction of magnetic field
 */
-   GeoVector DotHatMag()
+   [[nodiscard]] GeoVector DotHatMag()
    {
-      auto dBvecdt = DotMag();
-      auto dBmagdt = DotAbsMag();
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      return (dBvecdt - (dBmagdt * bhat)) / Bmag;
+      return (DotMag() - (DotAbsMag() * HatMag())) / AbsMag();
    };
 
 
-
-
-
-   /*!
+/*!
 \author Lucius Schoenbaum
 \date 05/28/2025
 \return string representation of state, for testing purposes
 */
-   std::string str(bool recursive = false) const {
-      std::string out;
-      if (!recursive) out += "{";
-      out += data.str() + ", " + Fields<Ts...>::str(true);
-      if (!recursive) out += "}";
+   [[nodiscard]] std::string str() const {
+      std::string out = "{";
+      // todo - foreach
+      out += "}";
       return out;
    }
 
 };
 
-
-/*!
-\brief Base for Fields data type construction.
-\author Lucius Schoenbaum
-\author Vladimir Florinski
-\note There is no doxygen documentation for features in this class,
-as the information is only relevant to the implementation.
-*/
-template <typename T>
-struct Fields<T> {
-
-protected:
-
-   T data;
-
-   template <typename Function>
-   void visit_unpacked(std::size_t i, Function&& f, auto&&... others) {
-      if (i == 0)
-         f(data, others.data...);
-      else
-         throw std::out_of_range("[Fields] out of range");
-   }
-
-   template <typename Function>
-   void foreach_unpacked(Function&& f, auto&&... others) {
-      f(data, others.data...);
-   }
-
-public:
-
-   Fields(void) = default;
-
-   explicit Fields(T in):
-       data(in)
-   {};
-
-   Fields& operator=(const Fields& other) {
-      data = other.data;
-      return *this;
-   };
-
-   static size_t size() {
-      return 1;
-   }
-  
-   const T& top() const {
-      return data;
-   }
-
-   T& top() {
-      return data;
-   }
-
-   std::any operator[](std::size_t index) const {
-      if (index == 0)
-         return data;
-      else
-         throw std::out_of_range("[Fields] out of range");
-   }
-
-   template <typename Function, typename Others>
-   void visit(std::size_t i, Function&& f, Others&& others) {
-      std::apply(
-            [&](auto&&... others) {
-               visit_unpacked(i, std::forward<Function>(f), std::forward<decltype(others)>(others)...);
-            },
-            std::forward<Others>(others)
-      );
-   }
-
-   template <typename Function, typename Others>
-   void foreach(Function&& f, Others&& others) {
-      std::apply(
-            [&](auto&&... others) {
-               foreach_unpacked(std::forward<Function>(f), std::forward<decltype(others)>(others)...);
-            },
-            std::forward<Others>(others)
-      );
-   }
-
-   template <typename Function>
-   void foreach(Function&& f) {
-      f(data);
-   }
-
-   template <typename T_store>
-   void store(T_store x) {
-      assign(data, x);
-   }
-
-   // TODO: not functional yet
-   template <typename T_get>
-   T_get get() {
-      try {
-         if constexpr (std::is_same<T, T_get>::value)
-            return data;
-         else {
-            throw std::invalid_argument("[Fields] Type T in caller's get<T> was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type.");
-         }
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   }
-
-   template <typename T_found>
-   static bool constexpr found() {
-      if constexpr (std::is_same<T, T_found>::value)
-         return true;
-      else
-         return false;
-   }
-
-   // BEGIN(fields/generate, base)
-
-   Pos_t& Pos(void) {
-      try {
-        if constexpr (std::is_same<T, Pos_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Pos (Position in space) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Pos_t& Pos(void) const {
-    try {
-      if constexpr (std::is_same<T, Pos_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Pos (Position in space) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Pos_found(void) {
-      if constexpr (std::is_same<T, Pos_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Time_t& Time(void) {
-      try {
-        if constexpr (std::is_same<T, Time_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Time (Time) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Time_t& Time(void) const {
-    try {
-      if constexpr (std::is_same<T, Time_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Time (Time) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Time_found(void) {
-      if constexpr (std::is_same<T, Time_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Den_t& Den(void) {
-      try {
-        if constexpr (std::is_same<T, Den_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Den (Density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Den_t& Den(void) const {
-    try {
-      if constexpr (std::is_same<T, Den_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Den (Density field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Den_found(void) {
-      if constexpr (std::is_same<T, Den_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Prs_t& Prs(void) {
-      try {
-        if constexpr (std::is_same<T, Prs_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Prs (Pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Prs_t& Prs(void) const {
-    try {
-      if constexpr (std::is_same<T, Prs_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Prs (Pressure field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Prs_found(void) {
-      if constexpr (std::is_same<T, Prs_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Enr_t& Enr(void) {
-      try {
-        if constexpr (std::is_same<T, Enr_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Enr (Energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Enr_t& Enr(void) const {
-    try {
-      if constexpr (std::is_same<T, Enr_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Enr (Energy field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Enr_found(void) {
-      if constexpr (std::is_same<T, Enr_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Vel_t& Vel(void) {
-      try {
-        if constexpr (std::is_same<T, Vel_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Vel (Velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Vel_t& Vel(void) const {
-    try {
-      if constexpr (std::is_same<T, Vel_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Vel (Velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Vel_found(void) {
-      if constexpr (std::is_same<T, Vel_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Mom_t& Mom(void) {
-      try {
-        if constexpr (std::is_same<T, Mom_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Mom (Momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Mom_t& Mom(void) const {
-    try {
-      if constexpr (std::is_same<T, Mom_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Mom (Momentum field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Mom_found(void) {
-      if constexpr (std::is_same<T, Mom_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   FlxDen_t& FlxDen(void) {
-      try {
-        if constexpr (std::is_same<T, FlxDen_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const FlxDen_t& FlxDen(void) const {
-    try {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] FlxDen (Fluid density flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool FlxDen_found(void) {
-      if constexpr (std::is_same<T, FlxDen_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   FlxMom_t& FlxMom(void) {
-      try {
-        if constexpr (std::is_same<T, FlxMom_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const FlxMom_t& FlxMom(void) const {
-    try {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] FlxMom (Fluid momentum flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool FlxMom_found(void) {
-      if constexpr (std::is_same<T, FlxMom_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   FlxEnr_t& FlxEnr(void) {
-      try {
-        if constexpr (std::is_same<T, FlxEnr_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const FlxEnr_t& FlxEnr(void) const {
-    try {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] FlxEnr (Fluid energy flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool FlxEnr_found(void) {
-      if constexpr (std::is_same<T, FlxEnr_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Mag_t& Mag(void) {
-      try {
-        if constexpr (std::is_same<T, Mag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Mag_t& Mag(void) const {
-    try {
-      if constexpr (std::is_same<T, Mag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Mag (Magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Mag_found(void) {
-      if constexpr (std::is_same<T, Mag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   FlxMag_t& FlxMag(void) {
-      try {
-        if constexpr (std::is_same<T, FlxMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const FlxMag_t& FlxMag(void) const {
-    try {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] FlxMag (Magnetic field flux function) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool FlxMag_found(void) {
-      if constexpr (std::is_same<T, FlxMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Glm_t& Glm(void) {
-      try {
-        if constexpr (std::is_same<T, Glm_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Glm_t& Glm(void) const {
-    try {
-      if constexpr (std::is_same<T, Glm_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Glm (Lagrange multiplier field of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Glm_found(void) {
-      if constexpr (std::is_same<T, Glm_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   FlxGlm_t& FlxGlm(void) {
-      try {
-        if constexpr (std::is_same<T, FlxGlm_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const FlxGlm_t& FlxGlm(void) const {
-    try {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] FlxGlm (Lagrange mutlipler flux function of GLM MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool FlxGlm_found(void) {
-      if constexpr (std::is_same<T, FlxGlm_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Ele_t& Ele(void) {
-      try {
-        if constexpr (std::is_same<T, Ele_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Ele_t& Ele(void) const {
-    try {
-      if constexpr (std::is_same<T, Ele_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Ele (Electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Ele_found(void) {
-      if constexpr (std::is_same<T, Ele_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   AbsMag_t& AbsMag(void) {
-      try {
-        if constexpr (std::is_same<T, AbsMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const AbsMag_t& AbsMag(void) const {
-    try {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] AbsMag (Magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool AbsMag_found(void) {
-      if constexpr (std::is_same<T, AbsMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HatMag_t& HatMag(void) {
-      try {
-        if constexpr (std::is_same<T, HatMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HatMag_t& HatMag(void) const {
-    try {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HatMag (Magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HatMag_found(void) {
-      if constexpr (std::is_same<T, HatMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DelVel_t& DelVel(void) {
-      try {
-        if constexpr (std::is_same<T, DelVel_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DelVel_t& DelVel(void) const {
-    try {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DelVel (Gradient of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DelVel_found(void) {
-      if constexpr (std::is_same<T, DelVel_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DelEle_t& DelEle(void) {
-      try {
-        if constexpr (std::is_same<T, DelEle_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DelEle (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DelEle_t& DelEle(void) const {
-    try {
-      if constexpr (std::is_same<T, DelEle_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DelEle (Gradient of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DelEle_found(void) {
-      if constexpr (std::is_same<T, DelEle_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DelMag_t& DelMag(void) {
-      try {
-        if constexpr (std::is_same<T, DelMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DelMag_t& DelMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DelMag (Gradient of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DelMag_found(void) {
-      if constexpr (std::is_same<T, DelMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DelAbsMag_t& DelAbsMag(void) {
-      try {
-        if constexpr (std::is_same<T, DelAbsMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DelAbsMag_t& DelAbsMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DelAbsMag (Gradient of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DelAbsMag_found(void) {
-      if constexpr (std::is_same<T, DelAbsMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DelHatMag_t& DelHatMag(void) {
-      try {
-        if constexpr (std::is_same<T, DelHatMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DelHatMag_t& DelHatMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DelHatMag (Gradient of magnetic field direction ) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DelHatMag_found(void) {
-      if constexpr (std::is_same<T, DelHatMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DotVel_t& DotVel(void) {
-      try {
-        if constexpr (std::is_same<T, DotVel_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DotVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DotVel_t& DotVel(void) const {
-    try {
-      if constexpr (std::is_same<T, DotVel_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DotVel (Time derivative of velocity field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DotVel_found(void) {
-      if constexpr (std::is_same<T, DotVel_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DotEle_t& DotEle(void) {
-      try {
-        if constexpr (std::is_same<T, DotEle_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DotEle (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DotEle_t& DotEle(void) const {
-    try {
-      if constexpr (std::is_same<T, DotEle_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DotEle (Time derivative of electric field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DotEle_found(void) {
-      if constexpr (std::is_same<T, DotEle_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DotMag_t& DotMag(void) {
-      try {
-        if constexpr (std::is_same<T, DotMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DotMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DotMag_t& DotMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DotMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DotMag (Time derivative of magnetic field) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DotMag_found(void) {
-      if constexpr (std::is_same<T, DotMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DotAbsMag_t& DotAbsMag(void) {
-      try {
-        if constexpr (std::is_same<T, DotAbsMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DotAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DotAbsMag_t& DotAbsMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DotAbsMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DotAbsMag (Time derivative of magnetic field magnitude) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DotAbsMag_found(void) {
-      if constexpr (std::is_same<T, DotAbsMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   DotHatMag_t& DotHatMag(void) {
-      try {
-        if constexpr (std::is_same<T, DotHatMag_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] DotHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const DotHatMag_t& DotHatMag(void) const {
-    try {
-      if constexpr (std::is_same<T, DotHatMag_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] DotHatMag (Time derivative of magnetic field direction) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool DotHatMag_found(void) {
-      if constexpr (std::is_same<T, DotHatMag_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv0_t& Iv0(void) {
-      try {
-        if constexpr (std::is_same<T, Iv0_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv0_t& Iv0(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv0 (Zeroth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv0_found(void) {
-      if constexpr (std::is_same<T, Iv0_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv1_t& Iv1(void) {
-      try {
-        if constexpr (std::is_same<T, Iv1_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv1_t& Iv1(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv1 (First (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv1_found(void) {
-      if constexpr (std::is_same<T, Iv1_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv2_t& Iv2(void) {
-      try {
-        if constexpr (std::is_same<T, Iv2_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv2_t& Iv2(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv2 (Second (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv2_found(void) {
-      if constexpr (std::is_same<T, Iv2_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv3_t& Iv3(void) {
-      try {
-        if constexpr (std::is_same<T, Iv3_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv3_t& Iv3(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv3 (Third (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv3_found(void) {
-      if constexpr (std::is_same<T, Iv3_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv4_t& Iv4(void) {
-      try {
-        if constexpr (std::is_same<T, Iv4_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv4_t& Iv4(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv4 (Fourth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv4_found(void) {
-      if constexpr (std::is_same<T, Iv4_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   Iv5_t& Iv5(void) {
-      try {
-        if constexpr (std::is_same<T, Iv5_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const Iv5_t& Iv5(void) const {
-    try {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] Iv5 (Fifth (general purpose) Indicator variable) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool Iv5_found(void) {
-      if constexpr (std::is_same<T, Iv5_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   IvLISM_t& IvLISM(void) {
-      try {
-        if constexpr (std::is_same<T, IvLISM_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const IvLISM_t& IvLISM(void) const {
-    try {
-      if constexpr (std::is_same<T, IvLISM_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] IvLISM (LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool IvLISM_found(void) {
-      if constexpr (std::is_same<T, IvLISM_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   IvBmix_t& IvBmix(void) {
-      try {
-        if constexpr (std::is_same<T, IvBmix_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const IvBmix_t& IvBmix(void) const {
-    try {
-      if constexpr (std::is_same<T, IvBmix_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] IvBmix (magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool IvBmix_found(void) {
-      if constexpr (std::is_same<T, IvBmix_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   IvSolarCycle_t& IvSolarCycle(void) {
-      try {
-        if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const IvSolarCycle_t& IvSolarCycle(void) const {
-    try {
-      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] IvSolarCycle (solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool IvSolarCycle_found(void) {
-      if constexpr (std::is_same<T, IvSolarCycle_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   PrimitiveGasDyn_t& PrimitiveGasDyn(void) {
-      try {
-        if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const PrimitiveGasDyn_t& PrimitiveGasDyn(void) const {
-    try {
-      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool PrimitiveGasDyn_found(void) {
-      if constexpr (std::is_same<T, PrimitiveGasDyn_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ConservedGasDyn_t& ConservedGasDyn(void) {
-      try {
-        if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ConservedGasDyn (Fields of the conserved form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ConservedGasDyn_t& ConservedGasDyn(void) const {
-    try {
-      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ConservedGasDyn (Fields of the conserved form for general gas dynamics) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ConservedGasDyn_found(void) {
-      if constexpr (std::is_same<T, ConservedGasDyn_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   PrimitiveMHD_t& PrimitiveMHD(void) {
-      try {
-        if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] PrimitiveMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const PrimitiveMHD_t& PrimitiveMHD(void) const {
-    try {
-      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] PrimitiveMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool PrimitiveMHD_found(void) {
-      if constexpr (std::is_same<T, PrimitiveMHD_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ConservedMHD_t& ConservedMHD(void) {
-      try {
-        if constexpr (std::is_same<T, ConservedMHD_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ConservedMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ConservedMHD_t& ConservedMHD(void) const {
-    try {
-      if constexpr (std::is_same<T, ConservedMHD_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ConservedMHD (Fields of the conserved form for general MHD) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ConservedMHD_found(void) {
-      if constexpr (std::is_same<T, ConservedMHD_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) {
-      try {
-        if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const PrimitiveMHDGLM_t& PrimitiveMHDGLM(void) const {
-    try {
-      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool PrimitiveMHDGLM_found(void) {
-      if constexpr (std::is_same<T, PrimitiveMHDGLM_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ConservedMHDGLM_t& ConservedMHDGLM(void) {
-      try {
-        if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ConservedMHDGLM_t& ConservedMHDGLM(void) const {
-    try {
-      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ConservedMHDGLM_found(void) {
-      if constexpr (std::is_same<T, ConservedMHDGLM_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ElectronCore_t& ElectronCore(void) {
-      try {
-        if constexpr (std::is_same<T, ElectronCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ElectronCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ElectronCore_t& ElectronCore(void) const {
-    try {
-      if constexpr (std::is_same<T, ElectronCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ElectronCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ElectronCore_found(void) {
-      if constexpr (std::is_same<T, ElectronCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ElectronHalo_t& ElectronHalo(void) {
-      try {
-        if constexpr (std::is_same<T, ElectronHalo_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ElectronHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ElectronHalo_t& ElectronHalo(void) const {
-    try {
-      if constexpr (std::is_same<T, ElectronHalo_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ElectronHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ElectronHalo_found(void) {
-      if constexpr (std::is_same<T, ElectronHalo_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ElectronBeam_t& ElectronBeam(void) {
-      try {
-        if constexpr (std::is_same<T, ElectronBeam_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ElectronBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ElectronBeam_t& ElectronBeam(void) const {
-    try {
-      if constexpr (std::is_same<T, ElectronBeam_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ElectronBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ElectronBeam_found(void) {
-      if constexpr (std::is_same<T, ElectronBeam_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ProtonCore_t& ProtonCore(void) {
-      try {
-        if constexpr (std::is_same<T, ProtonCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ProtonCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ProtonCore_t& ProtonCore(void) const {
-    try {
-      if constexpr (std::is_same<T, ProtonCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ProtonCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ProtonCore_found(void) {
-      if constexpr (std::is_same<T, ProtonCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ProtonHalo_t& ProtonHalo(void) {
-      try {
-        if constexpr (std::is_same<T, ProtonHalo_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ProtonHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ProtonHalo_t& ProtonHalo(void) const {
-    try {
-      if constexpr (std::is_same<T, ProtonHalo_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ProtonHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ProtonHalo_found(void) {
-      if constexpr (std::is_same<T, ProtonHalo_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ProtonBeam_t& ProtonBeam(void) {
-      try {
-        if constexpr (std::is_same<T, ProtonBeam_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ProtonBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ProtonBeam_t& ProtonBeam(void) const {
-    try {
-      if constexpr (std::is_same<T, ProtonBeam_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ProtonBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ProtonBeam_found(void) {
-      if constexpr (std::is_same<T, ProtonBeam_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   ProtonPickup_t& ProtonPickup(void) {
-      try {
-        if constexpr (std::is_same<T, ProtonPickup_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] ProtonPickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const ProtonPickup_t& ProtonPickup(void) const {
-    try {
-      if constexpr (std::is_same<T, ProtonPickup_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] ProtonPickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool ProtonPickup_found(void) {
-      if constexpr (std::is_same<T, ProtonPickup_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   AlphaCore_t& AlphaCore(void) {
-      try {
-        if constexpr (std::is_same<T, AlphaCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] AlphaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const AlphaCore_t& AlphaCore(void) const {
-    try {
-      if constexpr (std::is_same<T, AlphaCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] AlphaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool AlphaCore_found(void) {
-      if constexpr (std::is_same<T, AlphaCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   AlphaHalo_t& AlphaHalo(void) {
-      try {
-        if constexpr (std::is_same<T, AlphaHalo_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] AlphaHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const AlphaHalo_t& AlphaHalo(void) const {
-    try {
-      if constexpr (std::is_same<T, AlphaHalo_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] AlphaHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool AlphaHalo_found(void) {
-      if constexpr (std::is_same<T, AlphaHalo_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HeliumSingleCore_t& HeliumSingleCore(void) {
-      try {
-        if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HeliumSingleCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HeliumSingleCore_t& HeliumSingleCore(void) const {
-    try {
-      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HeliumSingleCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HeliumSingleCore_found(void) {
-      if constexpr (std::is_same<T, HeliumSingleCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HeliumSinglePickup_t& HeliumSinglePickup(void) {
-      try {
-        if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HeliumSinglePickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HeliumSinglePickup_t& HeliumSinglePickup(void) const {
-    try {
-      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HeliumSinglePickup (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HeliumSinglePickup_found(void) {
-      if constexpr (std::is_same<T, HeliumSinglePickup_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) {
-      try {
-        if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HydrogenPlasmaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HydrogenPlasmaCore_t& HydrogenPlasmaCore(void) const {
-    try {
-      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HydrogenPlasmaCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HydrogenPlasmaCore_found(void) {
-      if constexpr (std::is_same<T, HydrogenPlasmaCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HydrogenCore_t& HydrogenCore(void) {
-      try {
-        if constexpr (std::is_same<T, HydrogenCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HydrogenCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HydrogenCore_t& HydrogenCore(void) const {
-    try {
-      if constexpr (std::is_same<T, HydrogenCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HydrogenCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HydrogenCore_found(void) {
-      if constexpr (std::is_same<T, HydrogenCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HydrogenHalo_t& HydrogenHalo(void) {
-      try {
-        if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HydrogenHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HydrogenHalo_t& HydrogenHalo(void) const {
-    try {
-      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HydrogenHalo (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HydrogenHalo_found(void) {
-      if constexpr (std::is_same<T, HydrogenHalo_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HydrogenBeam_t& HydrogenBeam(void) {
-      try {
-        if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HydrogenBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HydrogenBeam_t& HydrogenBeam(void) const {
-    try {
-      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HydrogenBeam (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HydrogenBeam_found(void) {
-      if constexpr (std::is_same<T, HydrogenBeam_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   HeliumCore_t& HeliumCore(void) {
-      try {
-        if constexpr (std::is_same<T, HeliumCore_t>::value)
-          return data;
-        else
-          throw std::invalid_argument( "[Fields] HeliumCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-      }
-      catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-   };
-   
-  const HeliumCore_t& HeliumCore(void) const {
-    try {
-      if constexpr (std::is_same<T, HeliumCore_t>::value)
-        return data;
-      else
-        throw std::invalid_argument( "[Fields] HeliumCore (Fields of the primitive form for species) was not found: the tuple does not contain the requested value type. You can add this value type when you build the tuple type." );
-    }
-    catch (const std::exception& e) {std::cerr << e.what() << std::endl; std::exit(EXIT_FAILURE);};
-  };
-   
-   static constexpr bool HeliumCore_found(void) {
-      if constexpr (std::is_same<T, HeliumCore_t>::value)
-         return true;
-      else
-         return false;
-   };
-
-   // END(fields/generate, base)
-
-   /*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of U
-*/
-   inline double DivVel(void)
-   {
-      return DelVel().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of B
-*/
-   inline double DivMag(void)
-   {
-      return DelMag().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Divergence of E
-*/
-   inline double divE(void)
-   {
-      return DelEle().Trace();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of U
-*/
-   inline GeoVector curlU(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelVel();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of B
-*/
-   inline GeoVector CurlMag(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelMag();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 10/18/2022
-\return Curl of E
-*/
-   inline GeoVector CurlEle(void)
-   {
-      GeoVector vec_tmp;
-      GeoMatrix G = DelEle();
-      vec_tmp[0] = G[1][2] - G[2][1];
-      vec_tmp[1] = G[2][0] - G[0][2];
-      vec_tmp[2] = G[0][1] - G[1][0];
-      return vec_tmp;
-   };
-
-
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/02/2024
-\return Divergence of bhat
-\note The formula comes from applying vector identity (7) in the NRL Plasma formulary
-*/
-   double DivHatMag()
-   {
-      return (DivMag() - (DelAbsMag() * HatMag())) / AbsMag();
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/02/2024
-\return Curl of bhat
-\note The formula comes from applying vector identity (8) in the NRL Plasma formulary
-*/
-   GeoVector CurlHatMag()
-   {
-      auto bhat = HatMag();
-      // todo fix when using auto or MmagT to set type
-      double Bmag = AbsMag();
-      auto gradBmag = DelAbsMag();
-      return (CurlMag() - (gradBmag ^ bhat)) / Bmag;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/02/2024
-\return Gradient of bhat
-\note The formula comes from expanding \partial_i bhat_j = d/dx^i (B_j / B)
-*/
-   GeoMatrix DelHatMag()
-   {
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      auto gradB = DelMag();
-      auto gradBmag = DelAbsMag();
-      // todo Dyadic can be made static
-      GeoMatrix tmp;
-      tmp.Dyadic(gradBmag, bhat);
-      return (gradB - tmp) / Bmag;
-   };
-
-/*!
-\author Juan G Alonso Guzman
-\date 07/02/2024
-\return Time derivative of bhat
-*/
-   GeoVector DotHatMag()
-   {
-      auto dBvecdt = DdtMag();
-      auto dBmagdt = DdtAbsMag();
-      auto bhat = HatMag();
-      double Bmag = AbsMag();
-      return (dBvecdt - (dBmagdt * bhat)) / Bmag;
-   };
-
-
-
-   std::string str(bool recursive = false) const {
-      if (recursive)
-         return data.str();
-      else
-         return "{" + data.str() + "}";
-   }
-
-};
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] tup const Fields type
-\return The `I`th member of tuple, for template argument integer `I`
- \note The calling pattern is the same as that of std::get.
-\note The value of template argument `I` must be known at compile time,
-which can constraint usage in some situations. In these cases you may be
-able use class method foreach() with one of the argument signatures.
-*/
-template <std::size_t I, typename T, typename... Ts>
-decltype(auto) get(const Fields<T, Ts...>& tup) {
-   if constexpr (I == 0)
-      return tup.top();
-   else
-      return get<I-1>(static_cast<const Fields<Ts...>&>(tup));
-}
-
-/*!
-\author Lucius Schoenbaum
-\date 06/02/2025
-\param[in] tup Fields type
-\return The `I`th member of tuple, for template argument integer `I`
-\note The calling pattern is the same as that of std::get.
-\note The value of template argument `I` must be known at compile time,
-which can constraint usage in some situations. In these cases you may be
-able use class method foreach() with one of the argument signatures.
-*/
-template <std::size_t I, typename T, typename... Ts>
-decltype(auto) get(Fields<T, Ts...>& tup) {
-   if constexpr (I == 0)
-      return tup.top();
-   else
-      return get<I - 1>(static_cast<Fields<Ts...> &>(tup));
-}
 
 };
 

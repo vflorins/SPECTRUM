@@ -62,7 +62,7 @@ template <typename HConfig>
 void TrajectoryFieldline<HConfig>::PhysicalStep(void)
 {
    constexpr double cfl_adv = Config::cfl_advection;
-   // todo review - what is Vel_sys ----> check
+   // velocity coordinate system (Vel_sys) is anisotropic
    dt_physical = cfl_adv * _dmax / fabs(_coords.VelPara());
 };
 
@@ -82,7 +82,9 @@ void TrajectoryFieldline<HConfig>::Slopes(GeoVector& slope_pos_istage, GeoVector
       slope_pos_istage = _coords.VelPara() * _fields.HatFluv();
    }
    else if constexpr (std::same_as<Field_t, Mag_t>) {
+      std::cout << "VelPara " << _coords.VelPara() << " HatMag " << _fields.HatMag() << std::endl;
       slope_pos_istage = _coords.VelPara() * _fields.HatMag();
+      std::cout << "slope_pos " << slope_pos_istage << std::endl;
    }
    else if constexpr (std::same_as<Field_t, Ele_t>) {
       slope_pos_istage = _coords.VelPara() * _fields.HatEle();

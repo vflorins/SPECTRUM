@@ -145,7 +145,7 @@ template <typename HConfig_>
 class InitialMomentumRing : public InitialBase<HConfig_> {
 private:
 
-   //! Readable name of the class
+//! Readable name of the class
    static constexpr std::string_view init_name = "InitialMomentumRing";
 
 public:
@@ -209,7 +209,7 @@ template <typename HConfig_>
 class InitialMomentumShell : public InitialBase<HConfig_> {
 private:
 
-   //! Readable name of the class
+//! Readable name of the class
    static constexpr std::string_view init_name = "InitialMomentumShell";
 
 public:
