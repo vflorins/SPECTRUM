@@ -723,27 +723,27 @@ void GeodesicSector<verts_per_face>::PrintConn(int type) const
       break;
 
    case 4:
-      std::cerr << "Printing edge-vert connectivity for block\n";
+      std::cerr << "Printing edge-vert connectivity\n";
       PrintConnectivity(n_edges_withghost, 2, 0, ev_local);
       break;
 
    case 6:
-      std::cerr << "Printing edge-face connectivity for block\n";
+      std::cerr << "Printing edge-face connectivity\n";
       PrintConnectivity(n_edges_withghost, 2, 0, ef_local);
       break;
 
    case 7:
-      std::cerr << "Printing face-vert connectivity for block\n";
+      std::cerr << "Printing face-vert connectivity\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, fv_local);
       break;
 
    case 8:
-      std::cerr << "Printing face-edge connectivity for block\n";
+      std::cerr << "Printing face-edge connectivity\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, fe_local);
       break;
 
    case 9:
-      std::cerr << "Printing face-face connectivity for block\n";
+      std::cerr << "Printing face-face connectivity\n";
       PrintConnectivity(n_faces_withghost, verts_per_face, 0, ff_local);
       break;
    };
@@ -805,6 +805,6 @@ void GeodesicSector<verts_per_face>::PrintMask(int type) const
 #endif
 
 template class GeodesicSector<3>;
-//template class GeodesicSector<4>;
+template class GeodesicSector<4>;
 
 };

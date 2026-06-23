@@ -32,7 +32,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 
 // A drawing would be too busy for division values greated than 6
    if (div > 6) {
-      std::cerr << "Tesselation: Division too high for a plot\n";
+      PrintMessage(__FILE__, __LINE__, "Tesselation: Division too high for a plot", true);
       return;
    };
 
@@ -48,7 +48,7 @@ void DrawableTesselation<poly_type, max_division>::DrawGridArcs(int div, bool op
 
    GeoVector v, v1, v2, v3;
    std::ofstream meshfile;
-   meshfile.open(("mesh_" + std::to_string(poly_type) + "_" + std::to_string(div) + ".out").c_str(), std::ofstream::out);
+   meshfile.open(("mesh_" + std::string(PolyNames[static_cast<int>(poly_type)]) + "_" + std::to_string(div) + ".out").c_str(), std::ofstream::out);
    meshfile << "# Drawing edges at division " << div << std::endl;
 
 // Loop over edges
@@ -334,22 +334,22 @@ void DrawableTesselation<poly_type, max_division>::PrintConn(int div, int type) 
 
 #endif
 
-template class DrawableTesselation<POLY_TETRAHEDRON, 5>;
-template class DrawableTesselation<POLY_HEXAHEDRON, 5>;
-template class DrawableTesselation<POLY_OCTAHEDRON, 5>;
-template class DrawableTesselation<POLY_DODECAHEDRON, 5>;
-template class DrawableTesselation<POLY_ICOSAHEDRON, 5>;
+template class DrawableTesselation<PolyType::POLY_TETRAHEDRON, 5>;
+template class DrawableTesselation<PolyType::POLY_HEXAHEDRON, 5>;
+template class DrawableTesselation<PolyType::POLY_OCTAHEDRON, 5>;
+template class DrawableTesselation<PolyType::POLY_DODECAHEDRON, 5>;
+template class DrawableTesselation<PolyType::POLY_ICOSAHEDRON, 5>;
 
-template class DrawableTesselation<POLY_TETRAHEDRON, 6>;
-template class DrawableTesselation<POLY_HEXAHEDRON, 6>;
-template class DrawableTesselation<POLY_OCTAHEDRON, 6>;
-template class DrawableTesselation<POLY_DODECAHEDRON, 6>;
-template class DrawableTesselation<POLY_ICOSAHEDRON, 6>;
+template class DrawableTesselation<PolyType::POLY_TETRAHEDRON, 6>;
+template class DrawableTesselation<PolyType::POLY_HEXAHEDRON, 6>;
+template class DrawableTesselation<PolyType::POLY_OCTAHEDRON, 6>;
+template class DrawableTesselation<PolyType::POLY_DODECAHEDRON, 6>;
+template class DrawableTesselation<PolyType::POLY_ICOSAHEDRON, 6>;
 
-template class DrawableTesselation<POLY_TETRAHEDRON, 7>;
-template class DrawableTesselation<POLY_HEXAHEDRON, 7>;
-template class DrawableTesselation<POLY_OCTAHEDRON, 7>;
-template class DrawableTesselation<POLY_DODECAHEDRON, 7>;
-template class DrawableTesselation<POLY_ICOSAHEDRON, 7>;
+template class DrawableTesselation<PolyType::POLY_TETRAHEDRON, 7>;
+template class DrawableTesselation<PolyType::POLY_HEXAHEDRON, 7>;
+template class DrawableTesselation<PolyType::POLY_OCTAHEDRON, 7>;
+template class DrawableTesselation<PolyType::POLY_DODECAHEDRON, 7>;
+template class DrawableTesselation<PolyType::POLY_ICOSAHEDRON, 7>;
 
 };

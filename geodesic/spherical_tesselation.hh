@@ -12,8 +12,8 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include <iostream>
 #include <cstdint>
 
-#include "common/vectors.hh"
-#include "geodesic/polyhedron.hh"
+#include <common/vectors.hh>
+#include <geometry/polyhedron.hh>
 
 namespace Spectrum {
 
@@ -155,10 +155,10 @@ protected:
 //! Cartesian coordinates of vertices on a unit sphere
    GeoVector* vert_cart = nullptr;
 
-//! Vertex-vertex connectivity array (not ordered)
+//! Vertex-vertex connectivity array (ordered counter-clockwise)
    int** vv_con[max_division + 1] = {nullptr};
 
-//! Vertex-edge connectivity array (not ordered)
+//! Vertex-edge connectivity array (ordered counter-clockwise)
    int** ve_con[max_division + 1] = {nullptr};
 
 //! Vertex-face connectivity array (ordered counter-clockwise)
@@ -266,7 +266,7 @@ return Number of neighbor vertices (same as edges and faces)
 template <PolyType poly_type, int max_division>
 SPECTRUM_DEVICE_FUNC inline int SphericalTesselation<poly_type, max_division>::NVertNbrs(int div, int vert) const
 {
-   if (poly_type == POLY_DODECAHEDRON) {
+   if (poly_type == PolyType::POLY_DODECAHEDRON) {
       if (!div) return edges_per_vert[0];
       else if ((vert >= nverts[0]) && (vert < nverts[0] + nfaces[0])) return verts_per_face[0];
       else return edges_per_vert[div];
