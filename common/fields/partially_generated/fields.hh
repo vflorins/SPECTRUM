@@ -41,7 +41,7 @@ or to house per-cell data on a grid.
 \date 08/26/2025
 */
 template <typename FConfig_, typename ... Ts>
-struct Fields {
+class Fields {
 public:
 
    using FConfig = FConfig_;
@@ -83,6 +83,12 @@ public: // test
       return (sizeof(Ts) + ... + 0)/sizeof(double);
    }
 
+/*
+\brief The index of X as an element of the typelist.
+\author Lucius Schoenbaum
+\date 08/26/2025
+Note: this is not the base index of X in the array `data`. That index is referred to as the offset.
+ */
    template <typename X>
    static constexpr std::size_t compute_index() {
       constexpr bool locate[] = {std::same_as<X, Ts>...};
@@ -92,11 +98,15 @@ public: // test
       return Type_not_found;
    }
 
+/*
+\brief The offset of X, the base index of X in the array `data`.
+\author Lucius Schoenbaum
+\date 08/26/2025
+ */
    template<std::size_t... Is>
    static constexpr std::size_t compute_offset_impl(std::index_sequence<Is...>) {
       return (sizeof(std::tuple_element_t<Is, std::tuple<Ts...>>) + ... + 0)/sizeof(double);
    }
-
    template<typename X>
    static constexpr std::size_t compute_offset() {
       constexpr auto i = compute_index<X>();
@@ -104,6 +114,12 @@ public: // test
       else return compute_offset_impl(std::make_index_sequence<i>{});
    }
 
+/*
+\brief The size in units of sizeof(double).
+\author Lucius Schoenbaum
+\date 08/26/2025
+Note: All members of the typelist are required to have a static constexpr field `size_`.
+ */
    static constexpr const std::size_t size_ = compute_size();
 
    // BEGIN(fields/generate, base)
@@ -163,14 +179,29 @@ protected:
 
    double data[size_];
 
+   // base case
+   constexpr void load_recursive(std::size_t offset) {}
+   // recursive case
+   template <typename TT, typename ... TTs>
+   constexpr void load_recursive(std::size_t offset, const TT& head, const TTs&... tail) {
+      for (std::size_t i = 0; i < head.size_; ++i) {
+         data[offset+i] = head.data[i];
+      }
+      load_recursive(offset + head.size_, tail...);
+   }
+
 public:
 
    Fields(void) = default;
 
-   template <std::enable_if<(sizeof...(Ts) > 0)>>
-   explicit Fields(Ts... in):
-       data(in...)
-   {};
+//   template <std::enable_if<(sizeof...(Ts) > 0)>>
+   template <typename ... Args>
+   requires (sizeof...(Ts) > 0)
+   constexpr Fields(Ts... in):
+       data{}
+   {
+      load_recursive(0, in...);
+   };
 
 
 /*!
@@ -223,7 +254,7 @@ This should not occur in fluid or MHD applications.
  */
    template <typename T>
    decltype(auto) get() const {
-      constexpr auto idx = compute_index<T>();
+      constexpr auto idx = compute_offset<T>();
       return *reinterpret_cast<const T*>(data + idx);
    }
 
@@ -2668,6 +2699,25 @@ The operation going the other way does *not* happen - do not write velocity fiel
       return (DotMag() - (DotAbsMag() * HatMag())) / AbsMag();
    };
 
+private: // diagnostic string helpers:
+
+   // base
+   template <typename Head>
+   [[nodiscard]] std::string buildstring_recursive() const {
+      return get<Head>().str();
+   }
+   // recursion
+   template <typename Head, typename... Tail>
+   requires (sizeof...(Tail) > 0)
+   [[nodiscard]] std::string buildstring_recursive() const {
+      std::string s = get<Head>().str();
+      std::string s_rem = buildstring_recursive<Tail...>();
+      return s + ", " + s_rem;
+   }
+
+
+public: // diagnostic string:
+
 
 /*!
 \author Lucius Schoenbaum
@@ -2676,7 +2726,9 @@ The operation going the other way does *not* happen - do not write velocity fiel
 */
    [[nodiscard]] std::string str() const {
       std::string out = "{";
-      // todo - foreach
+      if constexpr (sizeof...(Ts) > 0) {
+         out += buildstring_recursive<Ts...>();
+      }
       out += "}";
       return out;
    }

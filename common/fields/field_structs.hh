@@ -25,37 +25,34 @@ struct ScalarField {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
+   static constexpr const std::size_t size_ = 1;
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
    static const int derived = derived_;
 
 //! data field
-   double value;
+   double data[1];
    
    ScalarField(double value = 0):
-      value(value)
+      data(value)
    {}
 
    ScalarField(ScalarField<nameid> field_in) {
-      value = field_in.value;
+      data = field_in.data[0];
    }
 
    operator double&() {
-      return value;
+      return data[0];
    }
 
    operator double() const {
-      return value;
+      return data[0];
    }
 
 //! print string
    std::string str() const {
-      std::string tmp = std::string(Field::Names[nameid]) + "[" + std::to_string(value) + "]";
+      std::string tmp = std::string(Field::Names[nameid]) + "[" + std::to_string(data[0]) + "]";
       return tmp;
-   }
-
-   int scalar_size() const {
-      return 1;
    }
 
 };
@@ -71,6 +68,7 @@ struct VectorField : public GeoVector {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
+   static constexpr const std::size_t size_ = 3;
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
    static const int derived = derived_;
@@ -90,10 +88,6 @@ struct VectorField : public GeoVector {
       tmp += std::to_string(y) + " ";
       tmp += std::to_string(z) + "]";
       return tmp;
-   }
-
-   int scalar_size() const {
-      return 3;
    }
 
 };
@@ -155,6 +149,7 @@ struct MatrixField : public GeoMatrix {
 
 //! static fields
    static constexpr const std::string_view name = Field::Names[nameid];
+   static constexpr const std::size_t size_ = 9;
    static const int reconstructible = reconstructible_;
    static const int solvable = solvable_;
    static const int derived = derived_;
