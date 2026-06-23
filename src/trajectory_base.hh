@@ -22,7 +22,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #include "utils_numerical_derivatives.hh"
 #include "utils_records.hh"
 
-#include "common/fields2/field_ops.hh"
+#include "common/fields/field_ops.hh"
 
 
 namespace Spectrum {
