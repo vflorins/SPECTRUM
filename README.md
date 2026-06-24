@@ -14,7 +14,7 @@ SPECTRUM is capable of performing test-particle simulations for a variety of tra
 
 ### MHD Simulations
 
-This functionality of SPECTRUM is currently under development.
+SPECTRUM contains an adaptive geodesic mesh framework for systems of conservation conservation laws, such as MHD. Currently under development, the code will feature divergence-free conservative WENO reconstruction and a selection of Riemann solvers.
 
 ## Using the Code
 
