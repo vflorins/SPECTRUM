@@ -304,13 +304,13 @@ void RequestableTesselation<poly_type, max_division>::FillVertCoordArrays(int le
    };
 };
 
-template class RequestableTesselation<POLY_HEXAHEDRON, 4>;
-template class RequestableTesselation<POLY_HEXAHEDRON, 5>;
-template class RequestableTesselation<POLY_HEXAHEDRON, 6>;
-template class RequestableTesselation<POLY_HEXAHEDRON, 7>;
-template class RequestableTesselation<POLY_ICOSAHEDRON, 4>;
-template class RequestableTesselation<POLY_ICOSAHEDRON, 5>;
-template class RequestableTesselation<POLY_ICOSAHEDRON, 6>;
-template class RequestableTesselation<POLY_ICOSAHEDRON, 7>;
+template class RequestableTesselation<PolyType::POLY_HEXAHEDRON, 4>;
+template class RequestableTesselation<PolyType::POLY_HEXAHEDRON, 5>;
+template class RequestableTesselation<PolyType::POLY_HEXAHEDRON, 6>;
+template class RequestableTesselation<PolyType::POLY_HEXAHEDRON, 7>;
+template class RequestableTesselation<PolyType::POLY_ICOSAHEDRON, 4>;
+template class RequestableTesselation<PolyType::POLY_ICOSAHEDRON, 5>;
+template class RequestableTesselation<PolyType::POLY_ICOSAHEDRON, 6>;
+template class RequestableTesselation<PolyType::POLY_ICOSAHEDRON, 7>;
 
 };

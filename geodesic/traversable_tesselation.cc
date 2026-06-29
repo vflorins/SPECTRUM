@@ -89,7 +89,8 @@ SPECTRUM_DEVICE_FUNC void TraversableTesselation<poly_type, max_division>::Step(
 This function performs a basic move that allow visiting every face in the tesselation. The base vertex ("vert1") determines the base edge (CC from the base vertex). The moves are defined for the t-face resting on its base edge, so that the base vertex is in the SW corner. They are S (dir=1) and E (dir=2).
 */
 template <int max_division>
-SPECTRUM_DEVICE_FUNC void TraversableTesselation<POLY_HEXAHEDRON, max_division>::Step(int div, int face1, int vert1, int dir, int& face2, int& vert2) const
+SPECTRUM_DEVICE_FUNC void TraversableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::Step(int div, int face1, int vert1,
+                                                                                                int dir, int& face2, int& vert2) const
 {
    int iv1, iv2;
    if ((dir < 0) || (dir >= verts_per_face[div])) return;
@@ -164,13 +165,13 @@ void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int
 {
 
 // Pentagonal sectors are not allowed
-   if ((poly_type == POLY_DODECAHEDRON) && !divs) {
+   if ((poly_type == PolyType::POLY_DODECAHEDRON) && !divs) {
       PrintError(__FILE__, __LINE__, "Division 0 sectors not allowed for DOCECAHEDRON tesselation", true);
       return;
    };
 
 // TODO Implement triangular sectors with tetra- and tri-corners.
-   if ((poly_type == POLY_TETRAHEDRON) || (poly_type == POLY_OCTAHEDRON)) {
+   if ((poly_type == PolyType::POLY_TETRAHEDRON) || (poly_type == PolyType::POLY_OCTAHEDRON)) {
       PrintError(__FILE__, __LINE__, "Not implemented yet for TETRAHEDRON and OCTAHEDRON tesselations", true);
       return;
    };
@@ -512,8 +513,8 @@ void TraversableTesselation<poly_type, max_division>::GetAllInsideFaceNative(int
 A crawler through a square region consisting of a sector surrounded by a layer of ghost faces on each side. The crawl is performed in the QAS pattern starting from the base (SW) corner, and the index of each t-face visited and each vertex encountered are recorded. NB: The QAS is the addressing systems used by grid blocks.
 */
 template <int max_division>
-void TraversableTesselation<POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNative(int divs, int sect, int divf, int nghost,
-                                                                                   int* flist, int* vlist, bool* corners) const
+void TraversableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNative(int divs, int sect, int divf, int nghost,
+                                                                                             int* flist, int* vlist, bool* corners) const
 {
    int vert, face, iv, it, i, j, findex = 0, vindex = 0;
    
@@ -759,13 +760,13 @@ void TraversableTesselation<POLY_HEXAHEDRON, max_division>::GetAllInsideFaceNati
    };
 };
 
-template class TraversableTesselation<POLY_HEXAHEDRON, 4>;
-template class TraversableTesselation<POLY_HEXAHEDRON, 5>;
-template class TraversableTesselation<POLY_HEXAHEDRON, 6>;
-template class TraversableTesselation<POLY_HEXAHEDRON, 7>;
-template class TraversableTesselation<POLY_ICOSAHEDRON, 4>;
-template class TraversableTesselation<POLY_ICOSAHEDRON, 5>;
-template class TraversableTesselation<POLY_ICOSAHEDRON, 6>;
-template class TraversableTesselation<POLY_ICOSAHEDRON, 7>;
+template class TraversableTesselation<PolyType::POLY_HEXAHEDRON, 4>;
+template class TraversableTesselation<PolyType::POLY_HEXAHEDRON, 5>;
+template class TraversableTesselation<PolyType::POLY_HEXAHEDRON, 6>;
+template class TraversableTesselation<PolyType::POLY_HEXAHEDRON, 7>;
+template class TraversableTesselation<PolyType::POLY_ICOSAHEDRON, 4>;
+template class TraversableTesselation<PolyType::POLY_ICOSAHEDRON, 5>;
+template class TraversableTesselation<PolyType::POLY_ICOSAHEDRON, 6>;
+template class TraversableTesselation<PolyType::POLY_ICOSAHEDRON, 7>;
 
 };

@@ -12,18 +12,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 namespace Spectrum {
 
 /*!
-\brief Number of edges at a vertex in an infinite tesselation
-\author Vladimir Florinski
-\date 07/02/2024
-\return Number of edges meeting at a vertex (3->6, 4->4, 6->3)
-*/
-template <int verts_per_face>
-static constexpr int EdgesAtVert(void)
-{
-   return 2 * verts_per_face / (verts_per_face - 2);
-};
-
-/*!
 \brief A class describing the Triangular Addressing Scheme (TAS) and Quad Addressing Scheme (QAS)
 \author Vladimir Florinski
 
@@ -165,7 +153,7 @@ inline constexpr void PolygonalAddressing<3>::StaticSetup(void)
    edge_djmax[0] =  0; edge_djmax[1] = -1; edge_djmax[2] =  0;
 
 /*              vertex-vertex                   vertex-edge                    vertex-face
-  
+
                  4         3                    -         -     	       -----------
                                                  \       /      	      / \	/ \
                                                   4     3       	     /   \  4  /   \
@@ -200,9 +188,9 @@ inline constexpr void PolygonalAddressing<3>::StaticSetup(void)
    vert_face[5][0] = -1; vert_face[5][1] =  0;
 
 /*                           edge-vertex                                                 edge-face 
-  
+
                type 0            type 1          type 2             type 0                 type 1                    type 2
-  
+
                                  1                    0               -                    -----------          -----------
                                   \                  /               / \                  / \       /            \       / \
                                    \                /               /   \                /   \  1  /              \  1  /   \
@@ -224,7 +212,7 @@ inline constexpr void PolygonalAddressing<3>::StaticSetup(void)
    edge_face[2][0][0] =  0; edge_face[2][0][1] =  0; edge_face[2][1][0] =  0; edge_face[2][1][1] =  1;
 
 /*               face-vertex                      face-edge                                  face-face
-  
+
                  2     1---------0               -     -----0-----          ---------------------          -
                 / \     \       /               / \     \       /            \       / \       /          / \
                /   \     \     /               /   \     1     2              \  2  /   \  1  /          /   \
@@ -281,7 +269,7 @@ inline constexpr void PolygonalAddressing<4>::StaticSetup(void)
    edge_djmax[0] =  0; edge_djmax[1] = -1;
 
 /*              vertex-vertex                   vertex-edge                    vertex-face
-  
+
                       2                              -                   ---------------------
                                                      |                   |         |         |
                                                      2                   |    3    |    2    |
@@ -308,7 +296,7 @@ inline constexpr void PolygonalAddressing<4>::StaticSetup(void)
    vert_face[3][0] = -1; vert_face[3][1] =  0;
 
 /*                edge-vertex                               edge-face 
-  
+
                                  1          -----------          ---------------------
                                  |          |         |          |         |         |
                                  |          |    0    |          |    0    |    1    |
@@ -326,7 +314,7 @@ inline constexpr void PolygonalAddressing<4>::StaticSetup(void)
    edge_face[1][0][0] = -1; edge_face[1][0][1] =  0; edge_face[1][1][0] =  0; edge_face[1][1][1] =  0;
 
 /*          face-vertex           face-edge                      face-face
-  
+
                                                                 -----------
                                                                 |         |
                                                                 |    2    |

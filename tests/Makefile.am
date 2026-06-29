@@ -131,11 +131,13 @@ main_test_drawable_tesselation_SOURCES = main_test_drawable_tesselation.cc \
    $(SPBL_GEODESIC_DIR)/drawable_tesselation.hh \
    $(SPBL_GEODESIC_DIR)/spherical_tesselation.cc \
    $(SPBL_GEODESIC_DIR)/spherical_tesselation.hh \
-   $(SPBL_GEODESIC_DIR)/polyhedron.hh \
+   $(SPBL_GEOMETRY_DIR)/polyhedron.hh \
+   $(SPBL_COMMON_DIR)/coordinates.hh \
    $(SPBL_COMMON_DIR)/vectors.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
    $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh
@@ -152,6 +154,7 @@ main_test_drawable_sector_SOURCES = main_test_drawable_sector.cc \
    $(SPBL_COMMON_DIR)/vectors.hh \
    $(SPBL_COMMON_DIR)/multi_index.hh \
    $(SPBL_COMMON_DIR)/simple_array.hh \
+   $(SPBL_COMMON_DIR)/arithmetic.hh \
    $(SPBL_COMMON_DIR)/definitions.hh \
    $(SPBL_COMMON_DIR)/print_warn.hh \
    $(SPBL_COMMON_DIR)/gpu_config.hh

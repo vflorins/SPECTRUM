@@ -17,9 +17,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 namespace Spectrum {
 
-//! Number of polyhedron types
-#define N_POLYTYPES 8
-
 /*!
 \brief A class enumerating common polyhedra used as templates for mesh objects
 \author Vladimir Florinski
@@ -35,12 +32,13 @@ enum class PolyType {
    POLY_FIVE_SIDED_PRISM,
    POLY_DODECAHEDRON,
    POLY_SIX_SIDED_PRISM,
-   POLY_ICOSAHEDRON
+   POLY_ICOSAHEDRON,
+   N_POLYTYPES
 };
 
 //! Polyhedron names
-inline constexpr std::array<std::string_view, N_POLYTYPES> PolyNames = {"tetrahedron"     , "three sided prism", "hexahedron"     , "octahedron" ,
-                                                                        "five sided prism", "dodecahedron"     , "six sided prism", "icosahedron"};
+inline constexpr std::array<std::string_view, static_cast<size_t>(PolyType::N_POLYTYPES)> PolyNames
+   = {"tetrahedron", "three sided prism", "hexahedron", "octahedron", "five sided prism", "dodecahedron", "six sided prism", "icosahedron"};
 
 /*!
 \brief Schlafli symbol {p,q}
@@ -115,6 +113,9 @@ public:
 
 //! Default constructor
    SPECTRUM_DEVICE_FUNC constexpr Polyhedron(void);
+
+//! Print the readable type
+   SPECTRUM_DEVICE_FUNC constexpr std::string_view GetType(void);
 };
 
 /*!
@@ -127,6 +128,17 @@ SPECTRUM_DEVICE_FUNC inline constexpr Polyhedron<poly_type>::Polyhedron(void)
 {
    VertexCoords();
    SetConnectivity();
+};
+
+/*!
+\author Vladimir Florinski
+\date 06/23/2026
+\return Readable name of the polyhedron
+*/
+template <PolyType poly_type>
+SPECTRUM_DEVICE_FUNC inline constexpr std::string_view Polyhedron<poly_type>::GetType(void)
+{
+   return PolyNames[static_cast<size_t>(poly_type)];
 };
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------

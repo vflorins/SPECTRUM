@@ -6,7 +6,8 @@
 This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
 */
 
-#include "geodesic/spherical_tesselation.hh"
+#include <common/coordinates.hh>
+#include <geodesic/spherical_tesselation.hh>
 
 namespace Spectrum {
 
@@ -109,23 +110,23 @@ template <PolyType poly_type, int max_division>
 void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 {
 // Number of elements at division 0
-   verts_per_face[0] = poly_p[poly_type];
-   edges_per_vert[0] = poly_q[poly_type];
+   verts_per_face[0] = poly_p[static_cast<int>(poly_type)];
+   edges_per_vert[0] = poly_q[static_cast<int>(poly_type)];
    nverts[0] = Polyhedron<poly_type>::Nv;
    nedges[0] = Polyhedron<poly_type>::Ne;
    nfaces[0] = Polyhedron<poly_type>::Nf;
-   children_per_face[0] = (poly_type == POLY_DODECAHEDRON ? 5 : 4);
-   newverts_at_edge[0] = (poly_type == POLY_DODECAHEDRON ? false : true);
-   newverts_at_face[0] = ((poly_type == POLY_HEXAHEDRON) || (poly_type == POLY_DODECAHEDRON) ? true : false);
+   children_per_face[0] = (poly_type == PolyType::POLY_DODECAHEDRON ? 5 : 4);
+   newverts_at_edge[0] = (poly_type == PolyType::POLY_DODECAHEDRON ? false : true);
+   newverts_at_face[0] = ((poly_type == PolyType::POLY_HEXAHEDRON) || (poly_type == PolyType::POLY_DODECAHEDRON) ? true : false);
 
 // Number of elements at divisions > 0
    for (auto div = 1; div <= max_division; div++) {
-      verts_per_face[div] = (poly_type == POLY_HEXAHEDRON ? 4 : 3);
+      verts_per_face[div] = (poly_type == PolyType::POLY_HEXAHEDRON ? 4 : 3);
       edges_per_vert[div] = 2 * verts_per_face[div] / (verts_per_face[div] - 2); // singular vertices have fewer
 
       children_per_face[div] = 4;
       newverts_at_edge[div] = true;
-      newverts_at_face[div] = (poly_type == POLY_HEXAHEDRON ? true : false);
+      newverts_at_face[div] = (poly_type == PolyType::POLY_HEXAHEDRON ? true : false);
 
       nfaces[div] = nfaces[div - 1] * children_per_face[div - 1];
       nverts[div] = nverts[div - 1];
@@ -153,9 +154,8 @@ void SphericalTesselation<poly_type, max_division>::AllocateStorage(void)
 
 // Calculate Cartesian vertex coordinates at division 0
    for (auto vert = 0; vert < nverts[0]; vert++) {
-      vert_cart[vert] = gv_nr;
-      vert_cart[vert].ToCartesian(cos(Polyhedron<poly_type>::vlat[vert]), sin(Polyhedron<poly_type>::vlat[vert]),
-                                  sin(Polyhedron<poly_type>::vlon[vert]), cos(Polyhedron<poly_type>::vlon[vert]));
+      vert_cart[vert] = Metric<CoordinateSystem::SphericalRTP>::PosToCart(GeoVector(1.0, M_PI_2 - Polyhedron<poly_type>::vlat[vert],
+                                                                                                  Polyhedron<poly_type>::vlon[vert]));
    };
 
 // Copy base polyhedron connectivity
@@ -533,7 +533,7 @@ void SphericalTesselation<poly_type, max_division>::VertEdgeConn(int div)
    TERR_TYPE err;
 
 // Build VE table, which is the reverse of EV table (EV must be available).
-   if ((poly_type == POLY_DODECAHEDRON) && div) {
+   if ((poly_type == PolyType::POLY_DODECAHEDRON) && div) {
       sing_vert = nfaces[0];
       sing_nbrs = verts_per_face[0];
       offset = nverts[0];
@@ -598,7 +598,7 @@ void SphericalTesselation<poly_type, max_division>::VertFaceConn(int div)
    TERR_TYPE err;
 
 // Build VF table, which is the reverse of FV table (FV must be available).
-   if ((poly_type == POLY_DODECAHEDRON) && div) {
+   if ((poly_type == PolyType::POLY_DODECAHEDRON) && div) {
       sing_vert = nfaces[0];
       sing_nbrs = verts_per_face[0];
       offset = nverts[0];
@@ -685,7 +685,7 @@ void SphericalTesselation<poly_type, max_division>::EdgeFaceConn(int div)
       if ((face1 < 0) || (face1 >= nfaces[div]) || (face2 < 0) || (face2 >= nfaces[div])) throw TessError(callerID, div, TESERR_MISMT, __LINE__);
 
 // Synchronize EV and EF such that EF[0] is on the left and EF[1] on the right of the vector from EV[0] to EV[1] as shown in the diagram below. We rely on CC ordering of the FV table.
-//
+
 /*
                  -
                 / \              -----------
@@ -751,7 +751,7 @@ void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
    int edge, face, face0, face1, it;
 
 // Use FE to find the edge, then pick the appropriate neighbor face. By the end of this loop FV, FE, anf FF tables are all synchronized as shown in the diagram below.
-//
+
 /*
                                                      -----------
             ----------2----------                    |         |
@@ -783,22 +783,22 @@ void SphericalTesselation<poly_type, max_division>::FaceFaceConn(int div)
    };
 };
 
-template class SphericalTesselation<POLY_TETRAHEDRON, 5>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 5>;
-template class SphericalTesselation<POLY_OCTAHEDRON, 5>;
-template class SphericalTesselation<POLY_DODECAHEDRON, 5>;
-template class SphericalTesselation<POLY_ICOSAHEDRON, 5>;
+template class SphericalTesselation<PolyType::POLY_TETRAHEDRON, 5>;
+template class SphericalTesselation<PolyType::POLY_HEXAHEDRON, 5>;
+template class SphericalTesselation<PolyType::POLY_OCTAHEDRON, 5>;
+template class SphericalTesselation<PolyType::POLY_DODECAHEDRON, 5>;
+template class SphericalTesselation<PolyType::POLY_ICOSAHEDRON, 5>;
 
-template class SphericalTesselation<POLY_TETRAHEDRON, 6>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 6>;
-template class SphericalTesselation<POLY_OCTAHEDRON, 6>;
-template class SphericalTesselation<POLY_DODECAHEDRON, 6>;
-template class SphericalTesselation<POLY_ICOSAHEDRON, 6>;
+template class SphericalTesselation<PolyType::POLY_TETRAHEDRON, 6>;
+template class SphericalTesselation<PolyType::POLY_HEXAHEDRON, 6>;
+template class SphericalTesselation<PolyType::POLY_OCTAHEDRON, 6>;
+template class SphericalTesselation<PolyType::POLY_DODECAHEDRON, 6>;
+template class SphericalTesselation<PolyType::POLY_ICOSAHEDRON, 6>;
 
-template class SphericalTesselation<POLY_TETRAHEDRON, 7>;
-template class SphericalTesselation<POLY_HEXAHEDRON, 7>;
-template class SphericalTesselation<POLY_OCTAHEDRON, 7>;
-template class SphericalTesselation<POLY_DODECAHEDRON, 7>;
-template class SphericalTesselation<POLY_ICOSAHEDRON, 7>;
+template class SphericalTesselation<PolyType::POLY_TETRAHEDRON, 7>;
+template class SphericalTesselation<PolyType::POLY_HEXAHEDRON, 7>;
+template class SphericalTesselation<PolyType::POLY_OCTAHEDRON, 7>;
+template class SphericalTesselation<PolyType::POLY_DODECAHEDRON, 7>;
+template class SphericalTesselation<PolyType::POLY_ICOSAHEDRON, 7>;
 
 };

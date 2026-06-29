@@ -52,16 +52,16 @@ public:
 \author Vladimir Florinski
 */
 template <int max_division>
-class TraversableTesselation<POLY_HEXAHEDRON, max_division> : public RequestableTesselation<POLY_HEXAHEDRON, max_division>
+class TraversableTesselation<PolyType::POLY_HEXAHEDRON, max_division> : public RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>
 {
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::verts_per_face;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::edges_per_vert;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::nverts;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::vf_con;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::fv_con;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::ff_con;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::VertCC;
-   using RequestableTesselation<POLY_HEXAHEDRON, max_division>::IsInside;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::verts_per_face;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::edges_per_vert;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::nverts;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::vf_con;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::fv_con;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::ff_con;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::VertCC;
+   using RequestableTesselation<PolyType::POLY_HEXAHEDRON, max_division>::IsInside;
 
 protected:
 
