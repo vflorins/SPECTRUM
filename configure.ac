@@ -366,4 +366,3 @@ AC_CHECK_FUNCS([floor memset pow sqrt])
 AC_CONFIG_FILES([Makefile runs/Makefile tests/Makefile benchmarks/Makefile])
 
 AC_OUTPUT
-
