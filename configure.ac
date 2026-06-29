@@ -176,7 +176,7 @@ AS_IF([test "x$with_batl" == "x"], [
       LDFLAGS="$LDFLAGS -L$BATL_LIBDIR"
 
 # Adds the found library to LIBS
-      AC_SEARCH_LIBS([wrapamr_read_header], [WRAPAMR wrapamr], [
+      AC_SEARCH_LIBS([wrapamr_read_header], [READAMR WRAPAMR wrapamr], [
          AC_DEFINE([USE_BATL], [1], [Using BATL])
          AC_MSG_NOTICE([BATL is enabled])
          HAVE_BATL=1
@@ -184,7 +184,8 @@ AS_IF([test "x$with_batl" == "x"], [
       ],
       [
          AC_MSG_WARN([BATL not found])
-      ]) 
+      ],
+      [$MPI_LIBS -lmpi_mpifh -lTIMING -lSHARE -lgfortran]) 
    ],
    [
       AC_MSG_WARN([BATL lib or include directory does not exist])
@@ -351,4 +352,3 @@ AC_CHECK_FUNCS([floor memset pow sqrt])
 AC_CONFIG_FILES([Makefile runs/Makefile tests/Makefile benchmarks/Makefile])
 
 AC_OUTPUT
-
