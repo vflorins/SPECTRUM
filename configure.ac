@@ -140,6 +140,18 @@ AS_IF([test "x$enable_gsl" == "x"], [
 ])
 AM_CONDITIONAL([ENABLE_GSL], [test "x$HAVE_GSL" = x1])
 
+# Check for cxxopts
+HAVE_CXXOPTS=0
+AC_CHECK_HEADER([cxxopts.hpp], [
+   AC_MSG_NOTICE([cxxopts library found successfully])
+   AC_DEFINE([USE_CXXOPTS], [1], [Using cxxopts])
+   HAVE_CXXOPTS=1
+],
+[
+   AC_MSG_WARN([cxxopts library was not found - some of the functionality might be unavailable])
+])
+AM_CONDITIONAL([ENABLE_CXXOPTS], [test "x$HAVE_CXXOPTS" = x1])
+
 # Check for SILO
 HAVE_SILO=0
 AC_ARG_ENABLE([silo], [AS_HELP_STRING([--enable-silo], [enable SILO [default=no]])], [], [])
@@ -155,7 +167,7 @@ AS_IF([test "x$enable_silo" == "x"], [
       HAVE_SILO=1
    ],
    [
-      AC_MSG_WARN([SILO was not found])
+      AC_MSG_WARN([SILO library was not found - some of the functionality might be unavailable])
    ])
 ])
 AM_CONDITIONAL([ENABLE_SILO], [test "x$HAVE_SILO" = x1])
@@ -185,7 +197,9 @@ AS_IF([test "x$with_batl" == "x"], [
       [
          AC_MSG_WARN([BATL not found])
       ],
-      [$MPI_LIBS -lmpi_mpifh -lTIMING -lSHARE -lgfortran]) 
+      [
+         $MPI_LIBS -lmpi_mpifh -lTIMING -lSHARE -lgfortran
+      ])
    ],
    [
       AC_MSG_WARN([BATL lib or include directory does not exist])
@@ -352,3 +366,4 @@ AC_CHECK_FUNCS([floor memset pow sqrt])
 AC_CONFIG_FILES([Makefile runs/Makefile tests/Makefile benchmarks/Makefile])
 
 AC_OUTPUT
+
