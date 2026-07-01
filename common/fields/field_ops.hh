@@ -9,6 +9,9 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_FIELD_OPS_HH
 #define SPECTRUM_FIELD_OPS_HH
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wchanges-meaning"
+
 #include "../compiletime_lists.hh"
 #include <utility>
 
@@ -384,5 +387,7 @@ using Intersection = Reverse<typename Impl::Intersection_impl<Fields1, Fields2, 
 
 }
 
+
+#pragma GCC diagnostic pop
 
 #endif
