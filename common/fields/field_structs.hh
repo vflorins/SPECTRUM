@@ -190,6 +190,17 @@ struct MatrixField : public GeoMatrix {
 
 };
 
+
+template <Field::Id nameid, typename Field_t, int reconstructible_ = 0, int solvable_ = 0>
+struct Species : public Field_t {
+
+//! static fields
+   static constexpr const std::string_view name = Field::Names[nameid];
+   static const int reconstructible = reconstructible_;
+   static const int solvable = solvable_;
+
+};
+
 }
 
 #endif

@@ -75,6 +75,28 @@ Iv5,
 IvLISM,
 IvBmix,
 IvSolarCycle,
+PrimitiveGasDyn,
+ConservedGasDyn,
+PrimitiveMHD,
+ConservedMHD,
+PrimitiveMHDGLM,
+ConservedMHDGLM,
+ElectronCore,
+ElectronHalo,
+ElectronBeam,
+ProtonCore,
+ProtonHalo,
+ProtonBeam,
+ProtonPickup,
+AlphaCore,
+AlphaHalo,
+HeliumSingleCore,
+HeliumSinglePickup,
+HydrogenPlasmaCore,
+HydrogenCore,
+HydrogenHalo,
+HydrogenBeam,
+HeliumCore,
 };
 
 /*!
@@ -83,7 +105,7 @@ Formatted names for distinguished code-wide fields
 \author Lucius Schoenbaum
 \date 03/25/2025
 */
-const constexpr std::array<std::string_view, 49> Names = {
+const constexpr std::array<std::string_view, 71> Names = {
    std::string_view(""),
    std::string_view("Pos"),
    std::string_view("Rad"),
@@ -133,6 +155,28 @@ const constexpr std::array<std::string_view, 49> Names = {
    std::string_view("IvLISM"),
    std::string_view("IvBmix"),
    std::string_view("IvSolarCycle"),
+   std::string_view("PrimitiveGasDyn"),
+   std::string_view("ConservedGasDyn"),
+   std::string_view("PrimitiveMHD"),
+   std::string_view("ConservedMHD"),
+   std::string_view("PrimitiveMHDGLM"),
+   std::string_view("ConservedMHDGLM"),
+   std::string_view("ElectronCore"),
+   std::string_view("ElectronHalo"),
+   std::string_view("ElectronBeam"),
+   std::string_view("ProtonCore"),
+   std::string_view("ProtonHalo"),
+   std::string_view("ProtonBeam"),
+   std::string_view("ProtonPickup"),
+   std::string_view("AlphaCore"),
+   std::string_view("AlphaHalo"),
+   std::string_view("HeliumSingleCore"),
+   std::string_view("HeliumSinglePickup"),
+   std::string_view("HydrogenPlasmaCore"),
+   std::string_view("HydrogenCore"),
+   std::string_view("HydrogenHalo"),
+   std::string_view("HydrogenBeam"),
+   std::string_view("HeliumCore"),
 };
 
 // Note: more maps can be added (e.g. unit/scale factor)

@@ -22,6 +22,7 @@ Elsewhere, this file can be edited normally.
 #include <any>
 #include <stdexcept>
 #include "../generated/field_types.hh"
+#include "../generated/species_types.hh"
 #include "../fconfig.hh"
 
 #include "common/compiletime_lists.hh"
@@ -172,10 +173,32 @@ Note: All members of the typelist are required to have a static constexpr field 
    static constexpr const std::size_t IvLISM_offset = compute_offset<IvLISM_t>();
    static constexpr const std::size_t IvBmix_offset = compute_offset<IvBmix_t>();
    static constexpr const std::size_t IvSolarCycle_offset = compute_offset<IvSolarCycle_t>();
+   static constexpr const std::size_t PrimitiveGasDyn_offset = compute_offset<PrimitiveGasDyn_t>();
+   static constexpr const std::size_t ConservedGasDyn_offset = compute_offset<ConservedGasDyn_t>();
+   static constexpr const std::size_t PrimitiveMHD_offset = compute_offset<PrimitiveMHD_t>();
+   static constexpr const std::size_t ConservedMHD_offset = compute_offset<ConservedMHD_t>();
+   static constexpr const std::size_t PrimitiveMHDGLM_offset = compute_offset<PrimitiveMHDGLM_t>();
+   static constexpr const std::size_t ConservedMHDGLM_offset = compute_offset<ConservedMHDGLM_t>();
+   static constexpr const std::size_t ElectronCore_offset = compute_offset<ElectronCore_t>();
+   static constexpr const std::size_t ElectronHalo_offset = compute_offset<ElectronHalo_t>();
+   static constexpr const std::size_t ElectronBeam_offset = compute_offset<ElectronBeam_t>();
+   static constexpr const std::size_t ProtonCore_offset = compute_offset<ProtonCore_t>();
+   static constexpr const std::size_t ProtonHalo_offset = compute_offset<ProtonHalo_t>();
+   static constexpr const std::size_t ProtonBeam_offset = compute_offset<ProtonBeam_t>();
+   static constexpr const std::size_t ProtonPickup_offset = compute_offset<ProtonPickup_t>();
+   static constexpr const std::size_t AlphaCore_offset = compute_offset<AlphaCore_t>();
+   static constexpr const std::size_t AlphaHalo_offset = compute_offset<AlphaHalo_t>();
+   static constexpr const std::size_t HeliumSingleCore_offset = compute_offset<HeliumSingleCore_t>();
+   static constexpr const std::size_t HeliumSinglePickup_offset = compute_offset<HeliumSinglePickup_t>();
+   static constexpr const std::size_t HydrogenPlasmaCore_offset = compute_offset<HydrogenPlasmaCore_t>();
+   static constexpr const std::size_t HydrogenCore_offset = compute_offset<HydrogenCore_t>();
+   static constexpr const std::size_t HydrogenHalo_offset = compute_offset<HydrogenHalo_t>();
+   static constexpr const std::size_t HydrogenBeam_offset = compute_offset<HydrogenBeam_t>();
+   static constexpr const std::size_t HeliumCore_offset = compute_offset<HeliumCore_t>();
 
    // END(fields/generate, base)
 
-protected:
+public:
 
    double data[size_];
 
@@ -212,7 +235,8 @@ public:
 \return Reference to the object
 */
    Fields& operator=(const Fields& other) {
-      std::memcpy(data, other.data, size_*sizeof(double));
+      if (this != &other)
+         std::memcpy(data, other.data, size_*sizeof(double));
       return *this;
    };
   
@@ -1958,6 +1982,710 @@ this should be evaluated using move semantics in all branches for memory efficie
    };
    
 
+
+/*!
+\brief Whether PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool PrimitiveGasDyn_found(void) {
+      return (PrimitiveGasDyn_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   PrimitiveGasDyn_t& PrimitiveGasDyn(char w) {
+      return reinterpret_cast<PrimitiveGasDyn_t&>(*(data + PrimitiveGasDyn_offset));
+   };
+
+/*!
+\brief Get PrimitiveGasDyn (Fields of the primitive form for general gas dynamics) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] PrimitiveGasDyn_t PrimitiveGasDyn(void) const {
+      return *reinterpret_cast<const PrimitiveGasDyn_t*>(data + PrimitiveGasDyn_offset);
+   };
+   
+
+
+/*!
+\brief Whether ConservedGasDyn (Fields of the conserved form for general gas dynamics) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ConservedGasDyn_found(void) {
+      return (ConservedGasDyn_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ConservedGasDyn_t& ConservedGasDyn(char w) {
+      return reinterpret_cast<ConservedGasDyn_t&>(*(data + ConservedGasDyn_offset));
+   };
+
+/*!
+\brief Get ConservedGasDyn (Fields of the conserved form for general gas dynamics) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ConservedGasDyn_t ConservedGasDyn(void) const {
+      return *reinterpret_cast<const ConservedGasDyn_t*>(data + ConservedGasDyn_offset);
+   };
+   
+
+
+/*!
+\brief Whether PrimitiveMHD (Fields of the conserved form for general MHD) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool PrimitiveMHD_found(void) {
+      return (PrimitiveMHD_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   PrimitiveMHD_t& PrimitiveMHD(char w) {
+      return reinterpret_cast<PrimitiveMHD_t&>(*(data + PrimitiveMHD_offset));
+   };
+
+/*!
+\brief Get PrimitiveMHD (Fields of the conserved form for general MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] PrimitiveMHD_t PrimitiveMHD(void) const {
+      return *reinterpret_cast<const PrimitiveMHD_t*>(data + PrimitiveMHD_offset);
+   };
+   
+
+
+/*!
+\brief Whether ConservedMHD (Fields of the conserved form for general MHD) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ConservedMHD_found(void) {
+      return (ConservedMHD_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ConservedMHD_t& ConservedMHD(char w) {
+      return reinterpret_cast<ConservedMHD_t&>(*(data + ConservedMHD_offset));
+   };
+
+/*!
+\brief Get ConservedMHD (Fields of the conserved form for general MHD) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ConservedMHD_t ConservedMHD(void) const {
+      return *reinterpret_cast<const ConservedMHD_t*>(data + ConservedMHD_offset);
+   };
+   
+
+
+/*!
+\brief Whether PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool PrimitiveMHDGLM_found(void) {
+      return (PrimitiveMHDGLM_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   PrimitiveMHDGLM_t& PrimitiveMHDGLM(char w) {
+      return reinterpret_cast<PrimitiveMHDGLM_t&>(*(data + PrimitiveMHDGLM_offset));
+   };
+
+/*!
+\brief Get PrimitiveMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] PrimitiveMHDGLM_t PrimitiveMHDGLM(void) const {
+      return *reinterpret_cast<const PrimitiveMHDGLM_t*>(data + PrimitiveMHDGLM_offset);
+   };
+   
+
+
+/*!
+\brief Whether ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ConservedMHDGLM_found(void) {
+      return (ConservedMHDGLM_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ConservedMHDGLM_t& ConservedMHDGLM(char w) {
+      return reinterpret_cast<ConservedMHDGLM_t&>(*(data + ConservedMHDGLM_offset));
+   };
+
+/*!
+\brief Get ConservedMHDGLM (Fields of the conserved form for general MHD-GLM) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ConservedMHDGLM_t ConservedMHDGLM(void) const {
+      return *reinterpret_cast<const ConservedMHDGLM_t*>(data + ConservedMHDGLM_offset);
+   };
+   
+
+
+/*!
+\brief Whether ElectronCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronCore_found(void) {
+      return (ElectronCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ElectronCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ElectronCore_t& ElectronCore(char w) {
+      return reinterpret_cast<ElectronCore_t&>(*(data + ElectronCore_offset));
+   };
+
+/*!
+\brief Get ElectronCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ElectronCore_t ElectronCore(void) const {
+      return *reinterpret_cast<const ElectronCore_t*>(data + ElectronCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether ElectronHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronHalo_found(void) {
+      return (ElectronHalo_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ElectronHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ElectronHalo_t& ElectronHalo(char w) {
+      return reinterpret_cast<ElectronHalo_t&>(*(data + ElectronHalo_offset));
+   };
+
+/*!
+\brief Get ElectronHalo (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ElectronHalo_t ElectronHalo(void) const {
+      return *reinterpret_cast<const ElectronHalo_t*>(data + ElectronHalo_offset);
+   };
+   
+
+
+/*!
+\brief Whether ElectronBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ElectronBeam_found(void) {
+      return (ElectronBeam_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ElectronBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ElectronBeam_t& ElectronBeam(char w) {
+      return reinterpret_cast<ElectronBeam_t&>(*(data + ElectronBeam_offset));
+   };
+
+/*!
+\brief Get ElectronBeam (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ElectronBeam_t ElectronBeam(void) const {
+      return *reinterpret_cast<const ElectronBeam_t*>(data + ElectronBeam_offset);
+   };
+   
+
+
+/*!
+\brief Whether ProtonCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonCore_found(void) {
+      return (ProtonCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ProtonCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ProtonCore_t& ProtonCore(char w) {
+      return reinterpret_cast<ProtonCore_t&>(*(data + ProtonCore_offset));
+   };
+
+/*!
+\brief Get ProtonCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ProtonCore_t ProtonCore(void) const {
+      return *reinterpret_cast<const ProtonCore_t*>(data + ProtonCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether ProtonHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonHalo_found(void) {
+      return (ProtonHalo_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ProtonHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ProtonHalo_t& ProtonHalo(char w) {
+      return reinterpret_cast<ProtonHalo_t&>(*(data + ProtonHalo_offset));
+   };
+
+/*!
+\brief Get ProtonHalo (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ProtonHalo_t ProtonHalo(void) const {
+      return *reinterpret_cast<const ProtonHalo_t*>(data + ProtonHalo_offset);
+   };
+   
+
+
+/*!
+\brief Whether ProtonBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonBeam_found(void) {
+      return (ProtonBeam_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ProtonBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ProtonBeam_t& ProtonBeam(char w) {
+      return reinterpret_cast<ProtonBeam_t&>(*(data + ProtonBeam_offset));
+   };
+
+/*!
+\brief Get ProtonBeam (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ProtonBeam_t ProtonBeam(void) const {
+      return *reinterpret_cast<const ProtonBeam_t*>(data + ProtonBeam_offset);
+   };
+   
+
+
+/*!
+\brief Whether ProtonPickup (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool ProtonPickup_found(void) {
+      return (ProtonPickup_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get ProtonPickup (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   ProtonPickup_t& ProtonPickup(char w) {
+      return reinterpret_cast<ProtonPickup_t&>(*(data + ProtonPickup_offset));
+   };
+
+/*!
+\brief Get ProtonPickup (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] ProtonPickup_t ProtonPickup(void) const {
+      return *reinterpret_cast<const ProtonPickup_t*>(data + ProtonPickup_offset);
+   };
+   
+
+
+/*!
+\brief Whether AlphaCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AlphaCore_found(void) {
+      return (AlphaCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AlphaCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   AlphaCore_t& AlphaCore(char w) {
+      return reinterpret_cast<AlphaCore_t&>(*(data + AlphaCore_offset));
+   };
+
+/*!
+\brief Get AlphaCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] AlphaCore_t AlphaCore(void) const {
+      return *reinterpret_cast<const AlphaCore_t*>(data + AlphaCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether AlphaHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool AlphaHalo_found(void) {
+      return (AlphaHalo_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get AlphaHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   AlphaHalo_t& AlphaHalo(char w) {
+      return reinterpret_cast<AlphaHalo_t&>(*(data + AlphaHalo_offset));
+   };
+
+/*!
+\brief Get AlphaHalo (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] AlphaHalo_t AlphaHalo(void) const {
+      return *reinterpret_cast<const AlphaHalo_t*>(data + AlphaHalo_offset);
+   };
+   
+
+
+/*!
+\brief Whether HeliumSingleCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumSingleCore_found(void) {
+      return (HeliumSingleCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HeliumSingleCore_t& HeliumSingleCore(char w) {
+      return reinterpret_cast<HeliumSingleCore_t&>(*(data + HeliumSingleCore_offset));
+   };
+
+/*!
+\brief Get HeliumSingleCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HeliumSingleCore_t HeliumSingleCore(void) const {
+      return *reinterpret_cast<const HeliumSingleCore_t*>(data + HeliumSingleCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether HeliumSinglePickup (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumSinglePickup_found(void) {
+      return (HeliumSinglePickup_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HeliumSinglePickup_t& HeliumSinglePickup(char w) {
+      return reinterpret_cast<HeliumSinglePickup_t&>(*(data + HeliumSinglePickup_offset));
+   };
+
+/*!
+\brief Get HeliumSinglePickup (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HeliumSinglePickup_t HeliumSinglePickup(void) const {
+      return *reinterpret_cast<const HeliumSinglePickup_t*>(data + HeliumSinglePickup_offset);
+   };
+   
+
+
+/*!
+\brief Whether HydrogenPlasmaCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenPlasmaCore_found(void) {
+      return (HydrogenPlasmaCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HydrogenPlasmaCore_t& HydrogenPlasmaCore(char w) {
+      return reinterpret_cast<HydrogenPlasmaCore_t&>(*(data + HydrogenPlasmaCore_offset));
+   };
+
+/*!
+\brief Get HydrogenPlasmaCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HydrogenPlasmaCore_t HydrogenPlasmaCore(void) const {
+      return *reinterpret_cast<const HydrogenPlasmaCore_t*>(data + HydrogenPlasmaCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether HydrogenCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenCore_found(void) {
+      return (HydrogenCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HydrogenCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HydrogenCore_t& HydrogenCore(char w) {
+      return reinterpret_cast<HydrogenCore_t&>(*(data + HydrogenCore_offset));
+   };
+
+/*!
+\brief Get HydrogenCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HydrogenCore_t HydrogenCore(void) const {
+      return *reinterpret_cast<const HydrogenCore_t*>(data + HydrogenCore_offset);
+   };
+   
+
+
+/*!
+\brief Whether HydrogenHalo (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenHalo_found(void) {
+      return (HydrogenHalo_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HydrogenHalo_t& HydrogenHalo(char w) {
+      return reinterpret_cast<HydrogenHalo_t&>(*(data + HydrogenHalo_offset));
+   };
+
+/*!
+\brief Get HydrogenHalo (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HydrogenHalo_t HydrogenHalo(void) const {
+      return *reinterpret_cast<const HydrogenHalo_t*>(data + HydrogenHalo_offset);
+   };
+   
+
+
+/*!
+\brief Whether HydrogenBeam (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HydrogenBeam_found(void) {
+      return (HydrogenBeam_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HydrogenBeam_t& HydrogenBeam(char w) {
+      return reinterpret_cast<HydrogenBeam_t&>(*(data + HydrogenBeam_offset));
+   };
+
+/*!
+\brief Get HydrogenBeam (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HydrogenBeam_t HydrogenBeam(void) const {
+      return *reinterpret_cast<const HydrogenBeam_t*>(data + HydrogenBeam_offset);
+   };
+   
+
+
+/*!
+\brief Whether HeliumCore (Fields of the primitive form for species) is in the data type.
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   static constexpr bool HeliumCore_found(void) {
+      return (HeliumCore_offset != Type_not_found);
+   };
+
+
+/*!
+\brief Get HeliumCore (Fields of the primitive form for species) from the data type, as lvalue.
+\author Lucius Schoenbaum
+\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   HeliumCore_t& HeliumCore(char w) {
+      return reinterpret_cast<HeliumCore_t&>(*(data + HeliumCore_offset));
+   };
+
+/*!
+\brief Get HeliumCore (Fields of the primitive form for species) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\author Lucius Schoenbaum
+\date 3/25/2025
+*/
+   [[nodiscard]] HeliumCore_t HeliumCore(void) const {
+      return *reinterpret_cast<const HeliumCore_t*>(data + HeliumCore_offset);
+   };
+   
+
 /*!
 \brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
 \author Lucius Schoenbaum
@@ -2308,6 +3036,138 @@ For a conversion operation, use Convert().
             out.IvSolarCycle() = fields.IvSolarCycle();
          else
             out.IvSolarCycle() = IvSolarCycle_t();
+      }
+      if constexpr (Fields::PrimitiveGasDyn_found()) {
+         if constexpr (ParentFields::PrimitiveGasDyn_found())
+            out.PrimitiveGasDyn() = fields.PrimitiveGasDyn();
+         else
+            out.PrimitiveGasDyn() = PrimitiveGasDyn_t();
+      }
+      if constexpr (Fields::ConservedGasDyn_found()) {
+         if constexpr (ParentFields::ConservedGasDyn_found())
+            out.ConservedGasDyn() = fields.ConservedGasDyn();
+         else
+            out.ConservedGasDyn() = ConservedGasDyn_t();
+      }
+      if constexpr (Fields::PrimitiveMHD_found()) {
+         if constexpr (ParentFields::PrimitiveMHD_found())
+            out.PrimitiveMHD() = fields.PrimitiveMHD();
+         else
+            out.PrimitiveMHD() = PrimitiveMHD_t();
+      }
+      if constexpr (Fields::ConservedMHD_found()) {
+         if constexpr (ParentFields::ConservedMHD_found())
+            out.ConservedMHD() = fields.ConservedMHD();
+         else
+            out.ConservedMHD() = ConservedMHD_t();
+      }
+      if constexpr (Fields::PrimitiveMHDGLM_found()) {
+         if constexpr (ParentFields::PrimitiveMHDGLM_found())
+            out.PrimitiveMHDGLM() = fields.PrimitiveMHDGLM();
+         else
+            out.PrimitiveMHDGLM() = PrimitiveMHDGLM_t();
+      }
+      if constexpr (Fields::ConservedMHDGLM_found()) {
+         if constexpr (ParentFields::ConservedMHDGLM_found())
+            out.ConservedMHDGLM() = fields.ConservedMHDGLM();
+         else
+            out.ConservedMHDGLM() = ConservedMHDGLM_t();
+      }
+      if constexpr (Fields::ElectronCore_found()) {
+         if constexpr (ParentFields::ElectronCore_found())
+            out.ElectronCore() = fields.ElectronCore();
+         else
+            out.ElectronCore() = ElectronCore_t();
+      }
+      if constexpr (Fields::ElectronHalo_found()) {
+         if constexpr (ParentFields::ElectronHalo_found())
+            out.ElectronHalo() = fields.ElectronHalo();
+         else
+            out.ElectronHalo() = ElectronHalo_t();
+      }
+      if constexpr (Fields::ElectronBeam_found()) {
+         if constexpr (ParentFields::ElectronBeam_found())
+            out.ElectronBeam() = fields.ElectronBeam();
+         else
+            out.ElectronBeam() = ElectronBeam_t();
+      }
+      if constexpr (Fields::ProtonCore_found()) {
+         if constexpr (ParentFields::ProtonCore_found())
+            out.ProtonCore() = fields.ProtonCore();
+         else
+            out.ProtonCore() = ProtonCore_t();
+      }
+      if constexpr (Fields::ProtonHalo_found()) {
+         if constexpr (ParentFields::ProtonHalo_found())
+            out.ProtonHalo() = fields.ProtonHalo();
+         else
+            out.ProtonHalo() = ProtonHalo_t();
+      }
+      if constexpr (Fields::ProtonBeam_found()) {
+         if constexpr (ParentFields::ProtonBeam_found())
+            out.ProtonBeam() = fields.ProtonBeam();
+         else
+            out.ProtonBeam() = ProtonBeam_t();
+      }
+      if constexpr (Fields::ProtonPickup_found()) {
+         if constexpr (ParentFields::ProtonPickup_found())
+            out.ProtonPickup() = fields.ProtonPickup();
+         else
+            out.ProtonPickup() = ProtonPickup_t();
+      }
+      if constexpr (Fields::AlphaCore_found()) {
+         if constexpr (ParentFields::AlphaCore_found())
+            out.AlphaCore() = fields.AlphaCore();
+         else
+            out.AlphaCore() = AlphaCore_t();
+      }
+      if constexpr (Fields::AlphaHalo_found()) {
+         if constexpr (ParentFields::AlphaHalo_found())
+            out.AlphaHalo() = fields.AlphaHalo();
+         else
+            out.AlphaHalo() = AlphaHalo_t();
+      }
+      if constexpr (Fields::HeliumSingleCore_found()) {
+         if constexpr (ParentFields::HeliumSingleCore_found())
+            out.HeliumSingleCore() = fields.HeliumSingleCore();
+         else
+            out.HeliumSingleCore() = HeliumSingleCore_t();
+      }
+      if constexpr (Fields::HeliumSinglePickup_found()) {
+         if constexpr (ParentFields::HeliumSinglePickup_found())
+            out.HeliumSinglePickup() = fields.HeliumSinglePickup();
+         else
+            out.HeliumSinglePickup() = HeliumSinglePickup_t();
+      }
+      if constexpr (Fields::HydrogenPlasmaCore_found()) {
+         if constexpr (ParentFields::HydrogenPlasmaCore_found())
+            out.HydrogenPlasmaCore() = fields.HydrogenPlasmaCore();
+         else
+            out.HydrogenPlasmaCore() = HydrogenPlasmaCore_t();
+      }
+      if constexpr (Fields::HydrogenCore_found()) {
+         if constexpr (ParentFields::HydrogenCore_found())
+            out.HydrogenCore() = fields.HydrogenCore();
+         else
+            out.HydrogenCore() = HydrogenCore_t();
+      }
+      if constexpr (Fields::HydrogenHalo_found()) {
+         if constexpr (ParentFields::HydrogenHalo_found())
+            out.HydrogenHalo() = fields.HydrogenHalo();
+         else
+            out.HydrogenHalo() = HydrogenHalo_t();
+      }
+      if constexpr (Fields::HydrogenBeam_found()) {
+         if constexpr (ParentFields::HydrogenBeam_found())
+            out.HydrogenBeam() = fields.HydrogenBeam();
+         else
+            out.HydrogenBeam() = HydrogenBeam_t();
+      }
+      if constexpr (Fields::HeliumCore_found()) {
+         if constexpr (ParentFields::HeliumCore_found())
+            out.HeliumCore() = fields.HeliumCore();
+         else
+            out.HeliumCore() = HeliumCore_t();
       }
       return out;
    }
