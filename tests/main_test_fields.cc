@@ -11,8 +11,10 @@ using namespace Spectrum;
 namespace test_fields {
 
 void contiguous() {
-   cout << "For possible elements to Fields, see fields/generated/field_types.hh or fields/generate.py.\n"
-           "In addition, Fields can accept other fields types.\n"
+   cout << "For possible elements to Fields, \n"
+           "see fields/generated/field_types.hh or fields/generate.py.\n"
+           "In addition, Fields can accept other fields types \n"
+           "(see below, or see fields/generated/species_types.hh).\n"
         << endl;
 
    using Fields1 = Fields<FConfig<>, Fluv_t, Mag_t, Ele_t>;
@@ -168,8 +170,6 @@ void assignment() {
 }
 
 };
-
-
 
 
 int main(int argc, char** argv) {

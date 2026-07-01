@@ -11,9 +11,6 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #ifndef SPECTRUM_COMPILETIME_LISTS_HH
 #define SPECTRUM_COMPILETIME_LISTS_HH
 
-#ifdef USE_GSL
-#include <gsl/gsl_const_cgsm.h>
-#endif
 
 #include "common/compiletime_math.hh"
 #include "common/specie.hh"
@@ -72,17 +69,6 @@ enum class Passivity {
    active,
    passive,
 };
-
-
-//! Indicates that the argument should be std::ratio
-#define Ratio typename
-
-
-//! Converts std::ratio to double
-template <typename ratio, typename Float = double>
-constexpr Float get_fp() {
-   return static_cast<Float>(ratio::num)/static_cast<double>(ratio::den);
-}
 
 
 
