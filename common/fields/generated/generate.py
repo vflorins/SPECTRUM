@@ -1,0 +1,640 @@
+"""
+File generate.py Created by Lucius Schoenbaum March 30, 2025
+Revised May 26, 2025
+Choice of names set by SPECTRUM team on Friday August 1, 2025
+Revised August 3, 2025
+Revised June 30, 2026
+
+A code generator for the `Fields` apparatus, i.e., the code contained
+in the /fields/ folder.
+This code generator is not intended to be run when SPECTRUM is compiled.
+It is run only in the event that the Fields apparatus is revised.
+Use cases (1) and (2) are now described; read (1) before reading (2).
+
+1. Ordinary Use Cases: `Fields` API revisions
+
+This utility facilitates revisions to the set of
+formatted variables to be used within SPECTRUM.
+It does the following:
+- modifies the `.hh` files in the folder fields/generated/.
+- partially modifies the `.hh` files in the folder fields/partially_generated/.
+The modifications to these files change
+the behavior of the Fields class by effectively assigning
+new names (the names specified uniquely in this code generator file)
+to the variables supported by Fields. For example, using this
+code generator, you could change the name `Vel` to `vel`, `velocity`,
+`VEL`, `vlcty` or `apple_danish`.
+This code generator does NOT:
+- affect the code in the rest of SPECTRUM,
+- affect user code.
+The user eager to run the code generator must be aware
+that if this code generator is used to change `Fields`,
+the entire codebase that uses `Fields` must be modified
+to reflect this change. For example, if the
+team decides that `Flum` should be named `Fluid_mom` instead,
+this is easily done by running the code generator - simply switch
+out the name, there is no delicate procedure to edit the `.hh` files
+themselves. In the event of a minor change like this example,
+the rest of the work can be done very rapidly using search and
+string substitution utilities.
+
+2. Other Use Cases: structural revisions to `Fields`
+
+In the event that a revision to the code in /fields/generated/
+or /fields/partially_generated/ (in the blocks that are overwritten
+by this file) is desired, that change must be implemented by
+revising *this* file and then re-running this file. A typical
+workflow is (1) revise the auto-generated files as desired,
+(2) revise the code generator to reflect the desired changes to these files,
+(3) test and re-run the code generator, test and re-run, test and re-run again,
+and so on, until the work is completed and the code generator reflects
+the desired change to the functional `.hh` header code.
+
+3. How to run this script
+
+In the directory of <this file>:
+```shell
+python3 <this file>
+```
+If python3 is your default python, then simply run ``python <this file>``.
+
+4. Notes and Comments
+
+A code generator is used because any modification
+to the basic set of variables imposes a time-intensive and potentially
+bug-prone update across multiple zones of the Fields imlementation,
+which (for realistic lists of variables) is at least two thousand lines of code.
+Therefore, aalthough a code generator is burdensome, the alternative of
+managing the files as ordinary source files would be, counterintuitively,
+even *more* burdensome.
+It also provides the convenience of instantaneous reducing
+of `Fields` implementation to a small, manageable number of variables,
+which is convenient for developers. That is,
+if it is necessary to edit the files in /fields/, users may find it convenient
+to run `generate.py` with empty lists for `variables` and `groups`,
+editing the files, and then re-running generate.py with the desired
+lists for `variables` and `groups`. This will make the files in /fields/
+more surveyable and more practical as human-read source files.
+
+"""
+
+from os.path import (
+    join as os_path_join
+)
+from re import (
+    split as re_split
+)
+
+
+class Field:
+    """
+    A convenience class for expressing the essential
+    components of a formatted SPECTRUM variable, or field.
+    """
+
+    def __init__(self, name, datatype, description, R, S, printed_name=None, normof=None, hatof=None, hasdiv = None, hascurl = None, delof = None, dotof = None, muof = None):
+        self.name = name
+        self.datatype = datatype
+        self.description = description
+        self.R = R
+        self.S = S
+        self.D = 1 if delof is not None else 2 if dotof is not None else 0
+        self.printed_name = printed_name if printed_name is not None else name
+        self.normof = normof
+        self.hatof = hatof
+        self.muof = muof
+        if normof is not None and hatof is not None:
+            raise ValueError
+        self.hasdiv = hasdiv
+        self.hascurl = hascurl
+        self.delof = delof
+        self.dotof = dotof
+
+    def fieldtype(self):
+        if self.datatype == 'Scalar':
+            return 'ScalarField'
+        elif self.datatype == 'GeoVector':
+            return 'VectorField'
+        elif self.datatype == 'GeoMatrix':
+            return 'MatrixField'
+        else:
+            return self.datatype
+
+class Species(Field):
+    """
+    A convenience class for housing the basic components of a species.
+    """
+
+    def __init__(self, name, typelist, description, R, S, printed_name = None):
+        super().__init__(name=name, datatype = name+'_t', description=description, R=R, S=S, printed_name=printed_name)
+        self.typelist = typelist
+
+empty_field_lists = False
+# empty_field_lists = True
+
+if empty_field_lists:
+    fields = []
+    species = []
+else:
+    fields = [
+        # Geometric fields:
+        Field("Pos", "GeoVector", "Position in space", R=0, S=0),
+        Field("Rad", "Scalar", "Radial spatial coordinate", R=0, S=0, normof="Pos"),
+        Field("Time", "Scalar", "Time", R=0, S=0),
+        # Fluid fields:
+        Field("Den", "Scalar", "Density field", R = 1, S = 1),
+        Field("Prs", "Scalar", "Pressure field", R = 1, S = 0),
+        Field("Enr", "Scalar", "Energy field", R = 1, S = 1),
+        Field("Fluv", "GeoVector", "Fluid Flow Velocity field", R = 1, S = 0, hascurl=True, hasdiv=True),
+        Field("Flum", "GeoVector", "Fluid Flow Momentum field", R = 1, S = 1),
+        Field("FlxDen", "Scalar", "Fluid density flux function", R = 1, S = 0),
+        Field("FlxEnr", "Scalar", "Fluid energy flux function", R = 1, S = 0),
+        Field("FlxFlum", "GeoVector", "Fluid flow momentum flux function", R = 1, S = 0),
+        Field("AbsFluv", "Scalar", "Fluid Flow Velocity field magnitude", R=0, S=0, normof="Fluv"),
+        Field("HatFluv", "GeoVector", "Direction of fluid flow velocity", R = 0, S = 0, hatof="Fluv"),
+        Field("AbsFlum", "Scalar", "Fluid Flow Momentum field magnitude", R=0, S=0, normof="Flum"),
+        Field("HatFlum", "GeoVector", "Direction of fluid flow momentum", R = 0, S = 0, hatof="Flum"),
+        # MHD fields (extending Fluid fields):
+        Field("Mag", "GeoVector", "Magnetic field", R = 1, S = 0, hascurl=True, hasdiv=True),
+        Field("FlxMag", "GeoVector", "Magnetic field flux function", R = 1, S = 0),
+        Field("Glm", "Scalar", "Lagrange multiplier field of GLM MHD", R = 1, S = 0),
+        Field("FlxGlm", "Scalar", "Lagrange mutlipler flux function of GLM MHD", R = 1, S = 0),
+        # Tracer background and coordinate fields:
+        Field("Mom", "GeoVector", "Particle Momentum", R = 0, S = 0),
+        Field("AbsMom", "Scalar", "Magnitude of momentum", R = 0, S = 0, normof="Mom"),
+        Field("HatMom", "GeoVector", "Direction of momentum", R = 0, S = 0, hatof="Mom"),
+        Field("MomMu", "Scalar", "Pitch angle cosine of momentum", R = 0, S = 0, muof="Mom"),
+        Field("Vel", "GeoVector", "Particle Velocity", R = 0, S = 0),
+        Field("AbsVel", "Scalar", "Magnitude of velocity", R = 0, S = 0, normof="Vel"),
+        Field("HatVel", "GeoVector", "Direction of velocity", R = 0, S = 0, hatof="Vel"),
+        Field("Ele", "GeoVector", "Electric field", R = 1, S = 0, hascurl=True, hasdiv=True),
+        Field("AbsEle", "Scalar", "Electric field magnitude", R = 1, S = 0, normof="Ele"),
+        Field("HatEle", "GeoVector", "Electric field direction", R = 1, S = 0, hatof="Ele"),
+        Field("AbsMag", "Scalar", "Magnetic field magnitude", R = 1, S = 0, normof="Mag"),
+        Field("HatMag", "GeoVector", "Magnetic field direction", R = 1, S = 0, hatof="Mag"),
+        Field("DelFluv", "GeoMatrix", "Gradient of fluid flow velocity field", R = 1, S = 0, delof = "Fluv"),
+        Field("DelEle", "GeoMatrix", "Gradient of electric field", R = 1, S = 0, delof = "Ele"),
+        Field("DelMag", "GeoMatrix", "Gradient of magnetic field", R = 1, S = 0, delof = "Mag"),
+        Field("DelAbsMag", "GeoVector", "Gradient of magnetic field magnitude", R = 1, S = 0, delof = "AbsMag"),
+        Field("DotFluv", "GeoVector", "Time derivative of fluid flow velocity field", R = 1, S = 0, dotof = "Fluv"),
+        Field("DotEle", "GeoVector", "Time derivative of electric field", R = 1, S = 0, dotof = "Ele"),
+        Field("DotMag", "GeoVector", "Time derivative of magnetic field", R = 1, S = 0, dotof = "Mag"),
+        Field("DotAbsMag", "Scalar", "Time derivative of magnetic field magnitude", R = 1, S = 0, dotof = "AbsMag"),
+        # Indicator Fields/Variables:
+        Field("Iv0", "Scalar", "Zeroth (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv1", "Scalar", "First (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv2", "Scalar", "Second (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv3", "Scalar", "Third (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv4", "Scalar", "Fourth (general purpose) Indicator variable", R=0, S=0),
+        Field("Iv5", "Scalar", "Fifth (general purpose) Indicator variable", R=0, S=0),
+        Field("IvLISM", "Scalar", "LISM Indicator variable for diffusion types (Strauss et al. 2013, Potgeiter et al. 2015)", R=0, S=0),
+        Field("IvBmix", "Scalar", "magnetic mixing indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
+        Field("IvSolarCycle", "Scalar", "solar cycle indicator variable (see DiffusionEmpiricalSOQLTandUNLT)", R=0, S=0),
+    ]
+    speciess = [
+        Species("PrimitiveGasDyn", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for general gas dynamics", R=1, S=0),
+        Species("ConservedGasDyn", "Den_t, Mom_t, Enr_t", "Fields of the conserved form for general gas dynamics", R=1, S=0),
+        Species("PrimitiveMHD", "Den_t, Vel_t, Prs_t, Mag_t, Ele_t", "Fields of the conserved form for general MHD", R=1, S=0),
+        Species("ConservedMHD", "Den_t, Mom_t, Enr_t, Mag_t, Ele_t", "Fields of the conserved form for general MHD", R=1, S=0),
+        Species("PrimitiveMHDGLM", "Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Glm_t", "Fields of the conserved form for general MHD-GLM", R=1, S=0),
+        Species("ConservedMHDGLM", "Den_t, Mom_t, Enr_t, Mag_t, Ele_t, Glm_t", "Fields of the conserved form for general MHD-GLM", R=1, S=0),
+        Species("ElectronCore", "Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Iv0_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ElectronHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ElectronBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ProtonCore", "Den_t, Vel_t, Prs_t, Mag_t, Ele_t, Iv0_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ProtonHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ProtonBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("ProtonPickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("AlphaCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("AlphaHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HeliumSingleCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HeliumSinglePickup", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HydrogenPlasmaCore", "Den_t, Vel_t, Prs_t, Mag_t, Glm_t, Iv0_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HydrogenCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HydrogenHalo", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HydrogenBeam", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+        Species("HeliumCore", "Den_t, Vel_t, Prs_t", "Fields of the primitive form for species", R=1, S=0),
+    ]
+
+generator = "generate.py"
+partially_generated_path = f"../partially_generated/"
+not_generated_path = f"../"
+
+def file_header(fname):
+    x = f"""/*!
+\\file {fname}
+\\author Vladimir Florinski
+\\author Lucius Schoenbaum
+\\author Juan G Alonso Guzman
+
+This file is part of the SPECTRUM suite of scientific numerical simulation codes. SPECTRUM stands for Space Plasma and Energetic Charged particle TRansport on Unstructured Meshes. The code simulates plasma or neutral particle flows using MHD equations on a grid, transport of cosmic rays using stochastic or grid based methods. The "unstructured" part refers to the use of a geodesic mesh providing a uniform coverage of the surface of a sphere.
+*/
+"""
+    x +=  f"""
+/*
+This file is automatically generated by {generator}. 
+Do not edit this file, instead edit {generator}. 
+*/
+"""
+    return x
+
+
+
+
+def generate_field_lists():
+    """
+    Generate file `field_lists.hh`.
+    """
+    fname = "field_lists.hh"
+    size = len(fields) + len(speciess)
+    field_lists_parts = [
+"""
+#ifndef SPECTRUM_FIELD_LISTS_HH
+#define SPECTRUM_FIELD_LISTS_HH
+
+#include <string_view>
+#include <array>
+
+namespace Spectrum::Field {
+
+/*!
+Identifiers for distinguished code-wide fields (for lookup).
+\\author Lucius Schoenbaum
+\\date 03/25/2025
+*/
+enum Id {
+anon,
+""",
+f"""}};
+
+/*!
+Formatted names for distinguished code-wide fields
+(minimal formatting in ASCII).
+\\author Lucius Schoenbaum
+\\date 03/25/2025
+*/
+const constexpr std::array<std::string_view, {size+1}> Names = {{
+   std::string_view(""),
+""",
+"""};
+
+// Note: more maps can be added (e.g. unit/scale factor)
+
+}
+
+#endif
+""",
+    ]
+    x = file_header(fname) + field_lists_parts[0]
+    for field in fields + speciess:
+        x += f"{field.name},\n"
+    x += field_lists_parts[1]
+    for field in fields + speciess:
+        name = field.name if field.printed_name is None else field.printed_name
+        x += f'   std::string_view("{name}"),\n'
+    x += field_lists_parts[2]
+    with open(f"field_lists.hh", 'w') as f:
+        f.write(x)
+
+
+
+
+
+def generate_field_types():
+    """
+    Generate file `field_types.hh`.
+    This file defines the fields as NamedFields classes,
+    based on the list `fields`.
+    """
+    fname = "field_types.hh"
+    field_types_parts = [
+"""
+#ifndef SPECTRUM_FIELD_TYPES_HH
+#define SPECTRUM_FIELD_TYPES_HH
+
+#include "../field_structs.hh"
+
+namespace Spectrum {
+
+""",
+"""};
+
+#endif
+""",
+    ]
+    x = file_header(fname) + field_types_parts[0]
+    for field in fields:
+        x += f"/*!\n\\brief {field.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
+        x += f"using {field.name}_t = {field.fieldtype()}<Field::Id::{field.name}, {field.R}, {field.S}, {field.D}>;\n\n"
+    x += field_types_parts[1]
+
+    with open(fname, 'w') as f:
+        f.write(x)
+
+
+
+def generate_species_types():
+    """
+    Generate file `species_types.hh`.
+    This file contains types that depend on Species,
+    based on the list `speciess`. Species are accessible in Fields.
+    """
+    fname = "species_types.hh"
+    field_groups_parts = [
+        f"""
+#ifndef SPECTRUM_SPECIES_TYPES_HH
+#define SPECTRUM_SPECIES_TYPES_HH
+
+#include "../fconfig.hh"
+#include "field_types.hh"
+
+namespace Spectrum {{
+
+template <typename FConfig_, typename ... Ts>
+class Fields;
+
+""",
+        """};
+
+#endif
+""",
+    ]
+    x = file_header(fname) + field_groups_parts[0]
+    for grp in speciess:
+        x += f"/*!\n\\brief {grp.description} type with a formatted name\n\\author Lucius Schoenbaum\n\\date 03/25/2025\n*/\n"
+        x += f"using {grp.name}_t = Species<Field::Id::{grp.name}, Fields<FConfig<>, {grp.typelist}>>;\n\n"
+    x += field_groups_parts[1]
+    with open(fname, 'w') as f:
+        f.write(x)
+
+
+
+
+
+def inject_fields():
+    """
+    Works similarly to the other methods, but
+    instead of generating the entire file `namedfields.hh` and `fields.hh`,
+    it injects into those parts of these files that depend on the generated code.
+    These files define the NamedFields and Fields classes.
+    The part of those files that is automatically generated is bounded by
+    pragmas
+    ```
+        // BEGIN(fields/generate, <base>)
+
+        ...
+
+        // END(fields/generate, <base>)
+    ```
+    The files `namedfields.hh` and `fields.hh` should not be modified
+    within these pragmas (their contents can be modified by modifying `generate.py`.
+    However, outside of them, these files are like any other source code file.
+    """
+    named = True
+    fname = "fields.hh"
+    fpath = os_path_join(partially_generated_path, fname)
+    with open(fpath, 'r') as f:
+        content = f.read()
+    injectee_labels = ['base', 'class']
+    for injectee_label in injectee_labels:
+        label = injectee_label
+        pattern = f"\n.*fields/generate,\s*{label}.*\n"
+        groups = re_split(pattern, content)
+        content = groups[0] + get_injectee(label, named) + groups[2]
+    with open(fpath, 'w') as f:
+        f.write(content)
+
+
+def get_injectee(injectee_label, named):
+    """
+
+    :param injectee_label: 'base' or 'class'
+    :param named: boolean
+    """
+    fieldlist = fields if not named else fields+speciess
+    fieldid = "nameid, " if named else ""
+    typename = "Species" if named else "Fields"
+    x = f"\n   // BEGIN(fields/generate, {injectee_label})\n"
+    if injectee_label == 'class':
+        for field in fieldlist:
+            name = field.name
+            description = field.description
+            datatype = field.datatype if field.datatype != "Scalar" else "double"
+            x += f"""
+
+/*!
+\\brief Whether {name} ({description}) is in the data type.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   static constexpr bool {name}_found(void) {{
+      return ({name}_offset != Type_not_found);
+   }};
+
+"""
+            reinterpret_ = f"*reinterpret_cast<const {datatype}*>(data + {name}_offset)"
+            if field.normof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   {datatype}& {name}(char w) {{
+        if constexpr (FConfig::{field.normof}_radial)
+           return {field.normof}('w')[0];
+        else
+           return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   [[nodiscard]] {datatype} {name}(void) const {{
+      if constexpr ({name}_found())
+         return {reinterpret_};
+      else
+         if constexpr (FConfig::{field.normof}_radial)
+            return {field.normof}()[0];
+         else
+            return {field.normof}().Norm();
+   }};
+"""
+            elif field.hatof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   {datatype}& {name}(char w) {{
+      return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   [[nodiscard]] {datatype} {name}(void) const {{
+      if constexpr ({name}_found())
+         return {reinterpret_};
+      else
+         return UnitVec({field.hatof}());
+   }};
+"""
+            elif field.muof is not None:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   {datatype}& {name}(char w) {{
+        if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::PitchAngle)
+           return {field.muof}()[1];
+        else
+           return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   [[nodiscard]] {datatype} {name}(void) const {{
+      if constexpr ({name}_found())
+         return {reinterpret_};
+      else
+         if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::PitchAngle)
+            return {field.muof}()[1];
+         else
+            return ({field.muof}()*Mag())/(Abs{field.muof}()*AbsMag());
+   }};
+                
+"""
+            else:
+                x += f"""
+/*!
+\\brief Get {name} ({description}) from the data type, as lvalue.
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+This operation triggers an exception if the field is not present.
+*/
+   {datatype}& {name}(char w) {{
+      return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
+   }};
+
+/*!
+\\brief Get {name} ({description}) from the data type. In C++17 and higher 
+this should be evaluated using move semantics in all branches for memory efficiency. 
+\\author Lucius Schoenbaum
+\\date 3/25/2025
+*/
+   [[nodiscard]] {datatype} {name}(void) const {{
+      return {reinterpret_};
+   }};
+   
+"""
+            if field.hasdiv:
+                x+= f"""
+
+/*!
+\\author Juan G Alonso Guzman
+\\author Lucius Schoenbaum
+\\date 10/12/2025
+\\return Divergence of {name}
+*/
+   inline double Div{name}(void)
+   {{
+      return Del{name}().Trace();
+   }};
+    
+"""
+            if field.hascurl:
+                x+= f"""
+
+/*!
+\\author Juan G Alonso Guzman
+\\author Lucius Schoenbaum
+\\date 10/12/2025
+\\return Divergence of {name}
+*/
+   inline GeoVector Curl{name}(void)
+   {{
+      GeoMatrix G = Del{name}();
+      return GeoVector(G[1][2] - G[2][1], G[2][0] - G[0][2], G[0][1] - G[1][0]);
+   }};
+
+"""
+        x += """
+/*!
+\\brief Creation of a fields type from another fields type, with unavailable fields populated without exception-handling.
+\\author Lucius Schoenbaum
+\\date 9/18/2025
+This operation is more expensive in general than a straightforward
+copy, so it should only be used when the advantage of
+working with more than one type, unit system, or coordinate system
+makes it worth the tradeoff.
+The Get() operation converts field types as lists of values, while preserving values. 
+For a conversion operation, use Convert().
+*/
+   template <typename ParentFields>
+   static inline Fields Get(ParentFields& fields) {
+      Fields out;
+"""
+        for field in fieldlist:
+            name = field.name
+            if field.normof is not None:
+                x += f"""      if constexpr (Fields::{name}_found()) {{
+         if constexpr (ParentFields::{name}_found())
+            out.{name}() = fields.{name}();
+         else
+            if constexpr (ParentFields::{field.normof}_found()) {{
+               if constexpr (ParentFields::FConfig::{field.normof}_radial)
+                  out.{name}() = fields.{field.normof}[0];
+               else
+                  out.{name}() = fields.{field.normof}.Norm();
+            }}
+            else
+                out.{name}() = {name}_t();
+      }}
+"""
+            else:
+                x += f"""      if constexpr (Fields::{name}_found()) {{
+         if constexpr (ParentFields::{name}_found())
+            out.{name}() = fields.{name}();
+         else
+            out.{name}() = {name}_t();
+      }}
+"""
+        x += "      return out;\n   }\n"
+    elif injectee_label == 'base':
+        for field in fieldlist:
+            name = field.name
+            x += f"""
+   static constexpr const std::size_t {name}_offset = compute_offset<{name}_t>();"""
+    x += f"\n\n   // END(fields/generate, {injectee_label})\n"
+    return x
+
+
+def inject_getfields():
+    out = ""
+    return out
+
+
+if __name__ == '__main__':
+
+    generate_field_lists()
+    generate_field_types()
+    generate_species_types()
+    inject_fields()
+

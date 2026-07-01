@@ -43,7 +43,7 @@ SPECTRUM_CONSTEXPR double unit_time = unit_length / unit_velocity;
 SPECTRUM_CONSTEXPR double unit_density = unit_mass * unit_number_density;
 
 //! Magnetic field: derived from density and velocity (should be uG)
-SPECTRUM_CONSTEXPR double unit_magnetic = unit_velocity * sqrt(unit_density);
+SPECTRUM_CONSTEXPR double unit_magnetic = unit_velocity * csqrt(unit_density);
 
 //! Pressure and energy density: derived from magnetic field (should be 10^-10)
 SPECTRUM_CONSTEXPR double unit_pressure = Sqr(unit_magnetic);
