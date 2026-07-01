@@ -10,17 +10,10 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 #define SPECTRUM_COORDINATES_HH
 
 #include "common/vectors.hh"
+#include "common/compiletime_lists.hh"
 
 namespace Spectrum {
 
-//! Coordinate system - defines curvilinear coordinates
-enum class CoordinateSystem {
-   Cartesian,
-   Cylindrical,
-   SphericalRTP,
-   SphericalRMP,
-   Custom
-};
 
 /*!
 \brief A collection of routines to convert between curvilinear and Cartesian coordinate systems 

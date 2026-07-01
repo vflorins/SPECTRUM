@@ -26,7 +26,7 @@ Elsewhere, this file can be edited normally.
 #include "../fconfig.hh"
 
 #include "common/compiletime_lists.hh"
-#include "common/status.hh"
+//#include "common/status.hh"
 #include "common/physics.hh"
 
 
@@ -1102,7 +1102,7 @@ this should be evaluated using move semantics in all branches for memory efficie
 This operation triggers an exception if the field is not present.
 */
    double& MomMu(char w) {
-        if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+        if constexpr (FConfig::Mom_sys == CoordinateSystem::PitchAngle)
            return Mom()[1];
         else
            return reinterpret_cast<double&>(*(data + MomMu_offset));
@@ -1118,7 +1118,7 @@ this should be evaluated using move semantics in all branches for memory efficie
       if constexpr (MomMu_found())
          return *reinterpret_cast<const double*>(data + MomMu_offset);
       else
-         if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle)
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::PitchAngle)
             return Mom()[1];
          else
             return (Mom()*Mag())/(AbsMom()*AbsMag());
@@ -3261,10 +3261,10 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
 */
    [[nodiscard]] double VelPerp(void) const
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic) {
          return Vel()[0];
       }
-      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::PitchAngle) {
          return Vel()[0]*sqrt(1 - Sqr(Vel()[2]));
       }
       else if constexpr (Mag_found()) {
@@ -3274,10 +3274,10 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    }
    [[nodiscard]] double VelPara(void) const
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic) {
          return Vel()[2];
       }
-      else if constexpr (FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      else if constexpr (FConfig::Vel_sys == CoordinateSystem::PitchAngle) {
          return Vel()[0]*Vel()[2];
       }
       else if constexpr (Mag_found()) {
@@ -3287,7 +3287,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    }
    [[nodiscard]] double VelAzim(void) const
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic || FConfig::Vel_sys == CoordinateSystem::PitchAngle) {
          return Vel()[1];
       }
       else if constexpr (Mag_found()) {
@@ -3305,7 +3305,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
 */
    double& VelPerp(char w)
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic) {
          return Vel('w')[0];
       }
       else {
@@ -3314,7 +3314,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    }
    double& VelPara(char w)
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic) {
          return Vel('w')[2];
       }
       else {
@@ -3323,7 +3323,7 @@ The assumption that the fields type holds Mag() is unsatisfied in practice.
    }
    double& VelAzim(char w)
    {
-      if constexpr (FConfig::Vel_sys == CoordinateSystem::anisotropic || FConfig::Vel_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Vel_sys == CoordinateSystem::Anisotropic || FConfig::Vel_sys == CoordinateSystem::PitchAngle) {
          return Vel('w')[1];
       }
       else {
@@ -3343,10 +3343,10 @@ and azimuthal angle (unused in a reduced model).
 */
    [[nodiscard]] double MomPerp() const
    {
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
          return Mom()[0];
       }
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::PitchAngle) {
          return Mom()[0]*sqrt(1 - Sqr(Mom()[1]));
       }
       else if constexpr (Mag_found()) {
@@ -3356,10 +3356,10 @@ and azimuthal angle (unused in a reduced model).
    }
    [[nodiscard]] double MomPara() const
    {
-      if (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
          return Mom()[2];
       }
-      if (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if (FConfig::Mom_sys == CoordinateSystem::PitchAngle) {
          return Mom()[0]*Mom()[2];
       }
       else if (Mag_found()) {
@@ -3369,10 +3369,10 @@ and azimuthal angle (unused in a reduced model).
    }
    [[nodiscard]] double MomAzim() const
    {
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
          return Mom()[1];
       }
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::PitchAngle) {
          return Mom()[1];
       }
       else if constexpr (Mag_found()) {
@@ -3390,7 +3390,7 @@ and azimuthal angle (unused in a reduced model).
 */
    double& MomPerp(char w)
    {
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
          return Mom('w')[0];
       }
       else {
@@ -3399,7 +3399,7 @@ and azimuthal angle (unused in a reduced model).
    }
    double& MomPara(char w)
    {
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
          return Mom('w')[2];
       }
       else {
@@ -3408,7 +3408,7 @@ and azimuthal angle (unused in a reduced model).
    }
    double& MomAzim(char w)
    {
-      if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic || FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+      if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic || FConfig::Mom_sys == CoordinateSystem::PitchAngle) {
          return Mom('w')[1];
       }
       else {
@@ -3434,13 +3434,13 @@ This operation is designed for cases arising in plasma physics.
 //    ;
    void ReflectMomentum() {
       if constexpr (Mom_found()) {
-         if constexpr (FConfig::Mom_sys == CoordinateSystem::cartesian) {
+         if constexpr (FConfig::Mom_sys == CoordinateSystem::Cartesian) {
             Mom('w')[0] *= -1;
          }
-         else if constexpr (FConfig::Mom_sys == CoordinateSystem::anisotropic) {
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::Anisotropic) {
             MomPara('w') = -MomPara();
          }
-         else if constexpr (FConfig::Mom_sys == CoordinateSystem::pitchangle) {
+         else if constexpr (FConfig::Mom_sys == CoordinateSystem::PitchAngle) {
             Mom('w')[1] = -Mom()[1];
          }
       }
@@ -3455,57 +3455,58 @@ Make all fields consistent, including fields stored for quick lookup.
 NOTE: The convention is that momentum values are converted into velocity values.
 The operation going the other way does *not* happen - do not write velocity fields and then call this!
 */
-   template <typename RequestedFields>
-   status_t MakeConsistent() {
-      double Abs_;
-      if constexpr (RequestedFields::Mom_found() && RequestedFields::Vel_found()) {
-         // If  Mom and Vel, convert Mom to Vel and write.
-         Vel('w') = Vel<specie>(Mom());
-      }
-      if constexpr (RequestedFields::AbsMom_found() || RequestedFields::HatMom_found()) {
-         // If AbsMom or HatMom are stored, update them.
-         if constexpr (FConfig::Mom_Radial)
-            Abs_ = Mom()[0];
-         else
-            Abs_ = Mom().Norm();
-         if constexpr (RequestedFields::AbsMom_found())
-            AbsMom('w') = Abs_;
-         if constexpr (RequestedFields::HatMom_found())
-            // todo decide about division by zero
-            HatMom('w') = Mom() / Abs_;
-      }
-      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
-         // If AbsVel or HatVel are stored, update them.
-         if constexpr (FConfig::Vel_Radial)
-            Abs_ = Vel()[0];
-         else
-            Abs_ = Vel().Norm();
-         if constexpr (RequestedFields::AbsVel_found())
-            AbsVel('w') = Abs_;
-         if constexpr (RequestedFields::HatVel_found())
-            // todo decide about division by zero
-            HatVel('w') = Vel() / Abs_;
-      }
-      if constexpr (RequestedFields::Rad_found()) {
-         // If Rad is stored, update it. (Rad is AbsPos, there is no HatPos.)
-         if constexpr (FConfig::Pos_Radial)
-            Rad('w') = Pos()[0];
-         else
-            Rad('w') = Pos().Norm();
-      }
-      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
-         // If AbsMag or HatMag are stored, update them.
-         Abs_ = Mag().Norm();
-         if constexpr (RequestedFields::AbsMag_found())
-            AbsMag('w') = Abs_;
-         if constexpr (RequestedFields::HatMag_found())
-            // todo decide about division by zero
-            HatMag('w') = Mag() / Abs_;
-      }
-      status_t status = 0;
-      if (AbsMag() < sp_tiny) RAISE_BITS(status, STATE_INVALID);
-      return status;
-   }
+   // todo requires status_t cf. `spdata-fields-ddata` branch.
+//   template <typename RequestedFields>
+//   status_t MakeConsistent() {
+//      double Abs_;
+//      if constexpr (RequestedFields::Mom_found() && RequestedFields::Vel_found()) {
+//         // If  Mom and Vel, convert Mom to Vel and write.
+//         Vel('w') = Vel<specie>(Mom());
+//      }
+//      if constexpr (RequestedFields::AbsMom_found() || RequestedFields::HatMom_found()) {
+//         // If AbsMom or HatMom are stored, update them.
+//         if constexpr (FConfig::Mom_Radial)
+//            Abs_ = Mom()[0];
+//         else
+//            Abs_ = Mom().Norm();
+//         if constexpr (RequestedFields::AbsMom_found())
+//            AbsMom('w') = Abs_;
+//         if constexpr (RequestedFields::HatMom_found())
+//            // todo decide about division by zero
+//            HatMom('w') = Mom() / Abs_;
+//      }
+//      if constexpr (RequestedFields::AbsVel_found() || RequestedFields::HatVel_found()) {
+//         // If AbsVel or HatVel are stored, update them.
+//         if constexpr (FConfig::Vel_Radial)
+//            Abs_ = Vel()[0];
+//         else
+//            Abs_ = Vel().Norm();
+//         if constexpr (RequestedFields::AbsVel_found())
+//            AbsVel('w') = Abs_;
+//         if constexpr (RequestedFields::HatVel_found())
+//            // todo decide about division by zero
+//            HatVel('w') = Vel() / Abs_;
+//      }
+//      if constexpr (RequestedFields::Rad_found()) {
+//         // If Rad is stored, update it. (Rad is AbsPos, there is no HatPos.)
+//         if constexpr (FConfig::Pos_Radial)
+//            Rad('w') = Pos()[0];
+//         else
+//            Rad('w') = Pos().Norm();
+//      }
+//      if constexpr (RequestedFields::AbsMag_found() || RequestedFields::HatMag_found()) {
+//         // If AbsMag or HatMag are stored, update them.
+//         Abs_ = Mag().Norm();
+//         if constexpr (RequestedFields::AbsMag_found())
+//            AbsMag('w') = Abs_;
+//         if constexpr (RequestedFields::HatMag_found())
+//            // todo decide about division by zero
+//            HatMag('w') = Mag() / Abs_;
+//      }
+//      status_t status = 0;
+//      if (AbsMag() < sp_tiny) RAISE_BITS(status, STATE_INVALID);
+//      return status;
+//   }
 
 
 /*!

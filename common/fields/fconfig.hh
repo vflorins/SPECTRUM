@@ -17,8 +17,8 @@ namespace Spectrum {
 
 template <
       SpecieId specieid_ = SpecieId::proton_core,
-      CoordinateSystem Pos_sys_ = CoordinateSystem::cartesian,
-      CoordinateSystem Mom_sys_ = CoordinateSystem::cartesian
+      CoordinateSystem Pos_sys_ = CoordinateSystem::Cartesian,
+      CoordinateSystem Mom_sys_ = CoordinateSystem::Cartesian
 >
 struct FConfig {
    static constexpr auto specieid = specieid_; //
@@ -26,8 +26,8 @@ struct FConfig {
    static constexpr auto Mom_sys = Mom_sys_;
    static constexpr auto Vel_sys = Mom_sys_;
    // A CoordinateSystem is 'radial' iff the 0th component is the radial component.
-   static constexpr bool Pos_radial = (Pos_sys == CoordinateSystem::polar || Pos_sys == CoordinateSystem::spherical);
-   static constexpr bool Mom_radial = (Mom_sys == CoordinateSystem::polar || Mom_sys == CoordinateSystem::spherical || Mom_sys == CoordinateSystem::pitchangle);
+   static constexpr bool Pos_radial = (Pos_sys == CoordinateSystem::Polar || Pos_sys == CoordinateSystem::SphericalRTP);
+   static constexpr bool Mom_radial = (Mom_sys == CoordinateSystem::Polar || Mom_sys == CoordinateSystem::SphericalRTP || Mom_sys == CoordinateSystem::PitchAngle);
    static  constexpr bool Vel_radial = Mom_radial;
    static constexpr bool Mag_radial = false;
    static constexpr bool Flum_radial = false;

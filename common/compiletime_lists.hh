@@ -26,15 +26,16 @@ namespace Spectrum {
 //----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+//! Coordinate system - defines curvilinear coordinates
 enum class CoordinateSystem {
-   cartesian,
-   polar,
-   cylindrical,
-   spherical,
-   /* In cases where some of the physical coordinates present are not used. */
-   none,
-   pitchangle, /* magnitude, 'mu', - */
-   anisotropic, /* perpendicular, parallel, - */ /* CHECK */
+   Cartesian,
+   Cylindrical,
+   SphericalRTP,
+   SphericalRMP,
+   Custom,
+   Polar,
+   PitchAngle, /* magnitude, 'mu', - */
+   Anisotropic, /* perpendicular, - , parallel */
 };
 
 

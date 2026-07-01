@@ -498,7 +498,7 @@ this should be evaluated using move semantics in all branches for memory efficie
 This operation triggers an exception if the field is not present.
 */
    {datatype}& {name}(char w) {{
-        if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::pitchangle)
+        if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::PitchAngle)
            return {field.muof}()[1];
         else
            return reinterpret_cast<{datatype}&>(*(data + {name}_offset));
@@ -514,7 +514,7 @@ this should be evaluated using move semantics in all branches for memory efficie
       if constexpr ({name}_found())
          return {reinterpret_};
       else
-         if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::pitchangle)
+         if constexpr (FConfig::{field.muof}_sys == CoordinateSystem::PitchAngle)
             return {field.muof}()[1];
          else
             return ({field.muof}()*Mag())/(Abs{field.muof}()*AbsMag());

@@ -37,7 +37,7 @@ struct ScalarField {
       data(value)
    {}
 
-   ScalarField(ScalarField<nameid> field_in) {
+   ScalarField(ScalarField<nameid>& field_in) {
       data = field_in.data[0];
    }
 

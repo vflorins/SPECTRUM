@@ -1,4 +1,4 @@
-// g++ -I${SPECTRUM} -Wall -std=c++20 -O0 -o main main_test_fields.cc ${SPECTRUM}/common/vectors.cc ${SPECTRUM}/common/matrix.cc
+// g++ -I${SPECTRUM} -Wall -std=c++20 -O0 -o main main_test_fields.cc ${SPECTRUM}/common/vectors.cc ${SPECTRUM}/common/matrix.cc -lstdc++
 
 #include <iostream>
 using std::cout; using std::endl;
@@ -38,6 +38,7 @@ void contiguous() {
    else {
       cout << "❌Detected padding in parent tuple type." << endl;
    }
+   cout << "\n---\n" << endl;
 }
 
 
@@ -82,7 +83,7 @@ void constructors() {
    cout << "structured size: " << Fields5::structured_size() << endl;
 
    cout << "✅ initialization successful." << endl;
-
+   cout << "\n---\n" << endl;
 }
 
 
@@ -102,27 +103,28 @@ void loop_as_array() {
    cout << "sizes: " << Fields1::size() << " " << Fields2::size() << endl;
    cout << "structured sizes: " << Fields1::structured_size() << " " << Fields2::structured_size() << endl;
    double *arr = fields1.Array();
-   for (int i = 0; i < Fields1::size(); ++i) {
+   for (size_t i = 0; i < Fields1::size(); ++i) {
       cout << arr[i] << " ";
    }
    cout << endl;
    cout << "✅ loop successful." << endl;
    cout << "Alternative format:\n";
-   for (int i = 0; i < X.size(); ++i) {
+   for (size_t i = 0; i < X.size(); ++i) {
       cout << X.Array()[i] << " ";
    }
    cout << endl;
    cout << "✅ loop successful." << endl;
+   cout << "\n---\n" << endl;
 }
 
 
 void assignment() {
-   cout << "Calls like Den() Ele() Mag() etc. return an l-value (a copy). \n"
-           "To obtain an r-value pass a one-character argument \n"
+   cout << "Calls like Den() Ele() Mag() etc. return an r-value (a copy). \n"
+           "To obtain an l-value pass a one-character argument \n"
            "that by convention is always 'w', short for 'write'. \n"
            "This API mirrors that of UNIX file permissions.\n"
            "Heuristically, you must access a writable copy explicitly.\n"
-           "This may seem odd at first, but it helps avoids traps/bugs where "
+           "This may seem odd at first, but it helps avoids traps/bugs where \n"
            "lvalues and/or rvalues are used unintentionally.\n"
         << endl;
 
@@ -162,7 +164,7 @@ void assignment() {
    y.PrimitiveGasDyn('w') = PrimitiveGasDyn_t{{{555}, {66,77,88},{999}}};
    cout << "y: " << y.str() << endl;
    cout << "✅ assignment successful." << endl;
-
+   cout << "\n---\n" << endl;
 }
 
 };
