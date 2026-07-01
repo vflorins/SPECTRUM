@@ -1,4 +1,4 @@
-// g++ -I${SPECTRUM} -Wall -std=c++20 -O0 -o main main.cc ${SPECTRUM}/common/vectors.cc ${SPECTRUM}/common/matrix.cc
+// g++ -I${SPECTRUM} -Wall -std=c++20 -O0 -o main main_test_fields.cc ${SPECTRUM}/common/vectors.cc ${SPECTRUM}/common/matrix.cc
 
 #include <iostream>
 using std::cout; using std::endl;
