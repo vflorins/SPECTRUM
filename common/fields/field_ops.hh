@@ -62,7 +62,7 @@ using Front = Impl::Front_impl<Fields>::Front;
 namespace Impl {
 
 template<typename Fields>
-class Pop_impl;
+struct Pop_impl;
 
 template<typename FConfig, typename T, typename... Ts>
 struct Pop_impl<Fields<FConfig, T, Ts...>> {
@@ -82,7 +82,7 @@ using Pop = typename Impl::Pop_impl<Fields>::Pop;
 namespace Impl {
 
 template<typename Fields, typename U>
-class Push_impl;
+struct Push_impl;
 
 template<typename U, typename FConfig, typename T, typename... Ts>
 struct Push_impl<Fields<FConfig, T, Ts...>, U> {
@@ -210,7 +210,7 @@ using Concat = typename Impl::Concat_impl<Fields1, Fields2>::Concat;
 namespace Impl {
 
 template<typename Fields, typename U>
-class Push_Back_impl;
+struct Push_Back_impl;
 
 template<typename FConfig, typename... Ts, typename U>
 struct Push_Back_impl<Fields<FConfig, Ts...>, U> {

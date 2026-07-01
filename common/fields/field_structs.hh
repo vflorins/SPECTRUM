@@ -80,6 +80,18 @@ struct VectorField : public GeoVector {
       GeoVector(vec)
    {}
 
+   VectorField(double x, double y = 0, double z = 0):
+         GeoVector(x, y, z)
+   {}
+
+   VectorField(std::initializer_list<double> list):
+         GeoVector(
+               list.size() > 0 ? *(list.begin() + 0) : 0,
+               list.size() > 1 ? *(list.begin() + 1) : 0,
+               list.size() > 2 ? *(list.begin() + 2) : 0
+         )
+   {}
+
 //! print string
    std::string str() const {
       std::string tmp = std::string(Field::Names[nameid]) + "[";
