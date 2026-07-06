@@ -13,6 +13,7 @@ This file is part of the SPECTRUM suite of scientific numerical simulation codes
 
 #include <limits>
 #include <cmath>
+#include <cstdint>
 #include <bit>
 
 namespace Spectrum {
