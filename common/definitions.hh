@@ -227,32 +227,6 @@ SPECTRUM_DEVICE_FUNC inline constexpr T Quint(T x)
 };
 
 /*!
-\brief Computes the square root
-\author Vladimir Florinski
-\date 11/07/2025
-\param[in] x The argument
-\return \f$\sqrt{x}\f$
-*/
-SPECTRUM_DEVICE_FUNC inline constexpr double SqrtHenon(double x)
-{
-   if (x < 0.0) return -NAN;
-   const int maxiter = 10;
-   int niter = 0;
-   double y = x;
-
-// Initial reduction based on a bitwise representation of a "double"
-   size_t* yintp = (size_t*)&y;
-   *yintp = (((((*yintp & 0x7FF0000000000000) - 0x3FF0000000000000) >> 1) + 0x3FF0000000000000) & 0x7FF0000000000000) | (*yintp & 0x000FFFFFFFFFFFFF);
-
-// Henon's method (Newton iterations)
-   while ((fabs((y * y - x) / x) > sp_tiny) && (niter < maxiter)) {
-      y = 0.5 * (y + x / y);
-      niter++;
-   };
-   return y;
-};
-
-/*!
 \brief Creates a two-dimensional array of arbitrary type
 \author Vladimir Florinski
 \date 07/28/2016
