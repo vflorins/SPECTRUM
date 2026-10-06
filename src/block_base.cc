@@ -148,6 +148,10 @@ void BlockBase::LoadDimensions(double unit_length_block)
       incr[2] *= ghost_to_phys_ratio[2];
       face_min -= incr;
       face_max += incr;
+
+// Adjust the boundary used for interpolation
+      face_min_phys -= 0.4 * incr;
+      face_max_phys += 0.4 * incr;
    };
 };
 
