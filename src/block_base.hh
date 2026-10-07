@@ -62,11 +62,11 @@ protected:
 //! Vector to the corner of the zone with maximum coordinates
    GeoVector face_max;
 
-//! Vector to the corner of the physical zone with minimum coordinates
-   GeoVector face_min_phys;
+//! Vector to the min corner of the interpolation box for internal use
+   GeoVector interpolation_box_min;
 
-//! Vector to the corner of the physical zone with maximum coordinates
-   GeoVector face_max_phys;
+//! Vector to the max corner of the interpolation box for internal use
+   GeoVector interpolation_box_max;
 
 //! Vector to the zone center closest to face_min
    GeoVector cent_min;
@@ -328,7 +328,7 @@ inline GeoVector* BlockBase::GetFaceMaxAddress(void)
 */
 inline GeoVector BlockBase::GetFaceMinPhys(void) const
 {
-   return face_min_phys;
+   return interpolation_box_min;
 };
 
 /*!
@@ -338,27 +338,27 @@ inline GeoVector BlockBase::GetFaceMinPhys(void) const
 */
 inline GeoVector BlockBase::GetFaceMaxPhys(void) const
 {
-   return face_max_phys;
+   return interpolation_box_max;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 08/04/2023
-\return The address of "face_min_phys"
+\return The address of "interpolation_box_min"
 */
 inline GeoVector* BlockBase::GetFaceMinPhysAddress(void)
 {
-   return &face_min_phys;
+   return &interpolation_box_min;
 };
 
 /*!
 \author Juan G Alonso Guzman
 \date 08/04/2023
-\return The address of "face_max_phys"
+\return The address of "interpolation_box_max"
 */
 inline GeoVector* BlockBase::GetFaceMaxPhysAddress(void)
 {
-   return &face_max_phys;
+   return &interpolation_box_max;
 };
 
 /*!

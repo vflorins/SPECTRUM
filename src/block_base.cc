@@ -137,8 +137,8 @@ void BlockBase::LoadDimensions(double unit_length_block)
    face_max *= unit_length_block / Particle::unit_length;
 
 // Copy to physical faces
-   face_min_phys = face_min;
-   face_max_phys = face_max;
+   interpolation_box_min = face_min;
+   interpolation_box_max = face_max;
 
 // Adjust for ghost cells
    if (num_ghost_cells > 0) {
@@ -148,6 +148,10 @@ void BlockBase::LoadDimensions(double unit_length_block)
       incr[2] *= ghost_to_phys_ratio[2];
       face_min -= incr;
       face_max += incr;
+
+// Adjust the boundary used for interpolation
+      interpolation_box_min -= 0.4 * incr;
+      interpolation_box_max += 0.4 * incr;
    };
 };
 
@@ -210,9 +214,9 @@ void BlockBase::GetZoneOffset(const GeoVector& pos, MultiIndex& zone, GeoVector&
 */
 bool BlockBase::PositionInside(const GeoVector& pos) const
 {
-   return ((pos[0] >= face_min_phys[0]) && (pos[0] <= face_max_phys[0])
-        && (pos[1] >= face_min_phys[1]) && (pos[1] <= face_max_phys[1])
-        && (pos[2] >= face_min_phys[2]) && (pos[2] <= face_max_phys[2]));
+   return ((pos[0] >= interpolation_box_min[0]) && (pos[0] <= interpolation_box_max[0])
+        && (pos[1] >= interpolation_box_min[1]) && (pos[1] <= interpolation_box_max[1])
+        && (pos[2] >= interpolation_box_min[2]) && (pos[2] <= interpolation_box_max[2]));
 };
 
 /*!
